@@ -104,7 +104,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         for t in range(dataset.N_TASKS):
             model.net.train()
             _, _ = dataset_copy.get_data_loaders()
-        if model.NAME != 'icarl' and model.NAME != 'pnn':
+        if model.NAME not in ['icarl', 'pnn', 'scr']:
             random_results_class, random_results_task = evaluate(model, dataset_copy)
 
     print(file=sys.stderr)
