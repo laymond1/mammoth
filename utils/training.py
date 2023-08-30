@@ -104,7 +104,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         for t in range(dataset.N_TASKS):
             model.net.train()
             _, _ = dataset_copy.get_data_loaders()
-        if model.NAME not in ['icarl', 'pnn', 'scr', 'co2l', 'vncr']:
+        if model.NAME not in ['icarl', 'pnn', 'scr', 'co2l', 'vncr', 'vencr']:
             random_results_class, random_results_task = evaluate(model, dataset_copy)
 
     print(file=sys.stderr)
@@ -171,7 +171,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     if not args.disable_log and not args.ignore_other_metrics:
         logger.add_bwt(results, results_mask_classes)
         logger.add_forgetting(results, results_mask_classes)
-        if model.NAME not in ['icarl', 'pnn', 'scr', 'co2l', 'vncr']:
+        if model.NAME not in ['icarl', 'pnn', 'scr', 'co2l', 'vncr', 'vencr']:
             logger.add_fwt(results, random_results_class,
                     results_mask_classes, random_results_task)
 
