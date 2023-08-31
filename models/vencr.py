@@ -56,14 +56,14 @@ class SupConMLP(nn.Module):
     def forward(self, x):
         feats = F.normalize(self.fc(x), dim=1)
         return feats
+        
 
-
-class VNCR(ContinualModel):
-    NAME = 'vncr'
+class VENCR(ContinualModel):
+    NAME = 'vencr'
     COMPATIBILITY = ['class-il', 'task-il']
 
     def __init__(self, backbone, loss, args, transform):
-        super(VNCR, self).__init__(backbone, loss, args, transform)
+        super(VENCR, self).__init__(backbone, loss, args, transform)
         self.dataset = get_dataset(args)
         self.buffer = Buffer(self.args.buffer_size, self.device)
         self.simclr_lss = AsymSupConLoss(temperature=self.args.simclr_temp, base_temperature=self.args.simclr_temp, reduction='mean')
@@ -126,29 +126,30 @@ class VNCR(ContinualModel):
             # combine the current data with the buffer data
             inputs = torch.cat((not_aug_inputs, buf_inputs))
             labels = torch.cat((labels, buf_labels))
-            # virtual(mixup) negative sample
-            neg_not_aug_inputs = partial_mixup(input=inputs, gamma=self.args.gamma, indices=torch.randperm(inputs.size(0)))
-            # merge with all samples
-            inputs = torch.cat([inputs, neg_not_aug_inputs], dim=0)
+            # aug(transform) the combined data
+            inputs = torch.cat(self.two_transform(inputs), dim=0)
         else:
-            # virtual(mixup) negative sample
-            neg_not_aug_inputs = partial_mixup(input=not_aug_inputs, gamma=self.args.gamma, indices=torch.randperm(not_aug_inputs.size(0)))
-            # merge with all samples
-            inputs = torch.cat([not_aug_inputs, neg_not_aug_inputs], dim=0)
+            # aug(transform) the combined data
+            inputs = torch.cat(self.two_transform(not_aug_inputs), dim=0)
         
-        # aug(transform) the combined data
-        inputs = torch.cat(self.two_transform(inputs), dim=0)
+        bsz = labels.shape[0]
+        
         # create neg labels and merge
         neg_labels = torch.ones(labels.size(0), dtype=torch.long).fill_(
             (self.task+1)*self.dataset.N_CLASSES_PER_TASK
             ).to(self.device)
         labels = torch.cat([labels, neg_labels], dim=0)
         
-        bsz = labels.shape[0]
-        # Asym SupCon Loss
+        # virtual(mixup) negative sample in embedding space
         features = self.proj_forward(inputs)
         f1, f2 = torch.split(features, [bsz, bsz], dim=0)
+        indices = torch.randperm(f1.size(0))
+        neg_f1 = partial_mixup(input=f1, gamma=self.args.gamma, indices=indices)
+        neg_f2 = partial_mixup(input=f2, gamma=self.args.gamma, indices=indices)
+        f1, f2 = torch.cat([f1, neg_f1], dim=0), torch.cat([f2, neg_f2], dim=0)
+        
         features = torch.cat([f1.unsqueeze(1), f2.unsqueeze(1)], dim=1)
+        
         loss = self.simclr_lss(features, labels, target_labels=list(range((self.task+1)*self.dataset.N_CLASSES_PER_TASK)))
        
         # compute loss
