@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from copy import deepcopy
+import math
 
 import torch
 import torch.nn as nn
@@ -16,6 +17,7 @@ from utils.args import add_management_args, add_experiment_args, add_rehearsal_a
 from utils.batch_norm import bn_track_stats
 from utils.buffer import Buffer
 from utils.simclrloss import SupConLoss, AsymSupConLoss
+from utils.status import ProgressBar
 from kornia.augmentation import RandomResizedCrop, RandomHorizontalFlip, ColorJitter, RandomGrayscale
 
 
@@ -25,6 +27,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
+    parser.add_argument('--classifier', type=str, default='linear')
     parser.add_argument('--head_output_size', type=int, default=128,
                         help='Output size of the Head.')
     parser.add_argument('--simclr_temp', type=float, default=0.1)
@@ -87,13 +90,41 @@ class CO2L(ContinualModel):
         
         # head
         self.net.head = SupConMLP(input_size=self.net.linear.in_features, output_size=128)
-        # linear head
-        self.linear_heads = {}
 
         self.old_net = None
         self.task = 0
     
-    def forward(self, x):
+    def forward(self, x, returnt='linear'):
+        """
+        Forward pass with encoder and NCM Classifier for evluation.
+        """
+        returnt = self.args.classifier
+        
+        if returnt == 'linear':
+            return self.linear_forward(x)
+            
+        elif returnt == 'ncm':
+            return self.ncm_forward(x)
+        else:
+            raise ValueError(f'{returnt} is not implimented.')
+        
+    def proj_forward(self, x):
+        """
+        Forward pass with encoder and projection head for training.
+        """
+        feats = self.net(x, returnt='features')
+        feats = self.net.head(feats)
+        return feats
+    
+    def linear_forward(self, x):
+        """
+        Forward pass with encoder and Linear Classifier for evluation.
+        """
+        with torch.no_grad():
+            feats = self.net(x, returnt='features')
+        return self.net.classifier(feats)
+    
+    def ncm_forward(self, x):
         """
         Forward pass with encoder and NCM Classifier for evluation.
         """
@@ -107,16 +138,8 @@ class CO2L(ContinualModel):
         feats = feats.unsqueeze(1)
 
         pred = (self.class_means.unsqueeze(0) - feats).pow(2).sum(2)
-        return -pred       
-        
-    def proj_forward(self, x):
-        """
-        Forward pass with encoder and projection head for training.
-        """
-        feats = self.net(x, returnt='features')
-        feats = self.net.head(feats)
-        return feats
-        
+        return -pred  
+    
     def observe(self, inputs, labels, not_aug_inputs):
         # set classes_so_far attribute referenced from icarl.py
         if not hasattr(self, 'classes_so_far'):
@@ -194,13 +217,6 @@ class CO2L(ContinualModel):
 
         return loss.item()
         
-    def end_task(self, dataset) -> None:
-        self.old_net = deepcopy(self.net.eval())
-        
-        self.task += 1
-        self.net.train()
-        self.class_means = None
-            
     def compute_class_means(self) -> None:
         """
         Computes a vector representing mean features for each class.
@@ -228,3 +244,59 @@ class CO2L(ContinualModel):
                         allt /= 2
                 class_means.append(allt.flatten())
         self.class_means = torch.stack(class_means)
+
+    def end_task(self, dataset) -> None:
+        
+        if self.args.classifier == 'linear':
+            train_loader = dataset.train_loader
+            self.train_linear_classifier(train_loader)
+        
+        self.task += 1
+        self.class_means = None
+        
+        self.old_net = deepcopy(self.net.eval())
+        
+    def linear_observe(self, inputs, labels, not_aug_inputs, opt):
+        """
+        Train linear classifier
+        """
+        
+        opt.zero_grad()
+
+        if not self.buffer.is_empty():
+            # buffer do not transform inputs
+            buf_inputs, buf_labels = self.buffer.get_data(
+                self.args.minibatch_size, transform=self.dataset.get_transform())
+            # combine the current data with the buffer data
+            inputs = torch.cat((inputs, buf_inputs))
+            labels = torch.cat((labels, buf_labels))
+            
+        # freeze encoder and pass linear classifier
+        outputs = self.linear_forward(inputs)
+        # compute loss
+        loss = self.loss(outputs, labels)
+        loss.backward()
+        opt.step()
+            
+        return loss.item()
+    
+    def train_linear_classifier(self, train_loader):
+        # linear optimizer
+        opt = torch.optim.SGD(self.net.classifier.parameters(), lr=self.args.lr)
+        scheduler = self.dataset.get_scheduler(self.net, self.args)
+        # start train linear classifier
+        progress_bar = ProgressBar(verbose=not self.args.non_verbose)
+        for epoch in range(self.args.n_epochs):
+            for i, data in enumerate(train_loader):
+                if self.args.debug_mode and i > 3:
+                    break
+                # data
+                inputs, labels, not_aug_inputs = data
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
+                # compute loss                    
+                loss = self.linear_observe(inputs, labels, not_aug_inputs, opt)
+                assert not math.isnan(loss)
+                progress_bar.prog(i, len(train_loader), epoch, self.task+1, loss)
+
+            if scheduler is not None:
+                scheduler.step()
