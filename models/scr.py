@@ -233,7 +233,7 @@ class SCR(ContinualModel):
     def train_linear_classifier(self, train_loader):
         # linear optimizer
         opt = torch.optim.SGD(self.net.classifier.parameters(), lr=self.args.lr)
-        scheduler = self.dataset.get_scheduler(self.net, self.args)
+        scheduler = self.dataset.get_scheduler(self, self.args)
         # start train linear classifier
         progress_bar = ProgressBar(verbose=not self.args.non_verbose)
         for epoch in range(self.args.n_epochs):
