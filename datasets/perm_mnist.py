@@ -112,3 +112,7 @@ class PermutedMNIST(ContinualDataset):
     @staticmethod
     def get_minibatch_size() -> int:
         return PermutedMNIST.get_batch_size()
+
+    @staticmethod
+    def get_image_size():
+        return 32

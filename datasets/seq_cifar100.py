@@ -144,3 +144,6 @@ class SequentialCIFAR100(ContinualDataset):
         scheduler = torch.optim.lr_scheduler.MultiStepLR(model.opt, [35, 45], gamma=0.1, verbose=False)
         return scheduler
 
+    @staticmethod
+    def get_image_size():
+        return 32

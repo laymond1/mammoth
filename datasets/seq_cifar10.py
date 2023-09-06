@@ -133,3 +133,7 @@ class SequentialCIFAR10(ContinualDataset):
     @staticmethod
     def get_minibatch_size():
         return SequentialCIFAR10.get_batch_size()
+    
+    @staticmethod
+    def get_image_size():
+        return 32

@@ -107,3 +107,7 @@ class SequentialMNIST(ContinualDataset):
     @staticmethod
     def get_minibatch_size():
         return SequentialMNIST.get_batch_size()
+    
+    @staticmethod
+    def get_image_size():
+        return 32

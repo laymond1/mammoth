@@ -186,3 +186,7 @@ class SequentialTinyImagenet(ContinualDataset):
     @staticmethod
     def get_minibatch_size():
         return SequentialTinyImagenet.get_batch_size()
+
+    @staticmethod
+    def get_image_size():
+        return 64

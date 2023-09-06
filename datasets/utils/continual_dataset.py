@@ -95,6 +95,10 @@ class ContinualDataset:
     @staticmethod
     def get_minibatch_size():
         raise NotImplementedError
+    
+    @staticmethod
+    def get_image_size():
+        raise NotImplementedError
 
 
 def store_masked_loaders(train_dataset: Dataset, test_dataset: Dataset,

@@ -54,3 +54,7 @@ class RotatedMNIST(ContinualDataset):
     @staticmethod
     def get_minibatch_size() -> int:
         return RotatedMNIST.get_batch_size()
+    
+    @staticmethod
+    def get_image_size():
+        return 32
