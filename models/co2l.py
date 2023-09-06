@@ -19,6 +19,7 @@ from utils.batch_norm import bn_track_stats
 from utils.buffer import Buffer
 from utils.simclrloss import SupConLoss, AsymSupConLoss
 from utils.status import ProgressBar
+from utils.warm_up import adjust_learning_rate, warmup_learning_rate
 from kornia.augmentation import RandomResizedCrop, RandomHorizontalFlip, ColorJitter, RandomGrayscale
 
 
@@ -29,9 +30,10 @@ def get_parser() -> ArgumentParser:
     add_experiment_args(parser)
     add_rehearsal_args(parser)
     # learning rate
-    parser.add_argument('--lr_decay_epochs', type=str, default='60,75,90',
+    # parser.add_argument('--lr_decay_epochs', type=str, default='60,75,90',
+    parser.add_argument('--lr_decay_epochs', type=str, default='30,40',
                         help='where to decay lr, can be a list')
-    parser.add_argument('--lr_decay_rate', type=float, default=0.2,
+    parser.add_argument('--lr_decay_rate', type=float, default=0.1,
                         help='decay rate for learning rate')
     parser.add_argument('--cosine', action='store_true',
                         help='using cosine annealing')
@@ -95,6 +97,7 @@ class CO2L(ContinualModel):
         self.dataset = get_dataset(args)
         self.buffer = Buffer(self.args.buffer_size, self.device)
         self.asysimclr_lss = AsymSupConLoss(temperature=self.args.simclr_temp, base_temperature=self.args.simclr_temp, reduction='mean')
+        self.opt = torch.optim.SGD(self.net.parameters(), lr=self.args.lr, momentum=self.args.optim_mom, weight_decay=self.args.optim_wd)
 
         self.class_means = None
         
@@ -314,18 +317,25 @@ class CO2L(ContinualModel):
         return loss.item()
     
     def train_linear_classifier(self, train_loader):
+        # set mode for each network
+        self.net._features.eval()
+        self.net.classifier.train()
         # linear optimizer
         opt = torch.optim.SGD(self.net.classifier.parameters(), lr=self.args.lr)
         scheduler = self.dataset.get_scheduler(self, self.args)
         # start train linear classifier
         progress_bar = ProgressBar(verbose=not self.args.non_verbose)
         for epoch in range(self.args.n_epochs):
+            # adjust learning rate
+            adjust_learning_rate(self.args, opt, epoch)
             for i, data in enumerate(train_loader):
                 if self.args.debug_mode and i > 3:
                     break
                 # data
                 inputs, labels, not_aug_inputs = data
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
+                # warm-up learning rate
+                warmup_learning_rate(self.args, epoch, i, len(train_loader), opt)
                 # compute loss                    
                 loss = self.linear_observe(inputs, labels, not_aug_inputs, opt)
                 assert not math.isnan(loss)
