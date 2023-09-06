@@ -11,6 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from datasets import get_dataset
 from datasets.transforms.twocrop import TwoCropTransform
+from torchvision.transforms import transforms
 
 from models.utils.continual_model import ContinualModel
 from utils.args import add_management_args, add_experiment_args, add_rehearsal_args, ArgumentParser
@@ -27,13 +28,25 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
+    # learning rate
+    parser.add_argument('--lr_decay_epochs', type=str, default='60,75,90',
+                        help='where to decay lr, can be a list')
+    parser.add_argument('--lr_decay_rate', type=float, default=0.2,
+                        help='decay rate for learning rate')
+    parser.add_argument('--cosine', action='store_true',
+                        help='using cosine annealing')
+    parser.add_argument('--warm', action='store_true',
+                        help='warm-up for large batch training')
+    # network
     parser.add_argument('--classifier', type=str, default='linear')
     parser.add_argument('--head_output_size', type=int, default=128,
                         help='Output size of the Head.')
+    # loss
     parser.add_argument('--simclr_temp', type=float, default=0.1)
     parser.add_argument('--current_temp', type=float, default=0.2,)
     parser.add_argument('--past_temp', type=float, default=0.01,)
     parser.add_argument('--distill_power', type=float, default=1.0,)
+    
     return parser
 
 
@@ -56,7 +69,9 @@ class SupConMLP(nn.Module):
 
 
 class LinearClassifier(nn.Module):
-    """Linear classifier"""
+    """
+    Linear classifier
+    """
 
     def __init__(self, input_size, output_size, **kwargs):
         super(LinearClassifier, self).__init__()
@@ -68,6 +83,10 @@ class LinearClassifier(nn.Module):
 
 
 class CO2L(ContinualModel):
+    """
+    Contrastive Continual Learning(Co2L) published in ICCV 2021.
+    [https://github.com/chaht01/Co2L]
+    """
     NAME = 'co2l'
     COMPATIBILITY = ['class-il', 'task-il']
 
@@ -93,6 +112,20 @@ class CO2L(ContinualModel):
 
         self.old_net = None
         self.task = 0
+    
+        # cosing anealing
+        # warm-up for large-batch training,
+        if args.batch_size > 256:
+            args.warm = True
+        if args.warm:
+            args.warmup_from = 0.01
+            args.warm_epochs = 10
+            if args.cosine:
+                eta_min = args.lr * (args.lr_decay_rate ** 3)
+                args.warmup_to = eta_min + (args.lr - eta_min) * (
+                        1 + math.cos(math.pi * args.warm_epochs / args.n_epochs)) / 2
+            else:
+                args.warmup_to = args.lr
     
     def forward(self, x, returnt='linear'):
         """
