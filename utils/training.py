@@ -124,7 +124,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         for epoch in range(model.args.n_epochs):
             if args.model == 'joint':
                 continue
-            if model.NAME not in ['scr', 'co2l']:
+            if model.NAME in ['scr', 'co2l']:
                 # adjust learning rate
                 adjust_learning_rate(args, model.opt, epoch)
             for i, data in enumerate(train_loader):
@@ -142,7 +142,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                     inputs, labels = inputs.to(model.device), labels.to(
                         model.device)
                     not_aug_inputs = not_aug_inputs.to(model.device)
-                    if model.NAME not in ['scr', 'co2l']:
+                    if model.NAME in ['scr', 'co2l']:
                         # warm-up learning rate
                         warmup_learning_rate(args, epoch, i, len(train_loader), model.opt)
                     loss = model.meta_observe(inputs, labels, not_aug_inputs)
