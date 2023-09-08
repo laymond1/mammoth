@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from datasets import get_dataset
 from datasets.transforms.twocrop import TwoCropTransform
+from torchvision.transforms import transforms
 
 from models.utils.continual_model import ContinualModel
 from utils.args import add_management_args, add_experiment_args, add_rehearsal_args, ArgumentParser
@@ -17,7 +18,7 @@ from utils.batch_norm import bn_track_stats
 from utils.buffer import Buffer
 from utils.simclrloss import SupConLoss, AsymSupConLoss
 from utils.status import ProgressBar
-from kornia.augmentation import RandomResizedCrop, RandomHorizontalFlip, ColorJitter, RandomGrayscale
+from utils.augmentations import strong_aug
 
 
 def get_parser() -> ArgumentParser:
@@ -26,10 +27,22 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
+    # learning rate
+    parser.add_argument('--lr_decay_epochs', type=str, default='30,40',
+                        help='where to decay lr, can be a list')
+    parser.add_argument('--lr_decay_rate', type=float, default=0.1,
+                        help='decay rate for learning rate')
+    parser.add_argument('--cosine', action='store_true',
+                        help='using cosine annealing')
+    parser.add_argument('--warm', action='store_true',
+                        help='warm-up for large batch training')
+    # network
     parser.add_argument('--classifier', type=str, default='linear')
     parser.add_argument('--head_output_size', type=int, default=128,
                         help='Output size of the Head.')
+    # loss
     parser.add_argument('--simclr_temp', type=float, default=0.1)
+    # mixup
     parser.add_argument('--gamma', type=float, default=0.5)
     return parser
 
@@ -75,12 +88,20 @@ class VNCR(ContinualModel):
         self.class_means = None
         
         # set new transform
-        self.dataset_shape = get_dataset(args).get_data_loaders()[0].dataset.data.shape[2]
-        self.transform = nn.Sequential(
-            RandomResizedCrop(size=(self.dataset_shape, self.dataset_shape), scale=(0.2, 1.)),
-            RandomHorizontalFlip(),
-            ColorJitter(0.4, 0.4, 0.4, 0.1, p=0.8),
-            RandomGrayscale(p=0.2))
+        normalize = self.dataset.get_normalization_transform()
+        args.size = self.dataset.get_image_size()
+        self.transform = transforms.Compose([
+            # ToPILImage(),
+            transforms.RandomResizedCrop(size=args.size, scale=(0.1 if args.dataset=='seq-tinyimg' else 0.2, 1.)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomApply([
+                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+            ], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.RandomApply([transforms.GaussianBlur(kernel_size=args.size//20*2+1, sigma=(0.1, 2.0))], p=0.5 if args.size>32 else 0.0),
+            # ToTensor(),
+            normalize,
+        ])
         self.two_transform = TwoCropTransform(self.transform)
         
         # head

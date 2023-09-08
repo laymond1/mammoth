@@ -20,7 +20,7 @@ from utils.buffer import Buffer
 from utils.simclrloss import SupConLoss, AsymSupConLoss
 from utils.status import ProgressBar
 from utils.warm_up import adjust_learning_rate, warmup_learning_rate
-from kornia.augmentation import RandomResizedCrop, RandomHorizontalFlip, ColorJitter, RandomGrayscale
+from utils.augmentations import strong_aug
 
 
 def get_parser() -> ArgumentParser:
@@ -104,7 +104,7 @@ class CO2L(ContinualModel):
         normalize = self.dataset.get_normalization_transform()
         args.size = self.dataset.get_image_size()
         self.transform = transforms.Compose([
-            transforms.Resize(size=(args.size, args.size)),
+            # ToPILImage(),
             transforms.RandomResizedCrop(size=args.size, scale=(0.1 if args.dataset=='seq-tinyimg' else 0.2, 1.)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomApply([
@@ -112,7 +112,7 @@ class CO2L(ContinualModel):
             ], p=0.8),
             transforms.RandomGrayscale(p=0.2),
             transforms.RandomApply([transforms.GaussianBlur(kernel_size=args.size//20*2+1, sigma=(0.1, 2.0))], p=0.5 if args.size>32 else 0.0),
-            transforms.ToTensor(),
+            # ToTensor(),
             normalize,
         ])
         
