@@ -17,7 +17,7 @@ def adjust_learning_rate(args, optimizer, epoch):
         lr = eta_min + (lr - eta_min) * (
                 1 + math.cos(math.pi * epoch / args.n_epochs)) / 2
     else:
-        steps = np.sum(epoch > np.asarray(args.lr_decay_epochs))
+        steps = np.sum(epoch > np.fromstring(args.lr_decay_epochs, dtype=int, sep=','))
         if steps > 0:
             lr = lr * (args.lr_decay_rate ** steps)
 
