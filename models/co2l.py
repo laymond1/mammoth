@@ -101,13 +101,21 @@ class CO2L(ContinualModel):
 
         self.class_means = None
         
-        # TODO: change it for CO2L (set new transform)
-        self.dataset_shape = get_dataset(args).get_data_loaders()[0].dataset.data.shape[2]
-        self.transform = nn.Sequential(
-            RandomResizedCrop(size=(self.dataset_shape, self.dataset_shape), scale=(0.2, 1.)),
-            RandomHorizontalFlip(),
-            ColorJitter(0.4, 0.4, 0.4, 0.1, p=0.8),
-            RandomGrayscale(p=0.2))
+        normalize = self.dataset.get_normalization_transform()
+        args.size = self.dataset.get_image_size()
+        self.transform = transforms.Compose([
+            transforms.Resize(size=(args.size, args.size)),
+            transforms.RandomResizedCrop(size=args.size, scale=(0.1 if args.dataset=='seq-tinyimg' else 0.2, 1.)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomApply([
+                transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+            ], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.RandomApply([transforms.GaussianBlur(kernel_size=args.size//20*2+1, sigma=(0.1, 2.0))], p=0.5 if args.size>32 else 0.0),
+            transforms.ToTensor(),
+            normalize,
+        ])
+        
         self.two_transform = TwoCropTransform(self.transform)
         
         # head
