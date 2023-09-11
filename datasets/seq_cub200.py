@@ -37,29 +37,35 @@ class CUB200(Dataset):
         self.transform = transform
         self.target_transform = target_transform
         self.download = download
+        self.base_folder = 'CUB_200_2011/images'
+        self.data = None
 
         if download:
-            if os.path.isdir(root) and len(os.listdir(root)) > 0:
+            if os.path.isdir(root) and self._check_integrity():
                 print('Download not needed, files already on disk.')
             else:
                 import tarfile
                 print('Downloading dataset')
-                download_file_from_google_drive(self.file_id, self.root, self.filename, self.tgz_md5)
+                file_id = '1hbzc_P1FuxMkcabkgn9ZKinBwW683j45'
+                filename = 'CUB_200_2011.tgz'
+                tgz_md5 = '97eceeb196236b17998738112f37df78'
+                download_file_from_google_drive(file_id, self.root, filename, tgz_md5)
 
-                with tarfile.open(os.path.join(self.root, self.filename), "r:gz") as tar:
+                with tarfile.open(os.path.join(self.root, filename), "r:gz") as tar:
                     tar.extractall(path=self.root)
                     
-                self._load_metadata()
-                if self.data is None:
-                    self._save_data()
-
-        self.data = np.load(os.path.join(
+        self._load_metadata()
+        data_path = os.path.join(
             root, 'processed/x_CUB_200_2011_%s.npy' %
-                    ('train' if self.train else 'test')))
-
-        self.targets = np.load(os.path.join(
+                    ('train' if self.train else 'test'))
+        target_path = os.path.join(
             root, 'processed/y_CUB_200_2011_%s.npy' %
-                    ('train' if self.train else 'test')))
+                    ('train' if self.train else 'test'))
+        if data_path is None or target_path is None:
+            self._save_data()
+
+        self.data = np.load(data_path)
+        self.targets = np.load(target_path)
 
     def _load_metadata(self):
         images = pd.read_csv(os.path.join(self.root, 'CUB_200_2011', 'images.txt'), sep=' ',
@@ -80,7 +86,7 @@ class CUB200(Dataset):
         else:
             self.data_df = self.data_df[self.data_df.is_training_img == 0]
         # Targets start at 1 by default, so shift to 0
-        self.targets = self.data_df[:, 2] - 1 
+        self.targets = np.array(self.data_df.iloc[:, 2] - 1, dtype=np.int64)
         
     def _save_data(self):
         self.data = []
@@ -97,6 +103,20 @@ class CUB200(Dataset):
                 ('train' if self.train else 'test')), self.data)
         np.save(os.path.join(self.root, 'processed/y_CUB_200_2011_%s.npy' %
                 ('train' if self.train else 'test')), self.targets)
+        
+    def _check_integrity(self):
+        try:
+            self._load_metadata()
+        except Exception:
+            return False
+
+        # img_id / filepath / target / is_training_img
+        for index, row in self.data_df.iterrows():
+            filepath = os.path.join(self.root, self.base_folder, row.filepath)
+            if not os.path.isfile(filepath):
+                print(filepath)
+                return False
+        return True
 
     def __len__(self):
         return len(self.data)
