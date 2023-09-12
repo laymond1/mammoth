@@ -20,6 +20,7 @@ from utils.buffer import Buffer
 from utils.scr_buffer import SCR_Buffer
 from utils.simclrloss import SupConLoss
 from utils.status import ProgressBar
+from utils.warm_up import adjust_learning_rate, warmup_learning_rate
 from utils.augmentations import strong_aug
 
 
@@ -293,6 +294,8 @@ class SCR(ContinualModel):
                 # data
                 inputs, labels, not_aug_inputs = data
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
+                # warm-up learning rate
+                warmup_learning_rate(self.args, epoch, i, len(train_loader), opt)
                 # compute loss                    
                 loss = self.linear_observe(inputs, labels, not_aug_inputs, opt)
                 assert not math.isnan(loss)
