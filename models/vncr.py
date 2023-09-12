@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import math
+import os
 
 import torch
 import torch.nn as nn
@@ -12,12 +13,14 @@ from datasets import get_dataset
 from datasets.transforms.twocrop import TwoCropTransform
 from torchvision.transforms import transforms
 
-from models.utils.continual_model import ContinualModel
+from models.utils.continual_model import ContinualModel, save_model, load_model
 from utils.args import add_management_args, add_experiment_args, add_rehearsal_args, ArgumentParser
 from utils.batch_norm import bn_track_stats
 from utils.buffer import Buffer
+from utils.scr_buffer import SCR_Buffer
 from utils.simclrloss import SupConLoss, AsymSupConLoss
 from utils.status import ProgressBar
+from utils.warm_up import adjust_learning_rate, warmup_learning_rate
 from utils.augmentations import strong_aug
 
 
@@ -27,16 +30,18 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
+    parser.add_argument('--save_store', default=0, choices=[0, 1], type=int)
     # learning rate
     parser.add_argument('--lr_decay_epochs', type=str, default='30,40',
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.1,
                         help='decay rate for learning rate')
-    parser.add_argument('--cosine', action='store_true',
+    parser.add_argument('--cosine', default=0, choices=[0, 1], type=int,
                         help='using cosine annealing')
-    parser.add_argument('--warm', action='store_true',
+    parser.add_argument('--warm', default=0, choices=[0, 1], type=int,
                         help='warm-up for large batch training')
     # network
+    parser.add_argument('--linear_epochs', type=int, default=50)
     parser.add_argument('--classifier', type=str, default='linear')
     parser.add_argument('--head_output_size', type=int, default=128,
                         help='Output size of the Head.')
@@ -82,7 +87,8 @@ class VNCR(ContinualModel):
     def __init__(self, backbone, loss, args, transform):
         super(VNCR, self).__init__(backbone, loss, args, transform)
         self.dataset = get_dataset(args)
-        self.buffer = Buffer(self.args.buffer_size, self.device)
+        # self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.buffer = SCR_Buffer(args, self.args.buffer_size, self.device)
         self.simclr_lss = AsymSupConLoss(temperature=self.args.simclr_temp, base_temperature=self.args.simclr_temp, reduction='mean')
 
         self.class_means = None
@@ -92,6 +98,7 @@ class VNCR(ContinualModel):
         args.size = self.dataset.get_image_size()
         self.transform = transforms.Compose([
             # ToPILImage(),
+            transforms.Resize(size=(args.size, args.size)),
             transforms.RandomResizedCrop(size=args.size, scale=(0.1 if args.dataset=='seq-tinyimg' else 0.2, 1.)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomApply([
@@ -108,6 +115,19 @@ class VNCR(ContinualModel):
         self.net.head = SupConMLP(input_size=self.net.linear.in_features, output_size=self.args.head_output_size)
         # task id
         self.task = 0
+        
+        # warm-up for large-batch training,
+        if args.batch_size > 256:
+            args.warm = True
+        if args.warm:
+            args.warmup_from = 0.01
+            args.warm_epochs = 10
+            if args.cosine:
+                eta_min = args.lr * (args.lr_decay_rate ** 3)
+                args.warmup_to = eta_min + (args.lr - eta_min) * (
+                        1 + math.cos(math.pi * args.warm_epochs / args.n_epochs)) / 2
+            else:
+                args.warmup_to = args.lr
 
     def forward(self, x, returnt='linear'):
         """
@@ -245,6 +265,20 @@ class VNCR(ContinualModel):
             train_loader = dataset.train_loader
             self.train_linear_classifier(train_loader)
         
+        if self.args.save_store:
+            # save the last model
+            self.args.model_path = './save_models/{}'.format(self.args.dataset)
+            self.args.save_folder = os.path.join(self.args.model_path, self.args.notes) 
+            if not os.path.isdir(self.args.save_folder):
+                os.makedirs(self.args.save_folder)
+            save_file = os.path.join(
+                self.args.save_folder, 'task_{task_id}_{classifier}.pth'.format(task_id=self.task, classifier=self.args.classifier))
+            save_model(self.net, self.opt, self.args, self.task, save_file)
+        
+        if self.args.classifier == 'linear':
+            train_loader = dataset.train_loader
+            self.train_linear_classifier(train_loader)
+        
         self.task += 1
         self.class_means = None
         
@@ -278,13 +312,15 @@ class VNCR(ContinualModel):
         scheduler = self.dataset.get_scheduler(self, self.args)
         # start train linear classifier
         progress_bar = ProgressBar(verbose=not self.args.non_verbose)
-        for epoch in range(self.args.n_epochs):
+        for epoch in range(self.args.linear_epochs):
             for i, data in enumerate(train_loader):
                 if self.args.debug_mode and i > 3:
                     break
                 # data
                 inputs, labels, not_aug_inputs = data
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
+                # warm-up learning rate
+                warmup_learning_rate(self.args, epoch, i, len(train_loader), opt)
                 # compute loss                    
                 loss = self.linear_observe(inputs, labels, not_aug_inputs, opt)
                 assert not math.isnan(loss)
