@@ -77,3 +77,26 @@ class ContinualModel(nn.Module):
         if not self.args.nowand and not self.args.debug_mode:
             wandb.log({k: (v.item() if isinstance(v, torch.Tensor) and v.dim() == 0 else v)
                       for k, v in locals.items() if k.startswith('_wandb_') or k.startswith('loss')})
+
+
+def save_model(model, optimizer, args, task_id, save_file):
+    print('==> Saving...'+save_file)
+    state = {
+        'args': args,
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'task_id': task_id,
+    }
+    torch.save(state, save_file)
+    del state
+
+
+def load_model(model, optimizer, save_file):
+    print('==> Loading...' + save_file)
+    loaded = torch.load(save_file)
+
+    model.load_state_dict(loaded['model'])
+    optimizer.load_state_dict(loaded['optimizer'])
+    del loaded
+
+    return model, optimizer
