@@ -103,6 +103,19 @@ class SCR(ContinualModel):
         self.net.head = SupConMLP(input_size=self.net.linear.in_features, output_size=self.args.head_output_size)
         self.task = 0
         
+        # warm-up for large-batch training,
+        if args.batch_size > 256:
+            args.warm = True
+        if args.warm:
+            args.warmup_from = 0.01
+            args.warm_epochs = 10
+            if args.cosine:
+                eta_min = args.lr * (args.lr_decay_rate ** 3)
+                args.warmup_to = eta_min + (args.lr - eta_min) * (
+                        1 + math.cos(math.pi * args.warm_epochs / args.n_epochs)) / 2
+            else:
+                args.warmup_to = args.lr
+        
     def forward(self, x, returnt='ncm'):
         """
         Forward pass with encoder and NCM Classifier for evluation.
