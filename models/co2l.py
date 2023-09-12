@@ -5,6 +5,7 @@
 
 from copy import deepcopy
 import math
+import os
 
 import torch
 import torch.nn as nn
@@ -13,10 +14,11 @@ from datasets import get_dataset
 from datasets.transforms.twocrop import TwoCropTransform
 from torchvision.transforms import transforms
 
-from models.utils.continual_model import ContinualModel
+from models.utils.continual_model import ContinualModel, save_model, load_model
 from utils.args import add_management_args, add_experiment_args, add_rehearsal_args, ArgumentParser
 from utils.batch_norm import bn_track_stats
 from utils.buffer import Buffer
+from utils.scr_buffer import SCR_Buffer
 from utils.simclrloss import SupConLoss, AsymSupConLoss
 from utils.status import ProgressBar
 from utils.warm_up import adjust_learning_rate, warmup_learning_rate
@@ -30,8 +32,7 @@ def get_parser() -> ArgumentParser:
     add_experiment_args(parser)
     add_rehearsal_args(parser)
     # learning rate
-    # parser.add_argument('--lr_decay_epochs', type=str, default='60,75,90',
-    parser.add_argument('--lr_decay_epochs', type=str, default='30,40',
+    parser.add_argument('--lr_decay_epochs', type=str, default='60,75,90',
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.1,
                         help='decay rate for learning rate')
@@ -40,6 +41,7 @@ def get_parser() -> ArgumentParser:
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
     # network
+    parser.add_argument('--linear_epochs', type=int, default=50)
     parser.add_argument('--classifier', type=str, default='linear')
     parser.add_argument('--head_output_size', type=int, default=128,
                         help='Output size of the Head.')
@@ -95,7 +97,8 @@ class CO2L(ContinualModel):
     def __init__(self, backbone, loss, args, transform):
         super(CO2L, self).__init__(backbone, loss, args, transform)
         self.dataset = get_dataset(args)
-        self.buffer = Buffer(self.args.buffer_size, self.device)
+        # self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.buffer = SCR_Buffer(args, self.args.buffer_size, self.device)
         self.asysimclr_lss = AsymSupConLoss(temperature=self.args.simclr_temp, base_temperature=self.args.simclr_temp, reduction='mean')
         self.opt = torch.optim.SGD(self.net.parameters(), lr=self.args.lr, momentum=self.args.optim_mom, weight_decay=self.args.optim_wd)
 
@@ -105,6 +108,7 @@ class CO2L(ContinualModel):
         args.size = self.dataset.get_image_size()
         self.transform = transforms.Compose([
             # ToPILImage(),
+            transforms.Resize(size=(args.size, args.size)),
             transforms.RandomResizedCrop(size=args.size, scale=(0.1 if args.dataset=='seq-tinyimg' else 0.2, 1.)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomApply([
@@ -124,7 +128,6 @@ class CO2L(ContinualModel):
         self.old_net = None
         self.task = 0
     
-        # cosing anealing
         # warm-up for large-batch training,
         if args.batch_size > 256:
             args.warm = True
@@ -290,11 +293,25 @@ class CO2L(ContinualModel):
         self.class_means = torch.stack(class_means)
 
     def end_task(self, dataset) -> None:
+        """
+        Reset the class means
+        """
+        self.net.train()
         
         if self.args.classifier == 'linear':
             train_loader = dataset.train_loader
             self.train_linear_classifier(train_loader)
         
+        if self.args.save_store:
+            # save the last model
+            self.args.model_path = './save_models/{}'.format(self.args.dataset)
+            self.args.save_folder = os.path.join(self.args.model_path, self.args.notes) 
+            if not os.path.isdir(self.args.save_folder):
+                os.makedirs(self.args.save_folder)
+            save_file = os.path.join(
+                self.args.save_folder, 'task_{task_id}_{classifier}.pth'.format(task_id=self.task, classifier=self.args.classifier))
+            save_model(self.net, self.opt, self.args, self.task, save_file)
+            
         self.task += 1
         self.class_means = None
         
@@ -333,7 +350,7 @@ class CO2L(ContinualModel):
         scheduler = self.dataset.get_scheduler(self, self.args)
         # start train linear classifier
         progress_bar = ProgressBar(verbose=not self.args.non_verbose)
-        for epoch in range(self.args.n_epochs):
+        for epoch in range(self.args.linear_epochs):
             # adjust learning rate
             adjust_learning_rate(self.args, opt, epoch)
             for i, data in enumerate(train_loader):
