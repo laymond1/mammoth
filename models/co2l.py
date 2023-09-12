@@ -31,6 +31,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
+    parser.add_argument('--save_store', action='store_true')
     # learning rate
     parser.add_argument('--lr_decay_epochs', type=str, default='60,75,90',
                         help='where to decay lr, can be a list')
