@@ -30,15 +30,15 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--save_store', action='store_true')
+    parser.add_argument('--save_store', default=0, choices=[0, 1], type=int)
     # learning rate
     parser.add_argument('--lr_decay_epochs', type=str, default='60,75,90',
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.1,
                         help='decay rate for learning rate')
-    parser.add_argument('--cosine', action='store_true',
+    parser.add_argument('--cosine', default=0, choices=[0, 1], type=int,
                         help='using cosine annealing')
-    parser.add_argument('--warm', action='store_true',
+    parser.add_argument('--warm', default=0, choices=[0, 1], type=int, 
                         help='warm-up for large batch training')
     # network
     parser.add_argument('--linear_epochs', type=int, default=50)
