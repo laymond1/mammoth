@@ -1,4 +1,4 @@
-# Copyright 2020-present, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Davide Abati, Simone Calderara.
+# Copyright 2023-present, Wonseon Lim, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
@@ -6,6 +6,7 @@
 from copy import deepcopy
 import math
 import os
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -18,11 +19,15 @@ from models.utils.continual_model import ContinualModel, save_model, load_model
 from utils.args import add_management_args, add_experiment_args, add_rehearsal_args, ArgumentParser
 from utils.batch_norm import bn_track_stats
 from utils.buffer import Buffer
+from utils.loggers import *
 from utils.scr_buffer import SCR_Buffer
 from utils.simclrloss import SupConLoss, AsymSupConLoss
-from utils.status import ProgressBar
-from utils.warm_up import adjust_learning_rate, warmup_learning_rate
+from utils.status import ProgressBar, AverageMeter
 from utils.augmentations import strong_aug
+from utils.training import evaluate
+
+with suppress(ImportError):
+    import wandb
 
 
 def get_parser() -> ArgumentParser:
@@ -33,16 +38,19 @@ def get_parser() -> ArgumentParser:
     add_rehearsal_args(parser)
     parser.add_argument('--save_store', default=0, choices=[0, 1], type=int)
     # learning rate
-    parser.add_argument('--lr_decay_epochs', type=str, default='60,75,90',
+    parser.add_argument('--lr_decay_epochs', type=str, default='30,40',
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.1,
                         help='decay rate for learning rate')
     parser.add_argument('--cosine', default=0, choices=[0, 1], type=int,
                         help='using cosine annealing')
-    parser.add_argument('--warm', default=0, choices=[0, 1], type=int,
+    parser.add_argument('--warm', default=0, choices=[0, 1], type=int, 
                         help='warm-up for large batch training')
     # network
+    parser.add_argument('--linear_lr', type=float, default=0.1)
     parser.add_argument('--linear_epochs', type=int, default=50)
+    parser.add_argument('--linear_lr_decay_epochs', type=str, default='30,40')
+    parser.add_argument('--linear_lr_decay_rate', type=float, default=0.1)
     parser.add_argument('--classifier', type=str, default='linear')
     parser.add_argument('--head_output_size', type=int, default=128,
                         help='Output size of the Head.')
@@ -73,20 +81,6 @@ class SupConMLP(nn.Module):
         return feats
 
 
-class LinearClassifier(nn.Module):
-    """
-    Linear classifier
-    """
-
-    def __init__(self, input_size, output_size, **kwargs):
-        super(LinearClassifier, self).__init__()
-        self.fc = nn.Linear(input_size, output_size)
-        self.output_size = output_size
-
-    def forward(self, x):
-        return self.fc(x)
-
-
 class CO2L(ContinualModel):
     """
     Contrastive Continual Learning(Co2L) published in ICCV 2021.
@@ -101,7 +95,6 @@ class CO2L(ContinualModel):
         # self.buffer = Buffer(self.args.buffer_size, self.device)
         self.buffer = SCR_Buffer(args, self.args.buffer_size, self.device)
         self.asysimclr_lss = AsymSupConLoss(temperature=self.args.simclr_temp, base_temperature=self.args.simclr_temp, reduction='mean')
-        self.opt = torch.optim.SGD(self.net.parameters(), lr=self.args.lr, momentum=self.args.optim_mom, weight_decay=self.args.optim_wd)
 
         self.class_means = None
         
@@ -120,17 +113,20 @@ class CO2L(ContinualModel):
             # ToTensor(),
             normalize,
         ])
-        
         self.two_transform = TwoCropTransform(self.transform)
         
         # head
-        self.net.head = SupConMLP(input_size=self.net.linear.in_features, output_size=128)
-
-        self.old_net = None
+        self.net.head = SupConMLP(input_size=self.net.linear.in_features, output_size=self.args.head_output_size)
+        backbone_weights = [p for n, p in self.net._features.named_parameters()] + [p for n, p in self.net.head.named_parameters()]
+        params = [{'params': backbone_weights, 'lr': self.args.lr, 
+                   'weight_decay': self.args.optim_wd, 'momentum': self.args.optim_mom}]
+        self.opt = torch.optim.SGD(params)
+        self.classifier_opt = torch.optim.SGD(self.net.classifier.parameters(), lr=self.args.linear_lr, 
+                                              momentum=self.args.optim_mom)
         self.task = 0
-    
+        
         # warm-up for large-batch training,
-        if args.batch_size > 256:
+        if args.batch_size >= 256:
             args.warm = True
         if args.warm:
             args.warmup_from = 0.01
@@ -154,7 +150,7 @@ class CO2L(ContinualModel):
         elif returnt == 'ncm':
             return self.ncm_forward(x)
         else:
-            raise ValueError(f'{returnt} is not implimented.')
+            raise ValueError(f'{returnt} is not implimented.')   
         
     def proj_forward(self, x):
         """
@@ -297,12 +293,41 @@ class CO2L(ContinualModel):
         """
         Reset the class means
         """
-        self.net.train()
+        self.net.eval()
+        self.net.classifier.train()
+        
+        best_acc = 0.0
         
         if self.args.classifier == 'linear':
             train_loader = dataset.train_loader
-            self.train_linear_classifier(train_loader)
-        
+            progress_bar = ProgressBar(verbose=not self.args.non_verbose)
+            for epoch in range(self.args.linear_epochs):
+                adjust_classifier_learning_rate(self.args.linear_lr,
+                                                self.args.linear_lr_decay_epochs,
+                                                self.args.linear_lr_decay_rate,
+                                                self.classifier_opt, epoch)
+                # train
+                train_loss = self.train_classifier(train_loader, progress_bar, epoch)
+                # evaluate
+                accs = evaluate(self, dataset)
+                val_acc, val_task_acc = np.mean(accs, axis=1)
+                # classifier Class-IL Acc logging
+                if not self.args.nowand:
+                    wandb.log({f'Classifier_Task_{self.task}_class_mean_accs': val_acc})
+                
+                if val_acc > best_acc:
+                    best_acc = val_acc
+                    
+                    if self.args.save_store:
+                        # save the best model
+                        self.args.model_path = './save_models/{}'.format(self.args.dataset)
+                        self.args.save_folder = os.path.join(self.args.model_path, self.args.notes) 
+                        if not os.path.isdir(self.args.save_folder):
+                            os.makedirs(self.args.save_folder)
+                        save_file = os.path.join(
+                            self.args.save_folder, 'task_{task_id}_{classifier}_best.pth'.format(task_id=self.task, classifier=self.args.classifier))
+                        save_model(self.net, self.opt, self.args, self.task, save_file)
+                
         if self.args.save_store:
             # save the last model
             self.args.model_path = './save_models/{}'.format(self.args.dataset)
@@ -310,21 +335,18 @@ class CO2L(ContinualModel):
             if not os.path.isdir(self.args.save_folder):
                 os.makedirs(self.args.save_folder)
             save_file = os.path.join(
-                self.args.save_folder, 'task_{task_id}_{classifier}.pth'.format(task_id=self.task, classifier=self.args.classifier))
+                self.args.save_folder, 'task_{task_id}_{classifier}_last.pth'.format(task_id=self.task, classifier=self.args.classifier))
             save_model(self.net, self.opt, self.args, self.task, save_file)
-            
+        
         self.task += 1
         self.class_means = None
-        
         self.old_net = deepcopy(self.net.eval())
+        self.net.train()
         
     def linear_observe(self, inputs, labels, not_aug_inputs, opt):
         """
         Train linear classifier
         """
-        
-        opt.zero_grad()
-
         if not self.buffer.is_empty():
             # buffer do not transform inputs
             buf_inputs, buf_labels = self.buffer.get_data(
@@ -337,35 +359,43 @@ class CO2L(ContinualModel):
         outputs = self.linear_forward(inputs)
         # compute loss
         loss = self.loss(outputs, labels)
+        
+        opt.zero_grad()
         loss.backward()
         opt.step()
             
         return loss.item()
     
-    def train_linear_classifier(self, train_loader):
-        # set mode for each network
-        self.net._features.eval()
-        self.net.classifier.train()
-        # linear optimizer
-        opt = torch.optim.SGD(self.net.classifier.parameters(), lr=self.args.lr)
-        scheduler = self.dataset.get_scheduler(self, self.args)
-        # start train linear classifier
-        progress_bar = ProgressBar(verbose=not self.args.non_verbose)
-        for epoch in range(self.args.linear_epochs):
-            # adjust learning rate
-            adjust_learning_rate(self.args, opt, epoch)
-            for i, data in enumerate(train_loader):
-                if self.args.debug_mode and i > 3:
-                    break
-                # data
-                inputs, labels, not_aug_inputs = data
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
-                # warm-up learning rate
-                warmup_learning_rate(self.args, epoch, i, len(train_loader), opt)
-                # compute loss                    
-                loss = self.linear_observe(inputs, labels, not_aug_inputs, opt)
-                assert not math.isnan(loss)
-                progress_bar.prog(i, len(train_loader), epoch, self.task+1, loss)
+    def train_classifier(self, train_loader, progress_bar, epoch):
+        losses = AverageMeter()
+        
+        for i, data in enumerate(train_loader):
+            if self.args.debug_mode and i > 3:
+                break
+            # data
+            inputs, labels, not_aug_inputs = data
+            inputs, labels = inputs.to(self.device), labels.to(self.device)
+            # compute loss                    
+            loss = self.linear_observe(inputs, labels, not_aug_inputs, self.classifier_opt)
+            assert not math.isnan(loss)
+            progress_bar.prog(i, len(train_loader), epoch, self.task, loss)
+            losses.update(loss, inputs.size(0))
+            
+        return losses.avg
 
-            if scheduler is not None:
-                scheduler.step()
+            
+def adjust_classifier_learning_rate(lr, lr_decay_epochs, lr_decay_rate, optimizer, epoch):
+    """
+    Adjust the classifier's learning rate.
+    :param lr: learning rate
+    :param lr_decay_epochs: where to decay lr, can be a list
+    :param lr_decay_rate: decay rate for learning rate
+    :param epoch: the current epoch
+    :param optimizer: the optimizer
+    """
+    steps = np.sum(epoch > np.fromstring(lr_decay_epochs, dtype=int, sep=','))
+    if steps > 0:
+        lr = lr * (lr_decay_rate ** steps)
+
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
