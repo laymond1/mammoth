@@ -4,12 +4,13 @@
 # LICENSE file in the root directory of this source tree.
 
 from copy import deepcopy
+import os
 
 import torch
 import torch.nn.functional as F
 from datasets import get_dataset
 
-from models.utils.continual_model import ContinualModel
+from models.utils.continual_model import ContinualModel, save_model
 from utils.args import add_management_args, add_experiment_args, add_rehearsal_args, ArgumentParser
 from utils.batch_norm import bn_track_stats
 from utils.buffer import Buffer, icarl_replay
@@ -21,7 +22,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-
+    parser.add_argument('--save_store', default=1, choices=[0, 1], type=int)
     return parser
 
 
@@ -194,6 +195,17 @@ class ICarl(ContinualModel):
         self.net.train()
         with torch.no_grad():
             fill_buffer(self, self.buffer, dataset, self.task)
+        
+        if self.args.save_store:
+            # save the last model
+            self.args.model_path = './save_models/{}'.format(self.args.dataset)
+            self.args.save_folder = os.path.join(self.args.model_path, self.args.notes) 
+            if not os.path.isdir(self.args.save_folder):
+                os.makedirs(self.args.save_folder)
+            save_file = os.path.join(
+                self.args.save_folder, 'task_{task_id}_{classifier}.pth'.format(task_id=self.task, classifier=self.args.classifier))
+            save_model(self.net, self.opt, self.args, self.task, save_file)
+            
         self.task += 1
         self.class_means = None
 

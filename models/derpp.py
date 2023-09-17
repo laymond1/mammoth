@@ -3,9 +3,10 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
 from torch.nn import functional as F
 
-from models.utils.continual_model import ContinualModel
+from models.utils.continual_model import ContinualModel, save_model
 from utils.args import add_management_args, add_experiment_args, add_rehearsal_args, ArgumentParser
 from utils.buffer import Buffer
 
@@ -20,6 +21,7 @@ def get_parser() -> ArgumentParser:
                         help='Penalty weight.')
     parser.add_argument('--beta', type=float, required=True,
                         help='Penalty weight.')
+    parser.add_argument('--save_store', default=1, choices=[0, 1], type=int)
     return parser
 
 
@@ -57,3 +59,17 @@ class Derpp(ContinualModel):
                              logits=outputs.data)
 
         return loss.item()
+
+    def end_task(self, dataset) -> None:
+        """
+        Save the model
+        """
+        if self.args.save_store:
+            # save the last model
+            self.args.model_path = './save_models/{}'.format(self.args.dataset)
+            self.args.save_folder = os.path.join(self.args.model_path, self.args.notes) 
+            if not os.path.isdir(self.args.save_folder):
+                os.makedirs(self.args.save_folder)
+            save_file = os.path.join(
+                self.args.save_folder, 'task_{task_id}_{classifier}.pth'.format(task_id=self.task, classifier=self.args.classifier))
+            save_model(self.net, self.opt, self.args, self.task, save_file)
