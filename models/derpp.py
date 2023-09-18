@@ -33,6 +33,7 @@ class Derpp(ContinualModel):
         super(Derpp, self).__init__(backbone, loss, args, transform)
 
         self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.task = 0
 
     def observe(self, inputs, labels, not_aug_inputs):
 
@@ -73,3 +74,5 @@ class Derpp(ContinualModel):
             save_file = os.path.join(
                 self.args.save_folder, 'task_{task_id}_{classifier}.pth'.format(task_id=self.task, classifier=self.args.classifier))
             save_model(self.net, self.opt, self.args, self.task, save_file)
+            
+        self.task += 1
