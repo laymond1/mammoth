@@ -203,7 +203,7 @@ class ICarl(ContinualModel):
             if not os.path.isdir(self.args.save_folder):
                 os.makedirs(self.args.save_folder)
             save_file = os.path.join(
-                self.args.save_folder, 'task_{task_id}_{classifier}.pth'.format(task_id=self.task, classifier=self.args.classifier))
+                self.args.save_folder, 'task_{task_id}.pth'.format(task_id=self.task))
             save_model(self.net, self.opt, self.args, self.task, save_file)
             
         self.task += 1
