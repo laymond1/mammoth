@@ -113,7 +113,10 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
         if hasattr(model, 'begin_task'):
-            model.begin_task(dataset)
+            # This code is adjusted for Co2L
+            return_value = model.begin_task(dataset)
+            if return_value is not None:
+                train_loader = dataset.train_loader
         if t and not args.ignore_other_metrics:
             accs = evaluate(model, dataset, last=True)
             results[t-1] = results[t-1] + accs[0]
