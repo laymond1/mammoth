@@ -46,14 +46,14 @@ class TinyImagenet(Dataset):
                 download(ln, filename=os.path.join(root, 'tiny-imagenet-processed.zip'), unzip=True, unzip_path=root, clean=True)
 
         self.data = []
-        for num in range(20):
+        for num in range(10):
             self.data.append(np.load(os.path.join(
                 root, 'processed/x_%s_%02d.npy' %
                       ('train' if self.train else 'val', num + 1))))
         self.data = np.concatenate(np.array(self.data))
 
         self.targets = []
-        for num in range(20):
+        for num in range(10):
             self.targets.append(np.load(os.path.join(
                 root, 'processed/y_%s_%02d.npy' %
                       ('train' if self.train else 'val', num + 1))))
@@ -118,7 +118,7 @@ class SequentialTinyImagenet(ContinualDataset):
 
     NAME = 'seq-tinyimg'
     SETTING = 'class-il'
-    N_CLASSES_PER_TASK = 20
+    N_CLASSES_PER_TASK = 10
     N_TASKS = 10
     TRANSFORM = transforms.Compose(
         [transforms.RandomCrop(64, padding=4),
@@ -134,13 +134,13 @@ class SequentialTinyImagenet(ContinualDataset):
             [transforms.ToTensor(), self.get_normalization_transform()])
 
         train_dataset = MyTinyImagenet(base_path() + 'TINYIMG',
-                                       train=True, download=True, transform=transform)
+                                       train=True, download=False, transform=transform)
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
                                                         test_transform, self.NAME)
         else:
             test_dataset = TinyImagenet(base_path() + 'TINYIMG',
-                                        train=False, download=True, transform=test_transform)
+                                        train=False, download=False, transform=test_transform)
 
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
         return train, test
