@@ -3,6 +3,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
 import sys
 from argparse import Namespace
 from contextlib import suppress
@@ -36,6 +37,7 @@ class ContinualModel(nn.Module):
         self.transform = transform
         self.opt = SGD(self.net.parameters(), lr=self.args.lr)
         self.device = get_device()
+        self.task = 0
 
         if not self.NAME or not self.COMPATIBILITY:
             raise NotImplementedError('Please specify the name and the compatibility of the model.')
@@ -77,6 +79,22 @@ class ContinualModel(nn.Module):
         if not self.args.nowand and not self.args.debug_mode:
             wandb.log({k: (v.item() if isinstance(v, torch.Tensor) and v.dim() == 0 else v)
                       for k, v in locals.items() if k.startswith('_wandb_') or k.startswith('loss')})
+            
+    def end_task(self, dataset) -> None:
+        """
+        Save the model
+        """
+        if self.args.save_store:
+            # save the last model
+            self.args.model_path = './save_models/{}'.format(self.args.dataset)
+            self.args.save_folder = os.path.join(self.args.model_path, self.args.notes) 
+            if not os.path.isdir(self.args.save_folder):
+                os.makedirs(self.args.save_folder)
+            save_file = os.path.join(
+                self.args.save_folder, 'task_{task_id}.pth'.format(task_id=self.task))
+            save_model(self.net, self.opt, self.args, self.task, save_file)
+            
+        self.task += 1
 
 
 def save_model(model, optimizer, args, task_id, save_file):

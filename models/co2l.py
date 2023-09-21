@@ -36,7 +36,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--save_store', default=0, choices=[0, 1], type=int)
+    parser.add_argument('--save_store', default=1, choices=[0, 1], type=int)
     # learning rate
     parser.add_argument('--lr_decay_epochs', type=str, default='30,40',
                         help='where to decay lr, can be a list')
@@ -48,7 +48,7 @@ def get_parser() -> ArgumentParser:
                         help='warm-up for large batch training')
     # network
     parser.add_argument('--linear_lr', type=float, default=0.1)
-    parser.add_argument('--linear_epochs', type=int, default=50)
+    parser.add_argument('--linear_epochs', type=int, default=1)
     parser.add_argument('--linear_lr_decay_epochs', type=str, default='30,40')
     parser.add_argument('--linear_lr_decay_rate', type=float, default=0.1)
     parser.add_argument('--classifier', type=str, default='linear')
