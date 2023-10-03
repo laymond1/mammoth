@@ -21,7 +21,6 @@ def get_parser() -> ArgumentParser:
                         help='Penalty weight.')
     parser.add_argument('--beta', type=float, required=True,
                         help='Penalty weight.')
-    parser.add_argument('--save_store', default=1, choices=[0, 1], type=int)
     return parser
 
 

@@ -19,7 +19,6 @@ def get_parser() -> ArgumentParser:
     add_rehearsal_args(parser)
     parser.add_argument('--alpha', type=float, required=True,
                         help='Penalty weight.')
-    parser.add_argument('--save_store', default=1, choices=[0, 1], type=int)
     return parser
 
 

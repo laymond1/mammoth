@@ -54,6 +54,8 @@ def add_management_args(parser: ArgumentParser) -> None:
     parser.add_argument('--nowand', default=0, choices=[0, 1], type=int, help='Inhibit wandb logging')
     parser.add_argument('--wandb_entity', type=str, default='laymond1', help='Wandb entity')
     parser.add_argument('--wandb_project', type=str, default='mammoth', help='Wandb project name')
+    
+    parser.add_argument('--save_store', default=0, choices=[0, 1], type=int, help='Save the model')
 
 
 def add_rehearsal_args(parser: ArgumentParser) -> None:

@@ -22,7 +22,6 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--save_store', default=1, choices=[0, 1], type=int)
     return parser
 
 
