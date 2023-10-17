@@ -149,3 +149,33 @@ def get_previous_train_loader(train_dataset: Dataset, batch_size: int,
     train_dataset.targets = np.array(train_dataset.targets)[train_mask]
 
     return DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+
+def get_linear_train_loader(train_dataset: Dataset, test_dataset: Dataset,
+                              setting: ContinualDataset) -> DataLoader:
+    """
+    Creates a dataloader for the previous task.
+    :param train_dataset: the entire training set
+    :param test_dataset: test dataset
+    :param setting: the continual dataset at hand
+    :return: train and test loaders
+    """
+    train_mask = np.where(np.array(train_dataset.targets) < setting.i + setting.N_CLASSES_PER_TASK)
+    test_mask = np.logical_and(np.array(test_dataset.targets) >= setting.i,
+                               np.array(test_dataset.targets) < setting.i + setting.N_CLASSES_PER_TASK)
+
+    train_dataset.data = train_dataset.data[train_mask]
+    test_dataset.data = test_dataset.data[test_mask]
+
+    train_dataset.targets = np.array(train_dataset.targets)[train_mask]
+    test_dataset.targets = np.array(test_dataset.targets)[test_mask]
+
+    train_loader = DataLoader(train_dataset,
+                              batch_size=setting.args.batch_size, shuffle=True, num_workers=4)
+    test_loader = DataLoader(test_dataset,
+                             batch_size=setting.args.batch_size, shuffle=False, num_workers=4)
+    setting.test_loaders.append(test_loader)
+    setting.train_loader = train_loader
+
+    setting.i += setting.N_CLASSES_PER_TASK
+    return train_loader, test_loader
