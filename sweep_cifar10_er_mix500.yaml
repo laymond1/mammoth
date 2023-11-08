@@ -1,0 +1,41 @@
+name: 'mix_sweep_gamma'
+project: 'online_mammoth_sweeps'
+method: grid
+metric: 
+  goal: maximize
+  name: RESULT_class_mean_accs
+program: ./utils/main.py
+
+parameters:
+  gamma:
+    values:
+    - 0.1
+    - 0.5
+    - 1.0
+    - 5.0
+  lr:
+    values:
+    - 0.01 
+  buffer_size: 
+    values: 
+    - 500
+  dataset: 
+    values: 
+    - seq-cifar10
+  seed: 
+    values: 
+    - 0 
+    - 1
+    - 2
+# default
+  model:
+    values: 
+    - er_mix
+  batch_size:
+    value: 10
+  minibatch_size: 
+    value: 10
+  n_epochs:
+    value: 1
+
+# CUDA_VISIBLE_DEVICES=2 wandb agent laymond1/online_mammoth_sweeps/t6tbs0h3
