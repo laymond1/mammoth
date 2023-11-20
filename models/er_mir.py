@@ -39,8 +39,6 @@ class ErMIR(ContinualModel):
 
         self.opt.zero_grad()
         if not self.buffer.is_empty():
-            # buf_inputs, buf_labels = self.buffer.get_data(
-            #     self.args.minibatch_size, transform=self.transform)
             buf_inputs, buf_labels = self.buffer.get_mir_data(
                 self.args.minibatch_size, transform=self.transform)
             inputs = torch.cat((inputs, buf_inputs))
