@@ -53,6 +53,12 @@ class ErMIRMixPast(ContinualModel):
         self.task = 0
         
         self.inc_classes = []
+    
+    def process_mixup(self, mixed_input, labels_a, labels_b, lambda_):
+        output = self.net(mixed_input)
+        loss = MixUpLoss(self.loss, output, labels_a, labels_b, lambda_)
+        
+        return loss
 
     def observe(self, inputs, labels, not_aug_inputs):
 
