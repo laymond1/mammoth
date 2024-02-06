@@ -35,7 +35,8 @@ class ContinualModel(nn.Module):
         self.loss = loss
         self.args = args
         self.transform = transform
-        self.opt = SGD(self.net.parameters(), lr=self.args.lr)
+        # self.opt = SGD(self.net.parameters(), lr=self.args.lr)
+        self.opt = set_optimizer(self.args, self.net)
         self.device = get_device()
         self.task = 0
 
@@ -95,6 +96,20 @@ class ContinualModel(nn.Module):
             save_model(self.net, self.opt, self.args, self.task, save_file)
             
         self.task += 1
+
+
+def set_optimizer(ags, net):
+    if ags.optim == 'sgd':
+        optimizer = torch.optim.SGD(net.parameters(), lr=ags.lr, momentum=ags.optim_mom)
+    elif ags.optim == 'adam':
+        optimizer = torch.optim.Adam(net.parameters(), lr=ags.lr)
+    elif ags.optim == 'adagrad':
+        optimizer = torch.optim.Adagrad(net.parameters(), lr=ags.lr)
+    elif ags.optim == 'rmsprop':
+        optimizer = torch.optim.RMSprop(net.parameters(), lr=ags.lr)
+    else:   
+        raise ValueError('Optimizer not recognized')
+    return optimizer
 
 
 def save_model(model, optimizer, args, task_id, save_file):

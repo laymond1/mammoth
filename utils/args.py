@@ -22,9 +22,11 @@ def add_experiment_args(parser: ArgumentParser) -> None:
     parser.add_argument('--lr', type=float, required=True,
                         help='Learning rate.')
 
+    parser.add_argument('--optim', type=str, default='sgd',
+                        help='Optimizer to use.', choices=['sgd', 'adam', 'rmsprop', 'adagrad'])
     parser.add_argument('--optim_wd', type=float, default=0.,
                         help='optimizer weight decay.')
-    parser.add_argument('--optim_mom', type=float, default=0.,
+    parser.add_argument('--optim_mom', type=float, default=0,
                         help='optimizer momentum.')
     parser.add_argument('--optim_nesterov', type=int, default=0,
                         help='optimizer nesterov momentum.')
