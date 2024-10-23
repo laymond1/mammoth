@@ -31,8 +31,7 @@ fi
 # Loop over random seeds
 for seed in 1 2 3 4 5;
 do
-    CUDA_VISIBLE_DEVICES=0
-    python utils/online_main.py \
+    CUDA_VISIBLE_DEVICES=0 python utils/online_main.py \
     --notes $NOTE --seed $seed \
     --online_scenario $SCENARIO \
     --model $MODEL \

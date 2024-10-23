@@ -13,15 +13,15 @@ USE_AMP="--use_amp"
 # Define default model, optimizer, and scheduler configurations
 if [ "$DATASET" == "seq-cifar100-224" ]; then
     MEM_SIZE=0 ONLINE_ITER=3 EVAL_PERIOD=1000
-    BATCHSIZE=64; LR=5e-4 OPT_NAME="adam" SCHED_NAME="default"
+    BATCHSIZE=64; LR=5e-3 OPT_NAME="adam" SCHED_NAME="default"
 
 elif [ "$DATASET" == "seq-tinyimg-224" ]; then
     MEM_SIZE=0 ONLINE_ITER=3 EVAL_PERIOD=1000
-    BATCHSIZE=64; LR=5e-4 OPT_NAME="adam" SCHED_NAME="default"
+    BATCHSIZE=64; LR=5e-3 OPT_NAME="adam" SCHED_NAME="default"
 
 elif [ "$DATASET" == "seq-imagenet-r" ]; then
     MEM_SIZE=0 ONLINE_ITER=3 EVAL_PERIOD=1000
-    BATCHSIZE=64; LR=5e-4 OPT_NAME="adam" SCHED_NAME="default"
+    BATCHSIZE=64; LR=5e-3 OPT_NAME="adam" SCHED_NAME="default"
 
 else
     echo "Undefined setting"
@@ -31,8 +31,7 @@ fi
 # Loop over random seeds
 for seed in 1 2 3 4 5;
 do
-    CUDA_VISIBLE_DEVICES=0
-    python utils/online_main.py \
+    CUDA_VISIBLE_DEVICES=0 python utils/online_main.py \
     --notes $NOTE --seed $seed \
     --online_scenario $SCENARIO \
     --model $MODEL \
