@@ -343,6 +343,8 @@ def add_management_args(parser: ArgumentParser) -> None:
                            help='The base path where to save datasets, logs, results.')
     mng_group.add_argument('--results_path', type=str, default="results/",
                            help='The path where to save the results. NOTE: this path is relative to `base_path`.')
+    mng_group.add_argument('--log_path', type=str, default="./results/",
+                           help='The path where to save the logs.')
     mng_group.add_argument('--device', type=str,
                            help='The device (or devices) available to use for training. '
                            'More than one device can be specified by separating them with a comma. '
@@ -398,6 +400,35 @@ def add_rehearsal_args(parser: ArgumentParser) -> None:
                        help='The size of the memory buffer.')
     group.add_argument('--minibatch_size', type=int,
                        help='The batch size of the memory buffer.')
+    
+    
+def add_online_learning_args(parser: ArgumentParser) -> None:
+    """
+    Adds the arguments used by all the online learning scenarios
+
+    Args:
+        parser: the parser instance
+
+    Returns:
+        None
+    """
+    online_group = parser.add_argument_group('Online learning arguments', 'Arguments shared by all online learning scenarios.')
+
+    online_group.add_argument('--online_scenario', type=str, default='si-blurry',
+                              help='The online scenario to use for the experiment.')
+    online_group.add_argument("--n_tasks", type=int, default=5, help="The number of tasks in a blurry scenario")
+    online_group.add_argument('--n', type=int, default=50, 
+                              help="The percentage of disjoint split. Disjoint=100, Blurry=0")
+    online_group.add_argument('--m', type=int, default=10, 
+                              help="The percentage of blurry samples in blurry split. Uniform split=100, Disjoint=0")
+    online_group.add_argument('--rnd_NM', action='store_true', default=False, 
+                              help="if True, N and M are randomly mixed over tasks.")
+    online_group.add_argument('--eval_period', type=int, default=1000, 
+                              help="evaluation period for true online setup")
+    online_group.add_argument('--online_iter', type=int, default=1,
+                              help="Number of model updates per samples seen.")
+    online_group.add_argument('--use_amp', action="store_true",
+                              help='Use automatic mixed precision')
 
 
 def check_multiple_defined_arg_during_string_parse() -> None:
@@ -555,6 +586,19 @@ if __name__ == '__main__':
 
     with open('docs/utils/args.rst', 'a') as f:
         f.write('.. rubric:: REEHARSAL-ONLY ARGS\n\n')
+        for arg in docs_args:
+            f.write(str(arg) + '\n\n')
+            
+    parser = ArgumentParser()
+    add_online_learning_args(parser)
+    docs_args = []
+    for action in parser._actions:
+        if action.dest == 'help':
+            continue
+        docs_args.append(_DocsArgs(action.dest, action.type, action.choices, action.default, action.help))
+
+    with open('docs/utils/args.rst', 'a') as f:
+        f.write('.. rubric:: ONLINE-LEARNING-ONLY ARGS\n\n')
         for arg in docs_args:
             f.write(str(arg) + '\n\n')
 

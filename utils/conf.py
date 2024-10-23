@@ -16,6 +16,7 @@ from functools import partial
 from typing import List
 import numpy as np
 import torch
+import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 
 
@@ -146,10 +147,17 @@ def set_random_seed(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
     try:
         torch.cuda.manual_seed_all(seed)
     except BaseException:
         print('Could not set cuda seed.')
+    cudnn.deterministic = True
+    print('You have chosen to seed training. '
+        'This will turn on the CUDNN deterministic setting, '
+        'which can slow down your training considerably! '
+        'You may see unexpected behavior when restarting '
+        'from checkpoints.')
 
 
 def worker_init_fn(worker_id, num_workers, seed, rank=1):

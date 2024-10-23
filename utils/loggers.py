@@ -21,6 +21,38 @@ with suppress(ImportError):
     import wandb
 
 
+def log_online_accs(args, logger, eval_dict, t: int, setting: str, prefix="RESULT", future=False):
+    """
+    Logs the online loss and accuracy values.
+
+    All metrics are prefixed with `prefix` to be logged on wandb.
+
+    Args:
+        args: The arguments for logging.
+        logger: The Logger object.
+        eval_dict: The evaluation metrics.
+        t: The task index.
+        setting: The setting of the benchmark (e.g., `si-blurry`).
+        prefix: The prefix for the metrics (default="RESULT").
+    """
+
+    avg_acc, cls_acc = eval_dict['avg_acc'], eval_dict['cls_acc'] # TODO: munipulate this function
+
+    if not args.disable_log:
+        logger.log_avg_acc(avg_acc)
+        logger.log_cls_acc(cls_acc)
+
+    if not args.nowand:
+        if future:
+            prefix += "_transf"
+        
+        d2 = {f'{prefix}_task_online_loss': eval_dict['avg_loss'],
+              f'{prefix}_task_online_acc': eval_dict['avg_acc'],
+              'Task': t}
+
+        wandb.log(d2)
+
+
 def log_accs(args, logger, accs, t: int, setting: str, epoch=None, prefix="RESULT", future=False):
     """
     Logs the accuracy values and other metrics.
@@ -132,7 +164,95 @@ def print_mean_accuracy(accs: np.ndarray, task_number: int,
     return mean_acc
 
 
-class Logger:
+# def print_online_mean_accuracy(eval_dict, task_number: int, setting: str) -> None:
+    
+
+class BaseLogger:
+    def __init__(self, args, setting_str: str, dataset_str: str, model_str: str) -> None:
+        """
+        Initializes a BaseLogger object. This will take track and log the accuracy values and other metrics.
+
+        Args:
+            args: The args from the command line.
+            setting_str: The setting of the benchmark.
+            dataset_str: The dataset used.
+            model_str: The model used.
+        """
+        self.args = args
+        self.setting = setting_str
+        self.dataset = dataset_str
+        self.model = model_str
+        self.cpu_res = []
+        self.gpu_res = []
+
+    def dump(self):
+        """
+        Dumps the state of the logger in a dictionary.
+
+        Returns:
+            A dictionary containing the logged values.
+        """
+        raise NotImplementedError("This method should be overridden in a subclass")
+
+    def load(self, dic):
+        """
+        Loads the state of the logger from a dictionary.
+
+        Args:
+            dic: The dictionary containing the logged values.
+        """
+        raise NotImplementedError("This method should be overridden in a subclass")
+
+    def rewind(self, num):
+        """
+        Rewinds the logger by a given number of values.
+
+        Args:
+            num: The number of values to rewind.
+        """
+        raise NotImplementedError("This method should be overridden in a subclass")
+
+    def log(self, mean_acc):
+        """
+        Logs a mean accuracy value.
+
+        Args:
+            mean_acc: mean accuracy value
+        """
+        raise NotImplementedError("This method should be overridden in a subclass")
+
+    def log_fullacc(self, accs):
+        """
+        Logs all the accuracy of the classes from the current and past tasks.
+
+        Args:
+            accs: the accuracy values
+        """
+        raise NotImplementedError("This method should be overridden in a subclass")
+
+    def log_system_stats(self, cpu_res, gpu_res):
+        """
+        Logs the system stats.
+        Supported only if the psutil and torch libraries are installed.
+
+        Args:
+            cpu_res: the CPU memory usage
+            gpu_res: the GPU memory usage
+        """
+        raise NotImplementedError("This method should be overridden in a subclass")
+
+    def write(self, args: dict) -> None:
+        """
+        Writes out the logged value along with its arguments in the default path (data/results).
+        The default path can be changed with the --results_path argument.
+
+        Args:
+            args: the namespace of the current experiment
+        """
+        raise NotImplementedError("This method should be overridden in a subclass")
+
+
+class Logger(BaseLogger):
     def __init__(self, args, setting_str: str, dataset_str: str,
                  model_str: str) -> None:
         """
@@ -145,23 +265,18 @@ class Logger:
             dataset_str: The dataset used.
             model_str: The model used.
         """
-        self.args = args
+        super().__init__(args, setting_str, dataset_str, model_str)
         self.accs = []
         self.fullaccs = []
         if setting_str == 'class-il':
             self.accs_mask_classes = []
             self.fullaccs_mask_classes = []
-        self.setting = setting_str
-        self.dataset = dataset_str
-        self.model = model_str
         self.fwt = None
         self.fwt_mask_classes = None
         self.bwt = None
         self.bwt_mask_classes = None
         self.forgetting = None
         self.forgetting_mask_classes = None
-        self.cpu_res = []
-        self.gpu_res = []
 
     def dump(self):
         """
@@ -342,7 +457,7 @@ class Logger:
         wrargs['backward_transfer'] = self.bwt
         wrargs['forgetting'] = self.forgetting
 
-        target_folder = smart_joint(base_path(), self.args.results_path)
+        target_folder = smart_joint(self.args.results_path)
 
         create_if_not_exists(smart_joint(target_folder, self.setting))
         create_if_not_exists(smart_joint(target_folder, self.setting, self.dataset))
@@ -371,3 +486,134 @@ class Logger:
             path = smart_joint(target_folder, "task-il", self.dataset, self.model, "logs.pyd")
             with open(path, 'a') as f:
                 f.write(str(wrargs) + '\n')
+
+
+class OnlineLogger(BaseLogger):
+    """
+        Online Logger.
+    """
+    def __init__(self, args, setting_str: str, dataset_str: str,
+                 model_str: str, **kwargs):
+        super().__init__(args, setting_str, dataset_str, model_str, **kwargs)   
+        self.avg_acc = []
+        self.cls_acc = []
+        self.anytime_fwt =None
+        self.anytime_bwt =None
+        self.anytime_forgetting =None
+        self.fwt = None
+        self.bwt = None
+        self.forgetting =None
+        
+    def dump(self):
+        dic = {
+            'avg_acc': self.avg_acc,
+            'cls_acc': self.cls_acc,
+            'fwt': self.fwt,
+            'bwt': self.bwt,
+            'forgetting': self.forgetting
+        }
+        
+        return dic
+    
+    def load(self, dic):
+        self.avg_acc = dic['avg_acc']
+        self.cls_acc = dic['cls_acc']
+        self.fwt = dic['fwt']
+        self.bwt = dic['bwt']
+        self.forgetting = dic['forgetting']
+    
+    def rewind(self, num):
+        self.avg_acc = self.avg_acc[:-num]
+        self.cls_acc = self.cls_acc[:-num]
+        with suppress(BaseException):
+            self.fwt = self.fwt[:-num]
+            self.bwt = self.bwt[:-num]
+            self.forgetting = self.forgetting[:-num]
+    
+    def _anytime_forward_transfer(self, cls_acc):
+        results = self.cls_acc
+        
+    def _anytime_backward_transfer(self, cls_acc):
+        results = self.cls_acc
+        
+    def _anytime_forgetting(self, seen_classes):
+        cls_acc = np.array(self.cls_acc)
+        acc_diff = []
+        for j in range(seen_classes):
+            if np.max(cls_acc[:-1, j]) > 0:
+                acc_diff.append(np.max(cls_acc[:-1, j]) - cls_acc[-1, j])
+        F_last = np.mean(acc_diff)
+        return F_last
+    
+    def add_anytime_fwt(self, results, accs):
+        self.anytime_fwt = self._anytime_forward_transfer(results, accs)
+        return self.fwt
+    
+    def add_anytime_bwt(self, results):
+        self.bwt = self._anytime_backward_transfer(results)
+        return self.bwt
+    
+    def add_anytime_forgetting(self, seen_classes):
+        self.anytime_forgetting = self._anytime_forgetting(seen_classes)
+        return self.anytime_forgetting
+
+    def log_avg_acc(self, avg_acc):
+        self.avg_acc.append(avg_acc)
+        
+    def log_cls_acc(self, cls_acc):
+        self.cls_acc.append(cls_acc)
+    
+    def log_system_stats(self, cpu_res, gpu_res):
+        """
+        Logs the system stats.
+        Supported only if the `psutil` and `torch` libraries are installed.
+
+        Args:
+            cpu_res: the CPU memory usage
+            gpu_res: the GPU memory usage
+        """
+        if cpu_res is not None:
+            self.cpu_res.append(cpu_res)
+        if gpu_res is not None:
+            self.gpu_res.append(gpu_res)
+            gpu_res = {f'GPU_{i}_memory_usage': r for i, r in gpu_res.items()}
+        else:
+            gpu_res = {}
+
+        if not self.args.nowand:
+            wandb.log({'CPU_memory_usage': cpu_res, **gpu_res})
+            
+    def write(self, args: Dict[str, Any]) -> None:
+        """
+        Writes out the logged value along with its arguments in the log path (`./results`).
+        The default path can be changed with the `--results_path` argument.
+
+        Args:
+            args: the namespace of the current experiment
+        """
+        wrargs = args.copy()
+
+        for i, acc in enumerate(self.avg_acc):
+            wrargs['Task' + str(i + 1)] = acc
+
+        for i, fa in enumerate(self.cls_acc):
+            for j, acc in enumerate(fa):
+                wrargs['accuracy_' + str(j + 1) + '_class' + str(i + 1)] = acc
+
+        wrargs['cpu_memory_usage'] = self.cpu_res
+        wrargs['gpu_memory_usage'] = self.gpu_res
+
+        wrargs['forward_transfer'] = self.fwt
+        wrargs['backward_transfer'] = self.bwt
+        wrargs['forgetting'] = self.forgetting
+
+        target_folder = smart_joint(self.args.results_path)
+
+        create_if_not_exists(smart_joint(target_folder, self.setting))
+        create_if_not_exists(smart_joint(target_folder, self.setting, self.dataset))
+        create_if_not_exists(smart_joint(target_folder, self.setting, self.dataset, self.model))
+
+        path = smart_joint(target_folder, self.setting, self.dataset, self.model, "logs.pyd")
+        print("Logging results and arguments in " + path)
+        with open(path, 'a') as f:
+            f.write(str(wrargs) + '\n')
