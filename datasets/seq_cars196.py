@@ -72,22 +72,27 @@ class MyCars196(Dataset):
     ])
 
     def __init__(self, root, train=True, transform=None,
-                 target_transform=None) -> None:
+                 target_transform=None, download=False) -> None:
 
         self.root = root
         self.train = train
         self.transform = transform
         self.target_transform = target_transform
         self.not_aug_transform = transforms.ToTensor()
+        self.download = download
 
-        train_str = 'train' if train else 'test'
-        if not os.path.exists(f'{root}/{train_str}_images.pt'):
-            print(f'Preparing {train_str} dataset...', file=sys.stderr)
-            self.load_and_preprocess_dataset(root, train_str)
-        else:
-            print(f"Loading pre-processed {train_str} dataset...", file=sys.stderr)
-            self.data = torch.load(f'{root}/{train_str}_images.pt')
-            self.targets = torch.load(f'{root}/{train_str}_labels.pt')
+        if download:
+            if os.path.isdir(root) and len(os.listdir(root)) > 0:
+                print('Download not needed, files already on disk.')
+            else:
+                train_str = 'train' if train else 'test'
+                if not os.path.exists(f'{root}/{train_str}_images.pt'):
+                    print(f'Preparing {train_str} dataset...', file=sys.stderr)
+                    self.load_and_preprocess_dataset(root, train_str)
+                else:
+                    print(f"Loading pre-processed {train_str} dataset...", file=sys.stderr)
+                    self.data = torch.load(f'{root}/{train_str}_images.pt')
+                    self.targets = torch.load(f'{root}/{train_str}_labels.pt')
 
         self.class_names = MyCars196.get_class_names()
 
