@@ -76,6 +76,7 @@ class MyImagenetR(Dataset):
 
         self.data = np.array(data_config['data'])
         self.targets = np.array(data_config['targets'])
+        self.classes = [x for x in range(self.targets.max()+1)]
 
     def __len__(self):
         return len(self.targets)
@@ -130,7 +131,12 @@ class SequentialImagenetR(ContinualDataset):
                                          transforms.CenterCrop(SIZE[0]),
                                          transforms.ToTensor(),
                                          transforms.Normalize(mean=MEAN, std=STD)])
-
+    
+    train_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=True,
+                                    download=True, transform=TRANSFORM)
+    test_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=False,
+                                download=True, transform=TEST_TRANSFORM)
+        
     def get_data_loaders(self):
         train_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=True,
                                     download=True, transform=self.TRANSFORM)

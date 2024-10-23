@@ -55,6 +55,10 @@ class SequentialCIFAR100224(ContinualDataset):
         transforms.ToTensor(),
         transforms.Normalize(MEAN, STD)
     ])
+    train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
+                                   download=True, transform=TRANSFORM)
+    test_dataset = TCIFAR100(base_path() + 'CIFAR100', train=False,
+                                download=True, transform=TEST_TRANSFORM)
 
     def __init__(self, args, transform_type: str = 'weak'):
         super().__init__(args)

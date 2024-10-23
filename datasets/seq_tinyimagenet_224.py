@@ -13,6 +13,7 @@ import torch.nn.functional as F
 import torchvision.transforms as transforms
 from PIL import Image
 from torch.utils.data import Dataset
+from torchvision.transforms.functional import InterpolationMode
 
 from backbone.ResNetBlock import resnet18
 from datasets.transforms.denormalization import DeNormalize
@@ -128,20 +129,22 @@ class SequentialTinyImagenet(ContinualDataset):
         TRANSFORM (torchvision.transforms): transformations to apply to the dataset.
     """
 
-    NAME = 'seq-tinyimg'
+    NAME = 'seq-tinyimg-224'
     SETTING = 'class-il'
     N_CLASSES_PER_TASK = 20
     N_TASKS = 10
     N_CLASSES = N_CLASSES_PER_TASK * N_TASKS
     MEAN, STD = (0.4802, 0.4480, 0.3975), (0.2770, 0.2691, 0.2821)
-    SIZE = (64, 64)
+    SIZE = (224, 224)
     TRANSFORM = transforms.Compose(
-        [transforms.RandomCrop(64, padding=4),
+        [transforms.RandomResizedCrop(224, interpolation=InterpolationMode.BICUBIC),
          transforms.RandomHorizontalFlip(),
          transforms.ToTensor(),
          transforms.Normalize(MEAN, STD)])
     TEST_TRANSFORM = transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize(MEAN, STD)])
+            [transforms.Resize(224, interpolation=InterpolationMode.BICUBIC),
+             transforms.ToTensor(), 
+             transforms.Normalize(MEAN, STD)])
     train_dataset = MyTinyImagenet(base_path() + 'TINYIMG',
                                        train=True, download=True, transform=TRANSFORM)
     test_dataset = TinyImagenet(base_path() + 'TINYIMG',
@@ -163,7 +166,7 @@ class SequentialTinyImagenet(ContinualDataset):
 
     @set_default_from_args("backbone")
     def get_backbone():
-        return "resnet18"
+        return "vit"
 
     @staticmethod
     def get_loss():
