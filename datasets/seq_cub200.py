@@ -157,10 +157,11 @@ class SequentialCUB200(ContinualDataset):
                                          transforms.ToTensor(),
                                          transforms.Normalize(MEAN, STD)])
     
-    train_dataset = MyCUB200(base_path() + 'CUB200', train=True,
-                                 download=True, transform=TRANSFORM)
-    test_dataset = CUB200(base_path() + 'CUB200', train=False,
-                            download=True, transform=TEST_TRANSFORM)
+    def set_dataset(self):
+        self.train_dataset = MyCUB200(base_path() + 'CUB200', train=True,
+                                    download=True, transform=SequentialCUB200.TRANSFORM)
+        self.test_dataset = CUB200(base_path() + 'CUB200', train=False,
+                                download=True, transform=SequentialCUB200.TEST_TRANSFORM)
 
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         train_dataset = MyCUB200(base_path() + 'CUB200', train=True,

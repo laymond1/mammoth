@@ -75,6 +75,9 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
         dataset.N_TASKS = args.n_tasks
         dataset.N_CLASSES_PER_TASK = dataset.N_CLASSES // dataset.N_TASKS
     
+    dataset.set_dataset()
+    assert hasattr(dataset, 'train_dataset') and hasattr(dataset, 'test_dataset'), "Dataset must have both train_dataset and test_dataset attributes"
+
     if not args.nowand:
         initialize_wandb(args)
 
@@ -89,7 +92,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     model.net.to(model.device)
     torch.cuda.empty_cache()
     
-    # dataset setup 
+    # dataset setup
+    total_samples = len(dataset.train_dataset)
     train_dataset = IndexedDataset(dataset.train_dataset)
     test_dataset = dataset.test_dataset
     train_sampler = OnlineSampler(train_dataset, dataset.N_TASKS, args.m, args.n, args.seed, args.rnd_NM, 1) # args.selection_size was used for prompt
@@ -135,7 +139,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                     torch.cuda.synchronize()
                 system_tracker()
                 
-                model.report_training(samples_cnt, loss_dict, acc)
+                model.report_training(total_samples, samples_cnt, loss_dict, acc)
                 ### Anytime evaluation
                 if samples_cnt > num_eval:
                     with torch.no_grad():

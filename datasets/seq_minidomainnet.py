@@ -127,10 +127,11 @@ class SequentialMiniDomainNet(ContinualDataset):
          transforms.ToTensor(),
          transforms.Normalize(MEAN, STD)])
     
-    train_dataset = MyMiniDomainNet(base_path() + 'mini-domainnet/splits_mini',
-                                   train=True, download=False, transform=TRANSFORM)
-    test_dataset = MyMiniDomainNet(base_path() + 'mini-domainnet/splits_mini',
-                                train=False, download=False, transform=TEST_TRANSFORM)
+    def set_dataset(self):
+        self.train_dataset = MyMiniDomainNet(base_path() + 'mini-domainnet/splits_mini',
+                                    train=True, download=False, transform=self.TRANSFORM)
+        self.test_dataset = MyMiniDomainNet(base_path() + 'mini-domainnet/splits_mini',
+                                train=False, download=False, transform=self.TEST_TRANSFORM)
 
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         train_dataset = MyMiniDomainNet(base_path() + 'mini-domainnet/splits_mini',

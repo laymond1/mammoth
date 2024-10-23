@@ -126,10 +126,11 @@ class SequentialDomainNet(ContinualDataset):
          transforms.ToTensor(),
          transforms.Normalize(MEAN, STD)])
     
-    train_dataset = MyDomainNet(base_path() + 'domainnet',
-                                   train=True, download=False, transform=TRANSFORM)
-    test_dataset = MyDomainNet(base_path() + 'domainnet',
-                                train=False, download=False, transform=TEST_TRANSFORM)
+    def set_dataset(self):
+        self.train_dataset = MyDomainNet(base_path() + 'domainnet',
+                                    train=True, download=False, transform=self.TRANSFORM)
+        self.test_dataset = MyDomainNet(base_path() + 'domainnet',
+                                    train=False, download=False, transform=self.TEST_TRANSFORM)
 
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         train_dataset = MyDomainNet(base_path() + 'domainnet',

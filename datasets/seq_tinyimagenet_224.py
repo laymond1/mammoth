@@ -145,10 +145,12 @@ class SequentialTinyImagenet(ContinualDataset):
             [transforms.Resize(224, interpolation=InterpolationMode.BICUBIC),
              transforms.ToTensor(), 
              transforms.Normalize(MEAN, STD)])
-    train_dataset = MyTinyImagenet(base_path() + 'TINYIMG',
-                                       train=True, download=True, transform=TRANSFORM)
-    test_dataset = TinyImagenet(base_path() + 'TINYIMG',
-                                train=False, download=True, transform=TEST_TRANSFORM)
+    
+    def set_dataset(self):
+        self.train_dataset = MyTinyImagenet(base_path() + 'TINYIMG',
+                                        train=True, download=True, transform=self.TRANSFORM)
+        self.test_dataset = TinyImagenet(base_path() + 'TINYIMG',
+                                    train=False, download=True, transform=self.TEST_TRANSFORM)
 
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         transform = self.TRANSFORM

@@ -55,10 +55,6 @@ class SequentialCIFAR100224(ContinualDataset):
         transforms.ToTensor(),
         transforms.Normalize(MEAN, STD)
     ])
-    train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
-                                   download=True, transform=TRANSFORM)
-    test_dataset = TCIFAR100(base_path() + 'CIFAR100', train=False,
-                                download=True, transform=TEST_TRANSFORM)
 
     def __init__(self, args, transform_type: str = 'weak'):
         super().__init__(args)
@@ -75,6 +71,12 @@ class SequentialCIFAR100224(ContinualDataset):
                  transforms.ToTensor(),
                  transforms.Normalize(SequentialCIFAR100224.MEAN, SequentialCIFAR100224.STD)]
             )
+
+    def set_dataset(self):
+        self.train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
+                                   download=True, transform=self.TRANSFORM)
+        self.test_dataset = TCIFAR100(base_path() + 'CIFAR100', train=False,
+                                    download=True, transform=self.TEST_TRANSFORM)
 
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         transform = self.TRANSFORM

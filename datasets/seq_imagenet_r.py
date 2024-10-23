@@ -132,10 +132,11 @@ class SequentialImagenetR(ContinualDataset):
                                          transforms.ToTensor(),
                                          transforms.Normalize(mean=MEAN, std=STD)])
     
-    train_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=True,
-                                    download=True, transform=TRANSFORM)
-    test_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=False,
-                                download=True, transform=TEST_TRANSFORM)
+    def set_dataset(self):
+        self.train_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=True,
+                                        download=True, transform=self.TRANSFORM)
+        self.test_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=False,
+                                    download=True, transform=self.TEST_TRANSFORM)
         
     def get_data_loaders(self):
         train_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=True,

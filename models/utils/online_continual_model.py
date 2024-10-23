@@ -64,7 +64,6 @@ class OnlineContinualModel(ContinualModel):
         self.exposed_classes = []
         self.mask = torch.zeros(self.num_classes, device=self.device) - torch.inf
         self.seen = 0
-        self.total_samples = len(dataset.train_dataset)
         self.reset_opt()
         
     def add_new_class(self, class_name):
@@ -133,13 +132,13 @@ class OnlineContinualModel(ContinualModel):
                 builtin_print(*args, **kwargs)
         __builtin__.print = print
 
-    def report_training(self, sample_num, train_loss_dict, train_acc):
+    def report_training(self, total_samples, sample_num, train_loss_dict, train_acc):
         print(
             f"Train | Sample # {sample_num} | train_loss {train_loss_dict['total_loss']:.4f} | train_acc {train_acc:.4f} | "
             f"lr {self.optimizer.param_groups[0]['lr']:.6f} | "
             f"Num_Classes {len(self.exposed_classes)} | "
             f"running_time {datetime.timedelta(seconds=int(time.time() - self.start_time))} | "
-            f"ETA {datetime.timedelta(seconds=int((time.time() - self.start_time) * (self.total_samples-sample_num) / sample_num))}"
+            f"ETA {datetime.timedelta(seconds=int((time.time() - self.start_time) * (total_samples-sample_num) / sample_num))}"
         )
         if 'wandb' in sys.modules and not self.args.nowand:
             self.online_train_autolog_wandb(sample_num, train_loss_dict, train_acc)
