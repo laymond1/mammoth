@@ -30,6 +30,8 @@ class OnlineSgd(OnlineContinualModel):
     def get_parser(parser) -> ArgumentParser:
         parser.set_defaults(optimizer='adam')
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
+        # Trick parameters
+        parser.add_argument('--train_mask', default=True, type=bool, help='if using the class mask at training')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -115,7 +117,7 @@ class OnlineSgd(OnlineContinualModel):
             logits = outputs['logits']
             loss_dict = dict()
             # mask out unseen classes
-            logits += self.mask
+            logits = logits + self.mask
             
             ce_loss = self.loss(logits, y)
             loss_dict.update({'total_loss': ce_loss})

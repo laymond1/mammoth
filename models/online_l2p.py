@@ -57,6 +57,8 @@ class OnlineL2P(OnlineContinualModel):
         parser.add_argument('--unscale_lr', type=bool, default=True, help='scaling lr by batch size (default: True)')
 
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
+        # Trick parameters
+        parser.add_argument('--train_mask', default=True, type=bool, help='if using the class mask at training')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -166,7 +168,10 @@ class OnlineL2P(OnlineContinualModel):
             non_cur_classes_mask = torch.zeros(self.num_classes, device=self.device) - torch.inf
             non_cur_classes_mask[y.unique()] = 0
             # mask out unseen classes and non-current classes
-            logits += self.mask + non_cur_classes_mask
+            if self.args.train_mask:
+                logits = logits + non_cur_classes_mask
+            else:
+                logits = logits + self.mask
             
             ce_loss = self.loss(logits, y)
             if self.args.pull_constraint and 'reduce_sim' in outputs:
