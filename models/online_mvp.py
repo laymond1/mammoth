@@ -101,22 +101,6 @@ class MVP(OnlineContinualModel):
     
     def online_before_task(self, task_id):
         pass
-        
-    def observe(self, inputs, labels, not_aug_inputs, epoch=None):
-        feature, mask = self.net.forward_features(inputs)
-        logits = self.net.forward_head(feature)
-        if self.args.use_mask:
-            logits = logits * mask
-        
-        loss_dict = self.loss_fn(feature, mask, labels)
-        loss = loss_dict['total_loss']
-    
-        self.opt.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-        self.opt.step()
-
-        return loss.item()
     
     def online_step(self, inputs, labels, idx):
         self.add_new_class(labels)
@@ -151,7 +135,6 @@ class MVP(OnlineContinualModel):
         x, y = data
         self.labels = torch.cat((self.labels, y), 0)
         
-            
         if self.args.buffer_size > 0:
             if len(self.memory) > 0 and self.memory_batchsize > 0:
                 memory_images, memory_labels = next(self.memory_provider)
@@ -173,7 +156,7 @@ class MVP(OnlineContinualModel):
         
         self.opt.zero_grad()
         self.scaler.scale(loss).backward()
-        torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+        # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
         self.scaler.step(self.opt)
         self.scaler.update()
         self.update_schedule()
@@ -235,9 +218,6 @@ class MVP(OnlineContinualModel):
     
     def online_after_task(self, task_id):
         pass
-
-    def get_parameters(self):
-        return [p for n, p in self.net.named_parameters() if 'prompt' in n or 'head' in n]
     
     def _compute_grads(self, feature, y, mask):
         head = copy.deepcopy(self.net.backbone.head)

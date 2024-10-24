@@ -156,7 +156,6 @@ class OnlineDualPrompt(OnlineContinualModel):
                     self.net.model.e_prompt.prompt.grad.zero_()
                     self.net.model.e_prompt.prompt[cur_idx] = self.net.model.e_prompt.prompt[prev_idx]
                     self.opt.param_groups[0]['params'] = self.net.model.parameters()
-
     
     def observe(self, inputs, labels, not_aug_inputs, epoch=None):
         # TODO: this is not used, why is it defined?
@@ -220,7 +219,7 @@ class OnlineDualPrompt(OnlineContinualModel):
         
         self.opt.zero_grad()
         self.scaler.scale(loss).backward()
-        torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+        # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
         self.scaler.step(self.opt)
         self.scaler.update()
         self.update_schedule()

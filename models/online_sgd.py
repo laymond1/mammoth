@@ -100,7 +100,7 @@ class OnlineSgd(OnlineContinualModel):
         
         self.opt.zero_grad()
         self.scaler.scale(loss).backward()
-        torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+        # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
         self.scaler.step(self.opt)
         self.scaler.update()
         self.update_schedule()
