@@ -127,7 +127,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             model.online_before_task(task_id)
             ## Start Online Training
             for i, (images, labels, not_aug_img, idx) in enumerate(train_dataloader):
-                if args.debug_mode and (i+1) * args.minibatch_size//2 >= 500:
+                if args.debug_mode and (i+1) * args.minibatch_size >= 2000:
                     break
                 
                 samples_cnt += images.size(0) * model.world_size
