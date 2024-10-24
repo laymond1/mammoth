@@ -59,6 +59,7 @@ class CodaPrompt(OnlineContinualModel):
         # set optimizer and scheduler
         self.net.task_id = 0
         self.opt = self.get_optimizer()
+        self.scheduler = CosineSchedule(self.opt, K=self.args.online_iter) # TODO: check if this is correct
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
 
@@ -89,10 +90,8 @@ class CodaPrompt(OnlineContinualModel):
         if task_id != 0:
             self.net.task_id = task_id
             self.net.prompt.process_task_count()
-            self.opt = self.get_optimizer()
+            # self.opt = self.get_optimizer()
             
-        self.scheduler = CosineSchedule(self.opt, K=self.args.online_iter) # TODO: check if this is correct
-
     def observe(self, inputs, labels, not_aug_inputs, epoch=0):
         labels = labels.long()
         self.opt.zero_grad()
@@ -149,7 +148,7 @@ class CodaPrompt(OnlineContinualModel):
         
         self.opt.zero_grad()
         self.scaler.scale(loss).backward()
-        torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+        # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
         self.scaler.step(self.opt)
         self.scaler.update()
         self.update_schedule()
