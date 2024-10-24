@@ -45,13 +45,13 @@ class MVPModel(nn.Module):
             raise ValueError('backbone_name must be specified')
         self.lambd       = lambd
         self.class_num   = dataset.N_CLASSES # num_classes
-        self.task_num    = dataset.N_TASKS # task_num
+        self.task_num    = args.n_tasks # task_num
         self.use_mask    = args.use_mask
         self.use_contrastiv  = args.use_contrastiv
         self.use_last_layer  = args.use_last_layer
         self.selection_size  = args.selection_size
 
-        self.add_module('backbone', vit_base_patch16_224_l2p(pretrained=True, num_classes=num_classes,
+        self.add_module('backbone', vit_base_patch16_224_l2p(pretrained=True, num_classes=self.class_num,
                                                              drop_rate=0., drop_path_rate=0.))
         for name, param in self.backbone.named_parameters():
                 param.requires_grad = False
