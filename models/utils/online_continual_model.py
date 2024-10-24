@@ -172,7 +172,7 @@ class OnlineContinualModel(ContinualModel):
         return ret_num_data, ret_corrects
 
     def reset_opt(self):
-        self.optimizer = select_optimizer(self.args.optimizer, self.args.lr, self.net)
+        self.optimizer = select_optimizer(self.args.optimizer, self.args.lr, self.get_parameters())
         self.scheduler = select_scheduler(self.args.lr_scheduler, self.optimizer)
     
     def update_schedule(self, reset=False):
@@ -214,15 +214,14 @@ class OnlineContinualModel(ContinualModel):
             wandb.log(tmp)
         
         
-def select_optimizer(opt_name: str, lr: float, model: Module) -> optim.Optimizer:
+def select_optimizer(opt_name: str, lr: float, params: Iterator[torch.Tensor]) -> optim.Optimizer:
     if opt_name == "adam":
-        # print("opt_name: adam")
-        opt = optim.Adam(model.parameters(), lr=lr, weight_decay=0)
+        opt = optim.Adam(params, lr=lr, weight_decay=0)
     elif opt_name == "radam":
-        opt = torch_optimizer.RAdam(model.parameters(), lr=lr, weight_decay=0.00001)
+        opt = torch_optimizer.RAdam(params, lr=lr, weight_decay=0.00001)
     elif opt_name == "sgd":
         opt = optim.SGD(
-            model.parameters(), lr=lr, momentum=0.9, nesterov=True, weight_decay=1e-4
+            params, lr=lr, momentum=0.9, nesterov=True, weight_decay=1e-4
         )
     else:
         raise NotImplementedError("Please select the opt_name [adam, sgd]")
