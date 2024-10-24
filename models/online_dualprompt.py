@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as F
 from models.dualprompt_utils.model import Model
 
-from models.utils.online_continual_model import OnlineContinualModel
+from models.utils.online_continual_model import OnlineContinualModel, select_optimizer, select_scheduler
 from utils.args import ArgumentParser
 
 from datasets import get_dataset
@@ -82,7 +82,8 @@ class OnlineDualPrompt(OnlineContinualModel):
 
         super().__init__(backbone, loss, args, transform, dataset=dataset)
         # set optimizer and scheduler
-        self.reset_opt()
+        # self.opt = self.get_optimizer()
+        # self.scheduler = select_scheduler(self.args.lr_scheduler, self.opt)
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
         
@@ -132,6 +133,9 @@ class OnlineDualPrompt(OnlineContinualModel):
                     self.net.model.e_prompt.prompt.grad.zero_()
                     self.net.model.e_prompt.prompt[cur_idx] = self.net.model.e_prompt.prompt[prev_idx]
                     self.opt.param_groups[0]['params'] = self.net.model.parameters()
+
+        self.opt = self.get_optimizer()
+        self.net.original_model.eval()
 
     def online_before_train(self, task_id):
         # 1) task 구분을 num_classes / pool size 로 navive 적용. 
@@ -222,7 +226,7 @@ class OnlineDualPrompt(OnlineContinualModel):
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
         self.scaler.step(self.opt)
         self.scaler.update()
-        self.update_schedule()
+        # self.update_schedule()
 
         total_loss_dict = {k: v + total_loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
         total_correct += torch.sum(preds == y.unsqueeze(1)).item()
