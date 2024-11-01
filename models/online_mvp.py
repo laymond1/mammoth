@@ -24,7 +24,7 @@ from utils.mvp_buffer import Memory, MemoryBatchSampler
 class MVP(OnlineContinualModel):
     """Learning to Prompt (MVP)."""
     NAME = 'online-mvp'
-    COMPATIBILITY = ['si-blurry'] # sdp, stream
+    COMPATIBILITY = ['si-blurry', 'periodic-gaussian'] # sdp, stream
 
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
@@ -88,7 +88,6 @@ class MVP(OnlineContinualModel):
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
 
-        # args.lr = args.lr * args.batch_size / 256.0
         backbone = MVPModel(args)
 
         super().__init__(backbone, loss, args, transform, dataset=dataset)
@@ -100,6 +99,9 @@ class MVP(OnlineContinualModel):
         self.labels = torch.empty(0)
     
     def online_before_task(self, task_id):
+        pass
+    
+    def online_before_train(self):
         pass
     
     def online_step(self, inputs, labels, idx):
@@ -131,6 +133,7 @@ class MVP(OnlineContinualModel):
         self.net.train()
         total_loss_dict = dict()
         total_correct, total_num_data = 0.0, 0.0
+        class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
 
         x, y = data
         self.labels = torch.cat((self.labels, y), 0)
@@ -139,12 +142,12 @@ class MVP(OnlineContinualModel):
             if len(self.memory) > 0 and self.memory_batchsize > 0:
                 memory_images, memory_labels = next(self.memory_provider)
                 for i in range(len(memory_labels)):
-                    memory_labels[i] = self.exposed_classes.index(memory_labels[i].item())
+                    memory_labels[i] = class_to_idx[memory_labels[i].item()]
                 x = torch.cat([x, memory_images], dim=0)
                 y = torch.cat([y, memory_labels], dim=0)
 
         for j in range(len(y)):
-            y[j] = self.exposed_classes.index(y[j].item())
+            y[j] = class_to_idx[y[j].item()]
 
         x = x.to(self.device)
         y = y.to(self.device)
@@ -217,6 +220,9 @@ class MVP(OnlineContinualModel):
         return eval_dict
     
     def online_after_task(self, task_id):
+        pass
+
+    def online_after_train(self):
         pass
     
     def _compute_grads(self, feature, y, mask):

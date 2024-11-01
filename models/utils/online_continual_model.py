@@ -18,15 +18,18 @@ from abc import abstractmethod
 import logging
 import os
 import sys
+import copy
 import time
 import datetime
 from contextlib import suppress
 from typing import Iterator, List, Tuple
 import inspect
+import numpy as np
 
 import torch
 import torch_optimizer
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 import torch.distributed as dist
 from torch.nn import Module
@@ -35,6 +38,7 @@ from torch.optim import lr_scheduler
 from models.utils.continual_model import ContinualModel
 
 from utils.magic import persistent_locals
+from utils.metrics import calculate_online_forgetting
 
 with suppress(ImportError):
     import wandb
@@ -65,6 +69,14 @@ class OnlineContinualModel(ContinualModel):
         self.mask = torch.zeros(self.num_classes, device=self.device) - torch.inf
         self.seen = 0
         self.reset_opt()
+        # attributes for evaluate metrics
+        self.gt_label = None
+        self.test_records = []
+        self.n_model_cls = []
+        self.knowledge_loss_rate = []
+        self.knowledge_gain_rate = []
+        self.forgetting_time = []
+        self.f_next_time = 0
         
     def add_new_class(self, class_name):
         exposed_classes = []
@@ -80,6 +92,162 @@ class OnlineContinualModel(ContinualModel):
         self.mask[:len(self.exposed_classes)] = 0
         if 'reset' in self.args.lr_scheduler: # Not used
             self.update_schedule(reset=True)
+            
+    def get_future_classes(self, data_loader):
+        future_classes = []
+
+        # Collect future classes from the data loader
+        for _, labels, _, _ in data_loader:
+            for label in labels:
+                label_item = label.item()
+                # If the class is not exposed, add it to the future_classes
+                if label_item not in future_classes:
+                    future_classes.append(label_item)
+
+        return list(future_classes)
+
+    def future_evaluate(self, test_loader, future_classes):
+        total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
+        correct_l = torch.zeros(self.num_classes)
+        num_data_l = torch.zeros(self.num_classes)
+        label = []
+        
+        # Create a mapping from label to index for future_classes
+        class_to_idx = {label: idx for idx, label in enumerate(future_classes)}
+        
+        self.net.eval()
+        with torch.no_grad():
+            for i, data in enumerate(test_loader):
+                x, y = data[0], data[1]
+                # Update y using the mapping
+                for j in range(len(y)):
+                    y[j] = class_to_idx[y[j].item()]
+
+                x = x.to(self.device)
+                y = y.to(self.device)
+
+                outputs = self.net(x, return_outputs=True)
+                logits = outputs['logits'] if isinstance(outputs, dict) else outputs
+                loss = F.cross_entropy(logits, y)
+                pred = torch.argmax(logits, dim=-1)
+                _, _preds = logits.topk(1, 1, True, True) # self.topk: 1
+                total_correct += torch.sum(_preds == y.unsqueeze(1)).item()
+                total_num_data += y.size(0)
+
+                xlabel_cnt, correct_xlabel_cnt = self._interpret_pred(y, pred)
+                correct_l += correct_xlabel_cnt.detach().cpu()
+                num_data_l += xlabel_cnt.detach().cpu()
+
+                total_loss += loss.mean().item()
+                label += y.tolist()
+
+        avg_acc = total_correct / total_num_data
+        avg_loss = total_loss / len(test_loader)
+        cls_acc = (correct_l / (num_data_l + 1e-5)).numpy().tolist()
+        
+        eval_dict = {"avg_loss": avg_loss, "avg_acc": avg_acc, "cls_acc": cls_acc}
+        
+        return eval_dict
+
+    def online_evaluate(self, test_loader):
+        total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
+        correct_l = torch.zeros(self.num_classes)
+        num_data_l = torch.zeros(self.num_classes)
+        label = []
+        
+        # Create a mapping from label to index for exposed_classes
+        class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
+        
+        self.net.eval()
+        with torch.no_grad():
+            for i, data in enumerate(test_loader):
+                x, y = data[0], data[1]
+                # Update y using the mapping
+                for j in range(len(y)):
+                    y[j] = class_to_idx[y[j].item()]
+
+                x = x.to(self.device)
+                y = y.to(self.device)
+
+                outputs = self.net(x, return_outputs=True)
+                logits = outputs['logits'] if isinstance(outputs, dict) else outputs
+                logits = logits + self.mask
+                loss = F.cross_entropy(logits, y)
+                pred = torch.argmax(logits, dim=-1)
+                _, _preds = logits.topk(1, 1, True, True) # self.topk: 1
+                total_correct += torch.sum(_preds == y.unsqueeze(1)).item()
+                total_num_data += y.size(0)
+
+                xlabel_cnt, correct_xlabel_cnt = self._interpret_pred(y, pred)
+                correct_l += correct_xlabel_cnt.detach().cpu()
+                num_data_l += xlabel_cnt.detach().cpu()
+
+                total_loss += loss.mean().item()
+                label += y.tolist()
+
+        avg_acc = total_correct / total_num_data
+        avg_loss = total_loss / len(test_loader)
+        cls_acc = (correct_l / (num_data_l + 1e-5)).numpy().tolist()
+        
+        eval_dict = {"avg_loss": avg_loss, "avg_acc": avg_acc, "cls_acc": cls_acc}
+        
+        return eval_dict    
+    
+    def online_forgetting_evaluate(self, test_loader, future_classes, samples_cnt):
+        preds = []
+        gts = []
+        
+        # Create a mapping from label to index for future_classes
+        class_to_idx = {label: idx for idx, label in enumerate(future_classes)}
+
+        self.net.eval()
+        with torch.no_grad():
+            for i, data in enumerate(test_loader):
+                x, y = data[0], data[1]
+                # Update y using the mapping
+                for j in range(len(y)):
+                    y[j] = class_to_idx[y[j].item()]
+
+                x = x.to(self.device)
+                y = y.to(self.device)
+
+                outputs = self.net(x, return_outputs=True)
+                logits = outputs['logits'] if isinstance(outputs, dict) else outputs
+                logits = logits + self.mask
+                pred = torch.argmax(logits, dim=-1)
+                preds.append(pred.detach().cpu().numpy())
+                gts.append(y.detach().cpu().numpy())
+            
+            preds = np.concatenate(preds)
+            if self.gt_label is None:
+                self.gt_label = np.concatenate(gts)
+
+        # Combine get_forgetting logic here
+        self.test_records.append(preds)
+        self.n_model_cls.append(copy.deepcopy(len(self.exposed_classes)))
+        
+        # Initialize klr and kgr with default values
+        klr, kgr = 0.0, 0.0
+        
+        if len(self.test_records) > 1:
+            klr, kgr = calculate_online_forgetting(
+                len(future_classes),
+                self.gt_label, 
+                self.test_records[-2], 
+                self.test_records[-1], 
+                self.n_model_cls[-2], 
+                self.n_model_cls[-1]
+            )
+            self.knowledge_loss_rate.append(klr)
+            self.knowledge_gain_rate.append(kgr)
+            self.forgetting_time.append(samples_cnt)
+            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.notes}/KLR_seed_{self.args.seed}.npy", self.knowledge_loss_rate)
+            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.notes}/KGR_seed_{self.args.seed}.npy", self.knowledge_gain_rate)
+            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.notes}/forgetting_time_seed_{self.args.seed}.npy", self.forgetting_time)
+        
+        fgt_eval_dict = {"klr": klr, "kgr": kgr}
+        
+        return fgt_eval_dict
 
     def online_step(self, sample, samples_cnt):
         raise NotImplementedError()
@@ -93,11 +261,17 @@ class OnlineContinualModel(ContinualModel):
     def online_before_task(self, task_id):
         raise NotImplementedError()
 
-    def online_after_task(self, task_id):
+    def online_before_train(self):
         raise NotImplementedError()
     
-    def online_evaluate(self, test_loader, samples_cnt):
+    def online_after_task(self, task_id):
         raise NotImplementedError()
+
+    def online_after_train(self):
+        raise NotImplementedError()
+    
+    # def online_evaluate(self, test_loader, samples_cnt):
+    #     raise NotImplementedError()
             
     def is_dist_avail_and_initialized(self):
         if not dist.is_available():
@@ -143,17 +317,34 @@ class OnlineContinualModel(ContinualModel):
         if 'wandb' in sys.modules and not self.args.nowand:
             self.online_train_autolog_wandb(sample_num, train_loss_dict, train_acc)
 
-    def report_test(self, sample_num, avg_loss, avg_acc, task_id=None):
+    def report_test(self, sample_num, eval_dict, other_metric=None, task_id=None):
+        avg_loss = eval_dict.get("avg_loss", 0.0)
+        avg_acc = eval_dict.get("avg_acc", 0.0)
+        klr = eval_dict.get("klr", None)
+        kgr = eval_dict.get("kgr", None)
+    
+        # Construct the base print message
+        message = f"Test | Sample # {sample_num} | test_loss {avg_loss:.4f} | test_acc {avg_acc:.4f} | "
+        
+        # Add other metrics if they exist
+        if other_metric is not None:
+            message += f"instant_fgt {other_metric.get('instant_fgt', 0.0):.4f} | last_fgt {other_metric.get('last_fgt', 0.0):.4f} | "
+        
+        # Add klr and kgr to the message if they exist
+        if klr is not None:
+            message += f"klr {klr:.4f} | "
+        if kgr is not None:
+            message += f"kgr {kgr:.4f} | "
+
+        # Print the message
         if task_id is None:
-            print(
-                f"Test | Sample # {sample_num} | test_loss {avg_loss:.4f} | test_acc {avg_acc:.4f} | "
-            )
-            if 'wandb' in sys.modules and not self.args.nowand:
-                self.online_test_autolog_wandb(sample_num, avg_loss, avg_acc)
+            print(message)
         else:
-            print(
-                f"Task {task_id}: Test | Sample # {sample_num} | test_loss {avg_loss:.4f} | test_acc {avg_acc:.4f} | "
-            )
+            print(f"Task {task_id}: {message}")
+            
+        # Log to wandb if applicable
+        if 'wandb' in sys.modules and not self.args.nowand:
+            self.online_test_autolog_wandb(sample_num, eval_dict, extra=other_metric)
                 
     def _interpret_pred(self, y, pred):
         # xlable is batch
@@ -198,21 +389,25 @@ class OnlineContinualModel(ContinualModel):
                 tmp['lr'] = self.opt.param_groups[0]['lr']
             wandb.log(tmp)
     
-    def online_test_autolog_wandb(self, sample_num, avg_loss, avg_acc, prefix='Test', extra=None):
+    def online_test_autolog_wandb(self, sample_num, eval_dict, prefix='Test', extra=None):
         """
         All variables starting with "_wandb_" or "loss" or "acc" in the observe function
         are automatically logged to wandb upon return if wandb is installed.
         """
         if not self.args.nowand and not self.args.debug_mode:
             tmp = {'# of samples': sample_num,
-                   f'{prefix}_acc': avg_acc,
-                   f'{prefix}_loss': avg_loss,
-                   'num_classes': len(self.exposed_classes)}
-            tmp.update(extra or {}) # TODO: anytime FWT, BWT, and forgetting
-            # if hasattr(self, 'opt'):
-            #     tmp['lr'] = self.opt.param_groups[0]['lr']
+                f'{prefix}_acc': eval_dict.get("avg_acc", 0.0),
+                f'{prefix}_loss': eval_dict.get("avg_loss", 0.0),
+                'num_classes': len(self.exposed_classes)}
+            # Add klr and kgr if they exist
+            if eval_dict.get("klr") is not None:
+                tmp['klr'] = eval_dict["klr"]
+            if eval_dict.get("kgr") is not None:
+                tmp['kgr'] = eval_dict["kgr"]
+            # Add any other metrics from the extra parameter
+            tmp.update(extra or {})
             wandb.log(tmp)
-        
+            
         
 def select_optimizer(opt_name: str, lr: float, params: Iterator[torch.Tensor]) -> optim.Optimizer:
     if opt_name == "adam":

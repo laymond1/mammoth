@@ -24,7 +24,7 @@ class OnlineSgd(OnlineContinualModel):
     """
 
     NAME = 'online-sgd'
-    COMPATIBILITY = ['online-il']
+    COMPATIBILITY = ['si-blurry', 'periodic-gaussian']
     
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
@@ -52,18 +52,6 @@ class OnlineSgd(OnlineContinualModel):
     def online_before_task(self, task_id):
         pass
 
-    def observe(self, inputs, labels, not_aug_inputs, epoch=None, **kwargs):
-        """
-        SGD trains on the current task using the data provided, with no countermeasures to avoid forgetting.
-        """
-        self.opt.zero_grad()
-        outputs = self.net(inputs)
-        loss = self.loss(outputs, labels)
-        loss.backward()
-        self.opt.step()
-
-        return loss.item()
-    
     def online_step(self, inputs, labels, idx):
         self.add_new_class(labels)
         _loss_dict = dict()
@@ -83,12 +71,13 @@ class OnlineSgd(OnlineContinualModel):
         self.net.train()
         total_loss_dict = dict()
         total_correct, total_num_data = 0.0, 0.0
+        class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
 
         x, y = data
         self.labels = torch.cat((self.labels, y), 0)
         
         for j in range(len(y)):
-            y[j] = self.exposed_classes.index(y[j].item())
+            y[j] = class_to_idx[y[j].item()]
 
         x = x.to(self.device)
         y = y.to(self.device)
@@ -123,44 +112,6 @@ class OnlineSgd(OnlineContinualModel):
             loss_dict.update({'total_loss': ce_loss})
                 
         return logits, loss_dict
-
-    def online_evaluate(self, test_loader):
-        total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
-        correct_l = torch.zeros(self.num_classes)
-        num_data_l = torch.zeros(self.num_classes)
-        label = []
-        self.net.eval()
-        with torch.no_grad():
-            for i, data in enumerate(test_loader):
-                x, y = data[0], data[1]
-                for j in range(len(y)):
-                    y[j] = self.exposed_classes.index(y[j].item())
-
-                x = x.to(self.device)
-                y = y.to(self.device)
-
-                outputs = self.net(x, return_outputs=True)
-                logits = outputs['logits']
-                logits = logits + self.mask
-                loss = F.cross_entropy(logits, y)
-                pred = torch.argmax(logits, dim=-1)
-                _, preds = logits.topk(1, 1, True, True) # self.topk: 1
-                total_correct += torch.sum(preds == y.unsqueeze(1)).item()
-                total_num_data += y.size(0)
-
-                xlabel_cnt, correct_xlabel_cnt = self._interpret_pred(y, pred)
-                correct_l += correct_xlabel_cnt.detach().cpu()
-                num_data_l += xlabel_cnt.detach().cpu()
-
-                total_loss += loss.mean().item()
-                label += y.tolist()
-
-        avg_acc = total_correct / total_num_data
-        avg_loss = total_loss / len(test_loader)
-        cls_acc = (correct_l / (num_data_l + 1e-5)).numpy().tolist()
-        
-        eval_dict = {"avg_loss": avg_loss, "avg_acc": avg_acc, "cls_acc": cls_acc}
-        return eval_dict
     
     def online_after_task(self, task_id):
         pass
