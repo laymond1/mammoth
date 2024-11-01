@@ -17,6 +17,7 @@ from utils.conf import base_path
 from datasets.utils import set_default_from_args
 from datasets.utils.continual_dataset import ContinualDataset, fix_class_names_order, store_masked_loaders
 from datasets.transforms.denormalization import DeNormalize
+from datasets.utils.validation import get_train_val
 from torch.utils.data import Dataset
 from torchvision.transforms.functional import InterpolationMode
 from utils.prompt_templates import templates
@@ -178,7 +179,11 @@ class SequentialCars196(ContinualDataset):
     def set_dataset(self):
         self.train_dataset = MyCars196(base_path() + 'cars196', train=True,
                                     transform=self.TRANSFORM)
-        self.test_dataset = MyCars196(base_path() + 'cars196', train=False,
+        if self.args.validation:
+            self.train_dataset, self.test_dataset = get_train_val(
+                self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
+        else:
+            self.test_dataset = MyCars196(base_path() + 'cars196', train=False,
                                 transform=self.TEST_TRANSFORM)
         
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:

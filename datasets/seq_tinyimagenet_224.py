@@ -22,7 +22,7 @@ from datasets.utils.continual_dataset import (ContinualDataset, fix_class_names_
 from utils import smart_joint
 from utils.conf import base_path
 from datasets.utils import set_default_from_args
-
+from datasets.utils.validation import get_train_val
 
 class TinyImagenet(Dataset):
     """Defines the Tiny Imagenet dataset."""
@@ -149,7 +149,11 @@ class SequentialTinyImagenet(ContinualDataset):
     def set_dataset(self):
         self.train_dataset = MyTinyImagenet(base_path() + 'TINYIMG',
                                         train=True, download=True, transform=self.TRANSFORM)
-        self.test_dataset = TinyImagenet(base_path() + 'TINYIMG',
+        if self.args.validation:
+            self.train_dataset, self.test_dataset = get_train_val(
+                self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
+        else:
+            self.test_dataset = TinyImagenet(base_path() + 'TINYIMG',
                                     train=False, download=True, transform=self.TEST_TRANSFORM)
 
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:

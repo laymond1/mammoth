@@ -107,11 +107,15 @@ def get_train_val(train: Dataset, test_transform: nn.Module,
         torch.save(perm, directory + file_name)
 
     train_idxs, val_idxs = get_validation_indexes(val_perc, train)
+    test_targets = np.array(train.targets)[val_idxs]
 
     test_dataset = ValidationDataset(train.data[val_idxs],
-                                     train.targets[val_idxs],
+                                     test_targets.tolist(),
                                      transform=test_transform)
+    test_dataset.classes = train.classes
+    
     train.data = train.data[train_idxs]
-    train.targets = train.targets[train_idxs]
+    train_targets = np.array(train.targets)[train_idxs]
+    train.targets = train_targets.tolist()
 
     return train, test_dataset

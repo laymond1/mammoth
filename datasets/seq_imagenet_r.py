@@ -21,8 +21,8 @@ from utils import smart_joint
 from utils.conf import base_path
 from datasets.utils.continual_dataset import ContinualDataset, fix_class_names_order, store_masked_loaders
 from datasets.transforms.denormalization import DeNormalize
+from datasets.utils.validation import get_train_val
 from torchvision.transforms.functional import InterpolationMode
-
 
 class MyImagenetR(Dataset):
     N_CLASSES = 200
@@ -135,7 +135,11 @@ class SequentialImagenetR(ContinualDataset):
     def set_dataset(self):
         self.train_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=True,
                                         download=True, transform=self.TRANSFORM)
-        self.test_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=False,
+        if self.args.validation:
+            self.train_dataset, self.test_dataset = get_train_val(
+                self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
+        else:
+            self.test_dataset = MyImagenetR(base_path() + 'imagenet-r/', train=False,
                                     download=True, transform=self.TEST_TRANSFORM)
         
     def get_data_loaders(self):

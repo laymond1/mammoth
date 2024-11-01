@@ -9,6 +9,7 @@ from typing import Tuple
 from datasets.utils import set_default_from_args
 from datasets.utils.continual_dataset import ContinualDataset, fix_class_names_order, store_masked_loaders
 from datasets.transforms.denormalization import DeNormalize
+from datasets.utils.validation import get_train_val
 from utils import smart_joint
 from utils.conf import base_path
 from torch.utils.data import Dataset
@@ -160,7 +161,11 @@ class SequentialCUB200(ContinualDataset):
     def set_dataset(self):
         self.train_dataset = MyCUB200(base_path() + 'CUB200', train=True,
                                     download=True, transform=SequentialCUB200.TRANSFORM)
-        self.test_dataset = CUB200(base_path() + 'CUB200', train=False,
+        if self.args.validation:
+            self.train_dataset, self.test_dataset = get_train_val(
+                self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
+        else:
+            self.test_dataset = CUB200(base_path() + 'CUB200', train=False,
                                 download=True, transform=SequentialCUB200.TEST_TRANSFORM)
 
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
