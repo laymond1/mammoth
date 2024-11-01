@@ -98,6 +98,7 @@ class OnlineL2P(OnlineContinualModel):
             _iter += 1
         del(inputs, labels)
         gc.collect()
+        torch.cuda.empty_cache()
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
         return _loss_dict, _acc / _iter
     

@@ -126,6 +126,7 @@ class MVP(OnlineContinualModel):
             self.update_memory(idx, labels)
         del(inputs, labels)
         gc.collect()
+        torch.cuda.empty_cache()
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
         return loss_dict, _acc / _iter
     
