@@ -4,6 +4,94 @@ from torch.utils.data.sampler import Sampler
 from typing import Optional, Sized, Iterable, Tuple
 
 
+class OnlineStreamSampler(Sampler):
+    def __init__(self, data_source: Optional[Sized], sigma: float, repeat: int, init_cls: float, rnd_seed: int, num_replicas: int=None, rank: int=None) -> None:
+        self.data_source    = data_source
+        self.ori_classes = self.data_source.classes
+        self.classes    = self.ori_classes.copy()
+        self.targets    = self.data_source.targets
+        self.generator  = torch.Generator().manual_seed(rnd_seed)
+        
+        self.sigma  = sigma
+        self.repeat = repeat
+        self.init_cls = init_cls
+        
+        if num_replicas is not None:
+            if not dist.is_available():
+                raise RuntimeError("Distibuted package is not available, but you are trying to use it.")
+            num_replicas = dist.get_world_size()
+        if rank is not None:
+            if not dist.is_available():
+                raise RuntimeError("Distibuted package is not available, but you are trying to use it.")
+            rank = dist.get_rank()
+            
+        self.distributed = num_replicas is not None and rank is not None
+        self.num_replicas = num_replicas if num_replicas is not None else 1
+        self.rank = rank if rank is not None else 0
+        
+        # Randomly shuffle the classes and update targets
+        num_classes = len(self.classes)
+        cls_indices = torch.randperm(num_classes, generator=self.generator)
+        self.classes = [self.classes[i] for i in cls_indices]
+        self.cls_dict = {cls:i for i, cls in enumerate(self.classes)}
+        self.targets = [self.cls_dict[self.ori_classes[t]] for t in self.targets]
+        n_cls_seen = torch.round(
+            num_classes * (init_cls + (1 - init_cls) * (torch.arange(repeat, dtype=torch.float32) + 1) / repeat)
+        ).int()
+        # Generate incremental time per class
+        cls_order_list = torch.arange(num_classes)
+        cls_order_indices = torch.randperm(len(cls_order_list), generator=self.generator)
+        cls_order_list = [cls_order_list[i] for i in cls_order_indices]
+        cls_increment_time = torch.zeros(num_classes)
+        for i in range(repeat):
+            if i > 0:
+                cls_increment_time[cls_order_list[n_cls_seen[i-1]:n_cls_seen[i]]] = i
+        # Create sample list per class
+        samples_indices = []
+        for cls in self.classes:
+            cls_sample_list = [i for i in range(len(self.targets)) if self.targets[i] == self.cls_dict[cls]]
+            cls_sample_indices = torch.randperm(len(cls_sample_list), generator=self.generator)
+            cls_sample_list = [cls_sample_list[i] for i in cls_sample_indices]
+            samples_indices.append(cls_sample_list)
+        # Generate stream
+        stream = []
+        for i in range(num_classes):
+            times = torch.normal(mean=i / num_classes, std=sigma, size=(len(samples_indices[i]),), generator=self.generator)
+            choice = torch.randint(0, repeat, (len(samples_indices[i]),), generator=self.generator)
+            times += choice
+            for ii, sample in enumerate(samples_indices[i]):
+                if choice[ii] >= cls_increment_time[i]:
+                    stream.append({'indice': samples_indices[i][ii], 'class': self.classes[i], 'label':i, 'time':times[ii]})
+        stream_indices = torch.randperm(len(stream), generator=self.generator)
+        stream = [stream[i] for i in stream_indices]
+        stream = sorted(stream, key=lambda x: x['time'])
+        # data = {'cls_dict':self.cls_dict, 'stream':stream, 'cls_addition':list(cls_increment_time)}
+        # Create stream indices
+        self.indices = [x['indice'] for x in stream]
+        self.time = [x['time'] for x in stream]
+
+        if self.distributed:
+            self.num_samples = int(len(self.indices) // self.num_replicas)
+            self.total_size = self.num_samples * self.num_replicas
+            self.num_selected_samples = int(len(self.indices) // self.num_replicas)
+        else:
+            self.num_samples = int(len(self.indices))
+            self.total_size = self.num_samples
+            self.num_selected_samples = int(len(self.indices))
+
+    def __iter__(self) -> Iterable[int]:
+        if self.distributed:
+            # subsample
+            indices = self.indices[self.rank:self.total_size:self.num_replicas]
+            assert len(indices) == self.num_samples
+            return iter(indices[:self.num_selected_samples])
+        else:
+            return iter(self.indices)
+        
+    def __len__(self) -> int:
+        return self.num_selected_samples
+    
+        
 class OnlineSampler(Sampler):
     def __init__(self, data_source: Optional[Sized], num_tasks: int, m: int, n: int,  rnd_seed: int, cur_iter: int= 0, varing_NM: bool= False, num_replicas: int=None, rank: int=None) -> None:
 

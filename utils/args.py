@@ -414,20 +414,28 @@ def add_online_learning_args(parser: ArgumentParser) -> None:
     """
     online_group = parser.add_argument_group('Online learning arguments', 'Arguments shared by all online learning scenarios.')
 
-    online_group.add_argument('--online_scenario', type=str, default='si-blurry',
+    online_group.add_argument('--online_scenario', type=str, default='si-blurry', choices=[None, 'si-blurry', 'periodic-gaussian'],
                               help='The online scenario to use for the experiment.')
-    online_group.add_argument("--n_tasks", type=int, default=5, help="The number of tasks in a blurry scenario")
+    online_group.add_argument("--n_tasks", type=int, default=1, help="The number of tasks in a blurry scenario")
     online_group.add_argument('--n', type=int, default=50, 
                               help="The percentage of disjoint split. Disjoint=100, Blurry=0")
     online_group.add_argument('--m', type=int, default=10, 
                               help="The percentage of blurry samples in blurry split. Uniform split=100, Disjoint=0")
+    online_group.add_argument("--sigma", type=float, default=0.1, 
+                              help="Sigma of gaussian")
+    online_group.add_argument("--repeat", type=int, default=5, 
+                              help="Number of times to repeat period")
+    online_group.add_argument("--init_cls", type=float, default=1.0, 
+                              help="Percentage of classes already present in first period")
     online_group.add_argument('--rnd_NM', action='store_true', default=False, 
                               help="if True, N and M are randomly mixed over tasks.")
     online_group.add_argument('--eval_period', type=int, default=1000, 
-                              help="evaluation period for true online setup")
+                              help="Evaluation period for true online setup")
+    online_group.add_argument("--f_eval_period", type=int, default=10000, 
+                              help="Period for measuring KLR and KGR")
     online_group.add_argument('--online_iter', type=int, default=1,
                               help="Number of model updates per samples seen.")
-    online_group.add_argument('--use_amp', action="store_true",
+    online_group.add_argument('--use_amp', default=True, type=binary_to_boolean_type,
                               help='Use automatic mixed precision')
 
 
