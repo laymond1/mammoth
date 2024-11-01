@@ -1,0 +1,47 @@
+# Online CODA-Prompt method on Online Learning Setting
+name: 'Online CODA-Prompt Hyperparameter Tuning on CIFAR100-224 (Periodic Gaussian)'
+project: 'Comparison Algorithms Hyperparameter Tuning'
+entity: 'laymond1'
+
+method: grid
+metric:
+  goal: maximize
+  name: A_auc
+program: ./utils/online_main.py
+
+parameters:
+  model:
+    values: ['online-coda-prompt']
+  online_scenario:
+    values: ['periodic-gaussian']
+  dataset:
+    values: ['seq-cifar100-224']
+  validation:
+    value: 0.2
+  batch_size:
+    value: 64
+  online_iter:
+    value: 3
+  eval_period:
+    value: 1000
+  f_eval_period:
+    value: 10000
+  seed:
+    value: 1
+  optimizer:
+    values: ['adam']
+  lr_scheduler:
+    values: ['default']
+  use_amp:
+    value: true
+  num_workers:
+    value: 4
+# hyperparameters
+  lr:
+    values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
+  mu:
+    values: [0.0, 0.1, 0.5, 1.0]
+  
+  
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/vv7ghrh7'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/vv7ghrh7'
