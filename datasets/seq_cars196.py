@@ -96,6 +96,7 @@ class MyCars196(Dataset):
                     self.targets = torch.load(f'{root}/{train_str}_labels.pt')
 
         self.class_names = MyCars196.get_class_names()
+        self.classes = [x for x in range(self.targets.max() + 1)]
 
     def load_and_preprocess_dataset(self, root, train_str='train'):
         self.data, self.targets, class_idx_to_name = load_and_preprocess_cars196(train_str)
@@ -178,19 +179,19 @@ class SequentialCars196(ContinualDataset):
 
     def set_dataset(self):
         self.train_dataset = MyCars196(base_path() + 'cars196', train=True,
-                                    transform=self.TRANSFORM)
+                                    download=True, transform=self.TRANSFORM)
         if self.args.validation:
             self.train_dataset, self.test_dataset = get_train_val(
                 self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
         else:
             self.test_dataset = MyCars196(base_path() + 'cars196', train=False,
-                                transform=self.TEST_TRANSFORM)
+                                download=True, transform=self.TEST_TRANSFORM)
         
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         train_dataset = MyCars196(base_path() + 'cars196', train=True,
-                                  transform=self.TRANSFORM)
+                                  download=True, transform=self.TRANSFORM)
         test_dataset = MyCars196(base_path() + 'cars196', train=False,
-                                 transform=self.TEST_TRANSFORM)
+                                 download=True, transform=self.TEST_TRANSFORM)
 
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
 
