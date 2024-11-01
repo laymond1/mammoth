@@ -8,7 +8,7 @@ Note:
 
 import logging
 import torch
-from models.dualprompt_utils.model import Model
+from models.dualprompt_utils.model import DualPromptModel
 
 from models.utils.continual_model import ContinualModel
 from utils.args import ArgumentParser
@@ -76,7 +76,7 @@ class DualPrompt(ContinualModel):
 
         args.lr = args.lr * args.batch_size / 256.0
         tmp_dataset = get_dataset(args) if dataset is None else dataset
-        backbone = Model(args, tmp_dataset.N_CLASSES)
+        backbone = DualPromptModel(args, tmp_dataset.N_CLASSES)
 
         super().__init__(backbone, loss, args, transform, dataset=dataset)
 

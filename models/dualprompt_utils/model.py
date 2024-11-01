@@ -4,7 +4,7 @@ from torch import nn
 from models.dualprompt_utils.vision_transformer import vit_base_patch16_224_dualprompt
 
 
-class Model(nn.Module):
+class DualPromptModel(nn.Module):
     def __init__(self, args: Namespace, n_classes: int):
         super().__init__()
         self.n_classes = n_classes
@@ -51,8 +51,8 @@ class Model(nn.Module):
                 if n.startswith(tuple(args.freeze)):
                     p.requires_grad = False
 
-    def forward(self, x, task_id, train=False, return_outputs=False):
-
+    def forward(self, x, task_id=-1, train=False, return_outputs=False):
+        assert train is True and task_id != -1, "Only support training mode with task_id"
         with torch.no_grad():
             if self.original_model is not None:
                 original_model_output = self.original_model(x)
