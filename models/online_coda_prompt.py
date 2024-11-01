@@ -11,7 +11,7 @@ import logging
 import torch
 import torch.nn.functional as F
 
-from models.coda_prompt_utils.model import Model
+from models.coda_prompt_utils.model import CODAPromptModel
 from models.utils.online_continual_model import OnlineContinualModel
 from utils.args import *
 from utils.schedulers import CosineSchedule
@@ -22,7 +22,7 @@ from datasets import get_dataset
 class CodaPrompt(OnlineContinualModel):
     """Continual Learning via CODA-Prompt: COntinual Decomposed Attention-based Prompting."""
     NAME = 'online-coda-prompt'
-    COMPATIBILITY = ['online-il']
+    COMPATIBILITY = ['si-blurry', 'periodic-gaussian']
 
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
@@ -51,15 +51,14 @@ class CodaPrompt(OnlineContinualModel):
         n_tasks = args.n_tasks
         num_classes =tmp_dataset.N_CLASSES
         
-        backbone = Model(num_classes=num_classes,
+        backbone = CODAPromptModel(num_classes=num_classes,
                          pt=True, 
                          prompt_param=[n_tasks, [args.pool_size, args.prompt_len, 0]])
         
         super().__init__(backbone, loss, args, transform, dataset=dataset)
         # set optimizer and scheduler
         self.net.task_id = 0
-        self.opt = self.get_optimizer()
-        self.scheduler = CosineSchedule(self.opt, K=self.args.online_iter) # TODO: check if this is correct
+        self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
 
@@ -75,43 +74,16 @@ class CodaPrompt(OnlineContinualModel):
         else:
             raise ValueError('Optimizer not supported for this method')
         return opt
-
-    def begin_task(self, dataset):
-        self.offset_1, self.offset_2 = self.dataset.get_offsets(self.current_task)
-
-        if self.current_task != 0:
-            self.net.task_id = self.current_task
-            self.net.prompt.process_task_count()
-            self.opt = self.get_optimizer()
-
-        self.scheduler = CosineSchedule(self.opt, K=self.args.n_epochs)
         
-    def online_before_task(self, task_id):
-        if task_id != 0:
-            self.net.task_id = task_id
-            self.net.prompt.process_task_count()
+    # def online_before_task(self, task_id):
+    #     if task_id != 0:
+    #         self.net.task_id = task_id
+    #         self.net.prompt.process_task_count()
             # self.opt = self.get_optimizer()
             
-    def observe(self, inputs, labels, not_aug_inputs, epoch=0):
-        labels = labels.long()
-        self.opt.zero_grad()
-        logits, loss_prompt = self.net(inputs, train=True)
-        loss_prompt = loss_prompt.sum()
-        logits = logits[:, :self.offset_2]
-        logits[:, :self.offset_1] = -float('inf')
-        loss_ce = self.loss(logits, labels)
-        loss = loss_ce + self.args.mu * loss_prompt
-        if self.task_iteration == 0:
-            self.opt.zero_grad()
-
-        torch.cuda.empty_cache()
-        (loss / float(self.args.virtual_bs_iterations)).backward()
-        if self.task_iteration > 0 and self.task_iteration % self.args.virtual_bs_iterations == 0:
-            self.opt.step()
-            self.opt.zero_grad()
-
-        return loss.item()
-    
+    def online_before_train(self):
+        pass
+        
     def online_step(self, inputs, labels, idx):
         self.add_new_class(labels)
         _loss_dict = dict()
@@ -124,6 +96,7 @@ class CodaPrompt(OnlineContinualModel):
             _iter += 1
         del(inputs, labels)
         gc.collect()
+        torch.cuda.empty_cache()
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
         return _loss_dict, _acc / _iter
     
@@ -145,7 +118,7 @@ class CodaPrompt(OnlineContinualModel):
         logits, loss_dict = self.model_forward(x, y) 
         loss = loss_dict['total_loss']
         _, preds = logits.topk(1, 1, True, True) # self.topk: 1
-        
+               
         self.opt.zero_grad()
         self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
@@ -221,6 +194,9 @@ class CodaPrompt(OnlineContinualModel):
     
     def online_after_task(self, task_id):
         pass
-
-    # def forward(self, x):
-    #     return self.net(x)[:, :self.offset_2]
+    
+    def online_after_train(self):
+        pass
+    
+    def get_parameters(self):
+        return list(self.net.prompt.parameters()) + list(self.net.last.parameters())

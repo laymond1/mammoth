@@ -149,7 +149,7 @@ def tensor_prompt(a, b, c=None, ortho=False):
     return p
 
 
-class Model(nn.Module):
+class CODAPromptModel(nn.Module):
     def __init__(self, num_classes=10, pt=False, prompt_param=None):
         super().__init__()
 
@@ -177,7 +177,7 @@ class Model(nn.Module):
         self.feat = vit_model
 
     # pen: get penultimate features
-    def forward(self, x, pen=False, train=False):
+    def forward(self, x, pen=False, train=False, **kwargs):
 
         if self.prompt is not None:
             with torch.no_grad():
