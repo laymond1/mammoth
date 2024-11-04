@@ -241,9 +241,9 @@ class OnlineContinualModel(ContinualModel):
             self.knowledge_loss_rate.append(klr)
             self.knowledge_gain_rate.append(kgr)
             self.forgetting_time.append(samples_cnt)
-            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.notes}/KLR_seed_{self.args.seed}.npy", self.knowledge_loss_rate)
-            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.notes}/KGR_seed_{self.args.seed}.npy", self.knowledge_gain_rate)
-            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.notes}/forgetting_time_seed_{self.args.seed}.npy", self.forgetting_time)
+            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.model}/KLR_seed_{self.args.seed}.npy", self.knowledge_loss_rate)
+            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.model}/KGR_seed_{self.args.seed}.npy", self.knowledge_gain_rate)
+            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.model}/forgetting_time_seed_{self.args.seed}.npy", self.forgetting_time)
         
         fgt_eval_dict = {"klr": klr, "kgr": kgr}
         
@@ -387,7 +387,7 @@ class OnlineContinualModel(ContinualModel):
             tmp.update(extra or {})
             if hasattr(self, 'opt'):
                 tmp['lr'] = self.opt.param_groups[0]['lr']
-            wandb.log(tmp)
+            wandb.log(tmp, step=sample_num)
     
     def online_test_autolog_wandb(self, sample_num, eval_dict, prefix='Test', extra=None):
         """
@@ -406,7 +406,7 @@ class OnlineContinualModel(ContinualModel):
                 tmp['kgr'] = eval_dict["kgr"]
             # Add any other metrics from the extra parameter
             tmp.update(extra or {})
-            wandb.log(tmp)
+            wandb.log(tmp, step=sample_num)
             
         
 def select_optimizer(opt_name: str, lr: float, params: Iterator[torch.Tensor]) -> optim.Optimizer:
