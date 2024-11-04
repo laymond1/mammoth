@@ -114,7 +114,7 @@ class MyTinyImagenet(TinyImagenet):
         return img, target, not_aug_img
 
 
-class SequentialTinyImagenet(ContinualDataset):
+class SequentialTinyImagenet224(ContinualDataset):
     """The Sequential Tiny Imagenet dataset.
 
     Args:
@@ -185,12 +185,12 @@ class SequentialTinyImagenet(ContinualDataset):
 
     @staticmethod
     def get_normalization_transform():
-        transform = transforms.Normalize(SequentialTinyImagenet.MEAN, SequentialTinyImagenet.STD)
+        transform = transforms.Normalize(SequentialTinyImagenet224.MEAN, SequentialTinyImagenet224.STD)
         return transform
 
     @staticmethod
     def get_denormalization_transform():
-        transform = DeNormalize(SequentialTinyImagenet.MEAN, SequentialTinyImagenet.STD)
+        transform = DeNormalize(SequentialTinyImagenet224.MEAN, SequentialTinyImagenet224.STD)
         return transform
 
     @set_default_from_args('n_epochs')
