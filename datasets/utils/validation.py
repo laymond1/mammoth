@@ -37,8 +37,10 @@ class ValidationDataset(Dataset):
                 img = Image.fromarray(np.uint8(img * 255))
             else:
                 img = Image.fromarray(img)
-        else:
+        elif isinstance(img, torch.Tensor):
             img = Image.fromarray(img.numpy())
+        else:
+            img = Image.open(img).convert('RGB')
 
         if self.transform is not None:
             img = self.transform(img)
