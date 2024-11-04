@@ -90,9 +90,9 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
         dataset: the continual dataset at hand
         args: the arguments of the current execution
     """
-    args.test_batch_size = 256
+    args.test_batch_size = 128
     print(args)
-    os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.notes}", exist_ok=True)
+    os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}", exist_ok=True)
     
     # dataset setup
     # dataset.SETTING = 'online-il'
@@ -176,7 +176,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             
         ## Start Online Training
         for i, (images, labels, not_aug_img, idx) in enumerate(train_dataloader):
-            if args.debug_mode and (i+1) * args.minibatch_size >= 2000:
+            if args.debug_mode and (i+1) * args.minibatch_size >= 4000:
                 break
             
             samples_cnt += images.size(0) * model.world_size
@@ -254,41 +254,13 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
         ## End of Online Training
         model.online_after_train()
         
-        # Final evaluation after online training
-        test_sampler = OnlineTestSampler(test_dataset, model.exposed_classes)
-        test_dataloader = DataLoader(test_dataset, batch_size=args.test_batch_size, sampler=test_sampler, num_workers=args.num_workers)
-        
-        # Evaluate accuracy and forgetting metrics
-        last_eval_dict = model.online_evaluate(test_dataloader)
-        last_eval_dict.update(model.online_forgetting_evaluate(test_dataloader, model.exposed_classes, samples_cnt))
-        
-        # Update evaluation results with the final evaluation metrics
-        for k, v in last_eval_dict.items():
-            eval_results[k].append(v)
-        
-        # Compute additional metrics
-        metrics_dict = get_other_metrics(eval_results, exposed_classes_records)
-        for k, v in metrics_dict.items():
-            eval_results[k].append(v)
-        
-        # Report final test results
-        model.report_test(samples_cnt, last_eval_dict)
-        
-        # TODO: implement distributed evaluation
-        # Aggregate results across distributed processes, if applicable
-        if model.distributed:
-            last_eval_dict =  torch.tensor([last_eval_dict["avg_loss"], last_eval_dict["avg_acc"], *last_eval_dict["cls_acc"]], device=model.device)
-            dist.reduce(last_eval_dict, dst=0, op=dist.ReduceOp.SUM)
-            last_eval_dict = last_eval_dict.cpu().numpy()
-            last_eval_dict = {"avg_loss": last_eval_dict[0]/model.world_size, "avg_acc": last_eval_dict[1]/model.world_size, "cls_acc": last_eval_dict[2:]/model.world_size}
-
         print("Report final result")
 
     # Save and summarize final metrics in the main process
     if model.is_main_process():     
         if args.eval_period is not None:
             # Anytime evaluation metrics
-            log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.notes}"
+            log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}"
             np.save(f"{log_path}/results_seed_{args.seed}_eval.npy", eval_results)
             np.save(f"{log_path}/cls_acc_seed_{args.seed}_eval.npy", eval_results["cls_acc"])
             np.save(f"{log_path}/test_acc_seed_{args.seed}_eval.npy", eval_results["test_acc"])
@@ -296,23 +268,24 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
 
         # Calculate final summary metrics
         A_auc = np.mean(eval_results["test_acc"])
-        A_last = last_eval_dict['avg_acc']
+        A_last = eval_results["test_acc"][-1]
         F_auc = np.mean(eval_results["instant_fgt"])
-        F_last = last_eval_dict["last_fgt"]
+        F_last = eval_results["last_fgt"][-1]
         F_last_auc = np.mean(eval_results["last_fgt"])
         KLR_avg = np.mean(eval_results['klr'][1:])
         KGR_avg = np.mean(eval_results['kgr'])
 
         # Print summary
         print(f"======== Summary =======")
-        print(f"A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | KGR_avg {KGR_avg} | KLR_avg {KLR_avg}")
+        print(f"A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | F_last_auc {F_last_auc} | KGR_avg {KGR_avg} | KLR_avg {KLR_avg}")
         print(f"="*24)
         
         # Log results to wandb, if enabled
         if not args.nowand:
             wandb.log({
-                "A_auc": A_auc, "A_last": A_last, "F_auc": F_auc, 
-                "F_last": F_last, "KGR_avg": KGR_avg, "KLR_avg": KLR_avg
+                "A_auc": A_auc, "A_last": A_last, 
+                "F_auc": F_auc, "F_last": F_last, "F_last_auc": F_last_auc,
+                "KGR_avg": KGR_avg, "KLR_avg": KLR_avg
             })
 
         # Save model checkpoint, if enabled
@@ -320,7 +293,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             save_obj = {
                 'model': model.state_dict(),
                 'args': args,
-                'results': [A_auc, A_last, F_auc, F_last, KGR_avg, KLR_avg],
+                'results': [A_auc, A_last, F_auc, F_last, F_last_auc, KGR_avg, KLR_avg],
                 'optimizer': model.opt.state_dict() if hasattr(model, 'opt') else None,
                 'scheduler': model.scheduler.state_dict() if model.scheduler is not None else None,
             }
