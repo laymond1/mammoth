@@ -1,6 +1,6 @@
 # Online MVP method on Online Learning Setting
-name: 'Online MVP Hyperparameter Tuning on CIFAR100-224 (Periodic Gaussian)'
-project: 'Comparison Algorithms Hyperparameter Tuning'
+name: 'Online MVP Hyperparameter Tuning on CIFAR100-224'
+project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -13,7 +13,9 @@ parameters:
   model:
     values: ['online-mvp']
   online_scenario:
-    values: ['periodic-gaussian']
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
+  rnd_NM:
+    value: true
   dataset:
     values: ['seq-cifar100-224']
   validation:
@@ -40,10 +42,12 @@ parameters:
   lr:
     values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
   alpha:
-    values: [0.0, 0.5, 1.0]
+    values: [0.1, 0.3, 0.5, 0.7]
   gamma:
-    values: [0.0, 2.0, 4.0]
+    values: [0.5, 1.0, 1.5, 2.0, 2.5]
+  margin:
+    values: [0.1, 0.3, 0.5, 0.7, 0.9]
   
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/e0otkabe'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/e0otkabe'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/1lqjtk4k'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/1lqjtk4k'
