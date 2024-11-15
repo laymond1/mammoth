@@ -48,16 +48,16 @@ class CodaPrompt(OnlineContinualModel):
             logging.info("CODA-Prompt uses a custom scheduler: cosine. Ignoring --lr_scheduler.")
 
         tmp_dataset = get_dataset(args) if dataset is None else dataset
-        n_tasks = args.n_tasks
+        # n_tasks = args.n_tasks # no task boundary
         num_classes =tmp_dataset.N_CLASSES
         
         backbone = CODAPromptModel(num_classes=num_classes,
-                         pt=True, 
-                         prompt_param=[n_tasks, [args.pool_size, args.prompt_len, 0]])
+                        pretrained=True, 
+                        prompt_param=[10, [args.pool_size, args.prompt_len, 0]])
         
         super().__init__(backbone, loss, args, transform, dataset=dataset)
         # set optimizer and scheduler
-        self.net.task_id = 0
+        # self.net.task_id = 0
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
@@ -96,7 +96,7 @@ class CodaPrompt(OnlineContinualModel):
             _iter += 1
         del(inputs, labels)
         gc.collect()
-        torch.cuda.empty_cache()
+        
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
         return _loss_dict, _acc / _iter
     

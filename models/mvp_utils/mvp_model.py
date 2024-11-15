@@ -1,3 +1,7 @@
+"""
+# This code is adapted from the Si-blurry codebase.
+"""
+
 from typing import TypeVar, Iterable
 import timm
 import torch
@@ -7,14 +11,24 @@ import logging
 import timm
 
 from datasets import get_dataset
-# from timm.models.registry import register_model
-# from timm.models.vision_transformer import _cfg, default_cfgs,_create_vision_transformer
-from models.l2p_utils.vit_prompt import vit_base_patch16_224_l2p
+from timm.models.registry import register_model
+from timm.models.vision_transformer import _cfg, default_cfgs, _create_vision_transformer
 
 logger = logging.getLogger()
 
 T = TypeVar('T', bound = 'nn.Module')
 
+# Register the backbone model to timm
+@register_model
+def vit_base_patch16_224_mvp(pretrained=False, **kwargs):
+    """ ViT-Base model (ViT-B/32) from original paper (https://arxiv.org/abs/2010.11929).
+    ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
+    NOTE: this model has valid 21k classifier head and no representation (pre-logits) layer
+    """
+    model_kwargs = dict(
+        patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    model = _create_vision_transformer('vit_base_patch16_224', pretrained=pretrained, **model_kwargs)
+    return model
 
 class MVPModel(nn.Module):
     def __init__(self,
@@ -23,15 +37,9 @@ class MVPModel(nn.Module):
                  len_g_prompt   : int   = 5,
                  pos_e_prompt   : Iterable[int] = (2,3,4),
                  len_e_prompt   : int   = 20,
-                 selection_size : int   = 1,
                  prompt_func    : str   = 'prompt_tuning',
-                 task_num       : int   = 10,
                  num_classes    : int   = 100,
-                 lambd          : float = 1.0,
-                 use_mask       : bool  = True,
-                 use_contrastiv : bool  = False,
-                 use_last_layer : bool  = True,
-                 backbone_name  : str   = 'vit_base_patch16_224_l2p',
+                 backbone_name  : str   = 'vit_base_patch16_224_mvp',
                  **kwargs):
 
         super().__init__()
@@ -43,18 +51,16 @@ class MVPModel(nn.Module):
 
         if backbone_name is None:
             raise ValueError('backbone_name must be specified')
-        self.lambd       = lambd
         self.class_num   = dataset.N_CLASSES # num_classes
-        self.task_num    = args.n_tasks # task_num
         self.use_mask    = args.use_mask
         self.use_contrastiv  = args.use_contrastiv
         self.use_last_layer  = args.use_last_layer
         self.selection_size  = args.selection_size
 
-        self.add_module('backbone', vit_base_patch16_224_l2p(pretrained=True, num_classes=self.class_num,
-                                                             drop_rate=0., drop_path_rate=0.))
+        self.add_module('backbone', timm.models.create_model(backbone_name, pretrained=True, num_classes=num_classes,
+                                                             drop_rate=0.,drop_path_rate=0.,drop_block_rate=None))
         for name, param in self.backbone.named_parameters():
-                param.requires_grad = False
+            param.requires_grad = False
         self.backbone.head.weight.requires_grad = True
         self.backbone.head.bias.requires_grad   = True
 
@@ -67,9 +73,10 @@ class MVPModel(nn.Module):
         self.g_length = len(pos_g_prompt) if pos_g_prompt else 0
         self.e_length = len(pos_e_prompt) if pos_e_prompt else 0
         g_pool = 1
-        e_pool = task_num
+        e_pool = args.pool_size # pool_size: 10
 
-        self.register_buffer('count', torch.zeros(e_pool))
+        self.register_buffer('train_count', torch.zeros(e_pool))
+        self.register_buffer('test_count', torch.zeros(e_pool))
         self.key     = nn.Parameter(torch.randn(e_pool, self.backbone.embed_dim))
         self.mask    = nn.Parameter(torch.zeros(e_pool, self.class_num) - 1)
 
@@ -183,27 +190,29 @@ class MVPModel(nn.Module):
 
         distance = 1 - F.cosine_similarity(query.unsqueeze(1), self.key, dim=-1)
         if self.use_contrastiv:
-            mass = (self.count + 1)
+            mass = (self.train_count + 1)
         else:
             mass = 1.
         scaled_distance = distance * mass
-        topk = scaled_distance.topk(self.selection_size, dim=1, largest=False)[1]
+        topk = scaled_distance.topk(self.selection_size, dim=1, largest=False)[1]    
         distance = distance[torch.arange(topk.size(0), device=topk.device).unsqueeze(1).repeat(1,self.selection_size), topk].squeeze().clone()
         e_prompts = self.e_prompts[topk].squeeze().clone()
         mask = self.mask[topk].mean(1).squeeze().clone()
         
         if self.use_contrastiv:
             key_wise_distance = 1 - F.cosine_similarity(self.key.unsqueeze(1), self.key.detach(), dim=-1)
-            self.similarity_loss = -((key_wise_distance[topk] / mass[topk]).exp().mean() / ((key_wise_distance / mass).exp().mean())).log()
-            # self.similarity_loss = -((key_wise_distance[topk,topk] / mass[topk,topk]).exp().mean() / ((key_wise_distance[topk] / mass[topk]).exp().mean())).log()
-        else:
+            distance_div_mass = distance / mass.unsqueeze(-1)
+            key_dist_div_mass = key_wise_distance / mass.unsqueeze(-1)
+            key_dist_topk = key_dist_div_mass[topk].clone()
+            self.similarity_loss = - ((key_dist_topk.exp().sum() / (distance_div_mass.exp().sum() + key_dist_topk.exp().sum()) + 1e-6).log())
+        else:    
             self.similarity_loss = distance.mean()
 
         g_prompts = self.g_prompts[0].repeat(B, 1, 1)
         if self.training:
             with torch.no_grad():
                 num = topk.view(-1).bincount(minlength=self.e_prompts.size(0))
-                self.count += num
+                self.train_count += num
 
         x = self.prompt_func(self.backbone.pos_drop(token_appended + self.backbone.pos_embed), g_prompts, e_prompts)
         feature = self.backbone.norm(x)[:, 0]

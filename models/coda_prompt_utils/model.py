@@ -79,13 +79,13 @@ class CodaPrompt(nn.Module):
             K = getattr(self, f'e_k_{l}')
             A = getattr(self, f'e_a_{l}')
             p = getattr(self, f'e_p_{l}')
-            pt = int(self.e_pool_size / (self.n_tasks))
-            s = int(self.task_count * pt)
-            f = int((self.task_count + 1) * pt)
+            pt = int(self.e_pool_size / (self.n_tasks)) # TODO: modify this
+            s = int(self.task_count * pt) # TODO: modify this
+            f = int((self.task_count + 1) * pt) # TODO: modify this
 
             # freeze/control past tasks
             if train:
-                if self.task_count > 0:
+                if self.task_count > 0: # TODO: modify this
                     K = torch.cat((K[:s].detach().clone(), K[s:f]), dim=0)
                     A = torch.cat((A[:s].detach().clone(), A[s:f]), dim=0)
                     p = torch.cat((p[:s].detach().clone(), p[s:f]), dim=0)
@@ -150,7 +150,7 @@ def tensor_prompt(a, b, c=None, ortho=False):
 
 
 class CODAPromptModel(nn.Module):
-    def __init__(self, num_classes=10, pt=False, prompt_param=None):
+    def __init__(self, num_classes=10, pretrained=False, prompt_param=None):
         super().__init__()
 
         self.task_id = None
@@ -159,7 +159,7 @@ class CODAPromptModel(nn.Module):
         vit_model = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12,
                                       num_heads=12, drop_path_rate=0)
 
-        if pt:
+        if pretrained:
             load_dict = create_vision_transformer('vit_base_patch16_224', base_class=VisionTransformer, pretrained=True, num_classes=0).state_dict()
             if 'head.weight' in load_dict:
                 del load_dict['head.weight']
@@ -183,7 +183,7 @@ class CODAPromptModel(nn.Module):
             with torch.no_grad():
                 q, _ = self.feat(x)
                 q = q[:, 0, :]
-            out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train, task_id=self.task_id)
+            out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train, task_id=None)
             out = out[:, 0, :]
         else:
             out, _ = self.feat(x)

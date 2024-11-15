@@ -18,7 +18,8 @@ from torch.utils.data import DataLoader
 from models.utils.online_continual_model import OnlineContinualModel
 from models.mvp_utils.mvp_model import MVPModel
 from utils.args import ArgumentParser
-from utils.mvp_buffer import Memory, MemoryBatchSampler
+
+import wandb
 
 
 class MVP(OnlineContinualModel):
@@ -40,12 +41,10 @@ class MVP(OnlineContinualModel):
         parser.add_argument('--alpha', type=float, default=0.5, help='# candidates to use for STR hyperparameter')
         parser.add_argument('--gamma', type=float, default=2., help='# candidates to use for STR hyperparameter')
         parser.add_argument('--margin', type=float, default=0.5, help='# candidates to use for STR hyperparameter')
-        
-        parser.add_argument('--buffer_size', type=int, default=0, help='buffer size for memory replay')
 
         # Prompt parameters
         parser.add_argument('--prompt_pool', default=True, type=bool,)
-        parser.add_argument('--pool_size_l2p', default=10, type=int, help='number of prompts (M in paper)')
+        parser.add_argument('--pool_size', default=10, type=int, help='number of prompts (M in paper)')
         parser.add_argument('--length', default=5, type=int, help='length of prompt (L_p in paper)')
         parser.add_argument('--top_k', default=5, type=int, help='top k prompts to use (N in paper)')
         parser.add_argument('--prompt_key', default=True, type=bool, help='Use learnable prompt key')
@@ -93,10 +92,11 @@ class MVP(OnlineContinualModel):
         super().__init__(backbone, loss, args, transform, dataset=dataset)
         # set optimizer and scheduler
         self.reset_opt()
-        self.memory = Memory()
-        self.memory_batchsize = args.batch_size - args.temp_batch_size # half of the batch size
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
+        cols = [f"Prompt_{i}" for i in range(1, args.size+1)]
+        cols.insert(0, "N_Samples")
+        self.table = wandb.Table(columns=cols)
     
     def online_before_task(self, task_id):
         pass
@@ -110,23 +110,15 @@ class MVP(OnlineContinualModel):
         _loss_dict = dict()
         _acc, _iter = 0.0, 0
 
-        if self.args.buffer_size > 0:
-            self.memory.add_new_class(cls_list=self.exposed_classes) 
-            self.memory_sampler  = MemoryBatchSampler(self.memory, self.memory_batchsize, self.args.temp_batch_size * int(self.args.online_iter) * self.world_size)
-            self.memory_dataloader   = DataLoader(self.dataset.train_dataset, batch_size=self.memory_batchsize, sampler=self.memory_sampler, num_workers=4)
-            self.memory_provider     = iter(self.memory_dataloader)
-
         for _ in range(int(self.args.online_iter)):
             loss_dict, acc = self.online_train([inputs.clone(), labels.clone()])
             _loss_dict = {k: v + _loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
             _acc += acc
             _iter += 1
         
-        if self.args.buffer_size > 0:
-            self.update_memory(idx, labels)
         del(inputs, labels)
         gc.collect()
-        torch.cuda.empty_cache()
+        
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
         return loss_dict, _acc / _iter
     
@@ -138,14 +130,6 @@ class MVP(OnlineContinualModel):
 
         x, y = data
         self.labels = torch.cat((self.labels, y), 0)
-        
-        if self.args.buffer_size > 0:
-            if len(self.memory) > 0 and self.memory_batchsize > 0:
-                memory_images, memory_labels = next(self.memory_provider)
-                for i in range(len(memory_labels)):
-                    memory_labels[i] = class_to_idx[memory_labels[i].item()]
-                x = torch.cat([x, memory_images], dim=0)
-                y = torch.cat([y, memory_labels], dim=0)
 
         for j in range(len(y)):
             y[j] = class_to_idx[y[j].item()]
@@ -296,40 +280,3 @@ class MVP(OnlineContinualModel):
         loss_dict.update({'total_loss': total_loss.mean()})
         
         return loss_dict
-    
-    def update_memory(self, sample, label):
-        # Update memory
-        if self.distributed: # TODO: all_gather function is not implemented
-            sample = torch.cat(self.all_gather(sample.to(self.device)))
-            label = torch.cat(self.all_gather(label.to(self.device)))
-            sample = sample.cpu()
-            label = label.cpu()
-        idx = []
-        if self.is_main_process():
-            for lbl in label:
-                self.seen += 1
-                if len(self.memory) < self.args.buffer_size:
-                    idx.append(-1)
-                else:
-                    j = torch.randint(0, self.seen, (1,)).item()
-                    if j < self.args.buffer_size:
-                        idx.append(j)
-                    else:
-                        idx.append(self.args.buffer_size)
-        # Distribute idx to all processes
-        if self.distributed:
-            idx = torch.tensor(idx).to(self.device)
-            size = torch.tensor([idx.size(0)]).to(self.device)
-            dist.broadcast(size, 0)
-            if dist.get_rank() != 0:
-                idx = torch.zeros(size.item(), dtype=torch.long).to(self.device)
-            dist.barrier() # wait for all processes to reach this point
-            dist.broadcast(idx, 0)
-            idx = idx.cpu().tolist()
-        # idx = torch.cat(self.all_gather(torch.tensor(idx).to(self.device))).cpu().tolist()
-        for i, index in enumerate(idx):
-            if len(self.memory) >= self.args.buffer_size:
-                if index < self.args.buffer_size:
-                    self.memory.replace_data([sample[i], self.exposed_classes[label[i].item()]], index)
-            else:
-                self.memory.replace_data([sample[i], self.exposed_classes[label[i].item()]])
