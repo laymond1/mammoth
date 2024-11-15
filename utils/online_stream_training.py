@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 
 from datasets import get_dataset
 from datasets.utils.indexed_dataset import IndexedDataset
-from datasets.utils.online_sampler import OnlineSampler, OnlineStreamSampler, OnlineTestSampler
+from datasets.utils.online_sampler import OnlineSiBlurrySampler, OnlinePeriodicSampler, OnlineTestSampler
 from datasets.utils.continual_dataset import ContinualDataset, MammothDatasetWrapper
 from datasets.utils.gcl_dataset import GCLDataset
 from models.utils.online_continual_model import OnlineContinualModel
@@ -74,8 +74,8 @@ def get_other_metrics(eval_results, exposed_classes_records):
     metrics['instant_fgt'] = online_forgetting(eval_results["cls_acc"], exposed_classes, mode='instant')
     metrics['last_fgt'] = online_forgetting(eval_results["cls_acc"], exposed_classes, mode='last')
     # TODO: implement FWT and BWT
-    # metrics['instant_fwt'] = online_forward_transfer(eval_results["cls_acc"], eval_cnt, exposed_classes)
-    # metrics['instant_bwt'] = online_backward_transfer(eval_results["cls_acc"], eval_cnt, exposed_classes)
+    # metrics['instant_fwt'] = online_forward_transfer(eval_results["cls_acc"], exposed_classes)
+    # metrics['instant_bwt'] = online_backward_transfer(eval_results["cls_acc"], exposed_classes)
     
     return metrics
 
@@ -112,7 +112,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     is_fwd_enabled = True
     can_compute_fwd_beforetask = True
     ptm_results = defaultdict(list)
-    if args.validation > 0:
+    if args.validation:
         is_fwd_enabled = False
         can_compute_fwd_beforetask = False
         
@@ -126,10 +126,10 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     
     # Scenario setup
     if args.online_scenario == 'si-blurry':
-        train_sampler = OnlineSampler(train_dataset, dataset.N_TASKS, args.m, args.n, args.seed, args.rnd_NM, 1) # args.selection_size was used for prompt
+        train_sampler = OnlineSiBlurrySampler(train_dataset, dataset.N_TASKS, args.m, args.n, args.seed, args.rnd_NM) # args.selection_size was used for prompt
     elif args.online_scenario == 'periodic-gaussian':
         assert args.n_tasks == 1, "Periodic Gaussian is a single task scenario"
-        train_sampler = OnlineStreamSampler(train_dataset, args.sigma, args.repeat, args.init_cls, args.seed)
+        train_sampler = OnlinePeriodicSampler(train_dataset, args.sigma, args.repeat, args.init_cls, args.seed)
     else:
         raise NotImplementedError(f"Scenario {args.online_scenario} not implemented")
     
@@ -140,7 +140,12 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     with track_system_stats(logger) as system_tracker:
         
         print(file=sys.stderr)
-        print(f"Online boundary free training {args.repeat} times with Periodic Gaussian {args.sigma}")  
+        if args.online_scenario == 'si-blurry':
+            print(f"Online boundary free training with Stochastic Blurry M:{args.m} and N:{args.n} samples")
+        elif args.online_scenario == 'periodic-gaussian':
+            print(f"Online boundary free training {args.repeat} times with Periodic Gaussian {args.sigma}")  
+        else:
+            raise NotImplementedError(f"Scenario {args.online_scenario} not implemented")
         
         eval_results = defaultdict(list)
         exposed_classes_records = []
@@ -287,6 +292,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 "F_auc": F_auc, "F_last": F_last, "F_last_auc": F_last_auc,
                 "KGR_avg": KGR_avg, "KLR_avg": KLR_avg
             })
+            if hasattr(model, "table"):
+                    wandb.log({"Prompt_distribution": model.table})
 
         # Save model checkpoint, if enabled
         if args.savecheck:

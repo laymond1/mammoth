@@ -416,7 +416,7 @@ def add_online_learning_args(parser: ArgumentParser) -> None:
 
     online_group.add_argument('--online_scenario', type=str, default='si-blurry', choices=[None, 'si-blurry', 'periodic-gaussian'],
                               help='The online scenario to use for the experiment.')
-    online_group.add_argument("--n_tasks", type=int, default=1, help="The number of tasks in a blurry scenario")
+    online_group.add_argument("--n_tasks", type=int, default=5, help="The number of tasks in a blurry scenario")
     online_group.add_argument('--n', type=int, default=50, 
                               help="The percentage of disjoint split. Disjoint=100, Blurry=0")
     online_group.add_argument('--m', type=int, default=10, 
