@@ -214,18 +214,16 @@ class OnlineSiBlurrySampler(Sampler):
                     self.blurry_indices[i] += blurred[:num_blurred[i + 1] - num_blurred[i]]
                     blurred = blurred[num_blurred[i + 1] - num_blurred[i]:]
 
-            import ipdb; ipdb.set_trace()
-            
             self.indices = [[] for _ in range(num_tasks)]
             for i in range(num_tasks):
                 print("task %d: disjoint %d, blurry %d" % (i, len(self.disjoint_indices[i]), len(self.blurry_indices[i])))
                 self.indices[i] = self.disjoint_indices[i] + self.blurry_indices[i]
                 self.indices[i] = torch.tensor(self.indices[i])[torch.randperm(len(self.indices[i]), generator=self.generator)].tolist()
             
-            # Delete task boundaries
-            self.indices = sum(self.indices, [])
-            print("total disjoint %d, blurry %d" % (len(self.disjoint_indices), len(self.blurry_indices)))
-            print("Removing task boundaries to create data stream: ", len(self.indices))
+        # Delete task boundaries
+        self.indices = sum(self.indices, [])
+        print("total disjoint %d, blurry %d" % (len(self.disjoint_indices), len(self.blurry_indices)))
+        print("Removing task boundaries to create data stream: ", len(self.indices))
 
         if self.distributed:
             self.num_samples = int(len(self.indices) // self.num_replicas)
