@@ -346,7 +346,7 @@ class OnlineContinualModel(ContinualModel):
             print(f"Task {task_id}: {message}")
             
         # Log to wandb if applicable
-        if 'wandb' in sys.modules and not self.args.nowand:
+        if 'wandb' in sys.modules and not self.args.nowand and task_id is None:
             self.online_test_autolog_wandb(sample_num, eval_dict, extra=other_metric)
                 
     def _interpret_pred(self, y, pred):

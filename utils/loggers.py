@@ -21,7 +21,7 @@ with suppress(ImportError):
     import wandb
 
 
-def log_online_accs(args, logger, eval_dict, t: int, setting: str, prefix="RESULT", future=False):
+def log_online_accs(args, logger, sample_num, eval_dict, t: int, setting: str, prefix="RESULT", future=False):
     """
     Logs the online loss and accuracy values.
 
@@ -46,11 +46,11 @@ def log_online_accs(args, logger, eval_dict, t: int, setting: str, prefix="RESUL
         if future:
             prefix += "_transf"
         
-        d2 = {f'{prefix}_task_online_loss': eval_dict['avg_loss'],
-              f'{prefix}_task_online_acc': eval_dict['avg_acc'],
+        d2 = {f'{prefix}_task_loss': eval_dict['avg_loss'],
+              f'{prefix}_task_acc': eval_dict['avg_acc'],
               'Task': t}
 
-        wandb.log(d2)
+        wandb.log(d2, step=sample_num)
 
 
 def log_accs(args, logger, accs, t: int, setting: str, epoch=None, prefix="RESULT", future=False):
