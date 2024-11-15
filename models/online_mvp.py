@@ -38,9 +38,9 @@ class MVP(OnlineContinualModel):
         parser.add_argument('--use_gsf', action='store_true', help='enable Minor-Class Reinforcement (MCR) in ours')
         
         parser.add_argument('--selection_size', type=int, default=1, help='# candidates to use for ViT_Prompt')
-        parser.add_argument('--alpha', type=float, default=0.5, help='# candidates to use for STR hyperparameter')
-        parser.add_argument('--gamma', type=float, default=2., help='# candidates to use for STR hyperparameter')
-        parser.add_argument('--margin', type=float, default=0.5, help='# candidates to use for STR hyperparameter')
+        parser.add_argument('--alpha', type=float, default=0.5, help='# candidates to use for STR hyperparameter') # 0.1, 0.3, 0.5, 0.7
+        parser.add_argument('--gamma', type=float, default=2., help='# candidates to use for STR hyperparameter') # 0.5, 1.0, 1.5, 2.0, 2.5
+        parser.add_argument('--margin', type=float, default=0.5, help='# candidates to use for STR hyperparameter') # 0.1, 0.3, 0.5, 0.7, 0.9
 
         # Prompt parameters
         parser.add_argument('--prompt_pool', default=True, type=bool,)
@@ -94,7 +94,7 @@ class MVP(OnlineContinualModel):
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
-        cols = [f"Prompt_{i}" for i in range(1, args.size+1)]
+        cols = [f"Prompt_{i}" for i in range(1, args.pool_size+1)]
         cols.insert(0, "N_Samples")
         self.table = wandb.Table(columns=cols)
     
