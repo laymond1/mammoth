@@ -280,3 +280,7 @@ class MVP(OnlineContinualModel):
         loss_dict.update({'total_loss': total_loss.mean()})
         
         return loss_dict
+
+    def get_parameters(self):
+        return [p for p in self.net.parameters() if p.requires_grad]
+
