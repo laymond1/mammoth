@@ -26,7 +26,7 @@ class L2PModel(nn.Module):
             prompt_init=args.prompt_key_init,
             prompt_pool=args.prompt_pool,
             prompt_key=args.prompt_key,
-            pool_size=args.pool_size_l2p,
+            pool_size=args.pool_size,
             top_k=args.top_k,
             batchwise_prompt=args.batchwise_prompt,
             prompt_key_init=args.prompt_key_init,

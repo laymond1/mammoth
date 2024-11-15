@@ -26,12 +26,12 @@ class OnlineL2P(OnlineContinualModel):
         parser.set_defaults(optimizer='adam')
         # Prompt parameters
         parser.add_argument('--prompt_pool', default=True, type=bool,)
-        parser.add_argument('--pool_size_l2p', default=10, type=int, help='number of prompts (M in paper)')
+        parser.add_argument('--pool_size', default=10, type=int, help='number of prompts (M in paper)')
         parser.add_argument('--length', default=5, type=int, help='length of prompt (L_p in paper)')
         parser.add_argument('--top_k', default=5, type=int, help='top k prompts to use (N in paper)')
         parser.add_argument('--prompt_key', default=True, type=bool, help='Use learnable prompt key')
         parser.add_argument('--prompt_key_init', default='uniform', type=str, help='initialization type for key\'s prompts')
-        parser.add_argument('--use_prompt_mask', default=False, type=bool)
+        parser.add_argument('--use_prompt_mask', default=False, type=bool) # must be False for online learning
         parser.add_argument('--batchwise_prompt', default=True, type=bool)
         parser.add_argument('--embedding_key', default='cls', type=str)
         parser.add_argument('--predefined_key', default='', type=str)
@@ -98,7 +98,7 @@ class OnlineL2P(OnlineContinualModel):
             _iter += 1
         del(inputs, labels)
         gc.collect()
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
         return _loss_dict, _acc / _iter
     

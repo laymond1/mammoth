@@ -6,13 +6,23 @@ import torch.nn.functional as F
 import logging
 import timm
 from timm.models.registry import register_model
-# from timm.models.vision_transformer import _cfg, default_cfgs,_create_vision_transformer
-from models.l2p_utils.vit_prompt import vit_base_patch16_224_l2p
+from timm.models.vision_transformer import _cfg, default_cfgs, _create_vision_transformer
 
 logger = logging.getLogger()
 
 T = TypeVar('T', bound = 'nn.Module')
 
+# Register the backbone model to timm
+@register_model
+def vit_base_patch16_224_dualprompt(pretrained=False, **kwargs):
+    """ ViT-Base model (ViT-B/32) from original paper (https://arxiv.org/abs/2010.11929).
+    ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
+    NOTE: this model has valid 21k classifier head and no representation (pre-logits) layer
+    """
+    model_kwargs = dict(
+        patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
+    model = _create_vision_transformer('vit_base_patch16_224', pretrained=pretrained, **model_kwargs)
+    return model
 
 class Prompt(nn.Module):
     def __init__(self,
@@ -46,7 +56,6 @@ class Prompt(nn.Module):
         assert D == self.dimention, f'Query dimention {D} does not match prompt dimention {self.dimention}'
         # Select prompts
         match = 1 - F.cosine_similarity(query.unsqueeze(1), self.key, dim=-1)
-        # match = 1 - F.cosine_similarity(query.unsqueeze(1), self.key, dim=-1)
         if self.training and self._diversed_selection:
             topk = match * F.normalize(self.frequency, p=1, dim=-1)
         else:
@@ -83,10 +92,8 @@ class DualPromptModel(nn.Module):
                  pos_e_prompt   : Iterable[int] = (2,3,4),
                  len_e_prompt   : int   = 20,
                  prompt_func    : str   = 'prompt_tuning',
-                 task_num       : int   = 10,
                  num_classes    : int   = 100,
-                 lambd          : float = 1.0,
-                 backbone_name  : str   = 'vit_base_patch16_224_l2p',
+                 backbone_name  : str   = 'vit_base_patch16_224_dualprompt',
                  **kwargs):
         super().__init__()
 
@@ -96,9 +103,11 @@ class DualPromptModel(nn.Module):
         pos_e_prompt = args.e_prompt_layer_idx
         len_e_prompt = args.length
         prompt_func = 'prefix_tuning' if args.use_prefix_tune_for_e_prompt else 'prompt_tuning'
-        task_num = args.size # pool size: 5
+        e_pool_size = args.pool_size # pool size: 5
+
         # self.features = torch.empty(0)
         # self.keys     = torch.empty(0)
+
         if backbone_name is None:
             raise ValueError('backbone_name must be specified')
 
@@ -110,21 +119,20 @@ class DualPromptModel(nn.Module):
         self.lambd      = args.pull_constraint_coeff
         self.class_num  = num_classes
 
-        # self.add_module('backbone', timm.create_model(backbone_name, pretrained=True, num_classes=num_classes))
-        self.add_module('backbone', vit_base_patch16_224_l2p(pretrained=True, num_classes=num_classes))
+        self.add_module('backbone', timm.create_model(backbone_name, pretrained=True, num_classes=num_classes))
         for name, param in self.backbone.named_parameters():
             param.requires_grad = False
         self.backbone.head.weight.requires_grad = True
         self.backbone.head.bias.requires_grad   = True
 
-        self.tasks = []
-
         self.len_g_prompt = len_g_prompt
         self.len_e_prompt = len_e_prompt
         g_pool = 1
-        e_pool = task_num
+        e_pool = e_pool_size
         self.g_length = len(pos_g_prompt) if pos_g_prompt else 0
         self.e_length = len(pos_e_prompt) if pos_e_prompt else 0
+        self.register_buffer('train_count', torch.zeros(e_pool))
+        self.register_buffer('test_count', torch.zeros(e_pool))
         
         if prompt_func == 'prompt_tuning':
             self.prompt_func = self.prompt_tuning
@@ -138,9 +146,6 @@ class DualPromptModel(nn.Module):
 
         else: raise ValueError('Unknown prompt_func: {}'.format(prompt_func))
         
-        self.task_num = task_num
-        self.task_id = -1 # if _convert_train_task is not called, task will undefined
-
     def prompt_tuning(self,
                       x        : torch.Tensor,
                       g_prompt : torch.Tensor,
@@ -231,6 +236,10 @@ class DualPromptModel(nn.Module):
             g_p = None
         if self.e_prompt is not None:
                 e_s, e_p = self.e_prompt(query)
+                if self.training:
+                    self.train_count += self.get_count()
+                else:
+                    self.test_count += self.get_count()
         else:
             e_p = None
             e_s = 0
@@ -242,26 +251,6 @@ class DualPromptModel(nn.Module):
         self.similarity = e_s.mean()
         return x
 
-    def convert_train_task(self, task : torch.Tensor, **kwargs):
-    
-        task = torch.tensor(task,dtype=torch.float)
-        flag = -1
-        for n, t in enumerate(self.tasks):
-            if torch.equal(t, task):
-                flag = n
-                break
-        if flag == -1:
-            self.tasks.append(task)
-            self.task_id = len(self.tasks) - 1
-            if self.training:
-                if self.task_id != 0:
-                    with torch.no_grad():
-                        self.e_prompt.prompts[self.task_id] = self.e_prompt.prompts[self.task_id - 1].clone()
-                        self.e_prompt.key[self.task_id] = self.e_prompt.key[self.task_id - 1].clone()
-        else :
-            self.task_id = flag
-        return
-        
     def get_count(self):
         return self.e_prompt.update()
     

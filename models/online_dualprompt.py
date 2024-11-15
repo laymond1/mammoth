@@ -17,6 +17,8 @@ from utils.args import ArgumentParser
 
 from datasets import get_dataset
 
+import wandb
+
 
 class OnlineDualPrompt(OnlineContinualModel):
     """DualPrompt: Complementary Prompting for Rehearsal-free Continual Learning."""
@@ -46,13 +48,13 @@ class OnlineDualPrompt(OnlineContinualModel):
 
         # Use prompt pool in L2P to implement E-Prompt
         parser.add_argument('--prompt_pool', default=True, type=bool,)
-        parser.add_argument('--size', default=10, type=int,)
+        parser.add_argument('--pool_size', default=10, type=int,)
         parser.add_argument('--length', default=20, type=int, help='length of E-Prompt')
         parser.add_argument('--top_k', default=1, type=int, )
         parser.add_argument('--initializer', default='uniform', type=str,)
         parser.add_argument('--prompt_key', default=True, type=bool,)
         parser.add_argument('--prompt_key_init', default='uniform', type=str)
-        parser.add_argument('--use_prompt_mask', default=False, type=bool)
+        parser.add_argument('--use_prompt_mask', default=False, type=bool) # must be False for online learning
         parser.add_argument('--mask_first_epoch', default=False, type=bool)
         parser.add_argument('--shared_prompt_pool', default=True, type=bool)
         parser.add_argument('--shared_prompt_key', default=False, type=bool)
@@ -64,9 +66,9 @@ class OnlineDualPrompt(OnlineContinualModel):
         parser.add_argument('--same_key_value', default=False, type=bool)
 
         # ViT parameters
-        parser.add_argument('--global_pool', default='token', choices=['token', 'avg'], type=str, help='type of global pooling for final sequence')
-        parser.add_argument('--head_type', default='token', choices=['token', 'gap', 'prompt', 'token+prompt'], type=str, help='input type of classification head')
-        parser.add_argument('--freeze', default=['blocks', 'patch_embed', 'cls_token', 'norm', 'pos_embed'], nargs='*', type=list, help='freeze part in backbone model')
+        # parser.add_argument('--global_pool', default='token', choices=['token', 'avg'], type=str, help='type of global pooling for final sequence')
+        # parser.add_argument('--head_type', default='token', choices=['token', 'gap', 'prompt', 'token+prompt'], type=str, help='input type of classification head')
+        # parser.add_argument('--freeze', default=['blocks', 'patch_embed', 'cls_token', 'norm', 'pos_embed'], nargs='*', type=list, help='freeze part in backbone model')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -84,32 +86,11 @@ class OnlineDualPrompt(OnlineContinualModel):
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
+        cols = [f"Prompt_{i}" for i in range(1, args.pool_size+1)]
+        cols.insert(0, "N_Samples")
+        self.table = wandb.Table(columns=cols)
         
-        self.num_cls_per_prompt = self.num_classes // self.args.size
-
-    # def online_before_train(self, task_id):
-    #     # 1) task 구분을 num_classes / pool size 로 navive 적용. 
-    #     # 2) Si-blurry는 어찌됐든 5 task로 구성되므로 task_id 적용. -> Boundary Free에서는 문제 발생.
-    #     # cpp = 10 # 100 // 10 , if exposed_classes are 15 -> task_id 2
-    #     # 1) 방식으로 구현, exposed_classes가 한번에 10개 이상 노출되어 task가 2개로 넘어가면, 문제 발생...
-    #     # task_id = (len(self.exposed_classes)-1) // self.num_cls_per_prompt
-    #     if task_id > 0:
-    #         prev_start = (task_id - 1) * self.args.top_k
-    #         prev_end = task_id * self.args.top_k
-
-    #         cur_start = prev_end
-    #         cur_end = (task_id + 1) * self.args.top_k
-
-    #         if (prev_end > self.args.size) or (cur_end > self.args.size):
-    #             pass
-    #         else:
-    #             cur_idx = (slice(None), slice(None), slice(cur_start, cur_end)) if self.args.use_prefix_tune_for_e_prompt else (slice(None), slice(cur_start, cur_end))
-    #             prev_idx = (slice(None), slice(None), slice(prev_start, prev_end)) if self.args.use_prefix_tune_for_e_prompt else (slice(None), slice(prev_start, prev_end))
-
-    #             with torch.no_grad():
-    #                 self.net.model.e_prompt.prompt.grad.zero_()
-    #                 self.net.model.e_prompt.prompt[cur_idx] = self.net.model.e_prompt.prompt[prev_idx]
-    #                 self.opt.param_groups[0]['params'] = self.net.model.parameters()
+        self.num_cls_per_prompt = self.num_classes // self.args.pool_size
 
     def online_before_train(self):
         pass
@@ -127,7 +108,7 @@ class OnlineDualPrompt(OnlineContinualModel):
             _iter += 1
         del(inputs, labels)
         gc.collect()
-        torch.cuda.empty_cache()
+        
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
         return _loss_dict, _acc / _iter
     
