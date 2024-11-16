@@ -51,13 +51,13 @@ class MVPModel(nn.Module):
 
         if backbone_name is None:
             raise ValueError('backbone_name must be specified')
-        self.class_num   = dataset.N_CLASSES # num_classes
+        self.num_classes   = dataset.N_CLASSES # num_classes
         self.use_mask    = args.use_mask
         self.use_contrastiv  = args.use_contrastiv
         self.use_last_layer  = args.use_last_layer
         self.selection_size  = args.selection_size
 
-        self.add_module('backbone', timm.models.create_model(backbone_name, pretrained=True, num_classes=num_classes,
+        self.add_module('backbone', timm.models.create_model(backbone_name, pretrained=True, num_classes=self.num_classes,
                                                              drop_rate=0.,drop_path_rate=0.,drop_block_rate=None))
         for name, param in self.backbone.named_parameters():
             param.requires_grad = False
@@ -78,7 +78,7 @@ class MVPModel(nn.Module):
         self.register_buffer('train_count', torch.zeros(e_pool))
         self.register_buffer('test_count', torch.zeros(e_pool))
         self.key     = nn.Parameter(torch.randn(e_pool, self.backbone.embed_dim))
-        self.mask    = nn.Parameter(torch.zeros(e_pool, self.class_num) - 1)
+        self.mask    = nn.Parameter(torch.zeros(e_pool, self.num_classes) - 1)
 
         if prompt_func == 'prompt_tuning':
             self.prompt_func = self.prompt_tuning

@@ -31,11 +31,11 @@ class MVP(OnlineContinualModel):
     def get_parser(parser) -> ArgumentParser:
         parser.set_defaults(optimizer='adam')
         # MVP parameters
-        parser.add_argument('--use_mask', action='store_true', help='use mask for our method')
-        parser.add_argument('--use_contrastiv', action='store_true', help='use contrastive loss for our method')
-        parser.add_argument('--use_last_layer', action='store_true', help='use last layer for our method')
-        parser.add_argument('--use_afs', action='store_true', help='enable Adaptive Feature Scaling (AFS) in ours')
-        parser.add_argument('--use_gsf', action='store_true', help='enable Minor-Class Reinforcement (MCR) in ours')
+        parser.add_argument('--use_mask', type=bool, default=True, help='use mask for our method')
+        parser.add_argument('--use_contrastiv', type=bool, default=True, help='use contrastive loss for our method')
+        parser.add_argument('--use_last_layer', type=bool, default=False, help='use last layer for our method')
+        parser.add_argument('--use_afs', type=bool, default=True, help='enable Adaptive Feature Scaling (AFS) in ours')
+        parser.add_argument('--use_gsf', type=bool, default=True, help='enable Minor-Class Reinforcement (MCR) in ours')
         
         parser.add_argument('--selection_size', type=int, default=1, help='# candidates to use for ViT_Prompt')
         parser.add_argument('--alpha', type=float, default=0.5, help='# candidates to use for STR hyperparameter') # 0.1, 0.3, 0.5, 0.7
