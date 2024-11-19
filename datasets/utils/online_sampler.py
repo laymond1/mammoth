@@ -235,11 +235,11 @@ class OnlineSiBlurrySampler(Sampler):
 
         # Iterate through the indices to check which classes are still present
         for idx in self.indices:
-            target_class = self.targets[idx]
+            target_class = self.targets[idx] if isinstance(self.targets[idx], int) else self.targets[idx].item()
             if target_class in sum(self.disjoint_classes, []):
-                remaining_disjoint_classes.add(target_class.item())
+                remaining_disjoint_classes.add(target_class)
             if target_class in sum(self.blurry_classes, []):
-                remaining_blurry_classes.add(target_class.item())
+                remaining_blurry_classes.add(target_class)
         # Print the number of remaining classes
         print(f"Remaining disjoint classes: {len(remaining_disjoint_classes)}")
         print(f"Remaining blurry classes: {len(remaining_blurry_classes)}")
