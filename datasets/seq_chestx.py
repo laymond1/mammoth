@@ -87,9 +87,9 @@ class ChestX(Dataset):
         img = np.repeat(img[np.newaxis, :, :], 3, axis=0)
         img = Image.fromarray((img * 255).astype(np.int8).transpose(1, 2, 0), mode='RGB')
 
-        original_img = img.copy()
+        # original_img = img.copy()
 
-        not_aug_img = self.not_aug_transform(original_img)
+        # not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -101,10 +101,11 @@ class ChestX(Dataset):
             return img, target
 
         if hasattr(self, 'logits'):
-            return img, target, not_aug_img, self.logits[index]
+            # return img, target, not_aug_img, self.logits[index]
+            return img, target, self.logits[index]
 
-        return img, target, not_aug_img
-
+        # return img, target, not_aug_img
+        return img, target
 
 class SequentialChestX(ContinualDataset):
 

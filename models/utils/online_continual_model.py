@@ -99,7 +99,8 @@ class OnlineContinualModel(ContinualModel):
         future_classes = OrderedDict()
 
         # Collect future classes from the data loader
-        for _, labels, _, _ in tqdm(data_loader, desc="Collecting future classes"):
+        for data in tqdm(data_loader, desc="Collecting future classes"):
+            labels = data[1]
             for label in labels:
                 label_item = label.item()
                 # Add to future_classes if not already present

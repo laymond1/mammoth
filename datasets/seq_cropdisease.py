@@ -100,10 +100,9 @@ class CropDisease(Dataset):
         img, target = self.data[index], self.targets[index]
 
         img = Image.open(img).convert('RGB')
+        # original_img = img.copy()
 
-        original_img = img.copy()
-
-        not_aug_img = self.not_aug_transform(original_img)
+        # not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -115,9 +114,11 @@ class CropDisease(Dataset):
             return img, target
 
         if hasattr(self, 'logits'):
-            return img, target, not_aug_img, self.logits[index]
+            # return img, target, not_aug_img, self.logits[index]
+            return img, target, self.logits[index]
 
-        return img, target, not_aug_img
+        # return img, target, not_aug_img
+        return img, target
 
 
 class SequentialCropDisease(ContinualDataset):

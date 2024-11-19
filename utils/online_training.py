@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 
 from datasets import get_dataset
 from datasets.utils.indexed_dataset import IndexedDataset
-from datasets.utils.online_sampler import OnlineSampler, OnlineTestSampler
+from datasets.utils.online_sampler import OnlineSiBlurrySampler, OnlinePeriodicSampler, OnlineTestSampler
 from datasets.utils.continual_dataset import ContinualDataset, MammothDatasetWrapper
 from datasets.utils.gcl_dataset import GCLDataset
 from models.utils.online_continual_model import OnlineContinualModel
@@ -32,6 +32,7 @@ from utils.checkpoints import mammoth_load_checkpoint
 from utils.loggers import log_extra_metrics, log_online_accs, log_accs, Logger, OnlineLogger
 from utils.schedulers import get_scheduler
 from utils.stats import track_system_stats
+from utils.metrics import online_forgetting
 
 try:
     import wandb
@@ -56,6 +57,29 @@ def initialize_wandb(args: Namespace) -> None:
     args.wandb_url = wandb.run.get_url()
 
 
+def get_other_metrics(eval_results, exposed_classes_records):
+    """
+    Calculate other metrics from the evaluation dictionary.
+
+    Args:
+        eval_results: the evaluation dictionary
+
+    Returns:
+        the evaluation dictionary with the additional metrics
+    """
+    metrics = defaultdict(list)
+    
+    # exposed_classes = exposed_classes_records[eval_cnt-1]
+    exposed_classes = exposed_classes_records[-2]
+    metrics['instant_fgt'] = online_forgetting(eval_results["cls_acc"], exposed_classes, mode='instant')
+    metrics['last_fgt'] = online_forgetting(eval_results["cls_acc"], exposed_classes, mode='last')
+    # TODO: implement FWT and BWT
+    # metrics['instant_fwt'] = online_forward_transfer(eval_results["cls_acc"], exposed_classes)
+    # metrics['instant_bwt'] = online_backward_transfer(eval_results["cls_acc"], exposed_classes)
+    
+    return metrics
+
+
 def train(model: OnlineContinualModel, dataset: ContinualDataset,
           args: Namespace) -> None:
     """
@@ -66,15 +90,15 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
         dataset: the continual dataset at hand
         args: the arguments of the current execution
     """
+    args.test_batch_size = 128
     print(args)
-    os.makedirs(f"{args.log_path}/logs/{args.dataset}/{args.notes}", exist_ok=True)
+    os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}", exist_ok=True)
     
-    # TODO: improve this implementation
-    if args.online_scenario in ['si-blurry']: 
-        dataset.SETTING = 'online-il'
-        dataset.N_TASKS = args.n_tasks
-        dataset.N_CLASSES_PER_TASK = dataset.N_CLASSES // dataset.N_TASKS
-    
+    # dataset setup
+    # dataset.SETTING = 'online-il'
+    dataset.SETTING = args.online_scenario
+    dataset.N_TASKS = args.n_tasks
+    dataset.N_CLASSES_PER_TASK = dataset.N_CLASSES // dataset.N_TASKS
     dataset.set_dataset()
     assert hasattr(dataset, 'train_dataset') and hasattr(dataset, 'test_dataset'), "Dataset must have both train_dataset and test_dataset attributes"
 
@@ -87,18 +111,31 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     # TODO: implement FWT
     is_fwd_enabled = True
     can_compute_fwd_beforetask = True
-    ptm_results_class = []
-
+    ptm_results = defaultdict(list)
+    if args.validation > 0:
+        is_fwd_enabled = False
+        can_compute_fwd_beforetask = False
+        
     model.net.to(model.device)
     torch.cuda.empty_cache()
     
-    # dataset setup
+    # Dataset setup
     total_samples = len(dataset.train_dataset)
     train_dataset = IndexedDataset(dataset.train_dataset)
     test_dataset = dataset.test_dataset
-    train_sampler = OnlineSampler(train_dataset, dataset.N_TASKS, args.m, args.n, args.seed, args.rnd_NM, 1) # args.selection_size was used for prompt
+    
+    # Scenario setup
+    if args.online_scenario == 'si-blurry':
+        train_sampler = OnlineSiBlurrySampler(train_dataset, dataset.N_TASKS, args.m, args.n, args.seed, args.rnd_NM, 1) # args.selection_size was used for prompt
+    elif args.online_scenario == 'periodic-gaussian':
+        assert args.n_tasks == 1, "Periodic Gaussian is a single task scenario"
+        train_sampler = OnlinePeriodicSampler(train_dataset, args.sigma, args.repeat, args.init_cls, args.seed)
+    else:
+        raise NotImplementedError(f"Scenario {args.online_scenario} not implemented")
+    
+    # Dataloader setup
     train_dataloader = DataLoader(train_dataset, batch_size=args.minibatch_size, sampler=train_sampler, num_workers=args.num_workers, pin_memory=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=args.minibatch_size, shuffle=False, num_workers=args.num_workers, pin_memory=True)
+    full_test_dataloader = DataLoader(test_dataset, batch_size=args.test_batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=True)
 
     with track_system_stats(logger) as system_tracker:
         
@@ -108,7 +145,9 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
         print(f"Incrementally training {end_task} tasks")  
         task_records = defaultdict(list)
         eval_results = defaultdict(list)
+        exposed_classes_records = []
         samples_cnt = 0
+        eval_cnt = 0
 
         num_eval = args.eval_period
 
@@ -123,10 +162,11 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             print("#" * 50 + "\n")
             print("[2-1] Prepare a datalist for the current task")
             
-            train_sampler.set_task(task_id)
+            if args.online_scenario in ['si-blurry']:
+                train_sampler.set_task(task_id)
             model.online_before_task(task_id)
             ## Start Online Training
-            for i, (images, labels, not_aug_img, idx) in enumerate(train_dataloader):
+            for i, (images, labels, idx) in enumerate(train_dataloader):
                 if args.debug_mode and (i+1) * args.minibatch_size >= 2000:
                     break
                 
@@ -155,13 +195,24 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                             eval_results["test_acc"].append(eval_dict["avg_acc"])
                             eval_results["cls_acc"].append(eval_dict["cls_acc"])
                             eval_results["data_cnt"].append(num_eval)
-                            model.report_test(samples_cnt, eval_dict["avg_loss"], eval_dict["avg_acc"])
+                            exposed_classes_records.append(model.exposed_classes)
+                            # calculate other metrics
+                            if eval_cnt > 0:
+                                metrics_dict = get_other_metrics(eval_results, eval_cnt, exposed_classes_records)
+                                for k, v in metrics_dict.items():
+                                    eval_results[k].append(v) 
+                                # model.report_test(samples_cnt, eval_dict["avg_loss"], eval_dict["avg_acc"], metrics_dict)
+                                model.report_test(samples_cnt, eval_dict, metrics_dict)
+                            else:
+                                # model.report_test(samples_cnt, eval_dict["avg_loss"], eval_dict["avg_acc"])
+                                model.report_test(samples_cnt, eval_dict)
                         num_eval += args.eval_period
+                        eval_cnt += 1
                     ### End of each anytime evaluation
                 ## End of each online training
                 sys.stdout.flush()
             # End of each task
-            model.report_test(samples_cnt, eval_dict["avg_loss"], eval_dict["avg_acc"], task_id=task_id) # report again the last result after task
+            model.report_test(samples_cnt, eval_dict, task_id=task_id) # report again the last result after task
             model.online_after_task(task_id)
             
             # Evaluate the model after the task
@@ -185,28 +236,33 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             
         if model.is_main_process():     
             # Task metrics   
-            np.save(f"{args.log_path}/logs/{args.dataset}/{args.notes}/task_acc_seed_{args.seed}.npy", task_records["task_acc"])
-            np.save(f"{args.log_path}/logs/{args.dataset}/{args.notes}/cls_acc_seed_{args.seed}.npy", task_records["cls_acc"])
+            np.save(f"{args.log_path}/logs/{args.dataset}/{args.model}/results_seed_{args.seed}.npy", task_records)
+            np.save(f"{args.log_path}/logs/{args.dataset}/{args.model}/task_acc_seed_{args.seed}.npy", task_records["task_acc"])
+            np.save(f"{args.log_path}/logs/{args.dataset}/{args.model}/cls_acc_seed_{args.seed}.npy", task_records["cls_acc"])
 
             if args.eval_period is not None:
                 # Anytime evaluation metrics
-                np.save(f'{args.log_path}/logs/{args.dataset}/{args.notes}/cls_acc_seed_{args.seed}_eval.npy', eval_results["cls_acc"])
-                np.save(f'{args.log_path}/logs/{args.dataset}/{args.notes}/test_acc_seed_{args.seed}_eval.npy', eval_results["test_acc"])
-                np.save(f'{args.log_path}/logs/{args.dataset}/{args.notes}/data_cnt_seed_{args.seed}_eval_time.npy', eval_results["data_cnt"])
+                np.save(f'{args.log_path}/logs/{args.dataset}/{args.model}/results_seed_{args.seed}_eval.npy', eval_results)
+                np.save(f'{args.log_path}/logs/{args.dataset}/{args.model}/cls_acc_seed_{args.seed}_eval.npy', eval_results["cls_acc"])
+                np.save(f'{args.log_path}/logs/{args.dataset}/{args.model}/test_acc_seed_{args.seed}_eval.npy', eval_results["test_acc"])
+                np.save(f'{args.log_path}/logs/{args.dataset}/{args.model}/data_cnt_seed_{args.seed}_eval_time.npy', eval_results["data_cnt"])
     
             # Accuracy (A)
             A_auc = np.mean(eval_results["test_acc"])
             A_avg = np.mean(task_records["task_acc"])
             A_last = task_records["task_acc"][dataset.N_TASKS - 1]
 
-            # Forgetting (F)
-            cls_acc = np.array(task_records["cls_acc"])
-            acc_diff = []
-            for j in range(dataset.N_CLASSES):
-                if np.max(cls_acc[:-1, j]) > 0:
-                    acc_diff.append(np.max(cls_acc[:-1, j]) - cls_acc[-1, j])
-            F_last = np.mean(acc_diff)
-            
+            # TODO: if boundary is free, there is no task records
+            if args.n_tasks > 1:
+                # Forgetting (F)
+                cls_acc = np.array(task_records["cls_acc"])
+                acc_diff = []
+                for j in range(dataset.N_CLASSES):
+                    if np.max(cls_acc[:-1, j]) > 0:
+                        acc_diff.append(np.max(cls_acc[:-1, j]) - cls_acc[-1, j])
+                F_last = np.mean(acc_diff)
+            else:
+                F_last = 0
             # Forward Transfer (F)
             # li = []
             # for i in range(dataset.N_TASKS):

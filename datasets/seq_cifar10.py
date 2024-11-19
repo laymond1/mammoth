@@ -54,9 +54,9 @@ class MyCIFAR10(CIFAR10):
 
         # to return a PIL Image
         img = Image.fromarray(img, mode='RGB')
-        original_img = img.copy()
+        # original_img = img.copy()
 
-        not_aug_img = self.not_aug_transform(original_img)
+        # not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -65,9 +65,11 @@ class MyCIFAR10(CIFAR10):
             target = self.target_transform(target)
 
         if hasattr(self, 'logits'):
-            return img, target, not_aug_img, self.logits[index]
+            # return img, target, not_aug_img, self.logits[index]
+            return img, target, self.logits[index]
 
-        return img, target, not_aug_img
+        # return img, target, not_aug_img
+        return img, target
 
 
 class SequentialCIFAR10(ContinualDataset):

@@ -180,7 +180,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             ptm_results['data_cnt'].append(samples_cnt)
             
         ## Start Online Training
-        for i, (images, labels, not_aug_img, idx) in enumerate(train_dataloader):
+        for i, (images, labels, idx) in enumerate(train_dataloader):
             if args.debug_mode and (i+1) * args.minibatch_size >= 4000:
                 break
             

@@ -90,7 +90,7 @@ class MyEuroSat(Dataset):
 
         img = Image.open(self.root + '/' + img).convert('RGB')
 
-        not_aug_img = self.totensor(img.copy())
+        # not_aug_img = self.totensor(img.copy())
 
         if self.transform is not None:
             img = self.transform(img)
@@ -102,9 +102,11 @@ class MyEuroSat(Dataset):
             return img, target
 
         if hasattr(self, 'logits'):
-            return img, target, not_aug_img, self.logits[index]
+            # return img, target, not_aug_img, self.logits[index]
+            return img, target, self.logits[index]
 
-        return img, target, not_aug_img
+        # return img, target, not_aug_img
+        return img, target
 
 
 def my_collate_fn(batch):
