@@ -15,6 +15,7 @@ The `get_debug_iters` method returns the number of iterations to be used for deb
 # LICENSE file in the root directory of this source tree.
 
 from abc import abstractmethod
+from collections import OrderedDict
 import logging
 import os
 import sys
@@ -95,17 +96,17 @@ class OnlineContinualModel(ContinualModel):
             self.update_schedule(reset=True)
             
     def get_future_classes(self, data_loader):
-        future_classes = []
+        future_classes = OrderedDict()
 
         # Collect future classes from the data loader
         for _, labels, _, _ in tqdm(data_loader, desc="Collecting future classes"):
             for label in labels:
                 label_item = label.item()
-                # If the class is not exposed, add it to the future_classes
+                # Add to future_classes if not already present
                 if label_item not in future_classes:
-                    future_classes.append(label_item)
+                    future_classes[label_item] = None
 
-        return list(future_classes)
+        return list(future_classes.keys())
 
     def future_evaluate(self, test_loader, future_classes):
         total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
