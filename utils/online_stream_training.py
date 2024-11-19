@@ -166,7 +166,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
         # Get future classes
         future_classes = model.get_future_classes(
             DataLoader(train_dataset, 
-                        batch_size=args.test_batch_size, 
+                        batch_size=args.test_batch_size * 8,
                         sampler=train_sampler, 
                         num_workers=args.num_workers, 
                         pin_memory=True)

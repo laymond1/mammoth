@@ -25,6 +25,7 @@ from contextlib import suppress
 from typing import Iterator, List, Tuple
 import inspect
 import numpy as np
+from tqdm import tqdm
 
 import torch
 import torch_optimizer
@@ -97,7 +98,7 @@ class OnlineContinualModel(ContinualModel):
         future_classes = []
 
         # Collect future classes from the data loader
-        for _, labels, _, _ in data_loader:
+        for _, labels, _, _ in tqdm(data_loader, desc="Collecting future classes"):
             for label in labels:
                 label_item = label.item()
                 # If the class is not exposed, add it to the future_classes

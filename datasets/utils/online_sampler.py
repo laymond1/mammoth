@@ -122,6 +122,11 @@ class OnlineSiBlurrySampler(Sampler):
         self.blurry_num     = len(self.classes) - self.disjoint_num
         self.blurry_num     = int(self.blurry_num // num_tasks) * num_tasks
 
+        # Adjust to include all classes
+        remaining_classes = len(self.classes) - (self.disjoint_num + self.blurry_num)
+        if remaining_classes > 0:
+            self.blurry_num += remaining_classes  # Assign remaining classes to blurry
+
         if not self.varing_NM:
             # Divide classes into N% of disjoint and (100 - N)% of blurry
             class_order         = torch.randperm(len(self.classes), generator=self.generator)
@@ -222,8 +227,24 @@ class OnlineSiBlurrySampler(Sampler):
             
         # Delete task boundaries
         self.indices = sum(self.indices, [])
-        print("total disjoint %d, blurry %d" % (len(self.disjoint_indices), len(self.blurry_indices)))
         print("Removing task boundaries to create data stream: ", len(self.indices))
+
+        # Count number of class for disjoint and blurry
+        remaining_disjoint_classes = set()
+        remaining_blurry_classes = set()
+
+        # Iterate through the indices to check which classes are still present
+        for idx in self.indices:
+            target_class = self.targets[idx]
+            if target_class in sum(self.disjoint_classes, []):
+                remaining_disjoint_classes.add(target_class.item())
+            if target_class in sum(self.blurry_classes, []):
+                remaining_blurry_classes.add(target_class.item())
+        # Print the number of remaining classes
+        print(f"Remaining disjoint classes: {len(remaining_disjoint_classes)}")
+        print(f"Remaining blurry classes: {len(remaining_blurry_classes)}")
+        print(f"Deleted disjoint classes: {len(set(sum(self.disjoint_classes, [])) - remaining_disjoint_classes)}")
+        print(f"Deleted blurry classes: {len(set(sum(self.blurry_classes, [])) - remaining_blurry_classes)}")
 
         if self.distributed:
             self.num_samples = int(len(self.indices) // self.num_replicas)
