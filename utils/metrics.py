@@ -147,14 +147,14 @@ def calculate_online_forgetting(num_classes, y_gt, y_t1, y_t2, n_cls_t1, n_cls_t
         notlearned_prob = 1 - (correct_y1[i] + correct_y2[i] - correct_both[i]) / cnt_gt[i]
         forgotten_prob = (correct_y1[i] - correct_both[i]) / cnt_gt[i]
         newlearned_prob = (correct_y2[i] - correct_both[i]) / cnt_gt[i]
-        
+
         if i < n_cls_t1:
-            marginal_y1 = y1_prob/(1-y1_prob[i])
+            marginal_y1 = y1_prob/(1-y1_prob[i] + 1e-10)
             marginal_y1[i] = forgotten_prob/(notlearned_prob+1e-10)
         else:
             marginal_y1 = y1_prob
         if i < n_cls_t2:
-            marginal_y2 = y2_prob/(1-y2_prob[i])
+            marginal_y2 = y2_prob/(1-y2_prob[i] + 1e-10)
             marginal_y2[i] = newlearned_prob/(notlearned_prob+1e-10)
         else:
             marginal_y2 = y2_prob
