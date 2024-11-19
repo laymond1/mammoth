@@ -1,17 +1,19 @@
 import os
-from typing import Tuple
-import torchvision.transforms as transforms
-import torch.nn.functional as F
-from torch.utils.data import Dataset
-import numpy as np
-from PIL import Image
 import yaml
+import numpy as np
+import torch.nn.functional as F
+import torchvision.transforms as transforms
+
+from typing import Tuple
+from PIL import Image
+from torch.utils.data import Dataset
 
 from datasets.utils import set_default_from_args
 from utils import smart_joint
 from utils.conf import base_path
 from datasets.utils.continual_dataset import ContinualDataset, fix_class_names_order, store_masked_loaders
 from datasets.transforms.denormalization import DeNormalize
+from datasets.utils.validation import get_train_val
 from torchvision.transforms.functional import InterpolationMode
 from utils.prompt_templates import templates
 
@@ -97,7 +99,8 @@ class Resisc45(Dataset):
             data_config = yaml.load(open(smart_joint(root, 'resisc45_test.yaml')), Loader=yaml.Loader)
 
         self.data = np.array([smart_joint(root, d) for d in data_config['data']])
-        self.targets = np.array(data_config['targets']).astype(np.int16)
+        self.targets = np.array(data_config['targets']).astype(np.int64)
+        self.classes = [x for x in range(self.targets.max()+1)]
 
     def __len__(self):
         return len(self.targets)
@@ -153,6 +156,16 @@ class SequentialResisc45(ContinualDataset):
         transforms.ToTensor(),
         transforms.Normalize(MEAN, STD)
     ])
+
+    def set_dataset(self):
+        self.train_dataset = Resisc45(base_path() + 'NWPU-RESISC45', train=True,
+                                        download=True, transform=self.TRANSFORM)
+        if self.args.validation:
+            self.train_dataset, self.test_dataset = get_train_val(
+                self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
+        else:
+            self.test_dataset = Resisc45(base_path() + 'NWPU-RESISC45', train=False,
+                                    download=True, transform=self.TEST_TRANSFORM)
 
     def get_data_loaders(self):
         train_dataset = Resisc45(base_path() + 'NWPU-RESISC45', train=True,

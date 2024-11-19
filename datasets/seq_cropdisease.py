@@ -12,6 +12,7 @@ from utils import smart_joint
 from utils.conf import base_path
 from datasets.utils.continual_dataset import ContinualDataset, fix_class_names_order, store_masked_loaders
 from datasets.transforms.denormalization import DeNormalize
+from datasets.utils.validation import get_train_val
 from torchvision.transforms.functional import InterpolationMode
 from utils.prompt_templates import templates
 
@@ -84,7 +85,8 @@ class CropDisease(Dataset):
             data_config = json.load(f)
 
         self.data = np.array([smart_joint(root, 'images', d) for d in data_config['data']])
-        self.targets = np.array(data_config['labels']).astype(np.int16)
+        self.targets = np.array(data_config['labels']).astype(np.int64)
+        self.classes = [x for x in range(self.targets.max()+1)]
 
     def __len__(self):
         return len(self.targets)
@@ -141,6 +143,16 @@ class SequentialCropDisease(ContinualDataset):
         transforms.ToTensor(),
         transforms.Normalize(mean=MEAN, std=STD),
     ])
+
+    def set_dataset(self):
+        self.train_dataset = CropDisease(base_path() + 'cropdisease', train=True,
+                                    download=True, transform=self.TRANSFORM)
+        if self.args.validation:
+            self.train_dataset, self.test_dataset = get_train_val(
+                self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
+        else:
+            self.test_dataset = CropDisease(base_path() + 'cropdisease', train=False,
+                                download=True, transform=self.TEST_TRANSFORM)
 
     def get_data_loaders(self):
         train_dataset = CropDisease(base_path() + 'cropdisease', train=True,

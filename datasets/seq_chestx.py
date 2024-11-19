@@ -1,17 +1,21 @@
 import os
-import torchvision.transforms as transforms
-import torch.nn.functional as F
-from torch.utils.data import Dataset
-import numpy as np
 import pickle
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torchvision.transforms as transforms
+
+from typing import Optional, Tuple
 from PIL import Image
-from typing import Tuple
+from torch.utils.data import Dataset
 
 from datasets.utils import set_default_from_args
-from utils import smart_joint
+from utils import smart_joint, create_if_not_exists
 from utils.conf import base_path
 from datasets.utils.continual_dataset import ContinualDataset, fix_class_names_order, store_masked_loaders
 from datasets.transforms.denormalization import DeNormalize
+from datasets.utils.validation import get_validation_indexes #, get_train_val
 from torchvision.transforms.functional import InterpolationMode
 from utils.prompt_templates import templates
 
@@ -67,6 +71,8 @@ class ChestX(Dataset):
 
         with open(filename_labels, 'rb') as f:
             self.targets = pickle.load(f)
+
+        self.classes = [x for x in range(self.targets.max()+1)]
 
     def __len__(self):
         return len(self.targets)
@@ -124,6 +130,16 @@ class SequentialChestX(ContinualDataset):
         normalize,
     ])
 
+    def set_dataset(self):
+        self.train_dataset = ChestX(base_path() + 'chestx', train=True,
+                                    download=True, transform=SequentialChestX.TRANSFORM)
+        if self.args.validation:
+            self.train_dataset, self.test_dataset = get_train_val(
+                self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
+        else:
+            self.test_dataset = ChestX(base_path() + 'chestx', train=False,
+                                download=True, transform=SequentialChestX.TEST_TRANSFORM)
+
     def get_data_loaders(self):
         train_dataset = ChestX(base_path() + 'chestx', train=True,
                                download=True, transform=self.TRANSFORM)
@@ -175,3 +191,69 @@ class SequentialChestX(ContinualDataset):
     @set_default_from_args('batch_size')
     def get_batch_size(self):
         return 128
+
+
+class ValidationDataset(Dataset):
+    def __init__(self, data: torch.Tensor, targets: np.ndarray,
+                 transform: Optional[nn.Module] = None,
+                 target_transform: Optional[nn.Module] = None) -> None:
+        self.data = data
+        self.targets = targets
+        self.transform = transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return self.data.shape[0]
+
+    def __getitem__(self, index):
+        img, target = self.data[index], self.targets[index]
+
+        img = np.repeat(img[np.newaxis, :, :], 3, axis=0)
+        img = Image.fromarray((img * 255).astype(np.int8).transpose(1, 2, 0), mode='RGB')
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return img, target
+    
+
+def get_train_val(train: Dataset, test_transform: nn.Module,
+                  dataset: str, val_perc: float = 0.1):
+    """
+    Extract val_perc% of the training set as the validation set.
+
+    Args:
+        train: training dataset
+        test_transform: transformation of the test dataset
+        dataset: dataset name
+        val_perc: percentage of the training set to be extracted
+
+    Returns:
+        the training set and the validation set
+    """
+    dataset_length = train.data.shape[0]
+    directory = 'datasets/val_permutations/'
+    create_if_not_exists(directory)
+    file_name = dataset + '.pt'
+    if os.path.exists(directory + file_name):
+        perm = torch.load(directory + file_name)
+    else:
+        perm = torch.randperm(dataset_length)
+        torch.save(perm, directory + file_name)
+
+    train_idxs, val_idxs = get_validation_indexes(val_perc, train)
+    test_targets = np.array(train.targets)[val_idxs]
+
+    test_dataset = ValidationDataset(train.data[val_idxs],
+                                     test_targets.tolist(),
+                                     transform=test_transform)
+    test_dataset.classes = train.classes
+    
+    train.data = train.data[train_idxs]
+    train_targets = np.array(train.targets)[train_idxs]
+    train.targets = train_targets.tolist()
+
+    return train, test_dataset

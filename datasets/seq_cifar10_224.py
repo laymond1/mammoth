@@ -17,6 +17,7 @@ from datasets.utils.continual_dataset import (ContinualDataset, fix_class_names_
                                               store_masked_loaders)
 from datasets.utils import set_default_from_args
 from utils.prompt_templates import templates
+from datasets.utils.validation import get_train_val
 
 
 class SequentialCIFAR10224(ContinualDataset):
@@ -50,6 +51,16 @@ class SequentialCIFAR10224(ContinualDataset):
          transforms.Normalize(MEAN, STD)])
 
     TEST_TRANSFORM = transforms.Compose([transforms.Resize(224), transforms.ToTensor(), transforms.Normalize(MEAN, STD)])
+
+    def set_dataset(self):
+        self.train_dataset = MyCIFAR10(base_path() + 'CIFAR10', train=True,
+                                   download=True, transform=self.TRANSFORM)
+        if self.args.validation:
+            self.train_dataset, self.test_dataset = get_train_val(
+                self.train_dataset, self.TRANSFORM, self.NAME, val_perc=self.args.validation)
+        else:
+            self.test_dataset = TCIFAR10(base_path() + 'CIFAR10', train=False,
+                                        download=True, transform=self.TEST_TRANSFORM)
 
     def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         """Class method that returns the train and test loaders."""

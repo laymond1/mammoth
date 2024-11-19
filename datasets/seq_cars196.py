@@ -1,10 +1,12 @@
 import os
 import sys
+import numpy as np
 import torch
-import torchvision.transforms as transforms
+import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.transforms as transforms
 from PIL import Image
-from typing import Tuple
+from typing import Optional, Tuple
 from tqdm import tqdm
 import json
 
@@ -13,11 +15,12 @@ try:
 except ImportError:
     raise NotImplementedError("Deeplake not installed. Please install with `pip install deeplake` to use this dataset.")
 
+from utils import create_if_not_exists
 from utils.conf import base_path
 from datasets.utils import set_default_from_args
 from datasets.utils.continual_dataset import ContinualDataset, fix_class_names_order, store_masked_loaders
 from datasets.transforms.denormalization import DeNormalize
-from datasets.utils.validation import get_train_val
+from datasets.utils.validation import get_validation_indexes # , get_train_val
 from torch.utils.data import Dataset
 from torchvision.transforms.functional import InterpolationMode
 from utils.prompt_templates import templates
@@ -82,21 +85,18 @@ class MyCars196(Dataset):
         self.not_aug_transform = transforms.ToTensor()
         self.download = download
 
-        if download:
-            if os.path.isdir(root) and len(os.listdir(root)) > 0:
-                print('Download not needed, files already on disk.')
-            else:
-                train_str = 'train' if train else 'test'
-                if not os.path.exists(f'{root}/{train_str}_images.pt'):
-                    print(f'Preparing {train_str} dataset...', file=sys.stderr)
-                    self.load_and_preprocess_dataset(root, train_str)
-                else:
-                    print(f"Loading pre-processed {train_str} dataset...", file=sys.stderr)
-                    self.data = torch.load(f'{root}/{train_str}_images.pt')
-                    self.targets = torch.load(f'{root}/{train_str}_labels.pt')
+        train_str = 'train' if train else 'test'
+        if not os.path.exists(f'{root}/{train_str}_images.pt'):
+            print(f'Preparing {train_str} dataset...', file=sys.stderr)
+            self.load_and_preprocess_dataset(root, train_str)
+        else:
+            print(f"Loading pre-processed {train_str} dataset...", file=sys.stderr)
+            self.data = torch.load(f'{root}/{train_str}_images.pt')
+            self.targets = torch.load(f'{root}/{train_str}_labels.pt')
 
         self.class_names = MyCars196.get_class_names()
-        self.classes = [x for x in range(self.targets.max() + 1)]
+        # self.classes = [x for x in range(self.targets.max() + 1)]
+        self.classes = list(range(self.N_CLASSES))
 
     def load_and_preprocess_dataset(self, root, train_str='train'):
         self.data, self.targets, class_idx_to_name = load_and_preprocess_cars196(train_str)
@@ -239,3 +239,68 @@ class SequentialCars196(ContinualDataset):
     @set_default_from_args('batch_size')
     def get_batch_size(self):
         return 128
+
+
+class ValidationDataset(Dataset):
+    def __init__(self, data: torch.Tensor, targets: np.ndarray,
+                 transform: Optional[nn.Module] = None,
+                 target_transform: Optional[nn.Module] = None) -> None:
+        self.data = data
+        self.targets = targets
+        self.transform = transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return self.data.shape[0]
+
+    def __getitem__(self, index):
+        img, target = self.data[index], self.targets[index]
+
+        img = Image.fromarray(img.permute(1, 2, 0).numpy(), mode='RGB')
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return img, target
+    
+
+def get_train_val(train: Dataset, test_transform: nn.Module,
+                  dataset: str, val_perc: float = 0.1):
+    """
+    Extract val_perc% of the training set as the validation set.
+
+    Args:
+        train: training dataset
+        test_transform: transformation of the test dataset
+        dataset: dataset name
+        val_perc: percentage of the training set to be extracted
+
+    Returns:
+        the training set and the validation set
+    """
+    dataset_length = train.data.shape[0]
+    directory = 'datasets/val_permutations/'
+    create_if_not_exists(directory)
+    file_name = dataset + '.pt'
+    if os.path.exists(directory + file_name):
+        perm = torch.load(directory + file_name)
+    else:
+        perm = torch.randperm(dataset_length)
+        torch.save(perm, directory + file_name)
+
+    train_idxs, val_idxs = get_validation_indexes(val_perc, train)
+    test_targets = np.array(train.targets)[val_idxs]
+
+    test_dataset = ValidationDataset(train.data[val_idxs],
+                                     test_targets.tolist(),
+                                     transform=test_transform)
+    test_dataset.classes = train.classes
+    
+    train.data = train.data[train_idxs]
+    train_targets = np.array(train.targets)[train_idxs]
+    train.targets = train_targets.tolist()
+
+    return train, test_dataset
