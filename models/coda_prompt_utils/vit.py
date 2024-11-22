@@ -119,7 +119,7 @@ class VisionTransformer(MammothVP):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
 
-    def forward(self, x, prompt=None, q=None, train=False, task_id=None):
+    def forward(self, x, prompt=None, query=None, train=False):
         B = x.shape[0]
         x = self.patch_embed(x)
 
@@ -134,10 +134,10 @@ class VisionTransformer(MammothVP):
 
             if prompt is not None:
                 if train:
-                    p_list, loss, x = prompt.forward(q, i, x, train=True, task_id=task_id)
+                    p_list, loss, x = prompt.forward(query, i, x, train=True)
                     prompt_loss += loss
                 else:
-                    p_list, _, x = prompt.forward(q, i, x, train=False, task_id=task_id)
+                    p_list, _, x = prompt.forward(query, i, x, train=False)
             else:
                 p_list = None
 

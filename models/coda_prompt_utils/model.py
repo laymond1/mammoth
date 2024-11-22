@@ -6,15 +6,13 @@ from models.coda_prompt_utils.vit import VisionTransformer
 
 
 class CodaPrompt(nn.Module):
-    def __init__(self, emb_d, n_tasks, prompt_param, key_dim=768):
+    def __init__(self, emb_d, prompt_param, key_dim=768):
         super().__init__()
-        self.task_count = 0
         self.emb_d = emb_d
         self.key_d = key_dim
-        self.n_tasks = n_tasks
         self._init_smart(emb_d, prompt_param)
 
-        pt = int(self.e_pool_size / (self.n_tasks))
+        pt = self.e_pool_size # no task boundary
 
         # e prompt init
         for e in self.e_layers:
@@ -46,31 +44,10 @@ class CodaPrompt(nn.Module):
         # strenth of ortho penalty
         self.ortho_mu = prompt_param[2]
 
-    def process_task_count(self):
-        self.task_count += 1
-
-        # in the spirit of continual learning, we will reinit the new components
-        # for the new task with Gram Schmidt
-        #
-        # in the original paper, we used ortho init at the start - this modification is more
-        # fair in the spirit of continual learning and has little affect on performance
-        pt = int(self.e_pool_size / (self.n_tasks))
-        s = int(self.task_count * pt)
-        f = int((self.task_count + 1) * pt)
-        for e in self.e_layers:
-            K = getattr(self, f'e_k_{e}')
-            A = getattr(self, f'e_a_{e}')
-            P = getattr(self, f'e_p_{e}')
-            k = gram_schmidt(K, s, f)
-            a = gram_schmidt(A, s, f)
-            p = gram_schmidt(P, s, f)
-            setattr(self, f'e_p_{e}', p)
-            setattr(self, f'e_k_{e}', k)
-            setattr(self, f'e_a_{e}', a)
-
-    def forward(self, x_querry, l, x_block, train=False, task_id=None):
+    def forward(self, x_querry, l, x_block, train=False):
 
         # e prompts
+        # for no task boundary, we removed the prompt selection process based on task id
         e_valid = False
         if l in self.e_layers:
             e_valid = True
@@ -79,24 +56,6 @@ class CodaPrompt(nn.Module):
             K = getattr(self, f'e_k_{l}')
             A = getattr(self, f'e_a_{l}')
             p = getattr(self, f'e_p_{l}')
-            pt = int(self.e_pool_size / (self.n_tasks)) # TODO: modify this
-            s = int(self.task_count * pt) # TODO: modify this
-            f = int((self.task_count + 1) * pt) # TODO: modify this
-
-            # freeze/control past tasks
-            if train:
-                if self.task_count > 0: # TODO: modify this
-                    K = torch.cat((K[:s].detach().clone(), K[s:f]), dim=0)
-                    A = torch.cat((A[:s].detach().clone(), A[s:f]), dim=0)
-                    p = torch.cat((p[:s].detach().clone(), p[s:f]), dim=0)
-                else:
-                    K = K[s:f]
-                    A = A[s:f]
-                    p = p[s:f]
-            else:
-                K = K[0:f]
-                A = A[0:f]
-                p = p[0:f]
 
             # with attention and cosine sim
             # (b x 1 x d) * soft([1 x k x d]) = (b x k x d) -> attention = k x d
@@ -171,7 +130,7 @@ class CODAPromptModel(nn.Module):
         # classifier
         self.last = nn.Linear(768, num_classes)
 
-        self.prompt = CodaPrompt(768, prompt_param[0], prompt_param[1])
+        self.prompt = CodaPrompt(768, prompt_param)
 
         # feature encoder changes if transformer vs resnet
         self.feat = vit_model
@@ -181,9 +140,9 @@ class CODAPromptModel(nn.Module):
 
         if self.prompt is not None:
             with torch.no_grad():
-                q, _ = self.feat(x)
-                q = q[:, 0, :]
-            out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train, task_id=None)
+                query, _ = self.feat(x)
+                query = query[:, 0, :]
+            out, prompt_loss = self.feat(x, prompt=self.prompt, query=query, train=train)
             out = out[:, 0, :]
         else:
             out, _ = self.feat(x)

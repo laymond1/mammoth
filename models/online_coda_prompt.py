@@ -19,7 +19,7 @@ from utils.schedulers import CosineSchedule
 from datasets import get_dataset
 
 
-class CodaPrompt(OnlineContinualModel):
+class OnlineCodaPrompt(OnlineContinualModel):
     """Continual Learning via CODA-Prompt: COntinual Decomposed Attention-based Prompting."""
     NAME = 'online-coda-prompt'
     COMPATIBILITY = ['si-blurry', 'periodic-gaussian']
@@ -29,8 +29,8 @@ class CodaPrompt(OnlineContinualModel):
         parser.add_argument('--mu', type=float, default=0.1, help='weight of prompt loss')
         parser.add_argument('--pool_size', type=int, default=100, help='pool size')
         parser.add_argument('--prompt_len', type=int, default=8, help='prompt length')
-        parser.add_argument('--virtual_bs_iterations', '--virtual_bs_n', dest='virtual_bs_iterations',
-                            type=int, default=1, help="virtual batch size iterations")
+        # parser.add_argument('--virtual_bs_iterations', '--virtual_bs_n', dest='virtual_bs_iterations',
+                            # type=int, default=1, help="virtual batch size iterations")
         # Optimizer parameters
         parser.add_argument('--clip_grad', type=float, default=1.0, metavar='NORM', help='Clip gradient norm (default: None, no clipping)')
         # Trick parameters
@@ -52,12 +52,11 @@ class CodaPrompt(OnlineContinualModel):
         num_classes =tmp_dataset.N_CLASSES
         
         backbone = CODAPromptModel(num_classes=num_classes,
-                        pretrained=True, 
-                        prompt_param=[10, [args.pool_size, args.prompt_len, 0]])
+                                   pretrained=True,
+                                   prompt_param=[args.pool_size, args.prompt_len, 0])
         
         super().__init__(backbone, loss, args, transform, dataset=dataset)
         # set optimizer and scheduler
-        # self.net.task_id = 0
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
@@ -74,12 +73,6 @@ class CodaPrompt(OnlineContinualModel):
         else:
             raise ValueError('Optimizer not supported for this method')
         return opt
-        
-    # def online_before_task(self, task_id):
-    #     if task_id != 0:
-    #         self.net.task_id = task_id
-    #         self.net.prompt.process_task_count()
-            # self.opt = self.get_optimizer()
             
     def online_before_train(self):
         pass
