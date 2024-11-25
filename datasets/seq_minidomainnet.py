@@ -18,7 +18,13 @@ from datasets.utils.validation import get_validation_indexes #, get_train_val
 
 
 class MyMiniDomainNet(Dataset):
-    """Defines the iDomainNet dataset."""
+    """Defines the iDomainNet dataset.
+    Subset of less noisy labels from DomainNet.
+    Only 4 of the 6 domains are considered. Class-split selected by
+    https://arxiv.org/pdf/1904.06487.pdf and https://arxiv.org/pdf/2003.07325.pdf
+    https://github.com/Mattdl/ContinualEvaluation/blob/main/src/benchmarks/domainnet.py
+    
+    """
 
     use_path = True
     train_trsf = [
@@ -33,6 +39,14 @@ class MyMiniDomainNet(Dataset):
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
+    classes_list = [
+        1, 3, 7, 8, 11, 12, 14, 19, 22, 24, 27, 32, 34, 35, 38, 44, 48, 50, 51, 52, 53, 55, 56,
+        59, 60, 61, 63, 64, 65, 66, 67, 68, 69, 70, 76, 77, 78, 82, 83, 85, 87, 92, 93, 96, 99,
+        100, 101, 104, 108, 111, 112, 117, 118, 122, 124, 125, 126, 130, 131, 133, 135, 137, 143,
+        144, 148, 160, 166, 167, 168, 175, 176, 177, 185, 187, 189, 192, 195, 196, 203, 209, 215,
+        216, 217, 218, 219, 223, 224, 225, 233, 234, 235, 236, 237, 243, 244, 251, 255, 256, 257,
+        259, 260, 264, 270, 276, 277, 282, 291, 292, 293, 294, 297, 302, 303, 304, 306, 309, 310,
+        312, 314, 322, 326, 329, 332, 335, 337, 344]
 
     def __init__(self, root: str, train: bool = True, transform: Optional[nn.Module] = None,
                  target_transform: Optional[nn.Module] = None, download: bool = False) -> None:
@@ -71,6 +85,7 @@ class MyMiniDomainNet(Dataset):
         for item in imgs:
             data.append(os.path.join(root, item[0]))
             targets.append(item[1])
+
         self.data = np.array(data)
         self.targets = np.array(targets)
         self.domains = np.array(domains)
@@ -84,7 +99,7 @@ class MyMiniDomainNet(Dataset):
 
         img = Image.open(img_path).convert('RGB')
 
-        original_img = img.copy()
+        # original_img = img.copy()
 
         if self.transform is not None:
             img = self.transform(img)
@@ -115,9 +130,9 @@ class SequentialMiniDomainNet(ContinualDataset):
 
     NAME = 'seq-minidomainnet'
     SETTING = 'class-il'
-    N_CLASSES_PER_TASK = 345
+    N_CLASSES_PER_TASK = 126
     N_TASKS = 5
-    N_CLASSES = 345
+    N_CLASSES = 126
     MEAN, STD = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
     SIZE = (224, 224)
     TRANSFORM = transforms.Compose(
