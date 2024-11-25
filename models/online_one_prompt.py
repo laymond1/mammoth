@@ -30,7 +30,6 @@ class OnlineOnePrompt(OnlineContinualModel):
 
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
-        parser.add_argument('--mu', type=float, default=0.1, help='weight of prompt loss')
         parser.add_argument('--e_prompt_pool_size', type=int, default=10, help='size of E-Prompt pool')
         parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
         parser.add_argument('--g_prompt_length', type=int, default=10, help='length of G-Prompt')
@@ -202,7 +201,7 @@ class OnlineOnePrompt(OnlineContinualModel):
             
             ce_loss = self.loss(logits, y)
             prompt_loss = prompt_loss.sum()
-            total_loss = ce_loss + self.args.mu * prompt_loss
+            total_loss = ce_loss + prompt_loss
             
             loss_dict.update({'ce_loss': ce_loss})
             loss_dict.update({'prompt_loss': prompt_loss})
