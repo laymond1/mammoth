@@ -185,7 +185,10 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 break
             
             samples_cnt += images.size(0) * model.world_size
-            loss_dict, acc = model.online_step(images, labels, idx)
+            if model.NAME == 'online-one-prompt':
+                loss_dict, ood_loss_dict, acc, ood_acc = model.online_step(images, labels, idx)
+            else:
+                loss_dict, acc = model.online_step(images, labels, idx)
             
             assert not math.isnan(loss_dict['total_loss']), f"Loss is NaN @ Sample # {samples_cnt}"
             
@@ -194,7 +197,10 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 torch.cuda.synchronize()
             
             system_tracker()
-            model.report_training(total_samples, samples_cnt, loss_dict, acc)
+            if model.NAME == 'online-one-prompt':
+                model.report_training(total_samples, samples_cnt, loss_dict, acc, ood_loss_dict, ood_acc)
+            else:
+                model.report_training(total_samples, samples_cnt, loss_dict, acc)
             
             ### Anytime evaluation
             if samples_cnt >= num_eval:
@@ -293,7 +299,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 "KGR_avg": KGR_avg, "KLR_avg": KLR_avg
             })
             if hasattr(model, "table"):
-                    wandb.log({"Prompt_distribution": model.table})
+                wandb.log({"Prompt_distribution": model.table})
 
         # Save model checkpoint, if enabled
         if args.savecheck:
