@@ -1,5 +1,5 @@
 # Online CODA-Prompt method on Online Learning Setting
-name: 'Online CODA-Prompt Hyperparameter Tuning on CUB200'
+name: 'Online CODA-Prompt Hyperparameter Tuning on EuroSAT-RGB'
 project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
@@ -15,7 +15,7 @@ parameters:
   online_scenario:
     values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
-    values: ['seq-cub200']
+    values: ['seq-eurosat-rgb']
   validation:
     value: 0.2
   batch_size:
@@ -23,9 +23,9 @@ parameters:
   online_iter:
     value: 3
   eval_period:
-    value: 100
+    value: 270
   f_eval_period:
-    value: 1000
+    value: 2700
   seed:
     value: 1
   optimizer:
@@ -41,7 +41,7 @@ parameters:
     values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
   mu:
     values: [0.0, 0.1, 0.5, 1.0]
-
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/hytdqfc8'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/hytdqfc8'
+  
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/ug2fz8wo'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/ug2fz8wo'

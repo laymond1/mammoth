@@ -1,5 +1,5 @@
 # Online CODA-Prompt method on Online Learning Setting
-name: 'Online CODA-Prompt Hyperparameter Tuning on CUB200'
+name: 'Online CODA-Prompt Hyperparameter Tuning on ChestX'
 project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
@@ -15,7 +15,7 @@ parameters:
   online_scenario:
     values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
-    values: ['seq-cub200']
+    values: ['seq-chestx']
   validation:
     value: 0.2
   batch_size:
@@ -36,6 +36,8 @@ parameters:
     value: true
   num_workers:
     value: 4
+  n_tasks: # this dataset has only 6 classes
+    value: 3
 # hyperparameters
   lr:
     values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
@@ -43,5 +45,5 @@ parameters:
     values: [0.0, 0.1, 0.5, 1.0]
 
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/hytdqfc8'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/hytdqfc8'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/n51j1bwn'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/n51j1bwn'

@@ -1,6 +1,6 @@
 # Online CODA-Prompt method on Online Learning Setting
-name: 'Online CODA-Prompt Hyperparameter Tuning on Stanford Cars196 (Periodic Gaussian)'
-project: 'Comparison Algorithms Hyperparameter Tuning'
+name: 'Online CODA-Prompt Hyperparameter Tuning on Stanford Cars196'
+project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -13,7 +13,7 @@ parameters:
   model:
     values: ['online-coda-prompt']
   online_scenario:
-    values: ['periodic-gaussian']
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
     values: ['seq-cars196']
   validation:
@@ -23,9 +23,9 @@ parameters:
   online_iter:
     value: 3
   eval_period:
-    value: 1000
+    value: 100
   f_eval_period:
-    value: 10000
+    value: 1000
   seed:
     value: 1
   optimizer:
@@ -43,5 +43,5 @@ parameters:
     values: [0.0, 0.1, 0.5, 1.0]
   
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/vv7ghrh7'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/vv7ghrh7'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/v11s2268'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/v11s2268'

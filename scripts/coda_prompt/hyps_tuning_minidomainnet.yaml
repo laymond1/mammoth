@@ -1,6 +1,6 @@
 # Online CODA-Prompt method on Online Learning Setting
-name: 'Online CODA-Prompt Hyperparameter Tuning on MiniDomainNet (Periodic Gaussian)'
-project: 'Comparison Algorithms Hyperparameter Tuning'
+name: 'Online CODA-Prompt Hyperparameter Tuning on MiniDomainNet'
+project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -11,9 +11,9 @@ program: ./utils/online_main.py
 
 parameters:
   model:
-    values: ['online-coda-prompt']
+    values: ['online-coad-prompt']
   online_scenario:
-    values: ['periodic-gaussian']
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
     values: ['seq-minidomainnet']
   validation:
@@ -23,9 +23,9 @@ parameters:
   online_iter:
     value: 3
   eval_period:
-    value: 1000
+    value: 2700
   f_eval_period:
-    value: 10000
+    value: 27000
   seed:
     value: 1
   optimizer:
@@ -43,5 +43,5 @@ parameters:
     values: [0.0, 0.1, 0.5, 1.0]
   
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/vv7ghrh7'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/vv7ghrh7'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/obsousbh'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/obsousbh'
