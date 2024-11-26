@@ -1,0 +1,45 @@
+# Online OnePrompt method on Online Learning Setting
+name: 'Online OnePrompt Hyperparameter Tuning on Stanford Cars196'
+project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
+entity: 'laymond1'
+
+method: grid
+metric:
+  goal: maximize
+  name: A_auc
+program: ./utils/online_main.py
+
+parameters:
+  model:
+    values: ['online-one-prompt']
+  online_scenario:
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
+  dataset:
+    values: ['seq-cars196']
+  validation:
+    value: 0.2
+  batch_size:
+    value: 64
+  online_iter:
+    value: 3
+  eval_period:
+    value: 100
+  f_eval_period:
+    value: 1000
+  seed:
+    value: 1
+  optimizer:
+    values: ['adam']
+  lr_scheduler:
+    values: ['default']
+  use_amp:
+    value: true
+  num_workers:
+    value: 4
+# hyperparameters
+  lr:
+    values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
+
+  
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/4bda45gp'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/4bda45gp'
