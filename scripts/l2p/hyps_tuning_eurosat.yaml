@@ -1,5 +1,5 @@
 # Online L2P method on Online Learning Setting
-name: 'Online L2P Hyperparameter Tuning on Stanford Cars196'
+name: 'Online L2P Hyperparameter Tuning on EuroSAT-RGB'
 project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
@@ -15,7 +15,7 @@ parameters:
   online_scenario:
     values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
-    values: ['seq-cars196']
+    values: ['seq-eurosat-rgb']
   validation:
     value: 0.2
   batch_size:
@@ -23,9 +23,9 @@ parameters:
   online_iter:
     value: 3
   eval_period:
-    value: 100
+    value: 270
   f_eval_period:
-    value: 1000
+    value: 2700
   seed:
     value: 1
   optimizer:
@@ -45,5 +45,5 @@ parameters:
     values: [1, 5]
   
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/h27t52wz'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/h27t52wz'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/mwywsq92'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/mwywsq92'
