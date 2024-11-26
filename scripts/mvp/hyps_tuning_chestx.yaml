@@ -1,6 +1,6 @@
 # Online MVP method on Online Learning Setting
-name: 'Online MVP Hyperparameter Tuning on DomainNet (Periodic Gaussian)'
-project: 'Comparison Algorithms Hyperparameter Tuning'
+name: 'Online MVP Hyperparameter Tuning on ChestX'
+project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -13,9 +13,9 @@ parameters:
   model:
     values: ['online-mvp']
   online_scenario:
-    values: ['periodic-gaussian']
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
-    values: ['seq-domainnet']
+    values: ['seq-chestx']
   validation:
     value: 0.2
   batch_size:
@@ -23,9 +23,9 @@ parameters:
   online_iter:
     value: 3
   eval_period:
-    value: 1000
+    value: 100
   f_eval_period:
-    value: 10000
+    value: 1000
   seed:
     value: 1
   optimizer:
@@ -36,14 +36,12 @@ parameters:
     value: true
   num_workers:
     value: 4
+  n_tasks: # this dataset has only 6 classes
+    value: 3
 # hyperparameters
   lr:
     values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
-  alpha:
-    values: [0.0, 0.5, 1.0]
-  gamma:
-    values: [0.0, 2.0, 4.0]
   
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/e0otkabe'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/e0otkabe'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/07l6fdx9'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/07l6fdx9'

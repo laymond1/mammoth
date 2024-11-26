@@ -1,6 +1,6 @@
 # Online MVP method on Online Learning Setting
-name: 'Online MVP Hyperparameter Tuning on MiniDomainNet (Periodic Gaussian)'
-project: 'Comparison Algorithms Hyperparameter Tuning'
+name: 'Online MVP Hyperparameter Tuning on MiniDomainNet'
+project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -13,7 +13,7 @@ parameters:
   model:
     values: ['online-mvp']
   online_scenario:
-    values: ['periodic-gaussian']
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
     values: ['seq-minidomainnet']
   validation:
@@ -23,9 +23,9 @@ parameters:
   online_iter:
     value: 3
   eval_period:
-    value: 1000
+    value: 2700
   f_eval_period:
-    value: 10000
+    value: 27000
   seed:
     value: 1
   optimizer:
@@ -39,10 +39,6 @@ parameters:
 # hyperparameters
   lr:
     values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
-  alpha:
-    values: [0.0, 0.5, 1.0]
-  gamma:
-    values: [0.0, 2.0, 4.0]
   
   
 # CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/e0otkabe'

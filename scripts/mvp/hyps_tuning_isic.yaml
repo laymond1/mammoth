@@ -1,6 +1,6 @@
 # Online MVP method on Online Learning Setting
-name: 'Online MVP Hyperparameter Tuning on TinyImageNet (Periodic Gaussian)'
-project: 'Comparison Algorithms Hyperparameter Tuning'
+name: 'Online MVP Hyperparameter Tuning on ISIC'
+project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -14,10 +14,8 @@ parameters:
     values: ['online-mvp']
   online_scenario:
     values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
-  rnd_NM:
-    value: true
   dataset:
-    values: ['seq-tinyimg-224']
+    values: ['seq-isic']
   validation:
     value: 0.2
   batch_size:
@@ -25,9 +23,9 @@ parameters:
   online_iter:
     value: 3
   eval_period:
-    value: 1000
+    value: 100
   f_eval_period:
-    value: 10000
+    value: 500
   seed:
     value: 1
   optimizer:
@@ -38,10 +36,12 @@ parameters:
     value: true
   num_workers:
     value: 4
+  n_tasks: # this dataset has only 6 classes
+    value: 3
 # hyperparameters
   lr:
     values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
   
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/e0otkabe'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/e0otkabe'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/hm6x5cic'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/hm6x5cic'
