@@ -1,6 +1,6 @@
 # Online DualPrompt method on Online Learning Setting
-name: 'Online DualPrompt Hyperparameter Tuning on DomainNet (Periodic Gaussian)'
-project: 'Comparison Algorithms Hyperparameter Tuning'
+name: 'Online DualPrompt Hyperparameter Tuning on EuroSAT-RGB'
+project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -13,9 +13,9 @@ parameters:
   model:
     values: ['online-dualprompt']
   online_scenario:
-    values: ['periodic-gaussian']
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
-    values: ['seq-domainnet']
+    values: ['seq-eurosat-rgb']
   validation:
     value: 0.2
   batch_size:
@@ -23,9 +23,9 @@ parameters:
   online_iter:
     value: 3
   eval_period:
-    value: 1000
+    value: 270
   f_eval_period:
-    value: 10000
+    value: 2700
   seed:
     value: 1
   optimizer:
@@ -43,5 +43,5 @@ parameters:
     values: [0.0, 0.1, 0.5, 1.0]
   
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/vv7ghrh7'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comparison Algorithms Hyperparameter Tuning/vv7ghrh7'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/yw0v5eal'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/yw0v5eal'

@@ -13,7 +13,9 @@ parameters:
   model:
     values: ['online-dualprompt']
   online_scenario:
-    values: ['periodic-gaussian']
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
+  rnd_NM:
+    value: true
   dataset:
     values: ['seq-tinyimg-224']
   validation:

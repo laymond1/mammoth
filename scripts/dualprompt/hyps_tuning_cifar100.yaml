@@ -41,8 +41,7 @@ parameters:
     values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
   pull_constraint_coeff:
     values: [0.0, 0.1, 0.5, 1.0]
-  top_k:
-    values: [1, 5] 
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/nohi78b3'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/nohi78b3'
+  
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/36gq68co'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/36gq68co'

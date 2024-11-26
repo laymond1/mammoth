@@ -1,5 +1,5 @@
 # Online DualPrompt method on Online Learning Setting
-name: 'Online DualPrompt Hyperparameter Tuning on ImageNet-R'
+name: 'Online DualPrompt Hyperparameter Tuning on CropDisease'
 project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
@@ -15,7 +15,7 @@ parameters:
   online_scenario:
     values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
   dataset:
-    values: ['seq-imagenet-r']
+    values: ['seq-cropdisease']
   validation:
     value: 0.2
   batch_size:
@@ -25,7 +25,7 @@ parameters:
   eval_period:
     value: 1000
   f_eval_period:
-    value: 6000
+    value: 10000
   seed:
     value: 1
   optimizer:
@@ -43,5 +43,5 @@ parameters:
     values: [0.0, 0.1, 0.5, 1.0]
   
   
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/cwus5pri'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/cwus5pri'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/jzum3u4a'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/jzum3u4a'
