@@ -29,6 +29,7 @@ class OnlineCodaPrompt(OnlineContinualModel):
         parser.add_argument('--mu', type=float, default=0.1, help='weight of prompt loss')
         parser.add_argument('--pool_size', type=int, default=100, help='pool size')
         parser.add_argument('--prompt_len', type=int, default=8, help='prompt length')
+        parser.add_argument('--ortho_mu', type=float, default=0.0, help='orthogonal penalty weight') # but it's set to 0.0 becuase of (#issue12)[https://github.com/GT-RIPL/CODA-Prompt/issues/12]
         # parser.add_argument('--virtual_bs_iterations', '--virtual_bs_n', dest='virtual_bs_iterations',
                             # type=int, default=1, help="virtual batch size iterations")
         # Optimizer parameters
@@ -53,7 +54,7 @@ class OnlineCodaPrompt(OnlineContinualModel):
         
         backbone = CODAPromptModel(num_classes=num_classes,
                                    pretrained=True,
-                                   prompt_param=[args.pool_size, args.prompt_len, 0])
+                                   prompt_param=[args.pool_size, args.prompt_len, args.ortho_mu])
         
         super().__init__(backbone, loss, args, transform, dataset=dataset)
         # set optimizer and scheduler
