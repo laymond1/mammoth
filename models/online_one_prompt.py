@@ -157,7 +157,7 @@ class OnlineOnePrompt(OnlineContinualModel):
 
         x = x.to(self.device)
         y = y.to(self.device)
-        # get ood samples
+        # get ood samples (features)
         id_loader, ood_loader = self._get_ood_samples(x, y)
         # print("length of id_loader: ", len(id_loader))
         # print("length of ood_loader: ", len(ood_loader))

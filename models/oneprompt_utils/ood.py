@@ -40,10 +40,12 @@ class NPOS:
         normed = in_dist / torch.norm(in_dist, p=2, dim=1, keepdim=True)
         select = min(self.select, normed.shape[0])
         rand_ind = np.random.choice(normed.shape[0], replace=False)
-        self.knn_idx.add(normed.numpy())
+        self.knn_idx.add(normed.numpy()) # FAISS 인덱스에 데이터 백터 normed in-distribution 추가(search에서 사용됨)
         boundary_ids = self._boundary(normed, select)
-        boundary_points = torch.cat([in_dist[i:i+1].repeat(self.sample_from, 1) for i in boundary_ids])
-        ood_list = self.cov_mat * offsets.repeat(select, 1)
+        # modified code by mnmnk43434
+        boundary_points = in_dist[boundary_ids]
+        ood_list = boundary_points.unsqueeze(1) + self.cov_mat * offsets.unsqueeze(0)
+        ood_list = ood_list.view(-1, in_dist.shape[1])
         oods = self._select_ood(ood_list, num_cls)
         self.knn_idx.reset()
         return oods
