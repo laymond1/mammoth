@@ -33,6 +33,17 @@ class OnlineOnePrompt(OnlineContinualModel):
         parser.add_argument('--e_prompt_pool_size', type=int, default=10, help='size of E-Prompt pool')
         parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
         parser.add_argument('--g_prompt_length', type=int, default=10, help='length of G-Prompt')
+        # OOD parameters
+        parser.add_argument('--cov', type=float, default=0.1)
+        parser.add_argument('--thres_id', type=float, default=-15.0)
+        parser.add_argument('--thres_ood', type=float, default=-3.0)
+        parser.add_argument('--num_per_class', type=int, default=40)
+        parser.add_argument('--sample_from', type=int, default=600)
+        parser.add_argument('--select', type=int, default=50)
+        parser.add_argument('--pick_nums', type=int, default=30)
+        parser.add_argument('--K', type=int, default=50)
+        parser.add_argument('--lmda', type=float, default=0.1)
+        parser.add_argument('--huber', action='store_false')
         # parser.add_argument('--prompt_param', nargs='+', type=float, default=[10, 40, 10],
         #                 help='e prompt pool size, e prompt length, g prompt length')
         # Optimizer parameters
@@ -89,20 +100,24 @@ class OnlineOnePrompt(OnlineContinualModel):
         _ood_loss_dict = dict()
         _acc, _ood_acc, _iter = 0.0, 0.0, 0
 
-        for _ in range(int(self.args.online_iter)):
+        for i in range(int(self.args.online_iter)):
             loss_dict, acc = self.online_train([inputs.clone(), labels.clone()])
-            ood_loss_dict, ood_acc = self.online_train_ood([inputs.clone(), labels.clone()])
             _loss_dict = {k: v + _loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
-            _ood_loss_dict = {k: v + _ood_loss_dict.get(k, 0.0) for k, v in ood_loss_dict.items()}
             _acc += acc
-            _ood_acc += ood_acc
             _iter += 1
+
+            # the last iter
+            if i == int(self.args.online_iter) - 1:
+                ood_loss_dict, ood_acc = self.online_train_ood([inputs.clone(), labels.clone()])
+                _ood_loss_dict = {k: v + _ood_loss_dict.get(k, 0.0) for k, v in ood_loss_dict.items()}
+                _ood_acc += ood_acc
+
         del(inputs, labels)
         gc.collect()
         
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
-        _ood_loss_dict = {k: v / _iter for k, v in _ood_loss_dict.items()}
-        return _loss_dict, _ood_loss_dict, _acc / _iter, _ood_acc / _iter
+        _ood_loss_dict = {k: v / 1 if _ood_loss_dict else 0.0 for k, v in _ood_loss_dict.items()}  # ood 값은 마지막 iter만 사용
+        return _loss_dict, _ood_loss_dict, _acc / _iter, _ood_acc  # ood acc는 단일 값
     
     def online_train(self, data):
         self.net.train()

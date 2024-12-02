@@ -23,7 +23,7 @@ class NPOS:
         self.thres_id = getattr(args, 'thres_id', -15.0)
         self.thres_ood = getattr(args, 'thres_ood', -3.0)
         self.lmda = getattr(args, 'lmda', 0.1)
-        self.huber = torch.nn.HuberLoss()#.cuda() if config.get('huber', True) else torch.nn.MSELoss()#.cuda()
+        self.huber = torch.nn.HuberLoss() if getattr(args, 'huber', True) else torch.nn.MSELoss()
     
     def generate(self, in_dist, targets):
         num_cls = targets.unique().size(0)
@@ -39,7 +39,6 @@ class NPOS:
         offsets = self.dis.rsample((self.sample_from,))
         normed = in_dist / torch.norm(in_dist, p=2, dim=1, keepdim=True)
         select = min(self.select, normed.shape[0])
-        rand_ind = np.random.choice(normed.shape[0], replace=False)
         self.knn_idx.add(normed.numpy()) # FAISS 인덱스에 데이터 백터 normed in-distribution 추가(search에서 사용됨)
         boundary_ids = self._boundary(normed, select)
         # modified code by mnmnk43434
