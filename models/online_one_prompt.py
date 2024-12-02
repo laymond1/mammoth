@@ -34,8 +34,8 @@ class OnlineOnePrompt(OnlineContinualModel):
         parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
         parser.add_argument('--g_prompt_length', type=int, default=10, help='length of G-Prompt')
         # OOD parameters
-        parser.add_argument('--cov', type=float, default=0.1)
-        parser.add_argument('--thres_id', type=float, default=-15.0)
+        parser.add_argument('--cov', type=float, default=1.0) # 0.1 for CUB200
+        parser.add_argument('--thres_id', type=float, default=-24.0) # -15.0 for ImageNet-A
         parser.add_argument('--thres_ood', type=float, default=-3.0)
         parser.add_argument('--num_per_class', type=int, default=40)
         parser.add_argument('--sample_from', type=int, default=600)
