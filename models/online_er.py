@@ -23,7 +23,7 @@ from utils.buffer import Buffer
 class OnlineEr(OnlineContinualModel):
     """Continual learning via Experience Replay."""
     NAME = 'online-er'
-    COMPATIBILITY = ['si-blurry', 'periodic-gaussian'] # sdp, stream
+    COMPATIBILITY = ['si-blurry', 'periodic-gaussian']
 
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
@@ -33,6 +33,8 @@ class OnlineEr(OnlineContinualModel):
         This model requires the `add_rehearsal_args` to include the buffer-related arguments.
         """
         add_rehearsal_args(parser)
+        # ETC
+        parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -53,33 +55,10 @@ class OnlineEr(OnlineContinualModel):
 
         super(OnlineEr, self).__init__(backbone, loss, args, transform, dataset=dataset)
         self.buffer = Buffer(self.args.buffer_size)
+        # set optimizer and scheduler
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
-
-    def observe(self, inputs, labels, not_aug_inputs, epoch=None):
-        """
-        ER trains on the current task using the data provided, but also augments the batch with data from the buffer.
-        """
-
-        real_batch_size = inputs.shape[0]
-
-        self.opt.zero_grad()
-        if not self.buffer.is_empty():
-            buf_inputs, buf_labels = self.buffer.get_data(
-                self.args.minibatch_size, transform=self.transform, device=self.device)
-            inputs = torch.cat((inputs, buf_inputs))
-            labels = torch.cat((labels, buf_labels))
-
-        outputs = self.net(inputs)
-        loss = self.loss(outputs, labels)
-        loss.backward()
-        self.opt.step()
-
-        self.buffer.add_data(examples=not_aug_inputs,
-                             labels=labels[:real_batch_size])
-
-        return loss.item()
 
     def online_before_train(self):
         pass
@@ -150,7 +129,7 @@ class OnlineEr(OnlineContinualModel):
         with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
             logits = self.net(x, return_outputs=True)
             loss_dict = dict()
-
+            # mask out unseen classes
             logits = logits + self.mask
             ce_loss = self.loss(logits, y)
 
@@ -158,8 +137,8 @@ class OnlineEr(OnlineContinualModel):
                 
         return logits, loss_dict
     
-    def online_after_task(self, task_id):
-        pass
-    
     def online_after_train(self):
         pass
+
+    def get_parameters(self):
+        return [p for p in self.net.parameters() if p.requires_grad]

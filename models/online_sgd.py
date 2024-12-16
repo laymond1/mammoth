@@ -1,21 +1,21 @@
 """
 This module implements the simplest form of incremental training, i.e., finetuning.
+
+Additionally online-sgd is modified for online continual learinng.
+
+Note: 
+    Online-SGD USES A CUSTOM BACKBONE: `vit_base_patch16_224`.
+    The backbone is a ViT-B/16 pretrained on Imagenet 21k and finetuned on ImageNet 1k.
 """
 
-# Copyright 2020-present, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Davide Abati, Simone Calderara.
-# All rights reserved.
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-
 import gc
-import logging
 import torch
-import torch.nn.functional as F
 
 from datasets import get_dataset
-from models.vit_utils.vit_model import ViTModel
-from models.utils.online_continual_model import OnlineContinualModel
 from utils.args import ArgumentParser
+
+from models.utils.online_continual_model import OnlineContinualModel
+from models.prompt_utils.model import PromptModel
 
 
 class OnlineSgd(OnlineContinualModel):
@@ -28,32 +28,35 @@ class OnlineSgd(OnlineContinualModel):
     
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
-        parser.set_defaults(optimizer='adam')
+        # ETC
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
-        # Trick parameters
-        parser.add_argument('--train_mask', default=True, type=bool, help='if using the class mask at training')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
         del backbone
         print("-" * 20)
-        logging.info(f"SGD USES A CUSTOM BACKBONE: `vit_base_patch16_224`.")
+        print(f"WARNING: Online-SGD USES A CUSTOM BACKBONE: `vit_base_patch16_224`.")
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
         
-        backbone = ViTModel(args)
-        
+        tmp_dataset = get_dataset(args) if dataset is None else dataset
+        num_classes = tmp_dataset.N_CLASSES
+        backbone = PromptModel(args, 
+                               num_classes=num_classes,
+                               pretrained=True, prompt_flag='')
+
         super(OnlineSgd, self).__init__(backbone, loss, args, transform, dataset=dataset)
         # set optimizer and scheduler
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
 
-    def online_before_task(self, task_id):
+    def online_before_train(self):
         pass
-
-    def online_step(self, inputs, labels, idx):
+    
+    def online_step(self, inputs, labels, not_aug_inputs, idx):
         self.add_new_class(labels)
+
         _loss_dict = dict()
         _acc, _iter = 0.0, 0
 
@@ -64,6 +67,7 @@ class OnlineSgd(OnlineContinualModel):
             _iter += 1
         del(inputs, labels)
         gc.collect()
+
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
         return _loss_dict, _acc / _iter
 
@@ -102,8 +106,7 @@ class OnlineSgd(OnlineContinualModel):
     
     def model_forward(self, x, y):
         with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
-            outputs = self.net(x, return_outputs=True)
-            logits = outputs['logits']
+            logits = self.net(x, return_outputs=True)
             loss_dict = dict()
             # mask out unseen classes
             logits = logits + self.mask
@@ -113,5 +116,8 @@ class OnlineSgd(OnlineContinualModel):
                 
         return logits, loss_dict
     
-    def online_after_task(self, task_id):
+    def online_after_train(self):
         pass
+
+    def get_parameters(self):
+        return [p for p in self.net.parameters() if p.requires_grad]
