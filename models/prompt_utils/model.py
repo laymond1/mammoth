@@ -6,6 +6,7 @@ import torch.nn as nn
 
 from models.prompt_utils.vit import VisionTransformer
 from models.prompt_utils.prompt import L2P, DualPrompt, CodaPrompt, MVPPrompt, OnePrompt
+from models.bfprompt_utils.prompt import DualPrompt as BFPrompt
 
 class PromptModel(nn.Module):
     def __init__(self, args, num_classes=10, pretrained=False, prompt_flag=False, prompt_param=None):
@@ -47,10 +48,13 @@ class PromptModel(nn.Module):
             self.prompt = MVPPrompt(args, 768, prompt_param) # prompt_param: 10 40 10
         elif self.prompt_flag == 'oneprompt':
             self.prompt = OnePrompt(args, 768, prompt_param)
+        elif self.prompt_flag == 'bfprompt':
+            cls_per_prompt = num_classes // prompt_param[0]
+            self.prompt = BFPrompt(args, 768, cls_per_prompt, prompt_param) # based on DualPrompt
         else:
             self.prompt = None
 
-    def forward_features(self, x, train=False, last=False, warmup=False,  **kwargs):
+    def forward_features(self, x, y=None, train=False, last=False, warmup=False,  **kwargs):
         if self.prompt is not None:
             if self.prompt_flag  == 'oneprompt':
                 out, prompt_loss = self.feat(
@@ -69,7 +73,7 @@ class PromptModel(nn.Module):
                 with torch.no_grad():
                     q, _ = self.feat(x)
                     q = q[:, 0, :]
-                out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
+                out, prompt_loss = self.feat(x, y, prompt=self.prompt, q=q, train=train)
             out = out[:, 0, :]
             if warmup:
                 prompt_loss = torch.zeros_like(prompt_loss)
@@ -87,7 +91,7 @@ class PromptModel(nn.Module):
     def forward_head(self, feature):
         return self.head(feature)
 
-    def forward(self, x, train=False, last=False, warmup=False, feat=False, **kwargs):
+    def forward(self, x, y=None, train=False, last=False, warmup=False, feat=False, **kwargs):
         if last:
             return self.head(x)
 
@@ -109,7 +113,7 @@ class PromptModel(nn.Module):
                 with torch.no_grad():
                     q, _ = self.feat(x)
                     q = q[:, 0, :]
-                out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
+                out, prompt_loss = self.feat(x, y, prompt=self.prompt, q=q, train=train)
             out = out[:, 0, :]
             if warmup:
                 prompt_loss = torch.zeros_like(prompt_loss)

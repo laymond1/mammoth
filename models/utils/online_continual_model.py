@@ -172,7 +172,7 @@ class OnlineContinualModel(ContinualModel):
                 x = x.to(self.device)
                 y = y.to(self.device)
 
-                outputs = self.net(x, return_outputs=True)
+                outputs = self.net(x, y, return_outputs=True)
                 logits = outputs['logits'] if isinstance(outputs, dict) else outputs
                 logits = logits + self.mask
                 loss = F.cross_entropy(logits, y)
@@ -310,15 +310,21 @@ class OnlineContinualModel(ContinualModel):
         __builtin__.print = print
 
     def report_training(self, total_samples, sample_num, train_loss_dict, train_acc):
-        print(
-            f"Train | Sample # {sample_num} | train_loss {train_loss_dict['total_loss'].item():.4f} | train_acc {train_acc:.4f} | "
-            f"lr {self.optimizer.param_groups[0]['lr']:.6f} | "
-            f"Num_Classes {len(self.exposed_classes)} | "
-            # Add counts of each prompt if available
-            + (f"Prompt Counts {self.net.prompt.train_count.to(torch.int64).tolist()} | " if hasattr(self.net.prompt, 'train_count') else "") +
-            f"running_time {datetime.timedelta(seconds=int(time.time() - self.start_time))} | "
-            f"ETA {datetime.timedelta(seconds=int((time.time() - self.start_time) * (total_samples - sample_num) / sample_num))}"
-        )
+        # Construct the base print message
+        message = f"Test | Sample # {sample_num} | train_loss {train_loss_dict['total_loss'].item():.4f} | train_acc {train_acc:.4f} | "
+        message += f"lr {self.optimizer.param_groups[0]['lr']:.6f} | Num_Classes {len(self.exposed_classes)} | "
+
+        # Add counts of each prompt if available
+        if hasattr(self.net.prompt, 'train_count'):
+            message += f"Prompt Counts {self.net.prompt.train_count.to(torch.int64).tolist()} | "
+            self.net.prompt.train_count.zero_()
+        
+        # base print message
+        message += f"running_time {datetime.timedelta(seconds=int(time.time() - self.start_time))} | "
+        message += f"ETA {datetime.timedelta(seconds=int((time.time() - self.start_time) * (total_samples - sample_num) / sample_num))}"
+
+        # print whole message
+        print(message)
 
         if 'wandb' in sys.modules and not self.args.nowand:
             self.online_train_autolog_wandb(sample_num, train_loss_dict, train_acc)
@@ -341,6 +347,11 @@ class OnlineContinualModel(ContinualModel):
             message += f"klr {klr:.4f} | "
         if kgr is not None:
             message += f"kgr {kgr:.4f} | "
+
+        # Add counts of each prompt if available
+        if hasattr(self.net.prompt, 'eval_count'):
+            message += f"Prompt Counts {self.net.prompt.eval_count.to(torch.int64).tolist()} | "
+            self.net.prompt.eval_count.zero_()
 
         # Print the message
         if task_id is None:
