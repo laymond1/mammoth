@@ -10,14 +10,13 @@ import gc
 import copy
 import torch
 import torch.nn.functional as F
-import torch.distributed as dist
 
-from timm import create_model  # noqa
-from torch.utils.data import DataLoader
+from datasets import get_dataset
+from utils.args import add_rehearsal_args, ArgumentParser
 
 from models.utils.online_continual_model import OnlineContinualModel
-from models.mvp_utils.mvp_model import MVPModel
-from utils.args import ArgumentParser
+from models.prompt_utils.model import PromptModel
+from utils.buffer import Buffer
 
 import wandb
 
@@ -29,52 +28,35 @@ class MVP(OnlineContinualModel):
 
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
-        parser.set_defaults(optimizer='adam')
+        # Replay parameters
+        add_rehearsal_args(parser)
+        # Trick
+        parser.add_argument('--train_mask', type=bool, default=True,  help='if using the class mask at training')
+
         # MVP parameters
         parser.add_argument('--use_mask', type=bool, default=True, help='use mask for our method')
         parser.add_argument('--use_contrastiv', type=bool, default=True, help='use contrastive loss for our method')
-        parser.add_argument('--use_last_layer', type=bool, default=False, help='use last layer for our method')
         parser.add_argument('--use_afs', type=bool, default=True, help='enable Adaptive Feature Scaling (AFS) in ours')
         parser.add_argument('--use_gsf', type=bool, default=True, help='enable Minor-Class Reinforcement (MCR) in ours')
-        
-        parser.add_argument('--selection_size', type=int, default=1, help='# candidates to use for ViT_Prompt')
         parser.add_argument('--alpha', type=float, default=0.5, help='# candidates to use for STR hyperparameter') # 0.1, 0.3, 0.5, 0.7
         parser.add_argument('--gamma', type=float, default=2., help='# candidates to use for STR hyperparameter') # 0.5, 1.0, 1.5, 2.0, 2.5
         parser.add_argument('--margin', type=float, default=0.5, help='# candidates to use for STR hyperparameter') # 0.1, 0.3, 0.5, 0.7, 0.9
 
-        # Prompt parameters
-        parser.add_argument('--prompt_pool', default=True, type=bool,)
-        parser.add_argument('--pool_size', default=10, type=int, help='number of prompts (M in paper)')
-        parser.add_argument('--length', default=5, type=int, help='length of prompt (L_p in paper)')
-        parser.add_argument('--top_k', default=5, type=int, help='top k prompts to use (N in paper)')
-        parser.add_argument('--prompt_key', default=True, type=bool, help='Use learnable prompt key')
-        parser.add_argument('--prompt_key_init', default='uniform', type=str, help='initialization type for key\'s prompts')
-        parser.add_argument('--use_prompt_mask', default=False, type=bool)
-        parser.add_argument('--batchwise_prompt', default=True, type=bool)
-        parser.add_argument('--embedding_key', default='cls', type=str)
-        parser.add_argument('--predefined_key', default='', type=str)
-        parser.add_argument('--pull_constraint', default=True)
-        parser.add_argument('--pull_constraint_coeff', default=0.1, type=float)
+        # G-Prompt parameters
+        parser.add_argument('--g_prompt_layer_idx', type=int, default=[0, 1], nargs="+", help='the layer index of the G-Prompt')
+        parser.add_argument('--g_prompt_length', type=int, default=10, help='length of G-Prompt')
 
-        parser.add_argument('--global_pool', default='token', choices=['token', 'avg'], type=str, help='type of global pooling for final sequence')
-        parser.add_argument('--head_type', default='prompt', choices=['token', 'gap', 'prompt', 'token+prompt'], type=str, help='input type of classification head')
-        parser.add_argument('--freeze', default=['blocks', 'patch_embed', 'cls_token', 'norm', 'pos_embed'], nargs='*', type=list, help='freeze part in backbone model')
+        # E-Prompt parameters
+        parser.add_argument('--e_prompt_layer_idx', type=int, default=[2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
+        parser.add_argument('--e_prompt_pool_size', default=10, type=int, help='number of prompts (M in paper)')
+        parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
+        parser.add_argument('--top_k', default=1, type=int, help='top k prompts to use (N in paper)')        
+        parser.add_argument('--pull_constraint_coeff', type=float, default=1.0, help='Coefficient for the pull constraint term, \
+                            controlling the weight of the prompt loss in the total loss calculation')
 
-        # Learning rate schedule parameters
-        parser.add_argument('--sched', default='constant', type=str, metavar='SCHEDULER', help='LR scheduler (default: "constant"')
-        parser.add_argument('--lr-noise', type=float, nargs='+', default=None, metavar='pct, pct', help='learning rate noise on/off epoch percentages')
-        parser.add_argument('--lr-noise-pct', type=float, default=0.67, metavar='PERCENT', help='learning rate noise limit percent (default: 0.67)')
-        parser.add_argument('--lr-noise-std', type=float, default=1.0, metavar='STDDEV', help='learning rate noise std-dev (default: 1.0)')
-        parser.add_argument('--warmup-lr', type=float, default=1e-6, metavar='LR', help='warmup learning rate (default: 1e-6)')
-        parser.add_argument('--min-lr', type=float, default=1e-5, metavar='LR', help='lower lr bound for cyclic schedulers that hit 0 (1e-5)')
-        parser.add_argument('--decay-epochs', type=float, default=30, metavar='N', help='epoch interval to decay LR')
-        parser.add_argument('--warmup-epochs', type=int, default=5, metavar='N', help='epochs to warmup LR, if scheduler supports')
-        parser.add_argument('--cooldown-epochs', type=int, default=10, metavar='N', help='epochs to cooldown LR at min_lr, after cyclic schedule ends')
-        parser.add_argument('--patience-epochs', type=int, default=10, metavar='N', help='patience epochs for Plateau LR scheduler (default: 10')
-        parser.add_argument('--decay-rate', '--dr', type=float, default=0.1, metavar='RATE', help='LR decay rate (default: 0.1)')
-        parser.add_argument('--unscale_lr', type=bool, default=True, help='scaling lr by batch size (default: True)')
+        # ETC
+        parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
 
-        parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -87,40 +69,56 @@ class MVP(OnlineContinualModel):
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
 
-        backbone = MVPModel(args)
+        tmp_dataset = get_dataset(args) if dataset is None else dataset
+        num_classes = tmp_dataset.N_CLASSES
+        backbone = PromptModel(args, 
+                               num_classes=num_classes,
+                               pretrained=True, prompt_flag='mvp',
+                               prompt_param=[args.e_prompt_pool_size, args.e_prompt_length, args.g_prompt_length])
 
         super().__init__(backbone, loss, args, transform, dataset=dataset)
+        # buffer 
+        self.buffer = Buffer(self.args.buffer_size)
         # set optimizer and scheduler
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
-        cols = [f"Prompt_{i}" for i in range(1, args.pool_size+1)]
+        cols = [f"Prompt_{i}" for i in range(1, args.e_prompt_pool_size+1)]
         cols.insert(0, "N_Samples")
         self.table = wandb.Table(columns=cols)
-    
-    def online_before_task(self, task_id):
-        pass
     
     def online_before_train(self):
         pass
     
-    def online_step(self, inputs, labels, idx):
+    def online_step(self, inputs, labels, not_aug_inputs, idx):
         self.add_new_class(labels)
         
         _loss_dict = dict()
         _acc, _iter = 0.0, 0
+        real_batch_size = inputs.shape[0]
+
+        # sample data from the buffer
+        if not self.buffer.is_empty():
+            buf_inputs, buf_labels = self.buffer.get_data(
+                self.args.minibatch_size, transform=self.transform)
+            inputs = torch.cat((inputs, buf_inputs))
+            labels = torch.cat((labels, buf_labels))
 
         for _ in range(int(self.args.online_iter)):
             loss_dict, acc = self.online_train([inputs.clone(), labels.clone()])
             _loss_dict = {k: v + _loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
             _acc += acc
             _iter += 1
-        
+        if self.args.buffer_size > 0:
+            # add new data to the buffer
+            self.buffer.add_data(examples=not_aug_inputs,
+                                labels=labels[:real_batch_size])
+
         del(inputs, labels)
         gc.collect()
         
         _loss_dict = {k: v / _iter for k, v in _loss_dict.items()}
-        return loss_dict, _acc / _iter
+        return _loss_dict, _acc / _iter
     
     def online_train(self, data):
         self.net.train()
@@ -156,62 +154,29 @@ class MVP(OnlineContinualModel):
         return total_loss_dict, total_correct/total_num_data
     
     def model_forward(self, x, y):
-        loss_dict = dict()
         with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
-            feature, mask = self.net.forward_features(x)
-            logit = self.net.forward_head(feature)
+            feature, prompt_loss, mask = self.net.forward_features(x, train=True)
+            logits = self.net.forward_head(feature)
             if self.args.use_mask:
-                logit = logit * mask
-            logit = logit + self.mask
-            loss_dict = self.loss_fn(feature, mask, y)
-            
-            return logit, loss_dict
-    
-    def online_evaluate(self, test_loader):
-        total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
-        correct_l = torch.zeros(self.num_classes)
-        num_data_l = torch.zeros(self.num_classes)
-        label = []
-        self.net.eval()
-        with torch.no_grad():
-            for i, data in enumerate(test_loader):
-                x, y = data[0], data[1]
-                for j in range(len(y)):
-                    y[j] = self.exposed_classes.index(y[j].item())
-
-                x = x.to(self.device)
-                y = y.to(self.device)
-
-                logits = self.net(x)
+                logits = logits * mask
+            loss_dict = dict()
+            # here is the trick to mask out classes of non-current classes
+            non_cur_classes_mask = torch.zeros(self.num_classes, device=self.device) - torch.inf
+            non_cur_classes_mask[y.unique()] = 0
+            # mask out unseen classes and non-current classes
+            if self.args.train_mask:
+                logits = logits + non_cur_classes_mask
+            else:
                 logits = logits + self.mask
-                loss = F.cross_entropy(logits, y)
-                pred = torch.argmax(logits, dim=-1)
-                _, preds = logits.topk(1, 1, True, True) # self.topk: 1
-                total_correct += torch.sum(preds == y.unsqueeze(1)).item()
-                total_num_data += y.size(0)
 
-                xlabel_cnt, correct_xlabel_cnt = self._interpret_pred(y, pred)
-                correct_l += correct_xlabel_cnt.detach().cpu()
-                num_data_l += xlabel_cnt.detach().cpu()
+            loss_dict = self.loss_fn(feature, prompt_loss, mask, y)
 
-                total_loss += loss.mean().item()
-                label += y.tolist()
-
-        avg_acc = total_correct / total_num_data
-        avg_loss = total_loss / len(test_loader)
-        cls_acc = (correct_l / (num_data_l + 1e-5)).numpy().tolist()
-        
-        eval_dict = {"avg_loss": avg_loss, "avg_acc": avg_acc, "cls_acc": cls_acc}
-        return eval_dict
-    
-    def online_after_task(self, task_id):
-        pass
-
+            return logits, loss_dict
     def online_after_train(self):
         pass
     
     def _compute_grads(self, feature, y, mask):
-        head = copy.deepcopy(self.net.backbone.head)
+        head = copy.deepcopy(self.net.head)
         head.zero_grad()
         logit = head(feature.detach())
         if self.args.use_mask:
@@ -241,7 +206,7 @@ class MVP(OnlineContinualModel):
         return ign_score
 
     def _get_compensation(self, y, feat):
-        head_w = self.net.backbone.head.weight[y].clone().detach()
+        head_w = self.net.head.weight[y].clone().detach()
         cps_score = (1. - torch.cosine_similarity(head_w, feat, dim=1) + self.args.margin)#B
         return cps_score
 
@@ -251,7 +216,7 @@ class MVP(OnlineContinualModel):
         cps_score = self._get_compensation(y, feat)
         return ign_score, cps_score
     
-    def loss_fn(self, feature, mask, y):
+    def loss_fn(self, feature, prompt_loss, mask, y):
         loss_dict = dict()
         ign_score, cps_score = self._get_score(feature.detach(), y, mask)
 
@@ -269,18 +234,19 @@ class MVP(OnlineContinualModel):
             gsf_loss = (ign_score ** self.args.gamma) * ce_loss
             loss_dict.update({'gsf_loss': gsf_loss.mean()})
             
-            total_loss = (1-self.args.alpha)* ce_loss + self.args.alpha * gsf_loss
+            total_loss = (1-self.args.alpha) * ce_loss + self.args.alpha * gsf_loss
         else:
             total_loss = ce_loss
-            
-        total_loss = total_loss.mean() + self.net.get_similarity_loss()
+        
+        if self.args.pull_constraint_coeff > 0.0:
+            cos_loss = self.args.pull_constraint_coeff * prompt_loss
+        total_loss = total_loss.mean() + cos_loss
         
         loss_dict.update({'ce_loss': ce_loss.mean()})
-        loss_dict.update({'cos_loss': self.net.get_similarity_loss()})
+        loss_dict.update({'cos_loss': prompt_loss})
         loss_dict.update({'total_loss': total_loss.mean()})
         
         return loss_dict
 
     def get_parameters(self):
-        return [p for p in self.net.parameters() if p.requires_grad]
-
+        return [p for n, p in self.net.named_parameters() if 'prompt' in n or 'head' in n]

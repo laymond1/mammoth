@@ -180,15 +180,15 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             ptm_results['data_cnt'].append(samples_cnt)
             
         ## Start Online Training
-        for i, (images, labels, idx) in enumerate(train_dataloader):
+        for i, (images, labels, not_aug_images, idx) in enumerate(train_dataloader):
             if args.debug_mode and (i+1) * args.minibatch_size >= 4000:
                 break
             
             samples_cnt += images.size(0) * model.world_size
             if model.NAME == 'online-one-prompt':
-                loss_dict, ood_loss_dict, acc, ood_acc = model.online_step(images, labels, idx)
+                loss_dict, ood_loss_dict, acc, ood_acc = model.online_step(images, labels, not_aug_images, idx)
             else:
-                loss_dict, acc = model.online_step(images, labels, idx)
+                loss_dict, acc = model.online_step(images, labels, not_aug_images, idx)
             
             assert not math.isnan(loss_dict['total_loss']), f"Loss is NaN @ Sample # {samples_cnt}"
             
