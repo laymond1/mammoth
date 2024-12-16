@@ -418,7 +418,7 @@ class OnePrompt(nn.Module):
         self.task_count = 0
         self.emb_d = emb_d
         self.key_d = key_dim
-        self._init_smart(emb_d, prompt_param)
+        self._init_smart(emb_d)
 
         # g prompt init
         for g in self.g_layers:
@@ -432,7 +432,7 @@ class OnePrompt(nn.Module):
 
     def _init_smart(self, emb_d):
         
-        self.top_k = self.args.top_k
+        # self.top_k = self.args.top_k
 
         # prompt locations
         self.g_layers = self.args.g_prompt_layer_idx

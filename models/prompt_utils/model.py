@@ -45,8 +45,8 @@ class PromptModel(nn.Module):
             self.prompt = CodaPrompt(args, 768, prompt_param) # prompt_param: 100 8 0.0
         elif self.prompt_flag == 'mvp':
             self.prompt = MVPPrompt(args, 768, prompt_param) # prompt_param: 10 40 10
-        # elif self.prompt_flag == 'oneprompt':
-        #     self.prompt = OnePrompt(768, prompt_param)
+        elif self.prompt_flag == 'oneprompt':
+            self.prompt = OnePrompt(args, 768, prompt_param)
         else:
             self.prompt = None
 

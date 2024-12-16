@@ -1,38 +1,50 @@
 """
-OVOR: OnePrompt
+OVOR: OVOR: OnePrompt with Virtual Outlier Regularization for Rehearsal-Free Class-Incremental Learning
 
 Note:
     OnePrompt USES A CUSTOM BACKBONE: `vit_base_patch16_224`.
     The backbone is a ViT-B/16 pretrained on Imagenet 21k and finetuned on ImageNet 1k.
 """
 
+import sys
 import gc
 import time
 import datetime
-import logging
 import torch
 import torch.nn.functional as F
 
-from models.oneprompt_utils.ood import NPOS
-from models.oneprompt_utils.oneprompt_model import OnePromptModel
-from models.utils.online_continual_model import OnlineContinualModel
-from utils.args import *
-
 from datasets import get_dataset
+from utils.args import add_rehearsal_args, ArgumentParser
+
+from models.utils.online_continual_model import OnlineContinualModel
+from models.prompt_utils.model import PromptModel
+from models.oneprompt_utils.ood import NPOS
+from utils.buffer import Buffer
 
 import wandb
 
 
 class OnlineOnePrompt(OnlineContinualModel):
-    """Continual Learning via OnePrompt: COntinual Decomposed Attention-based Prompting."""
+    """OnePrompt with Virtual Outlier Regularization for Rehearsal-Free Class-Incremental Learning."""
     NAME = 'online-one-prompt'
     COMPATIBILITY = ['si-blurry', 'periodic-gaussian']
 
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
-        parser.add_argument('--e_prompt_pool_size', type=int, default=10, help='size of E-Prompt pool')
-        parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
+        # Replay parameters
+        add_rehearsal_args(parser)
+        # Trick
+        parser.add_argument('--train_mask', type=bool, default=True,  help='if using the class mask at training')
+
+        # G-Prompt parameters
+        parser.add_argument('--g_prompt_layer_idx', type=int, default=[0, 1], nargs="+", help='the layer index of the G-Prompt')
         parser.add_argument('--g_prompt_length', type=int, default=10, help='length of G-Prompt')
+
+        # E-Prompt parameters
+        parser.add_argument('--e_prompt_layer_idx', type=int, default=[2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
+        parser.add_argument('--e_prompt_pool_size', type=int, default=1, help='number of prompts (fixed: 1)')
+        parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
+        
         # OOD parameters
         parser.add_argument('--cov', type=float, default=1.0) # 0.1 for CUB200
         parser.add_argument('--thres_id', type=float, default=-24.0) # -15.0 for ImageNet-A
@@ -44,61 +56,51 @@ class OnlineOnePrompt(OnlineContinualModel):
         parser.add_argument('--K', type=int, default=50)
         parser.add_argument('--lmda', type=float, default=0.1)
         parser.add_argument('--huber', action='store_false')
-        # parser.add_argument('--prompt_param', nargs='+', type=float, default=[10, 40, 10],
-        #                 help='e prompt pool size, e prompt length, g prompt length')
-        # Optimizer parameters
-        parser.add_argument('--clip_grad', type=float, default=1.0, metavar='NORM', help='Clip gradient norm (default: None, no clipping)')
-        # Trick parameters
-        parser.add_argument('--train_mask', default=True, type=bool, help='if using the class mask at training')
+
+        # ETC
+        parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
+
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
         del backbone
         print("-" * 20)
-        logging.info(f"OnePrompt USES A CUSTOM BACKBONE: `vit_base_patch16_224`.")
+        print(f"WARNING: OnePrompt USES A CUSTOM BACKBONE: `vit_base_patch16_224`.")
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
 
-        if args.lr_scheduler is not None:
-            logging.info("OnePrompt uses a custom scheduler: cosine. Ignoring --lr_scheduler.")
-
         tmp_dataset = get_dataset(args) if dataset is None else dataset
-        # n_tasks = args.n_tasks # no task boundary
-        num_classes =tmp_dataset.N_CLASSES
-        
-        backbone = OnePromptModel(num_classes=num_classes,
-                                  pretrained=True,
-                                  prompt_param=[args.e_prompt_pool_size, args.e_prompt_length, args.g_prompt_length])
-        
+        num_classes = tmp_dataset.N_CLASSES
+        backbone = PromptModel(args, 
+                               num_classes=num_classes,
+                               pretrained=True, prompt_flag='oneprompt',
+                               prompt_param=[args.e_prompt_pool_size, args.e_prompt_length, args.g_prompt_length])
         super().__init__(backbone, loss, args, transform, dataset=dataset)
+        # buffer 
+        self.buffer = Buffer(self.args.buffer_size)
         # set optimizer and scheduler
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         self.labels = torch.empty(0)
-
         self.ood = NPOS(args)
 
-    def get_optimizer(self):
-        params_to_opt = list(self.net.prompt.parameters()) + list(self.net.last.parameters())
-        optimizer_arg = {'params': params_to_opt,
-                         'lr': self.args.lr,
-                         'weight_decay': self.args.optim_wd}
-        if self.args.optimizer == 'sgd':
-            opt = torch.optim.SGD(**optimizer_arg)
-        elif self.args.optimizer == 'adam':
-            opt = torch.optim.Adam(**optimizer_arg)
-        else:
-            raise ValueError('Optimizer not supported for this method')
-        return opt
-            
     def online_before_train(self):
         pass
-        
-    def online_step(self, inputs, labels, idx):
+
+    def online_step(self, inputs, labels, not_aug_inputs, idx):
         self.add_new_class(labels)
         _loss_dict = dict()
         _ood_loss_dict = dict()
         _acc, _ood_acc, _iter = 0.0, 0.0, 0
+
+        real_batch_size = inputs.shape[0]
+
+        # sample data from the buffer
+        if not self.buffer.is_empty():
+            buf_inputs, buf_labels = self.buffer.get_data(
+                self.args.minibatch_size, transform=self.transform)
+            inputs = torch.cat((inputs, buf_inputs))
+            labels = torch.cat((labels, buf_labels))
 
         for i in range(int(self.args.online_iter)):
             loss_dict, acc = self.online_train([inputs.clone(), labels.clone()])
@@ -111,6 +113,11 @@ class OnlineOnePrompt(OnlineContinualModel):
                 ood_loss_dict, ood_acc = self.online_train_ood([inputs.clone(), labels.clone()])
                 _ood_loss_dict = {k: v + _ood_loss_dict.get(k, 0.0) for k, v in ood_loss_dict.items()}
                 _ood_acc += ood_acc
+            
+        if self.args.buffer_size > 0:
+            # add new data to the buffer
+            self.buffer.add_data(examples=not_aug_inputs,
+                                labels=labels[:real_batch_size])
 
         del(inputs, labels)
         gc.collect()
@@ -123,12 +130,13 @@ class OnlineOnePrompt(OnlineContinualModel):
         self.net.train()
         total_loss_dict = dict()
         total_correct, total_num_data = 0.0, 0.0
+        class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
 
         x, y = data
         self.labels = torch.cat((self.labels, y), 0)
         
         for j in range(len(y)):
-            y[j] = self.exposed_classes.index(y[j].item())
+            y[j] = class_to_idx[y[j].item()]
 
         x = x.to(self.device)
         y = y.to(self.device)
@@ -137,7 +145,7 @@ class OnlineOnePrompt(OnlineContinualModel):
         logits, loss_dict = self.model_forward(x, y) 
         loss = loss_dict['total_loss']
         _, preds = logits.topk(1, 1, True, True) # self.topk: 1
-               
+
         self.opt.zero_grad()
         self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
@@ -162,7 +170,7 @@ class OnlineOnePrompt(OnlineContinualModel):
     def online_train_ood(self, data):
         self.net.train()
         total_loss_dict = dict()
-        total_correct, total_num_data = 0.0, 0.0
+        total_correct, total_num_data, _iter = 0.0, 0.0, 0
 
         x, y = data
         self.labels = torch.cat((self.labels, y), 0)
@@ -183,31 +191,34 @@ class OnlineOnePrompt(OnlineContinualModel):
             oods_x = oods_x.to(self.device)
             targets = targets.to(self.device)
 
-        self.opt.zero_grad()
-        logits, loss_dict = self.model_ood_forward(ids_x, oods_x, targets)
-        loss = loss_dict['total_loss']
-        _, preds = logits.topk(1, 1, True, True) # self.topk: 1
+            self.opt.zero_grad()
+            logits, loss_dict = self.model_ood_forward(ids_x, oods_x, targets)
+            loss = loss_dict['total_loss']
+            _, preds = logits.topk(1, 1, True, True) # self.topk: 1
 
-        self.opt.zero_grad()
-        self.scaler.scale(loss).backward()
-        # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-        self.scaler.step(self.opt)
-        self.scaler.update()
-        self.update_schedule()
+            self.opt.zero_grad()
+            self.scaler.scale(loss).backward()
+            # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+            self.scaler.step(self.opt)
+            self.scaler.update()
+            self.update_schedule()
 
-        total_loss_dict = {k: v + total_loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
-        total_correct += torch.sum(preds == y.unsqueeze(1)).item()
-        total_num_data += y.size(0)
+            total_loss_dict = {k: v + total_loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
+            total_correct += torch.sum(preds == targets.unsqueeze(1)).item()
+            total_num_data += targets.size(0)
+            _iter += 1
+
+        total_loss_dict = {k: v / _iter for k, v in total_loss_dict.items()}
 
         return total_loss_dict, total_correct/total_num_data
     
     def model_forward(self, x, y):
         with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
-            logits, prompt_loss = self.net(x, train=True)
+            logits, _ = self.net(x, train=True)
             loss_dict = dict()
             # here is the trick to mask out classes of non-current classes
             non_cur_classes_mask = torch.zeros(self.num_classes, device=self.device) - torch.inf
-            non_cur_classes_mask[y.unique()] = 0 
+            non_cur_classes_mask[y.unique()] = 0
             # mask out unseen classes and non-current classes
             if self.args.train_mask:
                 logits = logits + non_cur_classes_mask
@@ -215,13 +226,10 @@ class OnlineOnePrompt(OnlineContinualModel):
                 logits = logits + self.mask
             
             ce_loss = self.loss(logits, y)
-            prompt_loss = prompt_loss.sum()
-            total_loss = ce_loss + prompt_loss
-            
+            total_loss = ce_loss
             loss_dict.update({'ce_loss': ce_loss})
-            loss_dict.update({'prompt_loss': prompt_loss})
             loss_dict.update({'total_loss': total_loss})
-            
+
         return logits, loss_dict
         
     def model_ood_forward(self, id_x, ood_x, y):
@@ -251,52 +259,12 @@ class OnlineOnePrompt(OnlineContinualModel):
             loss_dict.update({'total_loss': total_loss})
             
         return id_logits, loss_dict
-
-    def online_evaluate(self, test_loader):
-        total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
-        correct_l = torch.zeros(self.num_classes)
-        num_data_l = torch.zeros(self.num_classes)
-        label = []
-        self.net.eval()
-        with torch.no_grad():
-            for i, data in enumerate(test_loader):
-                x, y = data[0], data[1]
-                for j in range(len(y)):
-                    y[j] = self.exposed_classes.index(y[j].item())
-
-                x = x.to(self.device)
-                y = y.to(self.device)
-
-                logits = self.net(x, train=False)
-                logits = logits + self.mask
-                loss = F.cross_entropy(logits, y)
-                pred = torch.argmax(logits, dim=-1)
-                _, preds = logits.topk(1, 1, True, True) # self.topk: 1
-                total_correct += torch.sum(preds == y.unsqueeze(1)).item()
-                total_num_data += y.size(0)
-
-                xlabel_cnt, correct_xlabel_cnt = self._interpret_pred(y, pred)
-                correct_l += correct_xlabel_cnt.detach().cpu()
-                num_data_l += xlabel_cnt.detach().cpu()
-
-                total_loss += loss.mean().item()
-                label += y.tolist()
-
-        avg_acc = total_correct / total_num_data
-        avg_loss = total_loss / len(test_loader)
-        cls_acc = (correct_l / (num_data_l + 1e-5)).numpy().tolist()
-        
-        eval_dict = {"avg_loss": avg_loss, "avg_acc": avg_acc, "cls_acc": cls_acc}
-        return eval_dict
-    
-    def online_after_task(self, task_id):
-        pass
     
     def online_after_train(self):
         pass
-    
+
     def get_parameters(self):
-        return list(self.net.prompt.parameters()) + list(self.net.last.parameters())
+        return [p for n, p in self.net.named_parameters() if 'prompt' in n or 'head' in n]
     
     def report_training(self, total_samples, sample_num, train_loss_dict, train_acc, train_ood_loss_dict, train_ood_acc):
         print(
@@ -305,7 +273,7 @@ class OnlineOnePrompt(OnlineContinualModel):
             f"lr {self.optimizer.param_groups[0]['lr']:.6f} | "
             f"Num_Classes {len(self.exposed_classes)} | "
             # Add counts of each prompt if available
-            + (f"Prompt Counts {self.net.train_count.to(torch.int64).tolist()} | " if hasattr(self.net, 'train_count') else "") +
+            + (f"Prompt Counts {self.net.prompt.train_count.to(torch.int64).tolist()} | " if hasattr(self.net, 'train_count') else "") +
             f"running_time {datetime.timedelta(seconds=int(time.time() - self.start_time))} | "
             f"ETA {datetime.timedelta(seconds=int((time.time() - self.start_time) * (total_samples - sample_num) / sample_num))}"
         )
@@ -325,7 +293,7 @@ class OnlineOnePrompt(OnlineContinualModel):
                    'num_classes': len(self.exposed_classes)}
             # add counts of each prompt
             if hasattr(self, 'table'):
-                self.table.add_data(sample_num, *self.net.train_count.to(torch.int64).tolist())
+                self.table.add_data(sample_num, *self.net.prompt.train_count.to(torch.int64).tolist())
             tmp.update({f'{prefix}_{k}': v for k, v in train_loss_dict.items()})
             tmp.update({f'{prefix}_ood_{k}': v for k, v in train_ood_loss_dict.items()})
             tmp.update(extra or {})
