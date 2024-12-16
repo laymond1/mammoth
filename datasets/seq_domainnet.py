@@ -91,10 +91,9 @@ class MyDomainNet(Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        # not_aug_img = self.not_aug_transform(original_img)
+        not_aug_img = self.not_aug_transform(original_img)
 
-        # return img, target, not_aug_img
-        return img, target
+        return img, target, not_aug_img
 
 
 class SequentialDomainNet(ContinualDataset):

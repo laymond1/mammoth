@@ -66,7 +66,7 @@ class MyCUB200(Dataset):
         # to return a PIL Image
         img = Image.fromarray(img, mode='RGB')
 
-        # not_aug_img = self.not_aug_transform(img.copy())
+        not_aug_img = self.not_aug_transform(img.copy())
 
         if self.transform is not None:
             img = self.transform(img)
@@ -74,10 +74,8 @@ class MyCUB200(Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        # ret_tuple = [img, target, not_aug_img, self.logits[index]] if hasattr(self, 'logits') else [
-            # img, target, not_aug_img]
-        ret_tuple = [img, target, self.logits[index]] if hasattr(self, 'logits') else [
-            img, target]
+        ret_tuple = [img, target, not_aug_img, self.logits[index]] if hasattr(self, 'logits') else [
+            img, target, not_aug_img]
 
         if self._return_segmask:
             # TODO: add to the return tuple

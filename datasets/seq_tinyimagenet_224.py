@@ -100,7 +100,7 @@ class MyTinyImagenet(TinyImagenet):
         img = Image.fromarray(np.uint8(255 * img))
         original_img = img.copy()
 
-        # not_aug_img = self.not_aug_transform(original_img)
+        not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -109,11 +109,9 @@ class MyTinyImagenet(TinyImagenet):
             target = self.target_transform(target)
 
         if hasattr(self, 'logits'):
-            # return img, target, not_aug_img, self.logits[index]
-            return img, target, self.logits[index]
+            return img, target, not_aug_img, self.logits[index]
 
-        # return img, target, not_aug_img
-        return img, target
+        return img, target, not_aug_img
 
 
 class SequentialTinyImagenet224(ContinualDataset):

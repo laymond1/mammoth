@@ -78,7 +78,7 @@ class Isic(Dataset):
 
         original_img = img.copy()
 
-        # not_aug_img = self.not_aug_transform(original_img)
+        not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -90,11 +90,9 @@ class Isic(Dataset):
             return img, target
 
         if hasattr(self, 'logits'):
-            # return img, target, not_aug_img, self.logits[index]
-            return img, target, self.logits[index]
+            return img, target, not_aug_img, self.logits[index]
 
-        # return img, target, not_aug_img
-        return img, target
+        return img, target, not_aug_img
 
 
 class SequentialIsic(ContinualDataset):

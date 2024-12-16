@@ -140,7 +140,7 @@ class MyCars196(Dataset):
 
         img = Image.fromarray(img.permute(1, 2, 0).numpy(), mode='RGB')
 
-        # not_aug_img = self.not_aug_transform(img.copy())
+        not_aug_img = self.not_aug_transform(img.copy())
 
         if self.transform is not None:
             img = self.transform(img)
@@ -152,11 +152,9 @@ class MyCars196(Dataset):
             return img, target
 
         if hasattr(self, 'logits'):
-            # return img, target, not_aug_img, self.logits[index]
-            return img, target, self.logits[index]
+            return img, target, not_aug_img, self.logits[index]
 
-        # return img, target, not_aug_img
-        return img, target
+        return img, target, not_aug_img
 
 
 class SequentialCars196(ContinualDataset):

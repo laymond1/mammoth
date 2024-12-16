@@ -99,7 +99,7 @@ class MyMiniDomainNet(Dataset):
 
         img = Image.open(img_path).convert('RGB')
 
-        # original_img = img.copy()
+        original_img = img.copy()
 
         if self.transform is not None:
             img = self.transform(img)
@@ -107,10 +107,9 @@ class MyMiniDomainNet(Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        # not_aug_img = self.not_aug_transform(original_img)
+        not_aug_img = self.not_aug_transform(original_img)
 
-        # return img, target, not_aug_img
-        return img, target
+        return img, target, not_aug_img
 
 
 class SequentialMiniDomainNet(ContinualDataset):
