@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 
-from models.prompt_utils.vit import VisionTransformer
+# from models.prompt_utils.vit import VisionTransformer
 from models.prompt_utils.prompt import L2P, DualPrompt, CodaPrompt, MVPPrompt, OnePrompt
 from models.bfprompt_utils.prompt import DualPrompt as BFPrompt
 
@@ -19,10 +19,16 @@ class PromptModel(nn.Module):
 
         # get feature encoder
         if pretrained:
-            self.feat = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12,
-                                        num_heads=12, ckpt_layer=0,
-                                        drop_path_rate=0
-                                        )
+            if self.prompt_flag == 'bfprompt':
+                from models.bfprompt_utils.vit import VisionTransformer
+                self.feat = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12,
+                                              num_heads=12, ckpt_layer=0,
+                                              drop_path_rate=0)
+            else:
+                from models.prompt_utils.vit import VisionTransformer
+                self.feat = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12,
+                                              num_heads=12, ckpt_layer=0,
+                                              drop_path_rate=0)
             from timm.models.vision_transformer import vit_base_patch16_224
             load_dict = vit_base_patch16_224(pretrained=True).state_dict()
             if 'head.weight' in load_dict:
@@ -109,11 +115,16 @@ class PromptModel(nn.Module):
                 top_k = extract_topk_key(q, self.prompt, top_k=self.args.top_k)
                 mask = self.prompt.mask[top_k].mean(1).squeeze().clone()
                 mask = torch.sigmoid(mask)*2.
-            else:
+            elif self.prompt_flag == 'bfprompt':
                 with torch.no_grad():
                     q, _ = self.feat(x)
                     q = q[:, 0, :]
                 out, prompt_loss = self.feat(x, y, prompt=self.prompt, q=q, train=train)
+            else:
+                with torch.no_grad():
+                    q, _ = self.feat(x)
+                    q = q[:, 0, :]
+                out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
             out = out[:, 0, :]
             if warmup:
                 prompt_loss = torch.zeros_like(prompt_loss)

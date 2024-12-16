@@ -1,5 +1,3 @@
-# This code is a reimplementation based on the OVOR methodology.
-# This code has been modified for online continual learning by Wonseon Lim.
 '''
  * Based on vit from blip code base
  * https://github.com/salesforce/BLIP
@@ -190,10 +188,10 @@ class VisionTransformer(nn.Module):
 
             if prompt is not None:
                 if train:
-                    p_list, loss, x = prompt.forward(q, i, x, train=True)
+                    p_list, loss, x = prompt.forward(q, i, x, y, train=True)
                     prompt_loss += loss
                 else:
-                    p_list, _, x = prompt.forward(q, i, x, train=False)
+                    p_list, _, x = prompt.forward(q, i, x, y, train=False)
                 # if p_list is not None and i == 1:
                 #     print(x[0,0,0:10])
                 #     print(p_list[0][0,0,0:10])
