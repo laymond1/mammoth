@@ -1,6 +1,6 @@
 # Online Dualprompt method on Online Learning Setting
 name: 'Online Dualprompt Hyperparameter Tuning on CIFAR100-224'
-project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
+project: 'Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -39,8 +39,12 @@ parameters:
 # hyperparameters
   lr:
     values: [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
-  pull_constraint_coeff:
-    values: [0.0, 0.1, 0.5, 1.0]
+  buffer_size:
+    values: [0]
+  # pull_constraint_coeff:
+  #   values: [0.0, 0.1, 0.5, 1.0]
+  # top_k:
+  #   values: [1, 5]
   
   
 # CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/36gq68co'
