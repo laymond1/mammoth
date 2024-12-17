@@ -24,11 +24,13 @@ class DualPrompt(nn.Module):
         # e prompt init
         for e in self.e_layers:
             p = tensor_prompt(self.e_pool_size, self.e_p_length, emb_d)
-            # k = tensor_prompt(self.e_pool_size, self.key_d)
             setattr(self, f'e_p_{e}',p)
-            # setattr(self, f'e_k_{e}',k)
-        k = tensor_prompt(self.e_pool_size, self.key_d)
-        setattr(self, f'e_k',k)
+            if args.same_key_value and e == self.e_layers[-1]:
+                k = tensor_prompt(self.e_pool_size, self.key_d)
+                setattr(self, f'e_k',k)
+            else:
+                k = tensor_prompt(self.e_pool_size, self.key_d)
+                setattr(self, f'e_k_{e}',k)
 
         # init
         self.register_buffer('train_count', torch.zeros(self.e_pool_size))
@@ -53,8 +55,10 @@ class DualPrompt(nn.Module):
         if l in self.e_layers:
             e_valid = True
             B, C = x_querry.shape
-            # K = getattr(self,f'e_k_{l}') # 0 based indexing here
-            K = getattr(self,f'e_k') # 0 based indexing here
+            if self.args.same_key_value:
+                K = getattr(self,f'e_k')
+            else:
+                K = getattr(self,f'e_k_{l}') # 0 based indexing here
             p = getattr(self,f'e_p_{l}') # 0 based indexing here
             
             # cosine similarity to match keys/querries
@@ -153,14 +157,19 @@ class CodaPrompt(nn.Module):
             # fair in the spirit of continual learning and has little affect on performance
             e_l = self.e_p_length
             p = tensor_prompt(self.e_pool_size, e_l, emb_d)
-            k = tensor_prompt(self.e_pool_size, self.key_d)
             a = tensor_prompt(self.e_pool_size, self.key_d)
             p = self.gram_schmidt(p)
-            k = self.gram_schmidt(k)
             a = self.gram_schmidt(a)
             setattr(self, f'e_p_{e}',p)
-            setattr(self, f'e_k_{e}',k)
             setattr(self, f'e_a_{e}',a)
+            if args.same_key_value and e == self.e_layers[-1]:
+                k = tensor_prompt(self.e_pool_size, self.key_d)
+                k = self.gram_schmidt(k)
+                setattr(self, f'e_k',k)
+            else:
+                k = tensor_prompt(self.e_pool_size, self.key_d)
+                k = self.gram_schmidt(k)
+                setattr(self, f'e_k_{e}',k)
 
     def _init_smart(self, emb_d):
 
@@ -240,7 +249,10 @@ class CodaPrompt(nn.Module):
             e_valid = True
             B, C = x_querry.shape
 
-            K = getattr(self,f'e_k_{l}')
+            if self.args.same_key_value:
+                K = getattr(self,f'e_k')
+            else:
+                K = getattr(self,f'e_k_{l}') # 0 based indexing here
             A = getattr(self,f'e_a_{l}')
             p = getattr(self,f'e_p_{l}')
             pt = int(self.e_pool_size / (self.n_tasks))

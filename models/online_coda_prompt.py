@@ -38,6 +38,7 @@ class OnlineCodaPrompt(OnlineContinualModel):
         parser.add_argument('--ortho_mu', type=float, default=0.0, help='orthogonal penalty weight') # but it's set to 0.0 becuase of (#issue12)[https://github.com/GT-RIPL/CODA-Prompt/issues/12]
         parser.add_argument('--pull_constraint_coeff', type=float, default=0.5, help='Coefficient(mu) for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
+        parser.add_argument('--same_key_value', type=bool, default=True, help='the same key-value across all layers of the E-Prompt')
         parser.add_argument('--n_splits', type=int, default=1, help='Number of splits for the prompt pool (default: 1).')
 
         # ETC
