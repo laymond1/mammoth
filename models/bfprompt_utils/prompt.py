@@ -13,7 +13,6 @@ class DualPrompt(nn.Module):
         self.key_d = key_dim
         self.cls_per_prompt = cls_per_prompt
         self._init_smart(emb_d)
-        
 
         # g prompt init
         for g in self.g_layers:
