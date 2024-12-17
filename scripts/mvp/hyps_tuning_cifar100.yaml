@@ -1,6 +1,6 @@
 # Online MVP method on Online Learning Setting
-name: 'Online MVP Hyperparameter Tuning on CIFAR100-224 Second'
-project: 'Comp. Algo. Hyperparam Tuning on Si-Blurry'
+name: 'Online MVP Hyperparameter Tuning on CIFAR100-224'
+project: 'Hyperparam Tuning on Si-Blurry'
 entity: 'laymond1'
 
 method: grid
@@ -41,7 +41,10 @@ parameters:
 # hyperparameters
   lr:
     values: [1e-4, 5e-5, 1e-5] # [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
+  buffer_size:
+    values: [0]
+  # pull_constraint_coeff:
+  #   values: [0.0, 0.1, 0.5, 1.0]
   
-  
-# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/c4zwch9h'
-# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/c4zwch9h'
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Hyperparam Tuning on Si-Blurry/c4zwch9h'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Hyperparam Tuning on Si-Blurry/c4zwch9h'
