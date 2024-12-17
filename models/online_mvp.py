@@ -172,6 +172,7 @@ class MVP(OnlineContinualModel):
             loss_dict = self.loss_fn(feature, prompt_loss, mask, y)
 
             return logits, loss_dict
+        
     def online_after_train(self):
         pass
     
