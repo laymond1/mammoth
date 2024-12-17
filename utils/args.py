@@ -382,6 +382,7 @@ def add_management_args(parser: ArgumentParser) -> None:
                              help='Wandb name for this run. Overrides the default name (`args.model`).')
     wandb_group.add_argument('--wandb_entity', type=str, help='Wandb entity')
     wandb_group.add_argument('--wandb_project', type=str, help='Wandb project name')
+    wandb_group.add_argument('--wandb_mode', type=str, default='online', choices=['online', 'offline', 'disabled'], help='Wandb mode')
 
 
 def add_rehearsal_args(parser: ArgumentParser) -> None:

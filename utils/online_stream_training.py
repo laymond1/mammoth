@@ -53,7 +53,7 @@ def initialize_wandb(args: Namespace) -> None:
     run_id = args.conf_jobnum.split('-')[0]
     name = f'{run_name}_{run_id}'
     mode = 'disabled' if os.getenv('MAMMOTH_TEST', '0') == '1' else os.getenv('WANDB_MODE', 'online')
-    wandb.init(project=args.wandb_project, entity=args.wandb_entity, config=vars(args), name=name, mode=mode)
+    wandb.init(project=args.wandb_project, entity=args.wandb_entity, config=vars(args), name=name, mode=args.wandb_mode)
     args.wandb_url = wandb.run.get_url()
 
 
