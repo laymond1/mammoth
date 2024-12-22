@@ -255,9 +255,9 @@ class CodaPrompt(nn.Module):
                 K = getattr(self,f'e_k_{l}') # 0 based indexing here
             A = getattr(self,f'e_a_{l}')
             p = getattr(self,f'e_p_{l}')
-            pt = int(self.e_pool_size / (self.n_tasks))
-            s = int(self.task_count * pt)
-            f = int((self.task_count + 1) * pt)
+            pt = int(self.e_pool_size / (self.n_tasks)) # E-prompt pool size
+            s = int(self.task_count * pt) # 0
+            f = int((self.task_count + 1) * pt) # pt
             
             # freeze/control past tasks
             if train:

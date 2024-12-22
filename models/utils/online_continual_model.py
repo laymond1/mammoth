@@ -172,7 +172,7 @@ class OnlineContinualModel(ContinualModel):
                 x = x.to(self.device)
                 y = y.to(self.device)
 
-                outputs = self.net(x, y, return_outputs=True)
+                outputs = self.net(x, return_outputs=True)
                 logits = outputs['logits'] if isinstance(outputs, dict) else outputs
                 logits = logits + self.mask
                 loss = F.cross_entropy(logits, y)
@@ -316,7 +316,8 @@ class OnlineContinualModel(ContinualModel):
 
         # Add counts of each prompt if available
         if hasattr(self.net.prompt, 'train_count'):
-            message += f"Prompt Counts {self.net.prompt.train_count.to(torch.int64).tolist()} | "
+            count = self.net.prompt.train_count.to(torch.int64) // len(self.net.prompt.e_layers)
+            message += f"Prompt Counts {count.tolist()} | "
             self.net.prompt.train_count.zero_()
         
         # base print message
@@ -332,12 +333,20 @@ class OnlineContinualModel(ContinualModel):
     def report_test(self, sample_num, eval_dict, other_metric=None, task_id=None):
         avg_loss = eval_dict.get("avg_loss", 0.0)
         avg_acc = eval_dict.get("avg_acc", 0.0)
+        avg_top_p_acc = eval_dict.get("avg_top_p_acc", None)
+        avg_pred_p_acc = eval_dict.get("avg_pred_p_acc", None)
         klr = eval_dict.get("klr", None)
         kgr = eval_dict.get("kgr", None)
     
         # Construct the base print message
         message = f"Test | Sample # {sample_num} | test_loss {avg_loss:.4f} | test_acc {avg_acc:.4f} | "
         
+        # Add prompt prediction accuracy
+        if avg_top_p_acc is not None:
+            message +=  f"test_top_p_acc {avg_top_p_acc:.4f} | "
+        if avg_pred_p_acc is not None:
+            message +=  f"test_pred_p_acc {avg_pred_p_acc:.4f} | "
+
         # Add other metrics if they exist
         if other_metric is not None:
             message += f"instant_fgt {other_metric.get('instant_fgt', 0.0):.4f} | last_fgt {other_metric.get('last_fgt', 0.0):.4f} | "
@@ -350,8 +359,13 @@ class OnlineContinualModel(ContinualModel):
 
         # Add counts of each prompt if available
         if hasattr(self.net.prompt, 'eval_count'):
-            message += f"Prompt Counts {self.net.prompt.eval_count.to(torch.int64).tolist()} | "
+            count = self.net.prompt.eval_count.to(torch.int64) // len(self.net.prompt.e_layers)
+            message += f"\n \tEval Prompt Counts {count.tolist()} | "
             self.net.prompt.eval_count.zero_()
+        if hasattr(self.net.prompt, 'gt_count'):
+            count = self.net.prompt.gt_count.to(torch.int64)
+            message += f"GT Prompt Counts {count.tolist()} | "
+            self.net.prompt.gt_count.zero_()
 
         # Print the message
         if task_id is None:

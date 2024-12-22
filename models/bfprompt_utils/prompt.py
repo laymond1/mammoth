@@ -46,6 +46,8 @@ class DualPrompt(nn.Module):
         # init
         self.register_buffer('train_count', torch.zeros(self.e_pool_size))
         self.register_buffer('eval_count', torch.zeros(self.e_pool_size))
+        self.register_buffer('gt_count', torch.zeros(self.e_pool_size))
+        self.top_k_idx = None
 
     def forward(self, x_querry, l, x_block, label=None, train=False):
 
@@ -97,15 +99,22 @@ class DualPrompt(nn.Module):
                         num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
                         self.train_count += num
             else:
-                if self.cls_to_prompt and label is not None:
+                if self.cls_to_prompt and label is not None: # pred 또는 GT
                     # select prompt to train by label
-                    k_idx = label2prompt(label, cls_per_prompt=self.cls_per_prompt) # -> Torch.Tensor
-                    k_idx = k_idx.view(-1, 1)
-                else:
+                    p_idx = label2prompt(label, cls_per_prompt=self.cls_per_prompt) # -> Torch.Tensor
+                    p_idx = p_idx.view(-1, 1)
+                    top_k = torch.topk(cos_sim, self.top_k, dim=1)
+                    self.top_k_idx = top_k.indices
+                    P_ = p[p_idx]
+                    # count selected prompt when trianing
+                    with torch.no_grad():
+                        num = p_idx.view(-1).bincount(minlength=self.e_pool_size)
+                        self.eval_count += num
+                else: # only pred
                     top_k = torch.topk(cos_sim, self.top_k, dim=1)
                     k_idx = top_k.indices
-                P_ = p[k_idx]
-                if label is not None:
+                    self.top_k_idx = k_idx
+                    P_ = p[k_idx]
                     # count selected prompt when trianing
                     with torch.no_grad():
                         num = k_idx.view(-1).bincount(minlength=self.e_pool_size)

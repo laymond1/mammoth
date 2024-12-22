@@ -24,21 +24,44 @@ class PromptModel(nn.Module):
                 self.feat = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12,
                                               num_heads=12, ckpt_layer=0,
                                               drop_path_rate=0)
+                self.vit_head = nn.Linear(768, 1000)
+
+                from timm.models.vision_transformer import vit_base_patch16_224
+                load_dict = vit_base_patch16_224(pretrained=True).state_dict()
+                
+                # Extract only the head layer weights
+                head_state_dict = {k: v for k, v in load_dict.items() if 'head' in k}
+                # Rename the keys to match self.vit_head
+                head_state_dict = {'weight': head_state_dict['head.weight'], 'bias': head_state_dict['head.bias']}
+                self.vit_head.load_state_dict(head_state_dict)
+                if 'head.weight' in load_dict:
+                    del load_dict['head.weight']
+                    del load_dict['head.bias']
+                missing, unexpected = self.feat.load_state_dict(load_dict, strict=False)
+                assert len([m for m in missing if 'head' not in m]) == 0, f"Missing keys: {missing}"
+                assert len(unexpected) == 0, f"Unexpected keys: {unexpected}"
+                # grad false
+                self.feat.requires_grad_(False)
+                self.vit_head.requires_grad_(False)
             else:
                 from models.prompt_utils.vit import VisionTransformer
                 self.feat = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12,
                                               num_heads=12, ckpt_layer=0,
                                               drop_path_rate=0)
-            from timm.models.vision_transformer import vit_base_patch16_224
-            load_dict = vit_base_patch16_224(pretrained=True).state_dict()
-            if 'head.weight' in load_dict:
-                del load_dict['head.weight']
-                del load_dict['head.bias']
-            missing, unexpected = self.feat.load_state_dict(load_dict, strict=False)
-            assert len([m for m in missing if 'head' not in m]) == 0, f"Missing keys: {missing}"
-            assert len(unexpected) == 0, f"Unexpected keys: {unexpected}"
-            # grad false
-            self.feat.requires_grad_(False)
+                from timm.models.vision_transformer import vit_base_patch16_224
+                load_dict = vit_base_patch16_224(pretrained=True).state_dict()
+                if 'head.weight' in load_dict:
+                    del load_dict['head.weight']
+                    del load_dict['head.bias']
+                missing, unexpected = self.feat.load_state_dict(load_dict, strict=False)
+                assert len([m for m in missing if 'head' not in m]) == 0, f"Missing keys: {missing}"
+                assert len(unexpected) == 0, f"Unexpected keys: {unexpected}"
+                if self.args.model in ['online_er', 'online_sgd']:
+                    # grad true
+                    self.feat.requires_grad_(True)
+                else:
+                    # grad false
+                    self.feat.requires_grad_(False)
 
         # classifier
         self.head = nn.Linear(768, num_classes)
@@ -75,11 +98,16 @@ class PromptModel(nn.Module):
                 top_k = extract_topk_key(q, self.prompt, top_k=self.args.top_k)
                 mask = self.prompt.mask[top_k].mean(1).squeeze().clone()
                 mask = torch.sigmoid(mask)*2.
-            else:
+            elif self.prompt_flag == 'bfprompt':
                 with torch.no_grad():
                     q, _ = self.feat(x)
                     q = q[:, 0, :]
                 out, prompt_loss = self.feat(x, y, prompt=self.prompt, q=q, train=train)
+            else:
+                with torch.no_grad():
+                    q, _ = self.feat(x)
+                    q = q[:, 0, :]
+                out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
             out = out[:, 0, :]
             if warmup:
                 prompt_loss = torch.zeros_like(prompt_loss)
