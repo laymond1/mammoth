@@ -34,6 +34,7 @@ class DualPrompt(nn.Module):
 
         # init
         self.register_buffer('train_count', torch.zeros(self.e_pool_size))
+        self.register_buffer('eval_count', torch.zeros(self.e_pool_size))
 
     def _init_smart(self, emb_d):
         
@@ -71,20 +72,24 @@ class DualPrompt(nn.Module):
                 k_idx = top_k.indices
                 loss = (1.0 - cos_sim[:,k_idx]).mean()
                 P_ = p[k_idx]
+                # count selected prompt when trianing
+                with torch.no_grad():
+                    num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
+                    self.train_count += num
             else:
                 top_k = torch.topk(cos_sim, self.top_k, dim=1)
                 k_idx = top_k.indices
                 P_ = p[k_idx]
+                # count selected prompt when evaluating
+                with torch.no_grad():
+                    num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
+                    self.eval_count += num
                 
             i = int(self.e_p_length/2)
             Ek = P_[:,:,:i,:].reshape((B,-1,self.emb_d))
             Ev = P_[:,:,i:,:].reshape((B,-1,self.emb_d))
 
-            # count selected prompt when trianing
-            if train:
-                with torch.no_grad():
-                    num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
-                    self.train_count += num
+            
         
         g_valid = False
         if l in self.g_layers:
@@ -335,6 +340,7 @@ class MVPPrompt(nn.Module):
         self.features = torch.empty(0)
         self.mask = nn.Parameter(torch.zeros(self.e_pool_size, self.args.num_classes) - 1)
         self.register_buffer('train_count', torch.zeros(self.e_pool_size))
+        self.register_buffer('eval_count', torch.zeros(self.e_pool_size))
 
     def _init_smart(self, emb_d):
         
@@ -391,6 +397,11 @@ class MVPPrompt(nn.Module):
                 with torch.no_grad():
                     num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
                     self.train_count += num
+            else:
+                # count selected prompt when evaluating
+                with torch.no_grad():
+                    num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
+                    self.eval_count += num
 
         # g prompts
         g_valid = False
