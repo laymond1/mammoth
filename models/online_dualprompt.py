@@ -34,7 +34,7 @@ class OnlineDualPrompt(OnlineContinualModel):
 
         # G-Prompt parameters
         parser.add_argument('--g_prompt_layer_idx', type=int, default=[0, 1], nargs="+", help='the layer index of the G-Prompt')
-        parser.add_argument('--g_prompt_length', type=int, default=5, help='length of G-Prompt')
+        parser.add_argument('--g_prompt_length', type=int, default=10, help='length of G-Prompt')
 
         # E-Prompt parameters
         parser.add_argument('--e_prompt_layer_idx', type=int, default=[2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
