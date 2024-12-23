@@ -20,17 +20,12 @@ from tqdm import tqdm
 from collections import defaultdict
 from torch.utils.data import DataLoader
 
-from datasets import get_dataset
 from datasets.utils.indexed_dataset import IndexedDataset
 from datasets.utils.online_sampler import OnlineSiBlurrySampler, OnlinePeriodicSampler, OnlineTestSampler
 from datasets.utils.continual_dataset import ContinualDataset, MammothDatasetWrapper
-from datasets.utils.gcl_dataset import GCLDataset
 from models.utils.online_continual_model import OnlineContinualModel
 from models.utils.future_model import FutureModel
 
-from utils.checkpoints import mammoth_load_checkpoint
-from utils.loggers import log_extra_metrics, log_online_accs, log_accs, Logger, OnlineLogger
-from utils.schedulers import get_scheduler
 from utils.stats import track_system_stats
 from utils.metrics import online_forgetting
 
@@ -69,13 +64,9 @@ def get_other_metrics(eval_results, exposed_classes_records):
     """
     metrics = defaultdict(list)
     
-    # exposed_classes = exposed_classes_records[eval_cnt-1]
     exposed_classes = exposed_classes_records[-2]
     metrics['instant_fgt'] = online_forgetting(eval_results["cls_acc"], exposed_classes, mode='instant')
     metrics['last_fgt'] = online_forgetting(eval_results["cls_acc"], exposed_classes, mode='last')
-    # TODO: implement FWT and BWT
-    # metrics['instant_fwt'] = online_forward_transfer(eval_results["cls_acc"], exposed_classes)
-    # metrics['instant_bwt'] = online_backward_transfer(eval_results["cls_acc"], exposed_classes)
     
     return metrics
 
@@ -92,7 +83,10 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     """
     args.test_batch_size = 128
     print(args)
-    os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}", exist_ok=True)
+    if args.validation:
+        os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}", exist_ok=True)
+    else:
+        os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}/run-{args.seed}", exist_ok=True)
     
     # dataset setup
     # dataset.SETTING = 'online-il'
@@ -105,9 +99,6 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     if not args.nowand:
         initialize_wandb(args)
 
-    if not args.disable_log:
-        logger = OnlineLogger(args, dataset.SETTING, dataset.NAME, model.NAME)
-    
     # TODO: implement FWT
     is_fwd_enabled = True
     can_compute_fwd_beforetask = True
@@ -137,7 +128,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     train_dataloader = DataLoader(train_dataset, batch_size=args.minibatch_size, sampler=train_sampler, num_workers=args.num_workers, pin_memory=True)
     full_test_dataloader = DataLoader(test_dataset, batch_size=args.test_batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=True)
 
-    with track_system_stats(logger) as system_tracker:
+    with track_system_stats() as system_tracker:
         
         print(file=sys.stderr)
         if args.online_scenario == 'si-blurry':
@@ -197,6 +188,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 torch.cuda.synchronize()
             
             system_tracker()
+
             if model.NAME == 'online-one-prompt':
                 model.report_training(total_samples, samples_cnt, loss_dict, acc, ood_loss_dict, ood_acc)
             else:
@@ -270,12 +262,25 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     # Save and summarize final metrics in the main process
     if model.is_main_process():     
         if args.eval_period is not None:
-            # Anytime evaluation metrics
-            log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}"
-            np.save(f"{log_path}/results_seed_{args.seed}_eval.npy", eval_results)
-            np.save(f"{log_path}/cls_acc_seed_{args.seed}_eval.npy", eval_results["cls_acc"])
-            np.save(f"{log_path}/test_acc_seed_{args.seed}_eval.npy", eval_results["test_acc"])
-            np.save(f"{log_path}/data_cnt_seed_{args.seed}_eval_time.npy", eval_results["data_cnt"])
+            if args.validation:
+                log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}"
+                # Anytime evaluation metrics
+                np.save(f"{log_path}/cls_acc_seed_{args.seed}_eval.npy", eval_results["cls_acc"])
+                np.save(f"{log_path}/test_acc_seed_{args.seed}_eval.npy", eval_results["test_acc"])
+                np.save(f"{log_path}/data_cnt_seed_{args.seed}_eval_time.npy", eval_results["data_cnt"])
+                np.save(f"{log_path}/instant_fgt_seed_{args.seed}_eval.npy", eval_results["instant_fgt"])
+                np.save(f"{log_path}/last_fgt_seed_{args.seed}_eval.npy", eval_results["last_fgt"])
+                np.save(f"{log_path}/klr_seed_{args.seed}_eval.npy", eval_results["klr"][1:])
+                np.save(f"{log_path}/kgr_seed_{args.seed}_eval.npy", eval_results["kgr"])
+            else:   
+                log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}/run-{args.seed}"
+                np.save(f"{log_path}/cls_acc_eval.npy", eval_results["cls_acc"])
+                np.save(f"{log_path}/test_acc_eval.npy", eval_results["test_acc"])
+                np.save(f"{log_path}/data_cnt_eval_time.npy", eval_results["data_cnt"])
+                np.save(f"{log_path}/instant_fgt_eval.npy", eval_results["instant_fgt"])
+                np.save(f"{log_path}/last_fgt_eval.npy", eval_results["last_fgt"])
+                np.save(f"{log_path}/klr_eval.npy", eval_results["klr"][1:])
+                np.save(f"{log_path}/kgr_eval.npy", eval_results["kgr"])
 
         # Calculate final summary metrics
         A_auc = np.mean(eval_results["test_acc"])
@@ -315,19 +320,12 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 save_obj['buffer'] = copy.deepcopy(model.buffer).to('cpu')
 
             # Saving model checkpoint
-            checkpoint_name = f'checkpoints/{args.ckpt_name}_last.pt'
+            checkpoint_name = f'{log_path}/checkpoint.pt'
             if checkpoint_name is not None:
                 torch.save(save_obj, checkpoint_name)
 
         # Display system stats
         system_tracker.print_stats()
-
-    if not args.disable_log:
-        logger.write(vars(args)) # fixed error by removing base_path from the logger.write function
-        if not args.nowand:
-            d = logger.dump()
-            d['wandb_url'] = wandb.run.get_url()
-            wandb.log(d)
 
     if not args.nowand:
         wandb.finish()
