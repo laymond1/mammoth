@@ -33,9 +33,9 @@ class OnlineL2P(OnlineContinualModel):
         parser.add_argument('--train_mask', type=bool, default=True,  help='if using the class mask at training')
 
         # Prompt parameters
-        parser.add_argument('--e_prompt_pool_size', type=int, default=10, help='number of prompts (M in paper)')
-        parser.add_argument('--e_prompt_length', type=int, default=40, help='length of prompt (L_p in paper)')
-        parser.add_argument('--top_k', type=int, default=1, help='top k prompts to use (N in paper)')
+        parser.add_argument('--e_prompt_pool_size', type=int, default=30, help='number of prompts (M in paper)')
+        parser.add_argument('--e_prompt_length', type=int, default=20, help='length of prompt (L_p in paper)')
+        parser.add_argument('--top_k', type=int, default=5, help='top k prompts to use (N in paper)')
         parser.add_argument('--pull_constraint_coeff', type=float, default=0.5, help='Coefficient for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
@@ -56,6 +56,9 @@ class OnlineL2P(OnlineContinualModel):
         print(f"WARNING: L2P USES A CUSTOM BACKBONE: `vit_base_patch16_224`.")
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
+
+        if not args.shallow:
+            args.e_prompt_length = 5
 
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
