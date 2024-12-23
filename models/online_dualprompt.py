@@ -43,7 +43,7 @@ class OnlineDualPrompt(OnlineContinualModel):
         parser.add_argument('--top_k', default=1, type=int, help='top k prompts to use (N in paper)')        
         parser.add_argument('--pull_constraint_coeff', type=float, default=0.5, help='Coefficient for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
-        parser.add_argument('--same_key_value', type=bool, default=True, help='the same key-value across all layers of the E-Prompt')
+        parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
@@ -165,9 +165,6 @@ class OnlineDualPrompt(OnlineContinualModel):
                 loss_dict.update({'total_loss': ce_loss})
                 
         return logits, loss_dict
-    
-    def online_after_task(self, task_id):
-        pass
     
     def online_after_train(self):
         pass

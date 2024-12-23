@@ -38,6 +38,7 @@ class OnlineL2P(OnlineContinualModel):
         parser.add_argument('--top_k', type=int, default=1, help='top k prompts to use (N in paper)')
         parser.add_argument('--pull_constraint_coeff', type=float, default=0.5, help='Coefficient for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
+        parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
 
         # Prompt location
         parser.add_argument('--shallow', type=bool, default=True, help='Shallow ViT vs. Deep ViT')
@@ -164,7 +165,7 @@ class OnlineL2P(OnlineContinualModel):
                 loss_dict.update({'total_loss': ce_loss})
                 
         return logits, loss_dict
-    
+
     def online_after_train(self):
         pass
 
