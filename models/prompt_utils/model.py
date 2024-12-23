@@ -56,12 +56,8 @@ class PromptModel(nn.Module):
                 missing, unexpected = self.feat.load_state_dict(load_dict, strict=False)
                 assert len([m for m in missing if 'head' not in m]) == 0, f"Missing keys: {missing}"
                 assert len(unexpected) == 0, f"Unexpected keys: {unexpected}"
-                if self.args.model in ['online_er', 'online_sgd']:
-                    # grad true
-                    self.feat.requires_grad_(True)
-                else:
-                    # grad false
-                    self.feat.requires_grad_(False)
+                # grad false
+                self.feat.requires_grad_(False)
 
         # classifier
         self.head = nn.Linear(768, num_classes)

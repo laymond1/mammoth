@@ -33,6 +33,7 @@ class OnlineEr(OnlineContinualModel):
         This model requires the `add_rehearsal_args` to include the buffer-related arguments.
         """
         add_rehearsal_args(parser)
+        parser.add_argument('--ft_backbone', type=bool, default=0, choices=[0, 1], help='fine-tuning backbone')
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
         return parser
@@ -52,6 +53,9 @@ class OnlineEr(OnlineContinualModel):
         backbone = PromptModel(args, 
                                num_classes=num_classes,
                                pretrained=True, prompt_flag='')
+        if args.ft_backbone:
+            # full fine-tuning
+            backbone.feat.requires_grad_(True)
 
         super(OnlineEr, self).__init__(backbone, loss, args, transform, dataset=dataset)
         self.buffer = Buffer(self.args.buffer_size)

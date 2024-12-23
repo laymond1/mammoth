@@ -28,6 +28,7 @@ class OnlineSgd(OnlineContinualModel):
     
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
+        parser.add_argument('--ft_backbone', type=bool, default=0, choices=[0, 1], help='fine-tuning backbone')
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
         return parser
@@ -44,6 +45,10 @@ class OnlineSgd(OnlineContinualModel):
         backbone = PromptModel(args, 
                                num_classes=num_classes,
                                pretrained=True, prompt_flag='')
+        if args.ft_backbone:
+            # full fine-tuning
+            backbone.feat.requires_grad_(True)
+        
 
         super(OnlineSgd, self).__init__(backbone, loss, args, transform, dataset=dataset)
         # set optimizer and scheduler
