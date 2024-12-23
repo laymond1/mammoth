@@ -515,8 +515,8 @@ def tensor_prompt(a, b, c=None, ortho=False):
 
 # coda-prompt
 def ortho_penalty(t):
-    # return ((t @t.T - torch.eye(t.shape[0]).cuda())**2).mean()
-    return ((t @ t.T - torch.eye(t.shape[0]))**2).mean()
+    return ((t @ t.T - torch.eye(t.shape[0]).to(t.device))**2).mean()
+    # return ((t @ t.T - torch.eye(t.shape[0]))**2).mean()
 
 # label to prompt mapping function
 def label2prompt(label: torch.Tensor, cls_per_prompt: int, e_pool_size: int = 10) -> torch.Tensor:
