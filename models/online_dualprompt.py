@@ -34,14 +34,14 @@ class OnlineDualPrompt(OnlineContinualModel):
 
         # G-Prompt parameters
         parser.add_argument('--g_prompt_layer_idx', type=int, default=[0, 1], nargs="+", help='the layer index of the G-Prompt')
-        parser.add_argument('--g_prompt_length', type=int, default=10, help='length of G-Prompt')
+        parser.add_argument('--g_prompt_length', type=int, default=5, help='length of G-Prompt')
 
         # E-Prompt parameters
         parser.add_argument('--e_prompt_layer_idx', type=int, default=[2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
         parser.add_argument('--e_prompt_pool_size', default=10, type=int, help='number of prompts (M in paper)')
-        parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
+        parser.add_argument('--e_prompt_length', type=int, default=20, help='length of E-Prompt')
         parser.add_argument('--top_k', default=1, type=int, help='top k prompts to use (N in paper)')        
-        parser.add_argument('--pull_constraint_coeff', type=float, default=0.5, help='Coefficient for the pull constraint term, \
+        parser.add_argument('--pull_constraint_coeff', type=float, default=1.0, help='Coefficient for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
 

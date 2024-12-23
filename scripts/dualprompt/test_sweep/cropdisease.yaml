@@ -36,6 +36,8 @@ parameters:
     value: 4
   n_tasks:
     value: 7
+  e_prompt_pool_size:
+    value: 8
   lr:
     values: [1e-4]
   # hyperparameters
