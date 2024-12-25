@@ -91,7 +91,7 @@ class PromptModel(nn.Module):
                     q, _ = self.feat(x)
                     q = q[:, 0, :]
                 out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
-                top_k = extract_topk_key(q, self.prompt, top_k=self.args.top_k)
+                top_k = extract_topk_key(q, self.prompt.e_k, top_k=self.args.top_k)
                 mask = self.prompt.mask[top_k].mean(1).squeeze().clone()
                 mask = torch.sigmoid(mask)*2.
             elif self.prompt_flag == 'bfprompt':
@@ -136,7 +136,7 @@ class PromptModel(nn.Module):
                     q, _ = self.feat(x)
                     q = q[:, 0, :]
                 out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
-                top_k = extract_topk_key(q, self.prompt, top_k=self.args.top_k)
+                top_k = extract_topk_key(q, self.prompt.e_k, top_k=self.args.top_k)
                 mask = self.prompt.mask[top_k].mean(1).squeeze().clone()
                 mask = torch.sigmoid(mask)*2.
             elif self.prompt_flag == 'bfprompt':
@@ -168,10 +168,9 @@ class PromptModel(nn.Module):
         else:
             return out
         
-def extract_topk_key(query, prompt, top_k=1):
-    K = prompt.e_k
+def extract_topk_key(query, key, top_k=1):
     # cosine similarity to match keys/querries
-    n_K = nn.functional.normalize(K, dim=1)
+    n_K = nn.functional.normalize(key, dim=1)
     q = nn.functional.normalize(query, dim=1).detach()
     cos_sim = torch.einsum('bj,kj->bk', q, n_K)
 
