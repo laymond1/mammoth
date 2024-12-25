@@ -69,6 +69,7 @@ class MVP(OnlineContinualModel):
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
 
+        args.e_prompt_pool_size = args.n_tasks # sync the number of prompts with the number of tasks
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
         backbone = PromptModel(args, 
