@@ -39,7 +39,7 @@ class OnlineDualPrompt(OnlineContinualModel):
         # E-Prompt parameters
         parser.add_argument('--e_prompt_layer_idx', type=int, default=[2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
         parser.add_argument('--e_prompt_pool_size', default=10, type=int, help='number of prompts (M in paper)')
-        parser.add_argument('--e_prompt_length', type=int, default=20, help='length of E-Prompt')
+        parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
         parser.add_argument('--top_k', default=1, type=int, help='top k prompts to use (N in paper)')        
         parser.add_argument('--pull_constraint_coeff', type=float, default=1.0, help='Coefficient for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
@@ -57,6 +57,7 @@ class OnlineDualPrompt(OnlineContinualModel):
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
 
+        args.e_prompt_pool_size = args.n_tasks # 
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
         backbone = PromptModel(args, 
