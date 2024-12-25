@@ -106,16 +106,17 @@ class DualPrompt(nn.Module):
                     top_k = torch.topk(cos_sim, self.top_k, dim=1)
                     self.top_k_idx = top_k.indices
                     P_ = p[p_idx]
-                    # count selected prompt when trianing
-                    with torch.no_grad():
-                        num = p_idx.view(-1).bincount(minlength=self.e_pool_size)
-                        self.eval_count += num
+                    if not self.args.gt_key_value:
+                        # count selected prompt when evaluating
+                        with torch.no_grad():
+                            num = p_idx.view(-1).bincount(minlength=self.e_pool_size)
+                            self.eval_count += num
                 else: # only pred
                     top_k = torch.topk(cos_sim, self.top_k, dim=1)
                     k_idx = top_k.indices
                     self.top_k_idx = k_idx
                     P_ = p[k_idx]
-                    # count selected prompt when trianing
+                    # count selected prompt when evaluating
                     with torch.no_grad():
                         num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
                         self.eval_count += num
