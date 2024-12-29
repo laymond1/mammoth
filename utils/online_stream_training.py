@@ -163,12 +163,12 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                         pin_memory=True)
         )
         # Evaluate before training to get the initial performance
-        if is_fwd_enabled and can_compute_fwd_beforetask:
-            # Evaluate future performance
-            eval_dict = model.future_evaluate(full_test_dataloader, future_classes)
-            ptm_results['test_acc'].append(eval_dict['avg_acc'])
-            ptm_results['cls_acc'].append(eval_dict['cls_acc'])
-            ptm_results['data_cnt'].append(samples_cnt)
+        # if is_fwd_enabled and can_compute_fwd_beforetask:
+        #     # Evaluate future performance
+        #     eval_dict = model.future_evaluate(full_test_dataloader, future_classes)
+        #     ptm_results['test_acc'].append(eval_dict['avg_acc'])
+        #     ptm_results['cls_acc'].append(eval_dict['cls_acc'])
+        #     ptm_results['data_cnt'].append(samples_cnt)
             
         ## Start Online Training
         for i, (images, labels, not_aug_images, idx) in enumerate(train_dataloader):
