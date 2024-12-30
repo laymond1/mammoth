@@ -84,9 +84,9 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     args.test_batch_size = 128
     print(args)
     if args.validation:
-        os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}", exist_ok=True)
+        os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}_M{args.buffer_size}", exist_ok=True)
     else:
-        os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}/run-{args.seed}", exist_ok=True)
+        os.makedirs(f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}_M{args.buffer_size}/run-{args.seed}", exist_ok=True)
     
     # dataset setup
     # dataset.SETTING = 'online-il'
@@ -263,7 +263,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     if model.is_main_process():     
         if args.eval_period is not None:
             if args.validation:
-                log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}"
+                log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}_M{args.buffer_size}"
                 # Anytime evaluation metrics
                 np.save(f"{log_path}/cls_acc_seed_{args.seed}_eval.npy", eval_results["cls_acc"])
                 np.save(f"{log_path}/test_acc_seed_{args.seed}_eval.npy", eval_results["test_acc"])
@@ -273,7 +273,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 np.save(f"{log_path}/klr_seed_{args.seed}_eval.npy", eval_results["klr"][1:])
                 np.save(f"{log_path}/kgr_seed_{args.seed}_eval.npy", eval_results["kgr"])
             else:   
-                log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}/run-{args.seed}"
+                log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}_M{args.buffer_size}/run-{args.seed}"
                 np.save(f"{log_path}/cls_acc_eval.npy", eval_results["cls_acc"])
                 np.save(f"{log_path}/test_acc_eval.npy", eval_results["test_acc"])
                 np.save(f"{log_path}/data_cnt_eval_time.npy", eval_results["data_cnt"])
