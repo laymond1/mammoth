@@ -166,7 +166,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 break
             
             samples_cnt += images.size(0) * model.world_size
-            if model.NAME == 'online-one-prompt':
+            if model.NAME == 'online-ovor':
                 loss_dict, ood_loss_dict, acc, ood_acc = model.online_step(images, labels, not_aug_images, idx)
             else:
                 loss_dict, acc = model.online_step(images, labels, not_aug_images, idx)
@@ -179,7 +179,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             
             system_tracker()
 
-            if model.NAME == 'online-one-prompt':
+            if model.NAME == 'online-ovor':
                 model.report_training(total_samples, samples_cnt, loss_dict, acc, ood_loss_dict, ood_acc)
             else:
                 model.report_training(total_samples, samples_cnt, loss_dict, acc)
