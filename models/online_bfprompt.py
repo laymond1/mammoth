@@ -7,6 +7,8 @@ Note:
 """
 
 import gc
+import copy
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -19,6 +21,7 @@ from models.utils.online_continual_model import OnlineContinualModel
 from models.prompt_utils.model import PromptModel
 from models.prompt_utils.prompt import label2prompt
 from utils.buffer import Buffer
+from utils.metrics import calculate_online_forgetting
 
 import wandb
 
@@ -36,11 +39,11 @@ class OnlineBFPrompt(OnlineContinualModel):
         parser.add_argument('--train_mask', type=bool, default=True,  help='if using the class mask at training')
 
         # G-Prompt parameters
-        parser.add_argument('--g_prompt_layer_idx', type=int, default=[], nargs="*", help='the layer index of the G-Prompt')
+        parser.add_argument('--g_prompt_layer_idx', type=int, default=[0, 1], nargs="*", help='the layer index of the G-Prompt')
         parser.add_argument('--g_prompt_length', type=int, default=10, help='length of G-Prompt')
 
         # E-Prompt parameters
-        parser.add_argument('--e_prompt_layer_idx', type=int, default=[0, 1, 2, 3, 4], nargs="*", help='the layer index of the E-Prompt')
+        parser.add_argument('--e_prompt_layer_idx', type=int, default=[2, 3, 4], nargs="*", help='the layer index of the E-Prompt')
         parser.add_argument('--e_prompt_pool_size', default=10, type=int, help='number of prompts (M in paper)')
         parser.add_argument('--e_prompt_length', type=int, default=40, help='length of E-Prompt')
         parser.add_argument('--top_k', default=1, type=int, help='top k prompts to use (N in paper)')        
@@ -253,6 +256,70 @@ class OnlineBFPrompt(OnlineContinualModel):
                      "avg_top_p_acc": avg_top_p_acc, "avg_pred_p_acc": avg_pred_p_acc}
         
         return eval_dict
+
+    def online_forgetting_evaluate(self, test_loader, future_classes, samples_cnt):
+        preds = []
+        gts = []
+        
+        # Create a mapping from label to index for future_classes
+        class_to_idx = {label: idx for idx, label in enumerate(future_classes)}
+
+        self.net.eval()
+        with torch.no_grad():
+            for i, data in enumerate(test_loader):
+                x, y = data[0], data[1]
+                # Update y using the mapping
+                for j in range(len(y)):
+                    y[j] = class_to_idx[y[j].item()]
+
+                x = x.to(self.device)
+                y = y.to(self.device)
+
+                # Prompt prediction with backbone and head classifier 
+                if self.args.gt_key_value:
+                    logits = self.net(x, y) 
+                else:
+                    if self.args.prompt_prediction:
+                        # prev_logits = self.net.vit_head(feats)[:, :self.num_classes]
+                        prev_logits = self.net(x) # top_k
+                        prev_logits = prev_logits + self.mask
+                        _, p_preds = prev_logits.topk(1, 1, True, True) # select prompt with head
+                        # predict logits
+                        logits = self.net(x, p_preds)
+                    else:
+                        logits = self.net(x)
+                logits = logits + self.mask
+                pred = torch.argmax(logits, dim=-1)
+                preds.append(pred.detach().cpu().numpy())
+                gts.append(y.detach().cpu().numpy())
+            
+            preds = np.concatenate(preds)
+            if self.gt_label is None:
+                self.gt_label = np.concatenate(gts)
+
+        # Combine get_forgetting logic here
+        self.test_records.append(preds)
+        self.n_model_cls.append(copy.deepcopy(len(self.exposed_classes)))
+        
+        # Initialize klr and kgr with default values
+        klr, kgr = 0.0, 0.0
+        
+        if len(self.test_records) > 1:
+            klr, kgr = calculate_online_forgetting(
+                len(future_classes),
+                self.gt_label, 
+                self.test_records[-2], 
+                self.test_records[-1], 
+                self.n_model_cls[-2], 
+                self.n_model_cls[-1]
+            )
+            self.knowledge_loss_rate.append(klr)
+            self.knowledge_gain_rate.append(kgr)
+            self.forgetting_time.append(samples_cnt)
+        
+        fgt_eval_dict = {"klr": klr, "kgr": kgr}
+        
+        return fgt_eval_dict
     
     def linear_evaluate(self, test_loader):
         total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
