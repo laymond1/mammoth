@@ -3,7 +3,10 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import torch
 import numpy as np
+import pandas as pd
+from sklearn.metrics import confusion_matrix
 
 
 def backward_transfer(results):
@@ -172,3 +175,30 @@ def calculate_online_forgetting(num_classes, y_gt, y_t1, y_t2, n_cls_t1, n_cls_t
     knowledge_gain_rate = knowledge_gain/(max_knowledge-prev_total_knowledge)
     
     return knowledge_loss_rate, knowledge_gain_rate
+
+
+def save_confusion_matrix(predictions, targets, class_names, save_path="confusion_matrix.csv"):
+    """
+    Compute and save the confusion matrix as a CSV file.
+
+    Args:
+        predictions (torch.Tensor or np.ndarray): Model predictions (e.g., class indices).
+        targets (torch.Tensor or np.ndarray): True labels (e.g., class indices).
+        class_names (list): List of class names corresponding to indices.
+        save_path (str): Path to save the confusion matrix CSV.
+    """
+    # Convert tensors to numpy arrays if necessary
+    if isinstance(predictions, torch.Tensor):
+        predictions = predictions.cpu().numpy()
+    if isinstance(targets, torch.Tensor):
+        targets = targets.cpu().numpy()
+    
+    # Compute confusion matrix
+    cm = confusion_matrix(targets, predictions)
+    
+    # Convert confusion matrix to a DataFrame
+    cm_df = pd.DataFrame(cm, index=class_names, columns=class_names)
+    
+    # Save to CSV
+    cm_df.to_csv(save_path)
+    print(f"Confusion matrix saved to {save_path}")

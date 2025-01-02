@@ -370,7 +370,7 @@ def add_management_args(parser: ArgumentParser) -> None:
                            '2: Use BF16, if available.'
                            '3: Use BF16 and `torch.compile`. BEWARE: torch.compile may break your code if you change the model after the first run! Use with caution.')
     mng_group.add_argument('--distributed', type=str, default='no', choices=['no', 'dp', 'ddp'], help='Enable distributed training?')
-    mng_group.add_argument('--savecheck', type=str, default='last', choices=['last', 'task'], help='Save checkpoint every `task` or at the end of the training (`last`).')
+    mng_group.add_argument('--savecheck', type=str, default='last', choices=['last', 'eval', 'task'], help='Save checkpoint every `task` or at the end of the training (`last`).')
     mng_group.add_argument('--loadcheck', type=str, default=None, help='Path of the checkpoint to load (.pt file for the specific task)')
     mng_group.add_argument('--ckpt_name', type=str, help='(optional) checkpoint save name.')
     mng_group.add_argument('--start_from', type=int, default=None, help="Task to start from")
@@ -432,11 +432,21 @@ def add_online_learning_args(parser: ArgumentParser) -> None:
                               help="if True, N and M are randomly mixed over tasks.")
     online_group.add_argument('--eval_period', type=int, default=1000, 
                               help="Evaluation period for true online setup")
+    online_group.add_argument('--f_eval', type=binary_to_boolean_type, default=True,
+                              help="If True, evaluate KLR and KGR")
     online_group.add_argument("--f_eval_period", type=int, default=10000, 
                               help="Period for measuring KLR and KGR")
     online_group.add_argument('--online_iter', type=int, default=1,
                               help="Number of model updates per samples seen.")
-    online_group.add_argument('--use_amp', default=True, type=binary_to_boolean_type,
+    online_group.add_argument('--linear_eval', type=binary_to_boolean_type, default=0,
+                                help='Perform linear evaluation?')
+    online_group.add_argument('--linear_epochs', type=int, default=10, 
+                                help='Linear evaluation train epochs')
+    online_group.add_argument('--linear_lr', type=float, default=1e-3,
+                                help='Linear evaluation learning rate')
+    online_group.add_argument("--log_conf_matrix", type=binary_to_boolean_type, default=0,
+                              help="If True, log confusion matrix")
+    online_group.add_argument('--use_amp', type=binary_to_boolean_type, default=True, 
                               help='Use automatic mixed precision')
 
 

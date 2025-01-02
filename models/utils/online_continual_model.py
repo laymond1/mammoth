@@ -40,7 +40,7 @@ from torch.optim import lr_scheduler
 from models.utils.continual_model import ContinualModel
 
 from utils.magic import persistent_locals
-from utils.metrics import calculate_online_forgetting
+from utils.metrics import calculate_online_forgetting, save_confusion_matrix
 
 with suppress(ImportError):
     import wandb
@@ -79,6 +79,12 @@ class OnlineContinualModel(ContinualModel):
         self.knowledge_gain_rate = []
         self.forgetting_time = []
         self.f_next_time = 0
+        self.log_path = ''
+        # linear probe evaluation
+        if args.linear_eval:
+            # linear head
+            self.linear_head = nn.Linear(768, self.num_classes).to(self.device)
+            self.linear_optim = torch.optim.SGD(self.linear_head.parameters(), lr=args.linear_lr) # lr follows the er's.
         
     def add_new_class(self, class_name):
         exposed_classes = []
@@ -113,7 +119,6 @@ class OnlineContinualModel(ContinualModel):
         total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
         correct_l = torch.zeros(self.num_classes)
         num_data_l = torch.zeros(self.num_classes)
-        label = []
         
         # Create a mapping from label to index for future_classes
         class_to_idx = {label: idx for idx, label in enumerate(future_classes)}
@@ -142,7 +147,6 @@ class OnlineContinualModel(ContinualModel):
                 num_data_l += xlabel_cnt.detach().cpu()
 
                 total_loss += loss.mean().item()
-                label += y.tolist()
 
         avg_acc = total_correct / total_num_data
         avg_loss = total_loss / len(test_loader)
@@ -156,7 +160,8 @@ class OnlineContinualModel(ContinualModel):
         total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
         correct_l = torch.zeros(self.num_classes)
         num_data_l = torch.zeros(self.num_classes)
-        label = []
+        self.all_preds = []
+        self.all_labels = []
         
         # Create a mapping from label to index for exposed_classes
         class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
@@ -186,7 +191,10 @@ class OnlineContinualModel(ContinualModel):
                 num_data_l += xlabel_cnt.detach().cpu()
 
                 total_loss += loss.mean().item()
-                label += y.tolist()
+
+                # Store predictions and ground truths for confusion matrix
+                self.all_preds.extend(pred.cpu().tolist())
+                self.all_labels.extend(y.cpu().tolist())
 
         avg_acc = total_correct / total_num_data
         avg_loss = total_loss / len(test_loader)
@@ -244,13 +252,106 @@ class OnlineContinualModel(ContinualModel):
             self.knowledge_loss_rate.append(klr)
             self.knowledge_gain_rate.append(kgr)
             self.forgetting_time.append(samples_cnt)
-            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.model}/KLR_seed_{self.args.seed}.npy", self.knowledge_loss_rate)
-            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.model}/KGR_seed_{self.args.seed}.npy", self.knowledge_gain_rate)
-            np.save(f"{self.args.log_path}/logs/{self.args.online_scenario}/{self.args.dataset}/{self.args.model}/forgetting_time_seed_{self.args.seed}.npy", self.forgetting_time)
         
         fgt_eval_dict = {"klr": klr, "kgr": kgr}
         
         return fgt_eval_dict
+
+    def linear_evaluate(self, test_loader):
+        total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
+        correct_l = torch.zeros(self.num_classes)
+        num_data_l = torch.zeros(self.num_classes)
+        
+        # Create a mapping from label to index for exposed_classes
+        class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
+        
+        self.net.eval()
+        self.linear_head.eval()
+        with torch.no_grad():
+            for i, data in enumerate(test_loader):
+                x, y = data[0], data[1]
+                # Update y using the mapping
+                for j in range(len(y)):
+                    y[j] = class_to_idx[y[j].item()]
+
+                x = x.to(self.device)
+                y = y.to(self.device)
+
+                features = self.net.forward_features(x)
+                logits = self.linear_head(features)
+                logits = logits + self.mask
+                loss = F.cross_entropy(logits, y)
+                pred = torch.argmax(logits, dim=-1)
+                _, _preds = logits.topk(1, 1, True, True) # self.topk: 1
+                total_correct += torch.sum(_preds == y.unsqueeze(1)).item()
+                total_num_data += y.size(0)
+
+                xlabel_cnt, correct_xlabel_cnt = self._interpret_pred(y, pred)
+                correct_l += correct_xlabel_cnt.detach().cpu()
+                num_data_l += xlabel_cnt.detach().cpu()
+
+                total_loss += loss.mean().item()
+
+        avg_acc = total_correct / total_num_data
+        avg_loss = total_loss / len(test_loader)
+        cls_acc = (correct_l / (num_data_l + 1e-5)).numpy().tolist()
+        
+        eval_dict = {"avg_loss": avg_loss, "avg_acc": avg_acc, "cls_acc": cls_acc}
+        
+        return eval_dict  
+
+    def online_linear_train_eval(self, train_loader, test_loader):
+        # init weights of linear head
+        nn.init.xavier_normal_(self.linear_head.weight)
+        nn.init.zeros_(self.linear_head.bias)
+
+        class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
+
+        # train
+        self.net.eval()
+        self.linear_head.train()
+        for epoch in range(self.args.linear_epochs):
+            total_correct, total_num_data = 0.0, 0.0
+            epoch_loss = 0.0
+
+            with tqdm(total=len(train_loader), desc=f"Epoch [{epoch+1}/{self.args.linear_epochs}]", unit="batch") as pbar:
+                for data in train_loader:
+                    x, y = data[0], data[1]
+                    with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
+                        # Update labels to class indices
+                        for j in range(len(y)):
+                            y[j] = class_to_idx[y[j].item()]
+                        x, y = x.to(self.device), y.to(self.device)
+                        
+                        self.linear_optim.zero_grad()
+                        with torch.no_grad():
+                            features = self.net.forward_features(x)
+                        logits = self.linear_head(features.detach())
+                        logits = logits + self.mask
+                        loss = F.cross_entropy(logits, y)
+                        _, preds = logits.topk(1, 1, True, True)
+                        
+                        self.scaler.scale(loss).backward()
+                        self.scaler.step(self.linear_optim)
+                        self.scaler.update()
+
+                        # Update metrics
+                        total_correct += torch.sum(preds == y.unsqueeze(1)).item()
+                        total_num_data += y.size(0)
+                        epoch_loss += loss.item()
+
+                        # Update progress bar
+                        pbar.set_postfix({"Loss": loss.item(), "Accuracy": total_correct / total_num_data})
+                        pbar.update(1)
+
+                # Print epoch metrics after each epoch
+                epoch_acc = total_correct / total_num_data
+                print(f"Epoch [{epoch+1}/{self.args.linear_epochs}]: Train Loss: {epoch_loss / len(train_loader)}, Train Acc: {epoch_acc}")
+
+        # evaluate
+        eval_dict = self.linear_evaluate(test_loader)
+        print(f"Linear Evaluation: Avg Loss: {eval_dict['avg_loss']}, Test Acc: {eval_dict['avg_acc']}")
+        return eval_dict
 
     def online_step(self, sample, samples_cnt):
         raise NotImplementedError()
@@ -272,9 +373,6 @@ class OnlineContinualModel(ContinualModel):
 
     def online_after_train(self):
         raise NotImplementedError()
-    
-    # def online_evaluate(self, test_loader, samples_cnt):
-    #     raise NotImplementedError()
             
     def is_dist_avail_and_initialized(self):
         if not dist.is_available():
@@ -377,6 +475,13 @@ class OnlineContinualModel(ContinualModel):
         if 'wandb' in sys.modules and not self.args.nowand and task_id is None:
             self.online_test_autolog_wandb(sample_num, eval_dict, extra=other_metric)
                 
+        # Log confusion matrix
+        if self.args.log_conf_matrix:
+            # Create a mapping from label to index for exposed_classes
+            class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
+            save_path = self.log_path + f"/confusion_matrix_{sample_num}.csv"
+            save_confusion_matrix(self.all_labels, self.all_preds, list(class_to_idx.keys()), save_path=save_path)
+
     def _interpret_pred(self, y, pred):
         # xlable is batch
         ret_num_data = torch.zeros(self.num_classes)
@@ -414,9 +519,6 @@ class OnlineContinualModel(ContinualModel):
             tmp = {'# of samples': sample_num,
                    f'{prefix}_acc': train_acc,
                    'num_classes': len(self.exposed_classes)}
-            # add counts of each prompt
-            if hasattr(self, 'table'):
-                self.table.add_data(sample_num, * self.net.prompt.train_count.to(torch.int64).tolist())
             tmp.update({f'{prefix}_{k}': v for k, v in train_loss_dict.items()})
             tmp.update(extra or {})
             if hasattr(self, 'opt'):
@@ -441,7 +543,7 @@ class OnlineContinualModel(ContinualModel):
             # Add any other metrics from the extra parameter
             tmp.update(extra or {})
             wandb.log(tmp, step=sample_num)
-            
+        
         
 def select_optimizer(opt_name: str, lr: float, params: Iterator[torch.Tensor]) -> optim.Optimizer:
     if opt_name == "adam":

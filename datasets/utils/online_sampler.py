@@ -646,3 +646,48 @@ class OnlineTestSampler(Sampler):
 
     def __len__(self) -> int:
         return self.num_selected_samples
+    
+
+class OnlineTrainSampler(Sampler):
+    def __init__(self, data_source: Optional[Sized], exposed_class : Iterable[int], rnd_seed: int, num_replicas: int=None, rank: int=None) -> None:
+        self.data_source    = data_source
+        self.classes    = self.data_source.classes
+        self.targets    = self.data_source.targets
+        self.generator  = torch.Generator().manual_seed(rnd_seed)
+        self.exposed_class  = exposed_class
+        self.indices    = torch.tensor([i for i in range(self.data_source.__len__()) if self.targets[i] in self.exposed_class])
+        self.indices    = self.indices[torch.randperm(len(self.indices), generator=self.generator)].tolist()
+
+        if num_replicas is not None:
+            if not dist.is_available():
+                raise RuntimeError("Distibuted package is not available, but you are trying to use it.")
+            num_replicas = dist.get_world_size()
+        if rank is not None:
+            if not dist.is_available():
+                raise RuntimeError("Distibuted package is not available, but you are trying to use it.")
+            rank = dist.get_rank()
+
+        self.distributed = num_replicas is not None and rank is not None
+        self.num_replicas = num_replicas if num_replicas is not None else 1
+        self.rank = rank if rank is not None else 0
+
+        if self.distributed:
+            self.num_samples = int(len(self.indices) // self.num_replicas)
+            self.total_size = self.num_samples * self.num_replicas
+            self.num_selected_samples = int(len(self.indices) // self.num_replicas)
+        else:
+            self.num_samples = int(len(self.indices))
+            self.total_size = self.num_samples
+            self.num_selected_samples = int(len(self.indices))
+
+    def __iter__(self) -> Iterable[int]:
+        if self.distributed:
+            # subsample
+            indices = self.indices[self.rank:self.total_size:self.num_replicas]
+            assert len(indices) == self.num_samples
+            return iter(indices[:self.num_selected_samples])
+        else:
+            return iter(self.indices)
+
+    def __len__(self) -> int:
+        return self.num_selected_samples
