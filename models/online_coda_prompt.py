@@ -67,8 +67,7 @@ class OnlineCodaPrompt(OnlineContinualModel):
         # set optimizer and scheduler
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
-        self.labels = torch.empty(0)
-            
+        
     def online_before_train(self):
         pass
 
@@ -109,7 +108,6 @@ class OnlineCodaPrompt(OnlineContinualModel):
         class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
 
         x, y = data
-        self.labels = torch.cat((self.labels, y), 0)
         
         for j in range(len(y)):
             y[j] = class_to_idx[y[j].item()]
