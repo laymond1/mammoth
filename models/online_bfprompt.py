@@ -8,7 +8,9 @@ Note:
 
 import gc
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
+from tqdm import tqdm
 
 from datasets import get_dataset
 from utils.args import add_rehearsal_args, ArgumentParser
@@ -83,11 +85,7 @@ class OnlineBFPrompt(OnlineContinualModel):
         # set optimizer and scheduler
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
-        self.labels = torch.empty(0)
-        cols = [f"Prompt_{i}" for i in range(1, args.e_prompt_pool_size+1)]
-        cols.insert(0, "N_Samples")
-        self.table = wandb.Table(columns=cols)
-
+        
     def online_before_train(self):
         pass
 
@@ -128,7 +126,6 @@ class OnlineBFPrompt(OnlineContinualModel):
         class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
 
         x, y = data
-        self.labels = torch.cat((self.labels, y), 0)
         
         for j in range(len(y)):
             y[j] = class_to_idx[y[j].item()]
@@ -185,7 +182,8 @@ class OnlineBFPrompt(OnlineContinualModel):
         top_p_correct, pred_p_correct = 0.0, 0.0
         correct_l = torch.zeros(self.num_classes)
         num_data_l = torch.zeros(self.num_classes)
-        label = []
+        self.all_preds = []
+        self.all_labels = []
         
         # Create a mapping from label to index for exposed_classes
         class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
@@ -240,7 +238,10 @@ class OnlineBFPrompt(OnlineContinualModel):
                 num_data_l += xlabel_cnt.detach().cpu()
 
                 total_loss += loss.mean().item()
-                label += y.tolist()
+
+                # Store predictions and ground truths for confusion matrix
+                self.all_preds.extend(pred.cpu().tolist())
+                self.all_labels.extend(y.cpu().tolist())
 
         avg_acc = total_correct / total_num_data
         avg_loss = total_loss / len(test_loader)
@@ -251,6 +252,120 @@ class OnlineBFPrompt(OnlineContinualModel):
         eval_dict = {"avg_loss": avg_loss, "avg_acc": avg_acc, "cls_acc": cls_acc,
                      "avg_top_p_acc": avg_top_p_acc, "avg_pred_p_acc": avg_pred_p_acc}
         
+        return eval_dict
+    
+    def linear_evaluate(self, test_loader):
+        total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
+        correct_l = torch.zeros(self.num_classes)
+        num_data_l = torch.zeros(self.num_classes)
+        
+        # Create a mapping from label to index for exposed_classes
+        class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
+        
+        self.net.eval()
+        self.linear_head.eval()
+        with torch.no_grad():
+            for i, data in enumerate(test_loader):
+                x, y = data[0], data[1]
+                # Update y using the mapping
+                for j in range(len(y)):
+                    y[j] = class_to_idx[y[j].item()]
+
+                x = x.to(self.device)
+                y = y.to(self.device)
+
+                if self.args.gt_key_value:
+                    features = self.net.forward_features(x, y)
+                else:
+                    if self.args.prompt_prediction:
+                        prev_logits = self.net(x)
+                        prev_logits = prev_logits + self.mask
+                        _, p_preds = prev_logits.topk(1, 1, True, True)
+                        features = self.net.forward_features(x, p_preds)
+                    else:
+                        features = self.net.forward_features(x)
+                logits = self.linear_head(features)
+                logits = logits + self.mask
+                loss = F.cross_entropy(logits, y)
+                pred = torch.argmax(logits, dim=-1)
+                _, _preds = logits.topk(1, 1, True, True) # self.topk: 1
+                total_correct += torch.sum(_preds == y.unsqueeze(1)).item()
+                total_num_data += y.size(0)
+
+                xlabel_cnt, correct_xlabel_cnt = self._interpret_pred(y, pred)
+                correct_l += correct_xlabel_cnt.detach().cpu()
+                num_data_l += xlabel_cnt.detach().cpu()
+
+                total_loss += loss.mean().item()
+
+        avg_acc = total_correct / total_num_data
+        avg_loss = total_loss / len(test_loader)
+        cls_acc = (correct_l / (num_data_l + 1e-5)).numpy().tolist()
+        
+        eval_dict = {"avg_loss": avg_loss, "avg_acc": avg_acc, "cls_acc": cls_acc}
+        
+        return eval_dict  
+
+    def online_linear_train_eval(self, train_loader, test_loader):
+        # init weights of linear head
+        nn.init.xavier_normal_(self.linear_head.weight)
+        nn.init.zeros_(self.linear_head.bias)
+
+        class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
+
+        # train
+        self.net.eval()
+        self.linear_head.train()
+        for epoch in range(self.args.linear_epochs):
+            total_correct, total_num_data = 0.0, 0.0
+            epoch_loss = 0.0
+
+            with tqdm(total=len(train_loader), desc=f"Epoch [{epoch+1}/{self.args.linear_epochs}]", unit="batch") as pbar:
+                for data in train_loader:
+                    x, y = data[0], data[1]
+                    with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
+                        # Update labels to class indices
+                        for j in range(len(y)):
+                            y[j] = class_to_idx[y[j].item()]
+                        x, y = x.to(self.device), y.to(self.device)
+                        
+                        self.linear_optim.zero_grad()
+                        with torch.no_grad():
+                            if self.args.gt_key_value:
+                                features = self.net.forward_features(x, y)
+                            else:
+                                if self.args.prompt_prediction:
+                                    prev_logits = self.net(x)
+                                    prev_logits = prev_logits + self.mask
+                                    _, p_preds = prev_logits.topk(1, 1, True, True)
+                                    features = self.net.forward_features(x, p_preds)
+                                else:
+                                    features = self.net.forward_features(x)
+                        logits = self.linear_head(features.detach())
+                        logits = logits + self.mask
+                        loss = F.cross_entropy(logits, y)
+                        _, preds = logits.topk(1, 1, True, True)
+                        
+                        self.scaler.scale(loss).backward()
+                        self.scaler.step(self.linear_optim)
+                        self.scaler.update()
+
+                        # Update metrics
+                        total_correct += torch.sum(preds == y.unsqueeze(1)).item()
+                        total_num_data += y.size(0)
+                        epoch_loss += loss.item()
+
+                        # Update progress bar
+                        pbar.set_postfix({"Loss": loss.item(), "Accuracy": total_correct / total_num_data})
+                        pbar.update(1)
+
+                # Print epoch metrics after each epoch
+                epoch_acc = total_correct / total_num_data
+                print(f"Epoch [{epoch+1}/{self.args.linear_epochs}]: Train Loss: {epoch_loss / len(train_loader)}, Train Acc: {epoch_acc}")
+
+        # evaluate
+        eval_dict = self.linear_evaluate(test_loader)
+        print(f"Linear Evaluation: Avg Loss: {eval_dict['avg_loss']}, Test Acc: {eval_dict['avg_acc']}")
         return eval_dict
     
     def online_after_train(self):
