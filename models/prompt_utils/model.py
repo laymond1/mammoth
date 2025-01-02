@@ -6,7 +6,9 @@ import torch.nn as nn
 
 # from models.prompt_utils.vit import VisionTransformer
 from models.prompt_utils.prompt import L2P, DualPrompt, CodaPrompt, MVPPrompt, OnePrompt
-from models.bfprompt_utils.prompt import DualPrompt as BFPrompt
+from models.bfprompt_utils.prompt import BFPrompt
+from models.bfprompt_utils.prompt import CodaBFPrompt
+
 
 class PromptModel(nn.Module):
     def __init__(self, args, num_classes=10, pretrained=False, prompt_flag=False, prompt_param=None):
@@ -19,7 +21,7 @@ class PromptModel(nn.Module):
 
         # get feature encoder
         if pretrained:
-            if self.prompt_flag == 'bfprompt':
+            if 'bfprompt' in self.prompt_flag:
                 from models.bfprompt_utils.vit import VisionTransformer
                 self.feat = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12,
                                               num_heads=12, ckpt_layer=0,
@@ -76,6 +78,9 @@ class PromptModel(nn.Module):
         elif self.prompt_flag == 'bfprompt':
             cls_per_prompt = num_classes // prompt_param[0]
             self.prompt = BFPrompt(args, 768, cls_per_prompt, prompt_param) # based on DualPrompt
+        elif self.prompt_flag == 'coda-bfprompt':
+            cls_per_prompt = num_classes // prompt_param[0]
+            self.prompt = CodaBFPrompt(args, 768, cls_per_prompt, prompt_param)
         else:
             self.prompt = None
 
@@ -139,7 +144,7 @@ class PromptModel(nn.Module):
                 top_k = extract_topk_key(q, self.prompt.e_k, top_k=self.args.top_k)
                 mask = self.prompt.mask[top_k].mean(1).squeeze().clone()
                 mask = torch.sigmoid(mask)*2.
-            elif self.prompt_flag == 'bfprompt':
+            elif 'bfprompt' in self.prompt_flag:
                 with torch.no_grad():
                     q, _ = self.feat(x)
                     q = q[:, 0, :]
