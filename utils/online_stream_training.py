@@ -263,8 +263,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                                 'scheduler': model.scheduler.state_dict() if model.scheduler is not None else None,
                             }
                             # Save buffer if it exists
-                            if 'buffer_size' in model.args:
-                                save_obj['buffer'] = copy.deepcopy(model.buffer).to('cpu')
+                            # if 'buffer_size' in model.args:
+                            #     save_obj['buffer'] = copy.deepcopy(model.buffer).to('cpu')
 
                             # Saving model checkpoint
                             if args.validation:
@@ -354,8 +354,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 'scheduler': model.scheduler.state_dict() if model.scheduler is not None else None,
             }
             # Save buffer if it exists
-            if 'buffer_size' in model.args:
-                save_obj['buffer'] = copy.deepcopy(model.buffer).to('cpu')
+            # if 'buffer_size' in model.args:
+            #     save_obj['buffer'] = copy.deepcopy(model.buffer).to('cpu')
 
             # Saving model checkpoint
             checkpoint_name = f'{log_path}/checkpoint.pt'
