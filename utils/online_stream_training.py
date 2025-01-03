@@ -152,13 +152,14 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
         model.online_before_train()
         
         # Get future classes
-        future_classes = model.get_future_classes(
-            DataLoader(train_dataset, 
-                        batch_size=args.test_batch_size * 8,
-                        sampler=train_sampler, 
-                        num_workers=args.num_workers, 
-                        pin_memory=True)
-        )
+        if args.f_eval:
+            future_classes = model.get_future_classes(
+                DataLoader(train_dataset, 
+                            batch_size=args.test_batch_size * 8,
+                            sampler=train_sampler, 
+                            num_workers=args.num_workers, 
+                            pin_memory=True)
+            )
             
         ## Start Online Training
         for i, (images, labels, not_aug_images, idx) in enumerate(train_dataloader):
