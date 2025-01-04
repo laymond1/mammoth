@@ -409,7 +409,7 @@ class OnlineContinualModel(ContinualModel):
 
     def report_training(self, total_samples, sample_num, train_loss_dict, train_acc):
         # Construct the base print message
-        message = f"Test | Sample # {sample_num} | train_loss {train_loss_dict['total_loss'].item():.4f} | train_acc {train_acc:.4f} | "
+        message = f"Train | Sample # {sample_num} | train_loss {train_loss_dict['total_loss'].item():.4f} | train_acc {train_acc:.4f} | "
         message += f"lr {self.optimizer.param_groups[0]['lr']:.6f} | Num_Classes {len(self.exposed_classes)} | "
 
         # Add counts of each prompt if available
@@ -476,6 +476,8 @@ class OnlineContinualModel(ContinualModel):
             self.online_test_autolog_wandb(sample_num, eval_dict, extra=other_metric)
                 
         # Log confusion matrix
+        if self.args.savecheck == 'eval':
+            self.args.log_conf_matrix = False
         if self.args.log_conf_matrix:
             # Create a mapping from label to index for exposed_classes
             class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
