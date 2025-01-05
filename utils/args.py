@@ -428,7 +428,7 @@ def add_online_learning_args(parser: ArgumentParser) -> None:
                               help="Number of times to repeat period")
     online_group.add_argument("--init_cls", type=float, default=1.0, 
                               help="Percentage of classes already present in first period")
-    online_group.add_argument('--rnd_NM', type=bool, default=True, 
+    online_group.add_argument('--rnd_NM', type=binary_to_boolean_type, default=True, 
                               help="if True, N and M are randomly mixed over tasks.")
     online_group.add_argument('--eval_period', type=int, default=1000, 
                               help="Evaluation period for true online setup")
