@@ -259,6 +259,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                         if args.savecheck == 'eval':
                             save_obj = {
                                 'model': model.state_dict(),
+                                'exposed_classes': model.exposed_classes,
                                 'optimizer': model.opt.state_dict() if hasattr(model, 'opt') else None,
                                 'scheduler': model.scheduler.state_dict() if model.scheduler is not None else None,
                             }
