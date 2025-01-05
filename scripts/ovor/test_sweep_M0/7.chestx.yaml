@@ -1,0 +1,47 @@
+# Online OVOR method on Online Learning Setting
+name: 'Evaluate Online OVOR (M=0) on ChestX'
+project: 'Experimental results on Si-Blurry Scenario'
+entity: 'laymond1'
+
+method: grid
+metric:
+  goal: maximize
+  name: A_auc
+program: ./utils/online_main.py
+
+parameters:
+  model:
+    values: ['online-ovor']
+  buffer_size:
+    values: [0]
+  online_scenario:
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
+  dataset:
+    values: ['seq-chestx']
+  batch_size:
+    value: 64
+  online_iter:
+    value: 3
+  eval_period:
+    value: 100
+  f_eval_period:
+    value: 1000
+  optimizer:
+    values: ['adam']
+  lr_scheduler:
+    values: ['default']
+  use_amp:
+    value: true
+  num_workers:
+    value: 4
+  n_tasks: # this dataset has only 6 classes
+    value: 2
+  lr:
+    values: [1e-3]
+  # hyperparameters
+  seed:
+    values: [1,2,3,4,5,6,7,8,9,10]
+ 
+ 
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Experimental results on Si-Blurry Scenario/oae3pkc9'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Experimental results on Si-Blurry Scenario/oae3pkc9'

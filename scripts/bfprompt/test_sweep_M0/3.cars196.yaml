@@ -1,0 +1,51 @@
+# Online BFPrompt method on Online Learning Setting
+name: 'Evaluate Online BFPrompt (M=0) on Stanford Cars196'
+project: 'Experimental results on Si-Blurry Scenario'
+entity: 'laymond1'
+
+method: grid
+metric:
+  goal: maximize
+  name: A_auc
+program: ./utils/online_main.py
+
+parameters:
+  notes: 
+    value: 'si-blurry-bfprompt-module2-upper-bound-M=2000'
+  model:
+    values: ['online-bfprompt']
+  buffer_size:
+    values: [0]
+  online_scenario:
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
+  dataset:
+    values: ['seq-cars196']
+  batch_size:
+    value: 64
+  online_iter:
+    value: 3
+  eval_period:
+    value: 100
+  f_eval_period:
+    value: 1000
+  optimizer:
+    values: ['adam']
+  lr_scheduler:
+    values: ['default']
+  use_amp:
+    value: true
+  num_workers:
+    value: 4
+  n_tasks:
+    value: 10
+  lr:
+    values: [1e-3]
+  gt_key_value:
+    value: 1
+  # hyperparameters
+  seed:
+    values: [1,2,3,4,5,6,7,8,9,10]
+
+
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Experimental results on Si-Blurry Scenario/l48a1kdr' --count 1
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Experimental results on Si-Blurry Scenario/vv2v78qg'

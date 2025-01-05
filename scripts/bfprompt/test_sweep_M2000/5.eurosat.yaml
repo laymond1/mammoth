@@ -1,0 +1,51 @@
+# Online BFPrompt method on Online Learning Setting
+name: 'Evaluate Online BFPrompt (M=2000) on EuroSAT-RGB'
+project: 'Experimental results on Si-Blurry Scenario'
+entity: 'laymond1'
+
+method: grid
+metric:
+  goal: maximize
+  name: A_auc
+program: ./utils/online_main.py
+
+parameters:
+  notes: 
+    value: 'si-blurry-bfprompt-module2-upper-bound-M=2000'
+  model:
+    values: ['online-bfprompt']
+  buffer_size:
+    values: [2000]
+  online_scenario:
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
+  dataset:
+    values: ['seq-eurosat-rgb']
+  batch_size:
+    value: 64
+  online_iter:
+    value: 3
+  eval_period:
+    value: 270
+  f_eval_period:
+    value: 2700
+  optimizer:
+    values: ['adam']
+  lr_scheduler:
+    values: ['default']
+  use_amp:
+    value: true
+  num_workers:
+    value: 4
+  n_tasks:
+    value: 5
+  lr:
+    values: [1e-4]
+  gt_key_value:
+    value: 1
+  # hyperparameters
+  seed:
+    values: [1,2,3,4,5,6,7,8,9,10]
+
+
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Experimental results on Si-Blurry Scenario/lvx66aye'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Experimental results on Si-Blurry Scenario/lvx66aye'
