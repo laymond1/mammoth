@@ -37,7 +37,7 @@ parameters:
   n_tasks: # this dataset has only 6 classes
     value: 2
   lr:
-    values: [1e-3]
+    values: [5e-3]
   # hyperparameters
   seed:
     values: [1,2,3,4,5,6,7,8,9,10]
