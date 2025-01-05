@@ -34,7 +34,7 @@ class OnlineOVOR(OnlineContinualModel):
         # Replay parameters
         add_rehearsal_args(parser)
         # Trick
-        parser.add_argument('--train_mask', type=bool, default=True,  help='if using the class mask at training')
+        parser.add_argument('--train_mask', type=int, default=1, choices=[0, 1], help='if using the class mask at training')
 
         # G-Prompt parameters
         parser.add_argument('--g_prompt_layer_idx', type=int, default=[0, 1], nargs="+", help='the layer index of the G-Prompt')

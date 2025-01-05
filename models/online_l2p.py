@@ -30,7 +30,7 @@ class OnlineL2P(OnlineContinualModel):
         # Replay parameters
         add_rehearsal_args(parser)
         # Trick
-        parser.add_argument('--train_mask', type=bool, default=True,  help='if using the class mask at training')
+        parser.add_argument('--train_mask', type=int, default=1, choices=[0, 1], help='if using the class mask at training')
 
         # Prompt parameters
         parser.add_argument('--e_prompt_pool_size', type=int, default=30, help='number of prompts (M in paper)')
