@@ -1,0 +1,51 @@
+# Online BFPrompt method on Online Learning Setting
+name: 'Online BFPrompt Hyperparameter Tuning on EuroSAT-RGB'
+project: 'Hyperparam Tuning on Si-Blurry'
+entity: 'laymond1'
+
+method: grid
+metric:
+  goal: maximize
+  name: A_auc
+program: ./utils/online_main.py
+
+parameters:
+  notes: 
+    value: 'si-blurry-bfprompt-module2-upper-bound'
+  model:
+    values: ['online-bfprompt']
+  online_scenario:
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
+  dataset:
+    values: ['seq-eurosat-rgb']
+  validation:
+    value: 0.2
+  batch_size:
+    value: 64
+  online_iter:
+    value: 3
+  eval_period:
+    value: 270
+  f_eval:
+    value: 0
+  f_eval_period:
+    value: 2700
+  seed:
+    value: 1
+  optimizer:
+    values: ['adam']
+  lr_scheduler:
+    values: ['default']
+  use_amp:
+    value: true
+  num_workers:
+    value: 4
+  # hyperparameters
+  lr:
+    values: [5e-3, 1e-3, 5e-4, 1e-4]
+  buffer_size:
+    values: [0]
+  
+  
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/yw0v5eal'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Comp. Algo. Hyperparam Tuning on Si-Blurry/yw0v5eal'

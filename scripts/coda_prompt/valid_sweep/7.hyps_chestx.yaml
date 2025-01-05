@@ -1,0 +1,51 @@
+# Online CODA-Prompt method on Online Learning Setting
+name: 'Online CODA-Prompt Hyperparameter Tuning on ChestX'
+project: 'Hyperparam Tuning on Si-Blurry'
+entity: 'laymond1'
+
+method: grid
+metric:
+  goal: maximize
+  name: A_auc
+program: ./utils/online_main.py
+
+parameters:
+  model:
+    values: ['online-coda-prompt']
+  online_scenario:
+    values: ['si-blurry'] # ['si-blurry', 'periodic-gaussian']
+  dataset:
+    values: ['seq-chestx']
+  validation:
+    value: 0.2
+  batch_size:
+    value: 64
+  online_iter:
+    value: 3
+  eval_period:
+    value: 100
+  f_eval:
+    value: 0
+  f_eval_period:
+    value: 1000
+  seed:
+    value: 1
+  optimizer:
+    values: ['adam']
+  lr_scheduler:
+    values: ['default']
+  use_amp:
+    value: true
+  num_workers:
+    value: 4
+  n_tasks: # this dataset has only 6 classes
+    value: 2
+  # hyperparameters
+  lr:
+    values: [5e-3, 1e-3, 5e-4, 1e-4]
+  buffer_size:
+    values: [0]
+
+  
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Hyperparam Tuning on Si-Blurry/n51j1bwn'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Hyperparam Tuning on Si-Blurry/n51j1bwn'
