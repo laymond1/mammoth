@@ -33,6 +33,9 @@ class OnlineEr(OnlineContinualModel):
         This model requires the `add_rehearsal_args` to include the buffer-related arguments.
         """
         add_rehearsal_args(parser)
+        # Trick
+        parser.add_argument('--train_mask', type=int, default=1, choices=[0, 1], help='if using the class mask at training')
+        # Backbone
         parser.add_argument('--ft_backbone', type=bool, default=0, choices=[0, 1], help='fine-tuning backbone')
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
@@ -131,8 +134,14 @@ class OnlineEr(OnlineContinualModel):
         with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
             logits = self.net(x, return_outputs=True)
             loss_dict = dict()
-            # mask out unseen classes
-            logits = logits + self.mask
+            # here is the trick to mask out classes of non-current classes
+            non_cur_classes_mask = torch.zeros(self.num_classes, device=self.device) - torch.inf
+            non_cur_classes_mask[y.unique()] = 0
+            # mask out unseen classes and non-current classes
+            if self.args.train_mask:
+                logits = logits + non_cur_classes_mask
+            else:
+                logits = logits + self.mask
             ce_loss = self.loss(logits, y)
 
             loss_dict.update({'total_loss': ce_loss})
