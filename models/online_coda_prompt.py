@@ -39,7 +39,7 @@ class OnlineCodaPrompt(OnlineContinualModel):
         parser.add_argument('--pull_constraint_coeff', type=float, default=1.0, help='Coefficient(mu) for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
-        parser.add_argument('--n_splits', type=int, default=1, help='Number of splits for the prompt pool (default: 1).')
+        parser.add_argument('--n_splits', type=int, default=None, help='Number of splits for the prompt pool (default: 1).')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
@@ -55,7 +55,8 @@ class OnlineCodaPrompt(OnlineContinualModel):
 
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
-        assert num_classes % args.n_splits == 0
+        if args.n_splits is not None:
+            assert num_classes % args.n_splits == 0
         backbone = PromptModel(args, 
                                num_classes=num_classes,
                                pretrained=True, prompt_flag='coda',
@@ -67,7 +68,13 @@ class OnlineCodaPrompt(OnlineContinualModel):
         # set optimizer and scheduler
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
-        
+        # init task per class
+        self.task_per_cls = [0]
+    
+    def online_before_task(self, task_id):
+        self.subset_start = self.task_per_cls[task_id]
+        pass
+
     def online_before_train(self):
         pass
 
@@ -157,6 +164,10 @@ class OnlineCodaPrompt(OnlineContinualModel):
                 loss_dict.update({'total_loss': ce_loss})
                 
         return logits, loss_dict
+    
+    def online_after_task(self, task_id):
+        self.task_per_cls.append(len(self.exposed_classes))
+        pass
     
     def online_after_train(self):
         pass

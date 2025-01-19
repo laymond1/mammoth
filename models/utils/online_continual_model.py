@@ -98,6 +98,8 @@ class OnlineContinualModel(ContinualModel):
                 if cls not in self.exposed_classes:
                     self.exposed_classes.append(cls)
         self.mask[:len(self.exposed_classes)] = 0
+        if hasattr(self, 'subset_start'):
+            self.mask[:self.subset_start] = -float('inf')
         if 'reset' in self.args.lr_scheduler: # Not used
             self.update_schedule(reset=True)
             
@@ -179,7 +181,8 @@ class OnlineContinualModel(ContinualModel):
 
                 outputs = self.net(x, return_outputs=True)
                 logits = outputs['logits'] if isinstance(outputs, dict) else outputs
-                logits = logits + self.mask
+                logits = logits[:, :len(self.exposed_classes)]
+                # logits = logits + self.mask
                 loss = F.cross_entropy(logits, y)
                 pred = torch.argmax(logits, dim=-1)
                 _, _preds = logits.topk(1, 1, True, True) # self.topk: 1
@@ -224,7 +227,8 @@ class OnlineContinualModel(ContinualModel):
 
                 outputs = self.net(x, return_outputs=True)
                 logits = outputs['logits'] if isinstance(outputs, dict) else outputs
-                logits = logits + self.mask
+                logits[:, len(self.exposed_classes):] -= torch.inf
+                # logits = logits + self.mask
                 pred = torch.argmax(logits, dim=-1)
                 preds.append(pred.detach().cpu().numpy())
                 gts.append(y.detach().cpu().numpy())
@@ -279,7 +283,8 @@ class OnlineContinualModel(ContinualModel):
 
                 features = self.net.forward_features(x)
                 logits = self.linear_head(features)
-                logits = logits + self.mask
+                logits = logits[:, :len(self.exposed_classes)]
+                # logits = logits + self.mask
                 loss = F.cross_entropy(logits, y)
                 pred = torch.argmax(logits, dim=-1)
                 _, _preds = logits.topk(1, 1, True, True) # self.topk: 1
@@ -327,7 +332,8 @@ class OnlineContinualModel(ContinualModel):
                         with torch.no_grad():
                             features = self.net.forward_features(x)
                         logits = self.linear_head(features.detach())
-                        logits = logits + self.mask
+                        logits = logits[:, :len(self.exposed_classes)]
+                        # logits = logits + self.mask
                         loss = F.cross_entropy(logits, y)
                         _, preds = logits.topk(1, 1, True, True)
                         

@@ -39,6 +39,10 @@ class DualPrompt(nn.Module):
     def _init_smart(self, emb_d):
         
         self.top_k = self.args.top_k
+        if self.args.online_scenario == 'online-cil': 
+            self.task_id_bootstrap = True
+        else:
+            self.task_id_bootstrap = False
 
         # prompt locations
         self.g_layers = self.args.g_prompt_layer_idx
@@ -48,6 +52,9 @@ class DualPrompt(nn.Module):
         self.g_p_length = self.args.g_prompt_length
         self.e_p_length = self.args.e_prompt_length
         self.e_pool_size = self.args.e_prompt_pool_size
+    
+    def process_task_count(self):
+        self.task_count += 1
 
     def forward(self, x_querry, l, x_block, train=False):
 
@@ -68,15 +75,28 @@ class DualPrompt(nn.Module):
             cos_sim = torch.einsum('bj,kj->bk', q, n_K)
             
             if train:
-                top_k = torch.topk(cos_sim, self.top_k, dim=1)
-                k_idx = top_k.indices
-                loss = (1.0 - cos_sim[:,k_idx]).mean()
-                P_ = p[k_idx]
-                # count selected prompt when trianing
-                with torch.no_grad():
-                    num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
-                    self.train_count += num
+                # dualprompt during training uses task id
+                if self.task_id_bootstrap:
+                    loss = (1.0 - cos_sim[:, self.task_count]).mean()
+                    P_ = p[self.task_count].expand(len(x_querry),-1,-1)
+                    # count selected prompt when trianing
+                    with torch.no_grad():
+                        num = torch.zeros(self.e_pool_size, device=self.train_count.device)
+                        num[self.task_count] = B
+                        self.train_count += num
+                else:
+                    top_k = torch.topk(cos_sim, self.top_k, dim=1)
+                    k_idx = top_k.indices
+                    loss = (1.0 - cos_sim[:,k_idx]).mean()
+                    P_ = p[k_idx]
+                    # count selected prompt when trianing
+                    with torch.no_grad():
+                        num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
+                        self.train_count += num
             else:
+                # dualprompt's activated prompts
+                if self.task_id_bootstrap:
+                    cos_sim = cos_sim[:, :self.task_count+1]
                 top_k = torch.topk(cos_sim, self.top_k, dim=1)
                 k_idx = top_k.indices
                 P_ = p[k_idx]
@@ -84,13 +104,18 @@ class DualPrompt(nn.Module):
                 with torch.no_grad():
                     num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
                     self.eval_count += num
-                
-            i = int(self.e_p_length/2)
-            Ek = P_[:,:,:i,:].reshape((B,-1,self.emb_d))
-            Ev = P_[:,:,i:,:].reshape((B,-1,self.emb_d))
-
             
-        
+            # select prompts
+            if train and self.task_id_bootstrap:
+                i = int(self.e_p_length/2)
+                Ek = P_[:,:i,:].reshape((B,-1,self.emb_d))
+                Ev = P_[:,i:,:].reshape((B,-1,self.emb_d))
+            else:
+                i = int(self.e_p_length/2)
+                Ek = P_[:,:,:i,:].reshape((B,-1,self.emb_d))
+                Ev = P_[:,:,i:,:].reshape((B,-1,self.emb_d))
+
+        # g prompts
         g_valid = False
         if l in self.g_layers:
             g_valid = True
@@ -127,6 +152,7 @@ class L2P(DualPrompt):
 
     def _init_smart(self, emb_d):
         self.top_k = self.args.top_k
+        self.task_id_bootstrap = False
 
         # prompt locations
         self.g_layers = []
@@ -148,7 +174,10 @@ class CodaPrompt(nn.Module):
         self.task_count = 0
         self.emb_d = emb_d
         self.key_d = key_dim
-        self.n_tasks = args.n_splits
+        if args.n_splits is not None:
+            self.n_tasks = args.n_splits
+        else:
+            self.n_tasks = args.n_tasks
         self._init_smart(emb_d)
 
         # e prompt init
@@ -185,6 +214,28 @@ class CodaPrompt(nn.Module):
 
         # strenth of ortho penalty
         self.ortho_mu = self.args.ortho_mu
+
+    def process_task_count(self):
+        self.task_count += 1
+
+        # in the spirit of continual learning, we will reinit the new components
+        # for the new task with Gram Schmidt
+        #
+        # in the original paper, we used ortho init at the start - this modification is more 
+        # fair in the spirit of continual learning and has little affect on performance
+        # 
+        # code for this function is modified from:
+        # https://github.com/legendongary/pytorch-gram-schmidt/blob/master/gram_schmidt.py
+        for e in self.e_layers:
+            K = getattr(self,f'e_k_{e}')
+            A = getattr(self,f'e_a_{e}')
+            P = getattr(self,f'e_p_{e}')
+            k = self.gram_schmidt(K)
+            a = self.gram_schmidt(A)
+            p = self.gram_schmidt(P)
+            setattr(self, f'e_p_{e}',p)
+            setattr(self, f'e_k_{e}',k)
+            setattr(self, f'e_a_{e}',a)
 
     # code for this function is modified from:
     # https://github.com/legendongary/pytorch-gram-schmidt/blob/master/gram_schmidt.py
@@ -464,6 +515,9 @@ class OnePrompt(nn.Module):
         # prompt length
         self.g_p_length = self.args.g_prompt_length
         self.e_p_length = self.args.e_prompt_length
+
+    def process_task_count(self):
+        self.task_count += 1
 
     def forward(self, x_querry, l, x_block, train=False):
 

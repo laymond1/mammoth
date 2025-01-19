@@ -54,6 +54,12 @@ class OnlineSgd(OnlineContinualModel):
         # set optimizer and scheduler
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
+        # init task per class
+        self.task_per_cls = [0]
+    
+    def online_before_task(self, task_id):
+        self.subset_start = self.task_per_cls[task_id]
+        pass
 
     def online_before_train(self):
         pass
@@ -119,6 +125,10 @@ class OnlineSgd(OnlineContinualModel):
                 
         return logits, loss_dict
     
+    def online_after_task(self, task_id):
+        self.task_per_cls.append(len(self.exposed_classes))
+        pass
+
     def online_after_train(self):
         pass
 

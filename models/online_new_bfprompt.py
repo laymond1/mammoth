@@ -88,7 +88,7 @@ class OnlineBFPrompt(OnlineContinualModel):
         self.reset_opt()
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         # new prompt optimizer
-        self.prompt_optim = torch.optim.SGD(self.get_prompt_parameters(), lr=self.args.lr*1e+1)
+        self.prompt_opt = torch.optim.SGD(self.get_prompt_parameters(), lr=self.args.lr*1e+1)
         # init task per class
         self.task_per_cls = [0]
     
@@ -100,6 +100,9 @@ class OnlineBFPrompt(OnlineContinualModel):
         pass
 
     def online_step(self, inputs, labels, not_aug_inputs, idx):
+        # new class
+        present = labels.unique()
+        self.present = present[~torch.isin(present, self.exposed_classes)]
         self.add_new_class(labels)
         
         _loss_dict = dict()
@@ -137,29 +140,76 @@ class OnlineBFPrompt(OnlineContinualModel):
 
         x, y = data
         
+        # Filter new classes and map them to class index
+        if len(self.present) > 0:
+            # exclude new classes from y
+            present_x, x = x[torch.isin(y, self.present)], x[~torch.isin(y, self.present)]
+            y = y[~torch.isin(y, self.present)]
+            # change new classes to class index
+            for j in range(len(self.present)):
+                self.present[j] = class_to_idx[self.present[j].item()]
+            present_x = present_x.to(self.device)
+            self.present = self.present.to(self.device)
+
+        # change exposed classes to class index
         for j in range(len(y)):
             y[j] = class_to_idx[y[j].item()]
 
         x = x.to(self.device)
         y = y.to(self.device)
-        
+
+        # Combined loss computation for new and exposed classes
+        combined_loss = 0.0
+        for input_data, target_data, opt in [(present_x, self.present, self.prompt_opt), (x, y, self.opt)]:
+            if len(input_data) > 0:
+                logits, loss_dict = self.model_forward(input_data, target_data)
+                combined_loss += loss_dict['total_loss']
+
+                _, preds = logits.topk(1, 1, True, True)  # self.topk: 1
+                total_loss_dict = {k: v + total_loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
+                total_correct += torch.sum(preds == target_data.unsqueeze(1)).item()
+                total_num_data += target_data.size(0)
+
+        # Perform a single backward and optimizer step
+        self.prompt_opt.zero_grad()
         self.opt.zero_grad()
-        logits, loss_dict = self.model_forward(x, y) 
-        loss = loss_dict['total_loss']
-        _, preds = logits.topk(1, 1, True, True) # self.topk: 1
-        
-        self.opt.zero_grad()
-        self.scaler.scale(loss).backward()
-        # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+        self.scaler.scale(combined_loss).backward()
+        self.scaler.step(self.prompt_opt)
         self.scaler.step(self.opt)
         self.scaler.update()
+
         self.update_schedule()
 
-        total_loss_dict = {k: v + total_loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
-        total_correct += torch.sum(preds == y.unsqueeze(1)).item()
-        total_num_data += y.size(0)
+        return total_loss_dict, total_correct / total_num_data
+        
+        # # loss for new classes
+        # if len(self.present) > 0:
+        #     self.prompt_opt.zero_grad()
+        #     logits, loss_dict = self.model_forward(present_x, self.present)
+        #     loss = loss_dict['total_loss']
+        #     _, preds = logits.topk(1, 1, True, True) # self.topk: 1
 
-        return total_loss_dict, total_correct/total_num_data
+        #     self.scaler.scale(loss).backward()
+        #     self.scaler.step(self.prompt_opt)
+        #     self.scaler.update()
+
+        # self.opt.zero_grad()
+        # logits, loss_dict = self.model_forward(x, y) 
+        # loss = loss_dict['total_loss']
+        # _, preds = logits.topk(1, 1, True, True) # self.topk: 1
+        
+        # self.opt.zero_grad()
+        # self.scaler.scale(loss).backward()
+        # # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+        # self.scaler.step(self.opt)
+        # self.scaler.update()
+        # self.update_schedule()
+
+        # total_loss_dict = {k: v + total_loss_dict.get(k, 0.0) for k, v in loss_dict.items()}
+        # total_correct += torch.sum(preds == y.unsqueeze(1)).item()
+        # total_num_data += y.size(0)
+
+        # return total_loss_dict, total_correct/total_num_data
 
     def model_forward(self, x, y):
         with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
