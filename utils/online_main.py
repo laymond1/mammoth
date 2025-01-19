@@ -317,8 +317,8 @@ def main(args=None):
     from models import get_model
     from datasets import get_dataset
     from utils.training import train
-    # from utils.online_training import train as si_blurry_train
     from utils.online_stream_training import train as stream_train
+    from utils.online_training import train as cil_train
     from models.utils.future_model import FutureModel
     from backbone import get_backbone
 
@@ -393,6 +393,8 @@ def main(args=None):
 
     if args.online_scenario in ['si-blurry', 'periodic-gaussian']:
         stream_train(model, dataset, args)
+    elif args.online_scenario == 'online-cil':
+        cil_train(model, dataset, args)
     else:
         raise ValueError(f"Online scenario {args.online_scenario} not supported.")
 

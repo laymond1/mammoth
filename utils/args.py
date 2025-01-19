@@ -415,7 +415,7 @@ def add_online_learning_args(parser: ArgumentParser) -> None:
     """
     online_group = parser.add_argument_group('Online learning arguments', 'Arguments shared by all online learning scenarios.')
 
-    online_group.add_argument('--online_scenario', type=str, default='si-blurry', choices=[None, 'si-blurry', 'periodic-gaussian'],
+    online_group.add_argument('--online_scenario', type=str, default='si-blurry', choices=[None, 'online-cil', 'si-blurry', 'periodic-gaussian'],
                               help='The online scenario to use for the experiment.')
     online_group.add_argument("--n_tasks", type=int, default=5, help="The number of tasks in a blurry scenario")
     online_group.add_argument('--n', type=int, default=50, 
