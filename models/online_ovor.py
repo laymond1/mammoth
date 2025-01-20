@@ -86,6 +86,8 @@ class OnlineOVOR(OnlineContinualModel):
         self.task_per_cls = [0]
     
     def online_before_task(self, task_id):
+        if task_id > 0:
+            self.net.prompt.process_task_count()
         self.subset_start = self.task_per_cls[task_id]
         pass
 

@@ -178,9 +178,6 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                                 pin_memory=True)
                 )
             
-            if task_id > 0:
-                model.net.prompt.process_task_count()
-
             ## Start Online Training
             for i, (images, labels, not_aug_images, idx) in enumerate(train_dataloader):
                 if args.debug_mode and samples_cnt >= 4000:

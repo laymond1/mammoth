@@ -9,6 +9,7 @@ class BFPrompt(nn.Module):
     def __init__(self, args, emb_d, cls_per_prompt, prompt_param, key_dim=768):
         super().__init__()
         self.args = args
+        self.task_count = 0
         self.emb_d = emb_d
         self.key_d = key_dim
         self.cls_per_prompt = cls_per_prompt
@@ -48,6 +49,9 @@ class BFPrompt(nn.Module):
         self.register_buffer('eval_count', torch.zeros(self.e_pool_size))
         self.register_buffer('gt_count', torch.zeros(self.e_pool_size))
         self.top_k_idx = None
+
+    def process_task_count(self):
+        self.task_count += 1
 
     def forward(self, x_querry, l, x_block, label=None, train=False):
 
@@ -112,6 +116,7 @@ class BFPrompt(nn.Module):
                             num = p_idx.view(-1).bincount(minlength=self.e_pool_size)
                             self.eval_count += num
                 else: # only pred
+                    cos_sim = cos_sim[:, :self.task_count+1]
                     top_k = torch.topk(cos_sim, self.top_k, dim=1)
                     k_idx = top_k.indices
                     self.top_k_idx = k_idx

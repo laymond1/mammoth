@@ -369,6 +369,7 @@ class MVPPrompt(nn.Module):
     def __init__(self, args, emb_d, prompt_param, key_dim=768):
         super().__init__()
         self.args = args
+        self.task_count = 0
         self.use_mask = args.use_mask
         self.emb_d = emb_d
         self.key_d = key_dim
@@ -405,6 +406,9 @@ class MVPPrompt(nn.Module):
         self.g_p_length = self.args.g_prompt_length
         self.e_p_length = self.args.e_prompt_length
         self.e_pool_size = self.args.e_prompt_pool_size
+
+    def process_task_count(self):
+        self.task_count += 1
 
     def forward(self, x_querry, l, x_block, train=False):
         # e prompts

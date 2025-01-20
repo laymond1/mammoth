@@ -51,7 +51,7 @@ class OnlineBFPrompt(OnlineContinualModel):
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=True, help='the same key-value across all layers of the E-Prompt')
         parser.add_argument('--gt_key_value', type=int, default=0, choices=[0, 1], help='ground truth key-value')
-        parser.add_argument('--prompt_prediction', type=int, default=0, choices=[0, 1], help='prompt prediction with logits')
+        parser.add_argument('--prompt_prediction', type=int, default=1, choices=[0, 1], help='prompt prediction with logits')
         
         # SupCon
         parser.add_argument('--use_supcon', default=False, type=bool)
@@ -71,7 +71,7 @@ class OnlineBFPrompt(OnlineContinualModel):
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
 
-        # args.e_prompt_pool_size = args.n_tasks
+        args.e_prompt_pool_size = args.n_tasks
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
         # if num_classes % args.e_prompt_pool_size != 0: # 196 / 10 => 6
@@ -93,6 +93,8 @@ class OnlineBFPrompt(OnlineContinualModel):
         self.task_per_cls = [0]
     
     def online_before_task(self, task_id):
+        if task_id > 0:
+            self.net.prompt.process_task_count()
         self.subset_start = self.task_per_cls[task_id]
         pass
         
