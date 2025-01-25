@@ -83,6 +83,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     """
     args.test_batch_size = 128
     print(args)
+    if not hasattr(args, 'buffer_size'):
+        args.buffer_size = 0
     if args.validation:
         log_path = f"{args.log_path}/logs/{args.online_scenario}/{args.dataset}/{args.model}_M{args.buffer_size}"
         os.makedirs(log_path, exist_ok=True)
