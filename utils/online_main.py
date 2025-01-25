@@ -393,7 +393,7 @@ def main(args=None):
 
     if args.online_scenario in ['si-blurry', 'periodic-gaussian']:
         stream_train(model, dataset, args)
-    elif args.online_scenario == 'online-cil':
+    elif args.online_scenario in ['online-stand-cil', 'online-cil']:
         cil_train(model, dataset, args)
     else:
         raise ValueError(f"Online scenario {args.online_scenario} not supported.")

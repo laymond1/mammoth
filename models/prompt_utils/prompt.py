@@ -39,7 +39,7 @@ class DualPrompt(nn.Module):
     def _init_smart(self, emb_d):
         
         self.top_k = self.args.top_k
-        if self.args.online_scenario == 'online-cil': 
+        if self.args.online_scenario in ['online-stand-cil', 'online-cil']: 
             self.task_id_bootstrap = True
         else:
             self.task_id_bootstrap = False
@@ -55,6 +55,20 @@ class DualPrompt(nn.Module):
     
     def process_task_count(self):
         self.task_count += 1
+
+        # transfer prompts
+        for e in self.e_layers:
+            p = getattr(self,f'e_p_{e}')
+            p = self.transfer_prompt(p, self.task_count-1, self.task_count)
+            setattr(self, f'e_p_{e}',p)
+
+    def transfer_prompt(self, prev_p, prev_task_id, new_task_id):
+        noise = torch.randn_like(prev_p[new_task_id], device=prev_p.device)
+        new_p = torch.zeros_like(prev_p, device=prev_p.device)
+        new_p[:new_task_id] = prev_p[:new_task_id].clone()
+        new_p[new_task_id] = prev_p[prev_task_id].clone() + noise
+        return torch.nn.Parameter(new_p, requires_grad=True)
+
 
     def forward(self, x_querry, l, x_block, train=False):
 
@@ -226,16 +240,19 @@ class CodaPrompt(nn.Module):
         # 
         # code for this function is modified from:
         # https://github.com/legendongary/pytorch-gram-schmidt/blob/master/gram_schmidt.py
-        for e in self.e_layers:
-            K = getattr(self,f'e_k_{e}')
-            A = getattr(self,f'e_a_{e}')
-            P = getattr(self,f'e_p_{e}')
-            k = self.gram_schmidt(K)
-            a = self.gram_schmidt(A)
-            p = self.gram_schmidt(P)
-            setattr(self, f'e_p_{e}',p)
-            setattr(self, f'e_k_{e}',k)
-            setattr(self, f'e_a_{e}',a)
+        if self.args.n_splits is None:
+            for e in self.e_layers:
+                K = getattr(self,f'e_k_{e}')
+                A = getattr(self,f'e_a_{e}')
+                P = getattr(self,f'e_p_{e}')
+                k = self.gram_schmidt(K)
+                a = self.gram_schmidt(A)
+                p = self.gram_schmidt(P)
+                setattr(self, f'e_p_{e}',p)
+                setattr(self, f'e_k_{e}',k)
+                setattr(self, f'e_a_{e}',a)
+        else:
+            self.task_count = 0
 
     # code for this function is modified from:
     # https://github.com/legendongary/pytorch-gram-schmidt/blob/master/gram_schmidt.py

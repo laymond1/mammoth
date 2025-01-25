@@ -268,6 +268,71 @@ class OnlineSiBlurrySampler(Sampler):
         return self.num_selected_samples
 
 
+class OnlineCILSampler(Sampler):
+    def __init__(self, data_source: Optional[Sized], num_tasks: int, rnd_seed: int=42, task_size: int=10, num_replicas=None, rank=None):
+        self.data_source = data_source
+        self.classes = data_source.classes
+        self.targets = data_source.targets
+        self.num_tasks = num_tasks
+        if isinstance(task_size, list):
+            self.task_size = task_size
+        elif isinstance(task_size, int):
+            self.task_size = [task_size] * num_tasks
+        else:
+            raise ValueError("task_size should be an integer or a list of integers.")
+        # self.task_size = num_tasks  # Number of classes per task
+        self.generator = torch.Generator().manual_seed(rnd_seed)
+
+        if num_replicas is not None:
+            if not dist.is_available():
+                raise RuntimeError("Distributed package is not available, but you are trying to use it.")
+            self.num_replicas = dist.get_world_size()
+        else:
+            self.num_replicas = 1
+
+        if rank is not None:
+            if not dist.is_available():
+                raise RuntimeError("Distributed package is not available, but you are trying to use it.")
+            self.rank = dist.get_rank()
+        else:
+            self.rank = 0
+
+        self.distributed = num_replicas is not None and rank is not None
+        self.task = 0
+
+        # Divide classes into tasks
+        class_order = torch.randperm(len(self.classes), generator=self.generator).tolist()
+        # self.task_classes = [class_order[i * task_size:(i + 1) * task_size] for i in range(num_tasks)]
+        self.task_classes = [class_order[i * self.task_size[i]:(i + 1) * self.task_size[i]] for i in range(num_tasks)]
+        print("Task classes: ", self.task_classes)
+
+        # Prepare indices for each task
+        self.task_indices = [[] for _ in range(num_tasks)]
+        for idx, target in enumerate(self.targets):
+            for task_id, classes in enumerate(self.task_classes):
+                if target in classes:
+                    self.task_indices[task_id].append(idx)
+
+        for task_id in range(num_tasks):
+            self.task_indices[task_id] = torch.tensor(self.task_indices[task_id])[torch.randperm(len(self.task_indices[task_id]), generator=self.generator)].tolist()
+
+        self.num_samples = [len(self.task_indices[task_id]) // self.num_replicas for task_id in range(num_tasks)]
+
+    def set_task(self, task_id):
+        if task_id >= self.num_tasks or task_id < 0:
+            raise ValueError(f"Task ID {task_id} is out of range.")
+        self.task = task_id
+
+    def __iter__(self) -> Iterable[int]:
+        indices = self.task_indices[self.task]
+        if self.distributed:
+            indices = indices[self.rank::self.num_replicas]
+        return iter(indices)
+
+    def __len__(self) -> int:
+        return len(self.task_indices[self.task]) // self.num_replicas
+
+
 class OnlineTaskSiBlurrySampler(Sampler):
     def __init__(self, data_source: Optional[Sized], num_tasks: int, m: int, n: int,  rnd_seed: int, varing_NM: bool= False, cur_iter: int= 0, num_replicas: int=None, rank: int=None) -> None:
 

@@ -147,15 +147,15 @@ class OnlineOVOR(OnlineContinualModel):
         x = x.to(self.device)
         y = y.to(self.device)
         
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         logits, loss_dict = self.model_forward(x, y) 
         loss = loss_dict['total_loss']
         _, preds = logits.topk(1, 1, True, True) # self.topk: 1
 
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-        self.scaler.step(self.opt)
+        self.scaler.step(self.optimizer)
         self.scaler.update()
         self.update_schedule()
 
@@ -196,15 +196,15 @@ class OnlineOVOR(OnlineContinualModel):
             oods_x = oods_x.to(self.device)
             targets = targets.to(self.device)
 
-            self.opt.zero_grad()
+            self.optimizer.zero_grad()
             logits, loss_dict = self.model_ood_forward(ids_x, oods_x, targets)
             loss = loss_dict['total_loss']
             _, preds = logits.topk(1, 1, True, True) # self.topk: 1
 
-            self.opt.zero_grad()
+            self.optimizer.zero_grad()
             self.scaler.scale(loss).backward()
             # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-            self.scaler.step(self.opt)
+            self.scaler.step(self.optimizer)
             self.scaler.update()
             self.update_schedule()
 
@@ -304,5 +304,5 @@ class OnlineOVOR(OnlineContinualModel):
             tmp.update({f'{prefix}_ood_{k}': v for k, v in train_ood_loss_dict.items()})
             tmp.update(extra or {})
             if hasattr(self, 'opt'):
-                tmp['lr'] = self.opt.param_groups[0]['lr']
+                tmp['lr'] = self.optimizer.param_groups[0]['lr']
             wandb.log(tmp, step=sample_num)

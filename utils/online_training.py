@@ -21,7 +21,7 @@ from collections import defaultdict
 from torch.utils.data import DataLoader
 
 from datasets.utils.indexed_dataset import IndexedDataset
-from datasets.utils.online_sampler import OnlineTaskSiBlurrySampler, OnlinePeriodicSampler, OnlineTestSampler, OnlineTrainSampler
+from datasets.utils.online_sampler import OnlineTaskSiBlurrySampler, OnlineCILSampler, OnlinePeriodicSampler, OnlineTestSampler, OnlineTrainSampler
 from datasets.utils.continual_dataset import ContinualDataset, MammothDatasetWrapper
 from models.utils.online_continual_model import OnlineContinualModel
 from models.utils.future_model import FutureModel
@@ -112,6 +112,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     # Scenario setup
     if args.online_scenario == 'si-blurry':
         train_sampler = OnlineTaskSiBlurrySampler(train_dataset, dataset.N_TASKS, args.m, args.n, args.seed, args.rnd_NM) # args.selection_size was used for prompt
+    elif args.online_scenario == 'online-stand-cil':
+        train_sampler = OnlineCILSampler(train_dataset, dataset.N_TASKS, args.seed, dataset.N_CLASSES_PER_TASK)
     elif args.online_scenario == 'online-cil':
         args.m = 0
         args.n = 100
@@ -135,6 +137,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             print(f"Online boundary free training {args.repeat} times with Periodic Gaussian {args.sigma}")
         elif args.online_scenario == 'online-cil':
             print(f"Online class-incremental training")
+        elif args.online_scenario == 'online-stand-cil':
+            print(f"Online standard class-incremental training")
         else:
             raise NotImplementedError(f"Scenario {args.online_scenario} not implemented")
         
@@ -162,7 +166,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             print("#" * 50 + "\n")
             print("[2-1] Prepare a datalist for the current task")
             
-            if args.online_scenario in ['si-blurry', 'online-cil']:
+            if args.online_scenario in ['si-blurry', 'online-stand-cil', 'online-cil']:
                 train_sampler.set_task(task_id)
 
             model.online_before_task(task_id)
@@ -353,8 +357,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                         np.save(f"{log_path}/linear_last_fgt_seed_{args.seed}_eval.npy", linear_eval_results["last_fgt"])
                 else:   
                     # Task metrics   
-                    np.save(f"{log_path}/task_cls_acc_seed_eval.npy", task_records["cls_acc"])
-                    np.save(f"{log_path}/task_acc_seed_eval.npy", task_records["task_acc"])
+                    np.save(f"{log_path}/task_cls_acc_eval.npy", task_records["cls_acc"])
+                    np.save(f"{log_path}/task_acc_eval.npy", task_records["task_acc"])
                     # Anytime evaluation metrics
                     np.save(f"{log_path}/cls_acc_eval.npy", eval_results["cls_acc"])
                     np.save(f"{log_path}/test_acc_eval.npy", eval_results["test_acc"])
@@ -373,11 +377,14 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
 
             # Calculate final summary metrics
             A_task_avg = np.mean(task_records["task_acc"])
-            A_task_last = task_records["task_acc"][-1]
+            if len(task_records["task_acc"]) > 0:
+                A_task_last = task_records["task_acc"][-1]
             A_auc = np.mean(eval_results["test_acc"])
-            A_last = eval_results["test_acc"][-1]
+            if len(eval_results["test_acc"]) > 0:
+                A_last = eval_results["test_acc"][-1]
             F_auc = np.mean(eval_results["instant_fgt"])
-            F_last = eval_results["last_fgt"][-1]
+            if len(eval_results["last_fgt"]) > 0:
+                F_last = eval_results["last_fgt"][-1]
             F_last_auc = np.mean(eval_results["last_fgt"])
             if args.f_eval:
                 KLR_avg = np.mean(eval_results['klr'][1:])
@@ -385,7 +392,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             else:
                 KLR_avg, KGR_avg = 0.0, 0.0
             print(f"======== Summary =======")
-            print(f"A_task {A_task_avg} | A_task_last{A_task_last} | A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | F_last_auc {F_last_auc} | KGR_avg {KGR_avg} | KLR_avg {KLR_avg}")
+            if len(task_records["task_acc"]) > 0 and len(eval_results["test_acc"]) > 0 and len(eval_results["last_fgt"]) > 0:
+                print(f"A_task {A_task_avg} | A_task_last {A_task_last} | A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | F_last_auc {F_last_auc} | KGR_avg {KGR_avg} | KLR_avg {KLR_avg}")
             print(f"="*24)
             
             # Log results to wandb, if enabled

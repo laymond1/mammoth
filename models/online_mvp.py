@@ -86,12 +86,29 @@ class MVP(OnlineContinualModel):
         # init task per class
         self.task_per_cls = [0]
     
+    def add_new_class(self, class_name):
+        exposed_classes = []
+        for label in class_name:
+            if label.item() not in self.exposed_classes:
+                self.exposed_classes.append(label.item())
+        if self.distributed:
+            exposed_classes = torch.cat(self.all_gather(torch.tensor(self.exposed_classes, device=self.device))).cpu().tolist()
+            self.exposed_classes = []
+            for cls in exposed_classes:
+                if cls not in self.exposed_classes:
+                    self.exposed_classes.append(cls)
+        self.mask[:len(self.exposed_classes)] = 0
+        # if hasattr(self, 'subset_start'):
+        #     self.mask[:self.subset_start] = -float('inf')
+        if 'reset' in self.args.lr_scheduler: # Not used
+            self.update_schedule(reset=True)
+
     def online_before_task(self, task_id):
         if task_id > 0:
             self.net.prompt.process_task_count()
         self.subset_start = self.task_per_cls[task_id]
         pass
-    
+
     def online_before_train(self):
         pass
     
@@ -138,16 +155,16 @@ class MVP(OnlineContinualModel):
 
         x = x.to(self.device)
         y = y.to(self.device)
-
-        self.opt.zero_grad()
+        
+        self.optimizer.zero_grad()
         logits, loss_dict = self.model_forward(x, y) 
-        loss = loss_dict['total_loss'] 
+        loss = loss_dict['total_loss']
         _, preds = logits.topk(1, 1, True, True) # self.topk: 1
         
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-        self.scaler.step(self.opt)
+        self.scaler.step(self.optimizer)
         self.scaler.update()
         self.update_schedule()
 

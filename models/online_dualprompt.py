@@ -77,6 +77,7 @@ class OnlineDualPrompt(OnlineContinualModel):
     def online_before_task(self, task_id):
         if task_id > 0:
             self.net.prompt.process_task_count()
+            self.reset_opt()
         self.subset_start = self.task_per_cls[task_id]
         pass
     
@@ -127,15 +128,15 @@ class OnlineDualPrompt(OnlineContinualModel):
         x = x.to(self.device)
         y = y.to(self.device)
         
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         logits, loss_dict = self.model_forward(x, y) 
         loss = loss_dict['total_loss']
         _, preds = logits.topk(1, 1, True, True) # self.topk: 1
         
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-        self.scaler.step(self.opt)
+        self.scaler.step(self.optimizer)
         self.scaler.update()
         self.update_schedule()
 

@@ -164,7 +164,14 @@ class PromptModel(nn.Module):
         out = out.view(out.size(0), -1)
 
         if feat:
-            return out
+            logits = self.head(out)
+            if hasattr(self.prompt, 'use_mask') and self.prompt.use_mask:
+                logits = logits * mask
+            if self.prompt is not None and train:
+                return logits, prompt_loss, out
+            else:
+                return logits, out
+            
         out = self.head(out)
         if hasattr(self.prompt, 'use_mask') and self.prompt.use_mask:
             out = out * mask
