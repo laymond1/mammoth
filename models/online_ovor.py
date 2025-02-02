@@ -166,12 +166,25 @@ class OnlineOVOR(OnlineContinualModel):
         return total_loss_dict, total_correct/total_num_data
     
     def _get_ood_samples(self, x, y):
-        sorted_y, sorted_idx = torch.sort(y.detach().cpu())
+        subset_size = len(self.exposed_classes) - self.subset_start # number of unseen classes
+        id_feats = [torch.empty(0, 768) for _ in range(subset_size)]
         with torch.no_grad():
-            feats = self.net(x, train=False, feat=True).detach().cpu()
-            id_feats = feats[sorted_idx]
+            _, feats = self.net(x, train=False, feat=True)
+            feats = feats.detach().cpu() 
+            # feats = self.model(x=imgs, feat=True).detach().cpu()
+            for i, idx in enumerate(y):
+                key = (idx % subset_size).item() #  0 ~ subset_size -1 까지는 모두 in-distribution
+                id_feats[key] = torch.cat((id_feats[key], feats[i].view(1, -1)), 0)
+        return self.ood.generate(id_feats, self.subset_start)
 
-        return self.ood.generate(id_feats, sorted_y)
+    # def _get_ood_samples(self, x, y):
+    #     sorted_y, sorted_idx = torch.sort(y.detach().cpu())
+    #     with torch.no_grad():
+    #         _, feats = self.net(x, train=False, feat=True)
+    #         feats = feats.detach().cpu() 
+    #         id_feats = feats[sorted_idx]
+
+    #     return self.ood.generate(id_feats, sorted_y)
 
     def online_train_ood(self, data):
         self.net.train()
@@ -236,25 +249,16 @@ class OnlineOVOR(OnlineContinualModel):
             loss_dict.update({'total_loss': total_loss})
 
         return logits, loss_dict
-        
+
     def model_ood_forward(self, id_x, ood_x, y):
         with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
-            id_logits = self.net(id_x, last=True)
-            ood_logits = self.net(ood_x, last=True)
+            id_logits = self.net(id_x, last=True)[:, :len(self.exposed_classes)]
+            id_logits[:, :self.subset_start] = -float('inf')
+            ood_logits = self.net(ood_x, last=True)[:, self.subset_start:len(self.exposed_classes)]
             loss_dict = dict()
-            # here is the trick to mask out classes of non-current classes
-            non_cur_classes_mask = torch.zeros(self.num_classes, device=self.device) - torch.inf
-            non_cur_classes_mask[y.unique()] = 0 
-            # mask out unseen classes and non-current classes
-            if self.args.train_mask:
-                id_logits = id_logits + non_cur_classes_mask
-                ood_logits = ood_logits + non_cur_classes_mask
-            else:
-                id_logits = id_logits + self.mask
-                ood_logits = ood_logits + self.mask
             
             ce_loss = self.loss(id_logits, y)
-            ood_loss, id_score, ood_score = self.ood.loss(id_logits, ood_logits)
+            ood_loss, id_score, ood_score = self.ood.loss(id_logits[:, self.subset_start:], ood_logits)
             total_loss = ce_loss + ood_loss
             
             loss_dict.update({'id_ce_loss': ce_loss})
@@ -264,6 +268,34 @@ class OnlineOVOR(OnlineContinualModel):
             loss_dict.update({'total_loss': total_loss})
             
         return id_logits, loss_dict
+
+    # def model_ood_forward(self, id_x, ood_x, y):
+    #     with torch.amp.autocast(device_type=self.device.type, enabled=self.args.use_amp):
+    #         id_logits = self.net(id_x, last=True)
+    #         ood_logits = self.net(ood_x, last=True)
+    #         loss_dict = dict()
+    #         # here is the trick to mask out classes of non-current classes
+    #         non_cur_classes_mask = torch.zeros(self.num_classes, device=self.device) - torch.inf
+    #         non_cur_classes_mask[y.unique()] = 0 
+    #         # mask out unseen classes and non-current classes
+    #         if self.args.train_mask:
+    #             id_logits = id_logits + non_cur_classes_mask
+    #             ood_logits = ood_logits + non_cur_classes_mask
+    #         else:
+    #             id_logits = id_logits + self.mask
+    #             ood_logits = ood_logits + self.mask
+
+    #         ce_loss = self.loss(id_logits, y)
+    #         ood_loss, id_score, ood_score = self.ood.loss(id_logits, ood_logits)
+    #         total_loss = ce_loss + ood_loss
+            
+    #         loss_dict.update({'id_ce_loss': ce_loss})
+    #         loss_dict.update({'ood_loss': ood_loss})
+    #         loss_dict.update({'id_score': id_score})
+    #         loss_dict.update({'ood_score': ood_score})
+    #         loss_dict.update({'total_loss': total_loss})
+            
+    #     return id_logits, loss_dict
     
     def online_after_task(self, task_id):
         self.task_per_cls.append(len(self.exposed_classes))

@@ -25,15 +25,27 @@ class NPOS:
         self.lmda = getattr(args, 'lmda', 0.1)
         self.huber = torch.nn.HuberLoss() if getattr(args, 'huber', True) else torch.nn.MSELoss()
     
-    def generate(self, in_dist, targets):
-        num_cls = targets.unique().size(0)
-        id_count = in_dist.size(0)
-        oods = self._generate(in_dist, num_cls)
-        id_loader = DataLoader(dataset=TensorDataset(in_dist, targets), batch_size=self.id_bsz, shuffle=True)
+    def generate(self, in_dist, subset_start=0):
+        num_cls = len(in_dist)
+        targets = torch.cat([torch.ones(t.size(0)).long() * (subset_start + i) for i, t in enumerate(in_dist)], dim=0)
+        ids = torch.cat(in_dist, dim=0) # 비어있던 empty tensor 사라짐.
+        id_count = ids.size(0)
+        oods = self._generate(ids, num_cls)
+        id_loader = DataLoader(dataset=TensorDataset(ids, targets), batch_size=self.id_bsz, shuffle=True)
         num_batch = int(math.ceil(id_count / self.id_bsz))
         ood_bsz = int(math.floor(oods.shape[0] / num_batch))
         ood_loader = DataLoader(dataset=TensorDataset(oods), batch_size=ood_bsz)
         return id_loader, ood_loader
+
+    # def generate(self, in_dist, targets):
+    #     num_cls = targets.unique().size(0)
+    #     id_count = in_dist.size(0)
+    #     oods = self._generate(in_dist, num_cls)
+    #     id_loader = DataLoader(dataset=TensorDataset(in_dist, targets), batch_size=self.id_bsz, shuffle=True)
+    #     num_batch = int(math.ceil(id_count / self.id_bsz))
+    #     ood_bsz = int(math.floor(oods.shape[0] / num_batch))
+    #     ood_loader = DataLoader(dataset=TensorDataset(oods), batch_size=ood_bsz)
+    #     return id_loader, ood_loader
 
     def _generate(self, in_dist, num_cls):
         offsets = self.dis.rsample((self.sample_from,))
