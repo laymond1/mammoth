@@ -34,7 +34,7 @@ class OnlineEr(OnlineContinualModel):
         """
         add_rehearsal_args(parser)
         # Trick
-        parser.add_argument('--train_mask', type=int, default=1, choices=[0, 1], help='if using the class mask at training')
+        parser.add_argument('--train_mask', type=int, default=0, choices=[0, 1], help='if using the class mask at training')
         # Backbone
         parser.add_argument('--ft_backbone', type=bool, default=0, choices=[0, 1], help='fine-tuning backbone')
         # ETC

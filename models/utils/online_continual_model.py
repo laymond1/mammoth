@@ -20,6 +20,7 @@ import logging
 import os
 import sys
 import copy
+import pickle
 import time
 import datetime
 from contextlib import suppress
@@ -36,6 +37,7 @@ import torch.optim as optim
 import torch.distributed as dist
 from torch.nn import Module
 from torch.optim import lr_scheduler
+from torch.utils.data import DataLoader
 
 from models.utils.continual_model import ContinualModel
 
@@ -73,8 +75,13 @@ class OnlineContinualModel(ContinualModel):
         self.reset_opt()
         # attributes for evaluate metrics
         self.gt_label = None
+        self.task_test_records = []
+        self.task_n_model_cls = []
         self.test_records = []
         self.n_model_cls = []
+        self.task_knowledge_loss_rate = []
+        self.task_knowledge_gain_rate = []
+        self.task_forgetting_time = []
         self.knowledge_loss_rate = []
         self.knowledge_gain_rate = []
         self.forgetting_time = []
@@ -117,6 +124,47 @@ class OnlineContinualModel(ContinualModel):
 
         return list(future_classes.keys())
 
+    def compute_future_classes(self, train_sampler, train_dataset, end_task):
+        """
+        Computes future_classes and stores them in a cache file based on the seed value.
+        If the cache file exists, it loads the precomputed future_classes.
+        """
+        # get path of datasets/configs/{args.dataset}
+        workspace = os.path.abspath(os.path.join(os.path.abspath(__file__), '../../../'))
+        cache_path = os.path.join(workspace, f'datasets/configs/{self.args.dataset}')
+        cache_file = os.path.join(cache_path, f'future_classes_cache_seed_{self.args.seed}.pkl')
+
+        # Create cache directory if it does not exist
+        if not os.path.exists(cache_path):
+            os.makedirs(cache_path)
+
+        # if cache file exists, load future_classes from cache
+        if os.path.exists(cache_file):
+            print(f"Loading future_classes from cache: {cache_file}")
+            with open(cache_file, "rb") as f:
+                future_classes = pickle.load(f)
+            return future_classes
+        else:
+            print("Computing future_classes (this may take time)...")
+            future_classes = []
+            for t in range(end_task):
+                train_sampler.set_task(t)
+                classes = self.get_future_classes(
+                    DataLoader(train_dataset, 
+                            batch_size=self.args.test_batch_size * 8,
+                            sampler=train_sampler, 
+                            num_workers=self.args.num_workers, 
+                            pin_memory=True)
+                )
+                future_classes.extend(classes)
+
+            # Future classes are cached for future use
+            with open(cache_file, "wb") as f:
+                pickle.dump(future_classes, f)
+            
+            print(f"Future classes computed and cached at: {cache_file}")
+            return future_classes
+
     def future_evaluate(self, test_loader, future_classes):
         total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
         correct_l = torch.zeros(self.num_classes)
@@ -158,13 +206,19 @@ class OnlineContinualModel(ContinualModel):
         
         return eval_dict
 
-    def online_evaluate(self, test_loader):
+    def online_evaluate(self, test_loader, mode='eval'):
         total_correct, total_num_data, total_loss = 0.0, 0.0, 0.0
         correct_l = torch.zeros(self.num_classes)
         num_data_l = torch.zeros(self.num_classes)
-        self.all_preds = []
-        self.all_labels = []
         
+        # Ensure mode validity
+        assert mode in ["task", "eval"], f"Invalid mode: {mode}"
+        # Initialize storage for predictions
+        if mode == 'task':
+            self.all_task_preds, self.all_task_labels = [], []
+        else:  # mode == 'eval'
+            self.all_preds, self.all_labels = [], []
+
         # Create a mapping from label to index for exposed_classes
         class_to_idx = {label: idx for idx, label in enumerate(self.exposed_classes)}
         
@@ -195,9 +249,13 @@ class OnlineContinualModel(ContinualModel):
 
                 total_loss += loss.mean().item()
 
-                # Store predictions and ground truths for confusion matrix
-                self.all_preds.extend(pred.cpu().tolist())
-                self.all_labels.extend(y.cpu().tolist())
+                # Store predictions for further evaluation
+                if mode == 'task':
+                    self.all_task_preds.extend(pred.cpu().tolist())
+                    self.all_task_labels.extend(y.cpu().tolist())
+                else:  # mode == 'eval'
+                    self.all_preds.extend(pred.cpu().tolist())
+                    self.all_labels.extend(y.cpu().tolist())
 
         avg_acc = total_correct / total_num_data
         avg_loss = total_loss / len(test_loader)
@@ -207,7 +265,51 @@ class OnlineContinualModel(ContinualModel):
         
         return eval_dict    
     
-    def online_forgetting_evaluate(self, test_loader, future_classes, samples_cnt):
+    def get_online_forgetting(self, preds, labels, samples_cnt, mode='eval'):
+        preds = np.array(preds)
+        self.gt_label = np.array(labels)
+
+        if mode == 'task':
+            # first evaluation is added to task_test_records
+            if len(self.task_test_records) == 0:
+                self.task_test_records.append(self.test_records[0])
+                self.task_n_model_cls.append(self.n_model_cls[0])
+            test_records = self.task_test_records
+            n_model_cls = self.task_n_model_cls
+        elif mode == 'eval':
+            test_records = self.test_records
+            n_model_cls = self.n_model_cls
+
+        # append preds to test_records
+        test_records.append(preds)
+        n_model_cls.append(len(self.exposed_classes))
+
+        # Initialize klr and kgr with default values
+        klr, kgr = 0.0, 0.0
+
+        if len(test_records) > 1:
+            klr, kgr = calculate_online_forgetting(
+                len(self.exposed_classes),
+                self.gt_label, 
+                test_records[-2], 
+                test_records[-1], 
+                n_model_cls[-2], 
+                n_model_cls[-1]
+            )
+            if mode == 'task':
+                self.task_knowledge_loss_rate.append(klr)
+                self.task_knowledge_gain_rate.append(kgr)
+                self.task_forgetting_time.append(samples_cnt)
+            elif mode == 'eval':
+                self.knowledge_loss_rate.append(klr)
+                self.knowledge_gain_rate.append(kgr)
+                self.forgetting_time.append(samples_cnt)
+        
+        fgt_eval_dict = {"klr": klr, "kgr": kgr}
+        
+        return fgt_eval_dict
+
+    def online_forgetting_evaluate(self, test_loader, future_classes, samples_cnt, mode='eval'):
         preds = []
         gts = []
         
@@ -237,25 +339,43 @@ class OnlineContinualModel(ContinualModel):
             if self.gt_label is None:
                 self.gt_label = np.concatenate(gts)
 
+        # Ensure mode validity
+        assert mode in ["task", "eval"], f"Invalid mode: {mode}"
+        if mode == 'task':
+            # first evaluation is added to task_test_records
+            if len(self.task_test_records) == 0:
+                self.task_test_records.append(self.test_records[0])
+                self.task_n_model_cls.append(self.n_model_cls[0])
+            test_records = self.task_test_records
+            n_model_cls = self.task_n_model_cls
+        else: # mode == 'eval'
+            test_records = self.test_records
+            n_model_cls = self.n_model_cls
+
         # Combine get_forgetting logic here
-        self.test_records.append(preds)
-        self.n_model_cls.append(copy.deepcopy(len(self.exposed_classes)))
+        test_records.append(preds)
+        n_model_cls.append(copy.deepcopy(len(self.exposed_classes)))
         
         # Initialize klr and kgr with default values
         klr, kgr = 0.0, 0.0
         
-        if len(self.test_records) > 1:
+        if len(test_records) > 1:
             klr, kgr = calculate_online_forgetting(
                 len(future_classes),
                 self.gt_label, 
-                self.test_records[-2], 
-                self.test_records[-1], 
-                self.n_model_cls[-2], 
-                self.n_model_cls[-1]
+                test_records[-2], 
+                test_records[-1], 
+                n_model_cls[-2], 
+                n_model_cls[-1]
             )
-            self.knowledge_loss_rate.append(klr)
-            self.knowledge_gain_rate.append(kgr)
-            self.forgetting_time.append(samples_cnt)
+            if mode == 'task':
+                self.task_knowledge_loss_rate.append(klr)
+                self.task_knowledge_gain_rate.append(kgr)
+                self.task_forgetting_time.append(samples_cnt)
+            elif mode == 'eval':
+                self.knowledge_loss_rate.append(klr)
+                self.knowledge_gain_rate.append(kgr)
+                self.forgetting_time.append(samples_cnt)
         
         fgt_eval_dict = {"klr": klr, "kgr": kgr}
         

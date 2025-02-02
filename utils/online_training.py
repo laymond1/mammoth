@@ -176,13 +176,9 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             
             # Get future classes
             if args.f_eval:
-                future_classes = model.get_future_classes(
-                    DataLoader(train_dataset, 
-                                batch_size=args.test_batch_size * 8,
-                                sampler=train_sampler, 
-                                num_workers=args.num_workers, 
-                                pin_memory=True)
-                )
+                future_classes = model.compute_future_classes(train_sampler, train_dataset, end_task)
+                # Reset the sampler's task id
+                train_sampler.set_task(task_id)
             
             ## Start Online Training
             for i, (images, labels, not_aug_images, idx) in enumerate(train_dataloader):
@@ -226,11 +222,12 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                         if not fgt_first_eval_done and args.f_eval:
                             f_eval_dict = model.online_forgetting_evaluate(full_test_dataloader, future_classes, samples_cnt)
                             fgt_first_eval_done = True
-                        
+
                         # Subsequent forgetting evaluations based on f_eval_period
-                        elif samples_cnt >= f_eval_period and args.f_eval:
-                            f_eval_dict = model.online_forgetting_evaluate(full_test_dataloader, future_classes, samples_cnt)
-                            f_eval_period += args.f_eval_period
+                        # elif samples_cnt >= f_eval_period and args.f_eval:
+                        #     f_eval_dict = model.online_forgetting_evaluate(full_test_dataloader, future_classes, samples_cnt)
+                        #     f_eval_period += args.f_eval_period
+
                         # TODO: implement distributed evaluation
                         # Aggregate evaluation results across distributed processes if needed
                         if model.distributed:
@@ -320,7 +317,12 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             # Evaluate the model after the task
             test_sampler = OnlineTestSampler(test_dataset, model.exposed_classes)
             test_dataloader = DataLoader(test_dataset, batch_size=args.test_batch_size, sampler=test_sampler, num_workers=args.num_workers)
-            task_eval_dict = model.online_evaluate(test_dataloader)
+            task_eval_dict = model.online_evaluate(test_dataloader, mode='task')
+            # Subsequent forgetting evaluations based on f_eval_period
+            # task_f_eval_dict = model.get_online_forgetting(model.all_task_preds, model.all_task_preds, samples_cnt, mode='task')
+            task_f_eval_dict = model.online_forgetting_evaluate(full_test_dataloader, future_classes, samples_cnt, mode='task')
+            # Update eval_dict with task_f_eval_dict to report forgetting metrics
+            task_eval_dict.update(task_f_eval_dict)
             # Report again the last result after task
             model.report_test(samples_cnt, task_eval_dict, task_id=task_id) 
             
@@ -333,6 +335,8 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             print("[2-4] Update the information for the current task")
             task_records["task_acc"].append(task_eval_dict["avg_acc"])
             task_records["cls_acc"].append(task_eval_dict["cls_acc"])
+            task_records["klr"].append(task_eval_dict["klr"])
+            task_records["kgr"].append(task_eval_dict["kgr"])
             
             print("[2-5] Report task result")
             
@@ -342,15 +346,18 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                     # Task metrics   
                     np.save(f"{log_path}/task_cls_acc_seed_{args.seed}_eval.npy", task_records["cls_acc"])
                     np.save(f"{log_path}/task_acc_seed_{args.seed}_eval.npy", task_records["task_acc"])
+                    if args.f_eval:
+                        np.save(f"{log_path}/task_klr_seed_{args.seed}_eval.npy", task_records["klr"])
+                        np.save(f"{log_path}/task_kgr_seed_{args.seed}_eval.npy", task_records["kgr"])
                     # Anytime evaluation metrics
                     np.save(f"{log_path}/cls_acc_seed_{args.seed}_eval.npy", eval_results["cls_acc"])
                     np.save(f"{log_path}/test_acc_seed_{args.seed}_eval.npy", eval_results["test_acc"])
                     np.save(f"{log_path}/data_cnt_seed_{args.seed}_eval_time.npy", eval_results["data_cnt"])
                     np.save(f"{log_path}/instant_fgt_seed_{args.seed}_eval.npy", eval_results["instant_fgt"])
                     np.save(f"{log_path}/last_fgt_seed_{args.seed}_eval.npy", eval_results["last_fgt"])
-                    if args.f_eval:
-                        np.save(f"{log_path}/klr_seed_{args.seed}_eval.npy", eval_results["klr"][1:])
-                        np.save(f"{log_path}/kgr_seed_{args.seed}_eval.npy", eval_results["kgr"])
+                    # if args.f_eval:
+                    #     np.save(f"{log_path}/klr_seed_{args.seed}_eval.npy", eval_results["klr"])
+                    #     np.save(f"{log_path}/kgr_seed_{args.seed}_eval.npy", eval_results["kgr"])
                     if args.linear_eval:
                         # Linear evaluation metrics
                         np.save(f"{log_path}/linear_cls_acc_seed_{args.seed}_eval.npy", linear_eval_results["cls_acc"])
@@ -361,15 +368,18 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                     # Task metrics   
                     np.save(f"{log_path}/task_cls_acc_eval.npy", task_records["cls_acc"])
                     np.save(f"{log_path}/task_acc_eval.npy", task_records["task_acc"])
+                    if args.f_eval:
+                        np.save(f"{log_path}/task_klr_eval.npy", task_records["klr"])
+                        np.save(f"{log_path}/task_kgr_eval.npy", task_records["kgr"])
                     # Anytime evaluation metrics
                     np.save(f"{log_path}/cls_acc_eval.npy", eval_results["cls_acc"])
                     np.save(f"{log_path}/test_acc_eval.npy", eval_results["test_acc"])
                     np.save(f"{log_path}/data_cnt_eval_time.npy", eval_results["data_cnt"])
                     np.save(f"{log_path}/instant_fgt_eval.npy", eval_results["instant_fgt"])
                     np.save(f"{log_path}/last_fgt_eval.npy", eval_results["last_fgt"])
-                    if args.f_eval:
-                        np.save(f"{log_path}/klr_eval.npy", eval_results["klr"][1:])
-                        np.save(f"{log_path}/kgr_eval.npy", eval_results["kgr"])
+                    # if args.f_eval:
+                    #     np.save(f"{log_path}/klr_eval.npy", eval_results["klr"])
+                    #     np.save(f"{log_path}/kgr_eval.npy", eval_results["kgr"])
                     if args.linear_eval:
                         # Linear evaluation metrics
                         np.save(f"{log_path}/linear_cls_acc_eval.npy", linear_eval_results["cls_acc"])
@@ -389,13 +399,20 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 F_last = eval_results["last_fgt"][-1]
             F_last_auc = np.mean(eval_results["last_fgt"])
             if args.f_eval:
-                KLR_avg = np.mean(eval_results['klr'][1:])
-                KGR_avg = np.mean(eval_results['kgr'])
+                # Task metrics
+                KLR_task_avg = np.mean(task_records["klr"])
+                KGR_task_avg = np.mean(task_records["kgr"])
+            # if args.f_eval:
+            #     # Anytime evaluation metrics
+            #     KLR_avg = np.mean(eval_results["klr"][1:])
+            #     KGR_avg = np.mean(eval_results["kgr"][1:])
             else:
                 KLR_avg, KGR_avg = 0.0, 0.0
             print(f"======== Summary =======")
             if len(task_records["task_acc"]) > 0 and len(eval_results["test_acc"]) > 0 and len(eval_results["last_fgt"]) > 0:
-                print(f"A_task {A_task_avg} | A_task_last {A_task_last} | A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | F_last_auc {F_last_auc} | KGR_avg {KGR_avg} | KLR_avg {KLR_avg}")
+                print(f"Task Metrics:\n A_task {A_task_avg} | A_task_last {A_task_last}| KLR_task_avg {KLR_task_avg} | KGR_task_avg {KGR_task_avg}")
+                print(f"Anytime Metrics:\n A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | F_last_auc {F_last_auc}")
+                # print(f"A_task {A_task_avg} | A_task_last {A_task_last} | A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | F_last_auc {F_last_auc} | KGR_avg {KGR_avg} | KLR_avg {KLR_avg}")
             print(f"="*24)
             
             # Log results to wandb, if enabled
