@@ -30,7 +30,7 @@ class OnlineCodaPrompt(OnlineContinualModel):
         # Replay parameters
         add_rehearsal_args(parser)
         # Trick
-        parser.add_argument('--train_mask', type=int, default=1, choices=[0, 1], help='if using the class mask at training')
+        parser.add_argument('--train_mask', type=int, default=0, choices=[0, 1], help='if using the class mask at training')
         
         # Parameters
         parser.add_argument('--e_prompt_pool_size', type=int, default=100, help='pool size')
@@ -74,10 +74,12 @@ class OnlineCodaPrompt(OnlineContinualModel):
     def online_before_task(self, task_id):
         if task_id > 0:
             self.net.prompt.process_task_count()
+            self.reset_opt()
         self.subset_start = self.task_per_cls[task_id]
         pass
 
     def online_before_train(self):
+        # self.initial_params = {name: param.clone() for name, param in self.net.prompt.named_parameters()}
         pass
 
     def online_step(self, inputs, labels, not_aug_inputs, idx):
@@ -124,15 +126,15 @@ class OnlineCodaPrompt(OnlineContinualModel):
         x = x.to(self.device)
         y = y.to(self.device)
         
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         logits, loss_dict = self.model_forward(x, y) 
         loss = loss_dict['total_loss']
         _, preds = logits.topk(1, 1, True, True) # self.topk: 1
                
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-        self.scaler.step(self.opt)
+        self.scaler.step(self.optimizer)
         self.scaler.update()
         self.update_schedule()
 
@@ -172,6 +174,10 @@ class OnlineCodaPrompt(OnlineContinualModel):
         pass
     
     def online_after_train(self):
+        # 몇 에포크 후에 파라미터 값 비교
+        # for name, param in self.net.prompt.named_parameters():
+        #     if param.requires_grad:
+        #         print(f"{name} changed: {not torch.equal(self.net.initial_params[name], param.cpu())}")
         pass
     
     def get_parameters(self):

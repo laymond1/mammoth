@@ -36,7 +36,7 @@ class OnlineBFPrompt(OnlineContinualModel):
         # Replay parameters
         add_rehearsal_args(parser)
         # Trick
-        parser.add_argument('--train_mask', type=int, default=1, choices=[0, 1], help='if using the class mask at training')
+        parser.add_argument('--train_mask', type=int, default=0, choices=[0, 1], help='if using the class mask at training')
 
         # G-Prompt parameters
         parser.add_argument('--g_prompt_layer_idx', type=int, default=[0, 1], nargs="*", help='the layer index of the G-Prompt')
@@ -51,7 +51,7 @@ class OnlineBFPrompt(OnlineContinualModel):
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=True, help='the same key-value across all layers of the E-Prompt')
         parser.add_argument('--gt_key_value', type=int, default=0, choices=[0, 1], help='ground truth key-value')
-        parser.add_argument('--prompt_prediction', type=int, default=1, choices=[0, 1], help='prompt prediction with logits')
+        parser.add_argument('--prompt_prediction', type=int, default=0, choices=[0, 1], help='prompt prediction with logits')
         
         # SupCon
         parser.add_argument('--use_supcon', default=False, type=bool)
@@ -145,15 +145,15 @@ class OnlineBFPrompt(OnlineContinualModel):
         x = x.to(self.device)
         y = y.to(self.device)
         
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         logits, loss_dict = self.model_forward(x, y) 
         loss = loss_dict['total_loss']
         _, preds = logits.topk(1, 1, True, True) # self.topk: 1
         
-        self.opt.zero_grad()
+        self.optimizer.zero_grad()
         self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-        self.scaler.step(self.opt)
+        self.scaler.step(self.optimizer)
         self.scaler.update()
         self.update_schedule()
 
