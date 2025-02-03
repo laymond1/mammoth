@@ -41,7 +41,7 @@ class OnlineL2P(OnlineContinualModel):
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
 
         # Prompt location
-        parser.add_argument('--shallow', type=bool, default=True, help='Shallow ViT vs. Deep ViT')
+        parser.add_argument('--shallow', type=int, default=1, choices=[0, 1], help='Shallow ViT vs. Deep ViT')
         
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')

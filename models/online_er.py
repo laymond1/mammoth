@@ -36,7 +36,7 @@ class OnlineEr(OnlineContinualModel):
         # Trick
         parser.add_argument('--train_mask', type=int, default=0, choices=[0, 1], help='if using the class mask at training')
         # Backbone
-        parser.add_argument('--ft_backbone', type=bool, default=0, choices=[0, 1], help='fine-tuning backbone')
+        parser.add_argument('--ft_backbone', type=int, default=0, choices=[0, 1], help='fine-tuning backbone')
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
         return parser
