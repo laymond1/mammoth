@@ -318,11 +318,12 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             test_sampler = OnlineTestSampler(test_dataset, model.exposed_classes)
             test_dataloader = DataLoader(test_dataset, batch_size=args.test_batch_size, sampler=test_sampler, num_workers=args.num_workers)
             task_eval_dict = model.online_evaluate(test_dataloader, mode='task')
+            if args.f_eval:
             # Subsequent forgetting evaluations based on f_eval_period
-            # task_f_eval_dict = model.get_online_forgetting(model.all_task_preds, model.all_task_preds, samples_cnt, mode='task')
-            task_f_eval_dict = model.online_forgetting_evaluate(full_test_dataloader, future_classes, samples_cnt, mode='task')
-            # Update eval_dict with task_f_eval_dict to report forgetting metrics
-            task_eval_dict.update(task_f_eval_dict)
+                # task_f_eval_dict = model.get_online_forgetting(model.all_task_preds, model.all_task_preds, samples_cnt, mode='task')
+                task_f_eval_dict = model.online_forgetting_evaluate(full_test_dataloader, future_classes, samples_cnt, mode='task')
+                # Update eval_dict with task_f_eval_dict to report forgetting metrics
+                task_eval_dict.update(task_f_eval_dict)
             # Report again the last result after task
             model.report_test(samples_cnt, task_eval_dict, task_id=task_id) 
             
@@ -335,9 +336,10 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             print("[2-4] Update the information for the current task")
             task_records["task_acc"].append(task_eval_dict["avg_acc"])
             task_records["cls_acc"].append(task_eval_dict["cls_acc"])
-            task_records["klr"].append(task_eval_dict["klr"])
-            task_records["kgr"].append(task_eval_dict["kgr"])
-            
+            if args.f_eval:
+                task_records["klr"].append(task_eval_dict["klr"])
+                task_records["kgr"].append(task_eval_dict["kgr"])
+                
             print("[2-5] Report task result")
             
         if model.is_main_process():
