@@ -85,28 +85,11 @@ class MVP(OnlineContinualModel):
         self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
         # init task per class
         self.task_per_cls = [0]
-    
-    def add_new_class(self, class_name):
-        exposed_classes = []
-        for label in class_name:
-            if label.item() not in self.exposed_classes:
-                self.exposed_classes.append(label.item())
-        if self.distributed:
-            exposed_classes = torch.cat(self.all_gather(torch.tensor(self.exposed_classes, device=self.device))).cpu().tolist()
-            self.exposed_classes = []
-            for cls in exposed_classes:
-                if cls not in self.exposed_classes:
-                    self.exposed_classes.append(cls)
-        self.mask[:len(self.exposed_classes)] = 0
-        # if hasattr(self, 'subset_start'):
-        #     self.mask[:self.subset_start] = -float('inf')
-        if 'reset' in self.args.lr_scheduler: # Not used
-            self.update_schedule(reset=True)
 
     def online_before_task(self, task_id):
         if task_id > 0:
             self.net.prompt.process_task_count()
-        self.subset_start = self.task_per_cls[task_id]
+        # self.subset_start = self.task_per_cls[task_id]
         pass
 
     def online_before_train(self):
@@ -268,7 +251,7 @@ class MVP(OnlineContinualModel):
         return loss_dict
 
     def online_after_task(self, task_id):
-        self.task_per_cls.append(len(self.exposed_classes))
+        # self.task_per_cls.append(len(self.exposed_classes))
         pass
 
     def online_after_train(self):
