@@ -278,7 +278,8 @@ class OnlineCILSampler(Sampler):
         if isinstance(task_size, list):
             self.task_size = task_size
         elif isinstance(task_size, int):
-            self.task_size = [task_size] * num_tasks
+            # self.task_size = [task_size] * num_tasks
+            self.task_size = [len(self.classes)//num_tasks] * num_tasks
         else:
             raise ValueError("task_size should be an integer or a list of integers.")
         # self.task_size = num_tasks  # Number of classes per task
