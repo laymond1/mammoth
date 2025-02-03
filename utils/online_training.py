@@ -409,10 +409,10 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
             #     KLR_avg = np.mean(eval_results["klr"][1:])
             #     KGR_avg = np.mean(eval_results["kgr"][1:])
             else:
-                KLR_avg, KGR_avg = 0.0, 0.0
+                KLR_task_avg, KGR_task_avg = 0.0, 0.0
             print(f"======== Summary =======")
             if len(task_records["task_acc"]) > 0 and len(eval_results["test_acc"]) > 0 and len(eval_results["last_fgt"]) > 0:
-                print(f"Task Metrics:\n A_task {A_task_avg} | A_task_last {A_task_last}| KLR_task_avg {KLR_task_avg} | KGR_task_avg {KGR_task_avg}")
+                print(f"Task Metrics:\n A_task {A_task_avg} | A_task_last {A_task_last} | KLR_task_avg {KLR_task_avg} | KGR_task_avg {KGR_task_avg}")
                 print(f"Anytime Metrics:\n A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | F_last_auc {F_last_auc}")
                 # print(f"A_task {A_task_avg} | A_task_last {A_task_last} | A_auc {A_auc} | A_last {A_last} | F_auc {F_auc} | F_last {F_last} | F_last_auc {F_last_auc} | KGR_avg {KGR_avg} | KLR_avg {KLR_avg}")
             print(f"="*24)
