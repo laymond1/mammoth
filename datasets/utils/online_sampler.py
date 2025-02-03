@@ -1,3 +1,4 @@
+import itertools
 import torch
 import torch.distributed as dist
 from torch.utils.data.sampler import Sampler
@@ -303,7 +304,9 @@ class OnlineCILSampler(Sampler):
         # Divide classes into tasks
         class_order = torch.randperm(len(self.classes), generator=self.generator).tolist()
         # self.task_classes = [class_order[i * task_size:(i + 1) * task_size] for i in range(num_tasks)]
-        self.task_classes = [class_order[i * self.task_size[i]:(i + 1) * self.task_size[i]] for i in range(num_tasks)]
+        # self.task_classes = [class_order[i * self.task_size[i]:(i + 1) * self.task_size[i]] for i in range(num_tasks)]
+        task_start_indices = [0] + list(itertools.accumulate(self.task_size[:-1]))  # Cumulative sum for start indices
+        self.task_classes = [class_order[start:start + size] for start, size in zip(task_start_indices, self.task_size)]
         print("Task classes: ", self.task_classes)
 
         # Prepare indices for each task

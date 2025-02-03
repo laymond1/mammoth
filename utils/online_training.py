@@ -96,7 +96,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
     # dataset setup
     dataset.SETTING = args.online_scenario
     dataset.N_TASKS = args.n_tasks
-    dataset.N_CLASSES_PER_TASK = dataset.N_CLASSES // dataset.N_TASKS
+    # dataset.N_CLASSES_PER_TASK = dataset.N_CLASSES // dataset.N_TASKS
     dataset.set_dataset()
     assert hasattr(dataset, 'train_dataset') and hasattr(dataset, 'test_dataset'), "Dataset must have both train_dataset and test_dataset attributes"
 
@@ -277,7 +277,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                                 save_obj = {
                                     'model': model.state_dict(),
                                     'exposed_classes': model.exposed_classes,
-                                    'optimizer': model.opt.state_dict() if hasattr(model, 'opt') else None,
+                                    'optimizer': model.optimizer.state_dict() if hasattr(model, 'optimizer') else None,
                                     'scheduler': model.scheduler.state_dict() if model.scheduler is not None else None,
                                 }
 
@@ -304,7 +304,7 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 save_obj = {
                             'model': model.state_dict(),
                             'exposed_classes': model.exposed_classes,
-                            'optimizer': model.opt.state_dict() if hasattr(model, 'opt') else None,
+                            'optimizer': model.optimizer.state_dict() if hasattr(model, 'optimizer') else None,
                             'scheduler': model.scheduler.state_dict() if model.scheduler is not None else None,
                     }
                 # Saving model checkpoint for the current task
@@ -420,14 +420,14 @@ def train(model: OnlineContinualModel, dataset: ContinualDataset,
                 wandb.log({
                     "A_auc": A_auc, "A_last": A_last, 
                     "F_auc": F_auc, "F_last": F_last, "F_last_auc": F_last_auc,
-                    "KGR_avg": KGR_avg, "KLR_avg": KLR_avg
+                    # "KGR_avg": KGR_avg, "KLR_avg": KLR_avg
                 })
             # Save model checkpoint, if enabled
             if args.savecheck == 'last':
                 save_obj = {
                     'args': args,
                     'model': model.state_dict(),
-                    'optimizer': model.opt.state_dict() if hasattr(model, 'opt') else None,
+                    'optimizer': model.optimizer.state_dict() if hasattr(model, 'optimizer') else None,
                     'scheduler': model.scheduler.state_dict() if model.scheduler is not None else None,
                 }
                 # Saving model checkpoint for the last task
