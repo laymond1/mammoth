@@ -75,6 +75,9 @@ def check_args(args, dataset=None):
 
     assert 0 < args.label_perc <= 1, "label_perc must be in (0, 1]"
 
+    if args.seed == 1:
+        args.savecheck = "task"
+
     if args.savecheck:
         assert not args.inference_only, "Should not save checkpoint in inference only mode"
 
