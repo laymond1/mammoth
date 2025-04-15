@@ -506,6 +506,9 @@ def store_masked_loaders(train_dataset: Dataset, test_dataset: Dataset,
             assert hasattr(test_dataset, 'bias_label'), 'The dataset must have the bias label field (used during evaluation).'
             train_dataset.add_extra_return_field('indexes', np.arange(len(train_dataset.targets)))
             test_dataset.add_extra_return_field('bias_label', test_dataset.bias_label[test_mask])
+    
+    # Add indexes to the dataset for Query Buffer
+    train_dataset.add_extra_return_field('indexes', np.arange(len(train_dataset.targets)))
 
     # Finalize data, apply unlabeled mask
     train_dataset, test_dataset = _prepare_data_loaders(train_dataset, test_dataset, setting)

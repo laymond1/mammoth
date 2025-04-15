@@ -6,14 +6,17 @@ Note:
     The backbone is a ViT-B/16 pretrained on Imagenet 21k and finetuned on ImageNet 1k.
 """
 
-import logging
 import torch
+import torch.nn.functional as F
+
+from datasets import get_dataset
+from utils.args import add_rehearsal_args, ArgumentParser
 
 from models.utils.continual_model import ContinualModel
-from utils import binary_to_boolean_type
-from utils.args import ArgumentParser
-from timm import create_model  # noqa
-from models.l2p_utils.l2p_model import L2PModel
+from models.prompt_utils.model import PromptModel
+from utils.buffer import Buffer
+
+import wandb
 
 
 class L2P(ContinualModel):
@@ -23,80 +26,83 @@ class L2P(ContinualModel):
 
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
-        parser.set_defaults(optimizer='adam')
         # Prompt parameters
-        parser.add_argument('--prompt_pool', default=True, type=bool,)
-        parser.add_argument('--pool_size_l2p', default=10, type=int, help='number of prompts (M in paper)')
-        parser.add_argument('--length', default=5, type=int, help='length of prompt (L_p in paper)')
-        parser.add_argument('--top_k', default=5, type=int, help='top k prompts to use (N in paper)')
-        parser.add_argument('--prompt_key', default=True, type=bool, help='Use learnable prompt key')
-        parser.add_argument('--prompt_key_init', default='uniform', type=str, help='initialization type for key\'s prompts')
-        parser.add_argument('--use_prompt_mask', default=False, type=bool)
-        parser.add_argument('--batchwise_prompt', default=0, type=binary_to_boolean_type,
-                            help='Use batch-wise prompting (i.e., majority voting) during test? NOTE: this may lead to unfair comparison with other methods.')
-        parser.add_argument('--embedding_key', default='cls', type=str)
-        parser.add_argument('--predefined_key', default='', type=str)
-        parser.add_argument('--pull_constraint', default=True)
-        parser.add_argument('--pull_constraint_coeff', default=0.1, type=float)
+        parser.add_argument('--vit_type', type=str, default='tiny', choices=['tiny', 'small', 'base'], help='ViT type')
+        parser.add_argument('--e_prompt_pool_size', type=int, default=30, help='number of prompts (M in paper)')
+        parser.add_argument('--e_prompt_length', type=int, default=20, help='length of prompt (L_p in paper)')
+        parser.add_argument('--top_k', type=int, default=5, help='top k prompts to use (N in paper)')
+        parser.add_argument('--pull_constraint_coeff', type=float, default=0.5, help='Coefficient for the pull constraint term, \
+                            controlling the weight of the prompt loss in the total loss calculation')
+        parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
 
-        parser.add_argument('--global_pool', default='token', choices=['token', 'avg'], type=str, help='type of global pooling for final sequence')
-        parser.add_argument('--head_type', default='prompt', choices=['token', 'gap', 'prompt', 'token+prompt'], type=str, help='input type of classification head')
-        parser.add_argument('--freeze', default=['blocks', 'patch_embed', 'cls_token', 'norm', 'pos_embed'], nargs='*', type=list, help='freeze part in backbone model')
-
-        # Learning rate schedule parameters
+        # Prompt location
+        parser.add_argument('--shallow', type=int, default=1, choices=[0, 1], help='Shallow ViT vs. Deep ViT')
+        
+        # ETC
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
+        parser.add_argument('--use_amp', type=bool, default=True, help='Use automatic mixed precision')
 
-        parser.add_argument('--use_original_ckpt', type=binary_to_boolean_type, default=0, help='Use original checkpoint from `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz`')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
         """
-        L2P re-defines the backbone model to include the prompt parameters.
-        This is done *before* calling the super constructor, so that the backbone is already initialized when the super constructor is called.
+        L2P re-defines the backbone model to include the prompt parameters. This is done *before* calling the super constructor, so that the backbone is already initialized when the super constructor is called.
         """
-        if args.batchwise_prompt:
-            logging.warning("Using batch-wise prompting (i.e., majority voting) during test may lead to unfair comparison with other methods.")
-
         del backbone
         print("-" * 20)
-        print(f"WARNING: L2P USES A CUSTOM BACKBONE: `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz` (vit_base_patch16_224_in21k_fn_in1k_old).")
+        print(f"WARNING: L2P USES A CUSTOM BACKBONE: `vit_base_patch16_224`.")
         print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         print("-" * 20)
 
-        args.lr = args.lr * args.batch_size / 256.0  # scale learning rate by batch size
-        backbone = L2PModel(args)
+        if not args.shallow:
+            args.e_prompt_length = 5
+
+        tmp_dataset = get_dataset(args) if dataset is None else dataset
+        num_classes = tmp_dataset.N_CLASSES
+        backbone = PromptModel(args, 
+                               num_classes=num_classes,
+                               pretrained=True, prompt_flag='l2p',
+                               prompt_param=[args.e_prompt_pool_size, args.e_prompt_length])
 
         super().__init__(backbone, loss, args, transform, dataset=dataset)
-
+        self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
+    
     def begin_task(self, dataset):
-        self.net.original_model.eval()
-
+        if self.current_task > 0:
+            self.net.prompt.process_task_count()
         if hasattr(self, 'opt'):
             self.opt.zero_grad(set_to_none=True)
             del self.opt
         self.opt = self.get_optimizer()
-
+    
     def observe(self, inputs, labels, not_aug_inputs, epoch=None):
-        outputs = self.net(inputs, return_reduce_sim_loss=True)
-        logits = outputs['logits']
-        reduce_sim = outputs['reduce_sim']
+        if isinstance(self.device, str):
+            device = torch.device(self.device)
+        else:
+            device = self.device
 
+        # with torch.amp.autocast(device_type=device.type, enabled=self.args.use_amp):
+        logits, loss_prompt = self.net(inputs, train=True)
         # here is the trick to mask out classes of non-current tasks
         logits[:, :self.n_past_classes] = -float('inf')
 
         loss = self.loss(logits[:, :self.n_seen_classes], labels)
-        if self.args.pull_constraint and reduce_sim is not None:
-            loss = loss - self.args.pull_constraint_coeff * reduce_sim.mean()  # the mean is needed for data-parallel (concatenates instead of averaging)
+        if self.args.pull_constraint_coeff > 0.0 and loss_prompt is not None:
+            loss = loss + self.args.pull_constraint_coeff * loss_prompt.mean()  # the mean is needed for data-parallel (concatenates instead of averaging)
 
         self.opt.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
         self.opt.step()
+        # self.scaler.scale(loss).backward()
+        # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+        # self.scaler.step(self.opt)
+        # self.scaler.update()
 
         return loss.item()
 
     def get_parameters(self):
-        return [p for n, p in self.net.model.named_parameters() if 'prompt' in n or 'head' in n]
-
+        return [p for n, p in self.net.named_parameters() if 'prompt' in n or 'head' in n]
+    
     def forward(self, x):
         return self.net(x)[:, :self.n_seen_classes]

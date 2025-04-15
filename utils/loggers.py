@@ -232,7 +232,8 @@ class Logger:
         wrargs['backward_transfer'] = self.bwt
         wrargs['forgetting'] = self.forgetting
 
-        target_folder = smart_joint(base_path(), self.args.results_path)
+        # target_folder = smart_joint(base_path(), self.args.results_path)
+        target_folder = smart_joint(self.args.results_path)
 
         create_if_not_exists(smart_joint(target_folder, self.setting))
         create_if_not_exists(smart_joint(target_folder, self.setting, self.dataset))

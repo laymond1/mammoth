@@ -233,6 +233,8 @@ def add_initial_args(parser) -> ArgumentParser:
     parser.add_argument('--load_best_args', action='store_true',
                         help='(deprecated) Loads the best arguments for each method, dataset and memory buffer. '
                         'NOTE: This option is deprecated and not up to date.')
+    parser.add_argument('--scenario', type=str, default='offline', choices=['offline', 'online'],
+                        help='Scenario to use. Possible values:')
 
     return parser
 
@@ -357,7 +359,7 @@ def add_management_args(parser: ArgumentParser) -> None:
                            help='Perform inference on validation every `eval_epochs` epochs. If not provided, the model is evaluated ONLY at the end of each task.')
     mng_group.add_argument('--non_verbose', default=0, type=binary_to_boolean_type, help='Make progress bars non verbose')
     mng_group.add_argument('--disable_log', default=0, type=binary_to_boolean_type, help='Disable logging?')
-    mng_group.add_argument('--num_workers', type=int, default=None, help='Number of workers for the dataloaders (default=infer from number of cpus).')
+    mng_group.add_argument('--num_workers', type=int, default=4, help='Number of workers for the dataloaders (default=infer from number of cpus).')
     mng_group.add_argument('--enable_other_metrics', default=0, type=binary_to_boolean_type,
                            help='Enable computing additional metrics: forward and backward transfer.')
     mng_group.add_argument('--debug_mode', type=binary_to_boolean_type, default=0, help='Run only a few training steps per epoch. This also disables logging on wandb.')

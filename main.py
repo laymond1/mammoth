@@ -346,7 +346,8 @@ def main(args=None):
     from utils.conf import base_path, get_device
     from models import get_model
     from datasets import get_dataset
-    from utils.training import train
+    from utils.training import train as offline_train
+    from utils.training_online import train as online_train
     from models.utils.future_model import FutureModel
     from backbone import get_backbone
 
@@ -418,7 +419,12 @@ def main(args=None):
     except Exception:
         pass
 
-    train(model, dataset, args)
+    if args.scenario == 'offline':
+        offline_train(model, dataset, args)
+    elif args.scenario == 'online':
+        online_train(model, dataset, args)
+    else:
+        raise NotImplementedError('Training mode not supported yet.')
 
 
 if __name__ == '__main__':
