@@ -93,6 +93,7 @@ def evaluate(model: 'ContinualModel', dataset: 'ContinualDataset', last=False, r
             pbar.set_description(f"Evaluating Task {k+1}", refresh=False)
             pbar.update(1)
 
+            # This is the Task-IL accuracy
             if dataset.SETTING == 'class-il':
                 mask_classes(outputs, dataset, k)
                 _, pred = torch.max(outputs.data, 1)
