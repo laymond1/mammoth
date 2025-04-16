@@ -29,8 +29,8 @@ class CodaPrompt(ContinualModel):
     def get_parser(parser) -> ArgumentParser:
         # Parameters
         parser.add_argument('--vit_type', type=str, default='tiny', choices=['tiny', 'small', 'base'], help='ViT type')
-        parser.add_argument('--e_prompt_layer_idx', type=int, default=[-5, -4, -3, -2, -1], nargs="+", help='the layer index of the E-Prompt')
-        # parser.add_argument('--e_prompt_layer_idx', type=int, default=[0, 1, 2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
+        # parser.add_argument('--e_prompt_layer_idx', type=int, default=[-5, -4, -3, -2, -1], nargs="+", help='the layer index of the E-Prompt')
+        parser.add_argument('--e_prompt_layer_idx', type=int, default=[0, 1, 2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
         parser.add_argument('--e_prompt_pool_size', type=int, default=100, help='pool size')
         parser.add_argument('--e_prompt_length', type=int, default=8, help='prompt length')
         parser.add_argument('--ortho_mu', type=float, default=0.0, help='orthogonal penalty weight') # but it's set to 0.0 becuase of (#issue12)[https://github.com/GT-RIPL/CODA-Prompt/issues/12]
