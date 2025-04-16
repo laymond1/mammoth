@@ -1,0 +1,70 @@
+seq-cifar100:
+  2000:
+    alpha: 0.1
+    beta: 0.5
+    lr: 0.03
+    model: derpp
+    optimizer: sgd
+    batch_size: 32
+    # lr_scheduler: cosine # None
+    n_epochs: 20
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 5-45
+    sp_mask_update_freq: 5
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    log_filename: checkpoints/gradient_effi/mutate_irr/seq_cifar100/buffer_2000/seed_0_log.txt
+    gradient_sparse: 0.80
+    remove_n: 1500
+    keep_lowest_n: 0
+    remove_data_epoch: 20
+    output_dir: checkpoints/gradient_effi/mutate_irr/seq_cifar100/buffer_2000/
+    output_name: irr_0.75_mut_RM_1500_20
+seq-cifar10:
+  500:
+    alpha: 0.1
+    beta: 0.5
+    lr: 0.03
+    model: derpp
+    optimizer: sgd
+    batch_size: 32
+    # lr_scheduler: cosine # None
+    n_epochs: 50
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 5-45
+    sp_mask_update_freq: 5
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    log_filename: checkpoints/gradient_effi/mutate_irr/seq_cifar10/buffer_500/seed_0_log.txt
+    gradient_sparse: 0.80
+    remove_n: 3000 # 0.3
+    keep_lowest_n: 0
+    remove_data_epoch: 20
+    output_dir: checkpoints/gradient_effi/mutate_irr/seq_cifar10/buffer_500/
+    output_name: irr_0.75_mut_RM_3000_20
+seq-cifar10-224:
+  500:
+    alpha: 0.1
+    beta: 0.5
+    lr: 0.03
+    model: derpp
+    optimizer: sgd
+    batch_size: 16
+    # lr_scheduler: cosine # None
+    n_epochs: 20
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 5-45
+    sp_mask_update_freq: 5
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    log_filename: checkpoints/gradient_effi/mutate_irr/seq_cifar10_224/buffer_500/seed_0_log.txt
+    gradient_sparse: 0.80
+    remove_n: 3000
+    keep_lowest_n: 0
+    remove_data_epoch: 20
+    output_dir: checkpoints/gradient_effi/mutate_irr/seq_cifar10_224/buffer_500/
+    output_name: irr_0.75_mut_RM_3000_20
+
