@@ -137,7 +137,10 @@ class SparCLDerpp(ContinualModel):
             print('removed train_indx', len(self.train_indx))
 
             # Reassign train data and labels
-            dataset.train_loader.dataset.data = self.full_dataset.data[self.train_indx, :, :, :]
+            if self.args.dataset == 'seq-cifar10' or self.args.dataset == 'seq-cifar100':
+                dataset.train_loader.dataset.data = self.full_dataset.data[self.train_indx, :, :, :]
+            elif self.args.dataset == 'seq-imagenet-r':
+                dataset.train_loader.dataset.data = self.full_dataset.data[self.train_indx]
             dataset.train_loader.dataset.targets = np.array(self.full_dataset.targets)[self.train_indx].tolist()
             dataset.train_loader.dataset.indexes = np.array(self.full_dataset.indexes)[self.train_indx].tolist()
 
