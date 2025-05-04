@@ -15,5 +15,5 @@ TEST_TRANSFORM:
   - Normalize:
       mean: [0, 0, 0]
       std: [1, 1, 1]
-batch_size: 128
+batch_size: 16
 n_epochs: 5
