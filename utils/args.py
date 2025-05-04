@@ -372,7 +372,7 @@ def add_management_args(parser: ArgumentParser) -> None:
                            '2: Use BF16, if available.'
                            '3: Use BF16 and `torch.compile`. BEWARE: torch.compile may break your code if you change the model after the first run! Use with caution.')
     mng_group.add_argument('--distributed', type=str, default='no', choices=['no', 'dp', 'ddp'], help='Enable distributed training?')
-    mng_group.add_argument('--savecheck', choices=['last', 'task'], type=str, help='Save checkpoint every `task` or at the end of the training (`last`).')
+    mng_group.add_argument('--savecheck', choices=['last', 'task'], type=str, default='last', help='Save checkpoint every `task` or at the end of the training (`last`).')
     mng_group.add_argument('--save_checkpoint_mode', choices=['old_pickle', 'safe'], type=str, default='safe',
                            help='Save the model checkpoint with metadata in a single pickle file with the old structure (`old_pickle`) '
                            'or with the new, `safe` structure (default)?. NOTE: the `old_pickle` structure requires `weights_only=False`, which will be '

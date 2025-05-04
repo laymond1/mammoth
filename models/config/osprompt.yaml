@@ -1,0 +1,18 @@
+seq-cifar10-224:
+  lr: 1e-3
+  model: osprompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-cifar100-224:
+  lr: 1e-3
+  model: osprompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-imagenet-r:
+  lr: 1e-3
+  model: osprompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16

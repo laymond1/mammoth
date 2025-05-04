@@ -101,6 +101,14 @@ def binary_to_boolean_type(value: str) -> bool:
     return value in true_values
 
 
+def parse_str_to_int(value: list) -> list:
+    if not isinstance(value, list):
+        if isinstance(value, str):
+            value = eval(value)
+    
+    return [int(v) for v in value]
+
+
 def custom_str_underscore(value):
     return str(value).replace("_", '-').strip()
 

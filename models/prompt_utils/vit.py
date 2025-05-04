@@ -69,6 +69,7 @@ class Attention(nn.Module):
         q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
 
         if prompt is not None:
+            # import ipdb; ipdb.set_trace()
             pk, pv = prompt
             pk = pk.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
             pv = pv.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
@@ -187,6 +188,7 @@ class VisionTransformer(nn.Module):
         x = self.pos_drop(x)
 
         prompt_loss = torch.zeros((1,), requires_grad=True).to(x.device)
+
         for i,blk in enumerate(self.blocks):
 
             if prompt is not None:
@@ -195,25 +197,17 @@ class VisionTransformer(nn.Module):
                     prompt_loss += loss
                 else:
                     p_list, _, x = prompt.forward(q, i, x, train=False)
-                # if p_list is not None and i == 1:
-                #     print(x[0,0,0:10])
-                #     print(p_list[0][0,0,0:10])
-                #     print(apple)
-                # if p_list is not None:
-                #     x = torch.concat((x[:,0,:].unsqueeze(1),p_list[0],p_list[1],x[:,1:,:]), dim=1)
-                #     p_list = None
             else:
                 p_list = None
 
             x = blk(x, register_blk==i, prompt=p_list)
-            # if i == 11: x = x.detach()
 
         x = self.norm(x)
+
         if prompt is not None:
             prompt_loss /= len(prompt.e_layers)
         
         return x, prompt_loss
-        # return x
 
     @torch.jit.ignore()
     def load_pretrained(self, checkpoint_path, prefix=''):

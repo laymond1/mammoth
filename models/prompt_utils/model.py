@@ -4,9 +4,10 @@
 import torch
 import timm
 import torch.nn as nn
+import torchvision.transforms as transforms
 
 from models.prompt_utils.vit import VisionTransformer
-from models.prompt_utils.prompt import L2P, DualPrompt, CodaPrompt, MVPPrompt, OnePrompt
+from models.prompt_utils.prompt import L2P, DualPrompt, CodaPrompt, MVPPrompt, OnePrompt, OSPrompt
 
 
 vit_config = {
@@ -34,6 +35,24 @@ class PromptModel(nn.Module):
 
         # get feature encoder
         if pretrained:
+            # # load query model
+            # if self.args.query == 'vit':
+            #     zoo_model_query = VisionTransformer(img_size=224, patch_size=16,
+            #                             embed_dim=cfg['embed_dim'],
+            #                             depth=cfg['depth'],
+            #                             num_heads=cfg['num_heads'],
+            #                             ckpt_layer=0, drop_path_rate=0)
+            #     load_dict = timm.create_model(f'vit_{vit_type}_patch16_224', pretrained=True).state_dict()
+            #     del load_dict['head.weight']; del load_dict['head.bias']
+            #     zoo_model_query.load_state_dict(load_dict)
+            # elif self.args.query == 'poolformer':
+            #     print( "Load poolformer fine-tuned on in1k ...")
+            #     zoo_model_query = timm.create_model('poolformerv2_m36.sail_in1k', pretrained=True, features_only=True)
+            # else:
+            #     NotImplementedError
+            # self.feat_query = zoo_model_query
+
+            # load prompt model
             self.feat = VisionTransformer(img_size=224, patch_size=16,
                                         embed_dim=cfg['embed_dim'],
                                         depth=cfg['depth'],
@@ -61,16 +80,38 @@ class PromptModel(nn.Module):
             self.prompt = DualPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 10 40 10
         elif self.prompt_flag == 'coda':
             self.prompt = CodaPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 100 8 0.0
+        elif self.prompt_flag == 'codaone':
+            self.prompt = CodaPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 100 8 0.0
         elif self.prompt_flag == 'mvp':
             self.prompt = MVPPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 10 40 10
         elif self.prompt_flag == 'oneprompt':
             self.prompt = OnePrompt(args, self.embed_dim, prompt_param, self.embed_dim)
+        elif self.prompt_flag == 'os':
+            self.prompt = OSPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 100 8 1e-4
         else:
             self.prompt = None
+
+        # this is for OS-Prompt
+        # self.dset_mean = (0.0, 0.0, 0.0)
+        # self.dset_std = (1.0, 1.0, 1.0)
+
+        # if self.args.query == 'vit':
+        #     self.dset_mean_q = (0.0,0.0,0.0)
+        #     self.dset_std_q = (1.0,1.0,1.0)
+        # else:
+        #     self.dset_mean_q  = timm.data.resolve_model_data_config(zoo_model_query)['mean']
+        #     self.dset_std_q  = timm.data.resolve_model_data_config(zoo_model_query)['std']
+
+        # print ('norm for query: {} /{}'.format(self.dset_mean_q, self.dset_std_q ))
 
     def forward_features(self, x, y=None, train=False, last=False, warmup=False,  **kwargs):
         if self.prompt is not None:
             if self.prompt_flag  == 'oneprompt':
+                out, prompt_loss = self.feat(
+                    x, prompt=self.prompt,
+                    q=torch.zeros(x.size(0), self.embed_dim, device=x.device), train=train
+                )
+            elif self.prompt_flag == 'codaone':
                 out, prompt_loss = self.feat(
                     x, prompt=self.prompt,
                     q=torch.zeros(x.size(0), self.embed_dim, device=x.device), train=train
@@ -115,6 +156,11 @@ class PromptModel(nn.Module):
                     x, prompt=self.prompt,
                     q=torch.zeros(x.size(0), self.embed_dim, device=x.device), train=train
                 )
+            elif self.prompt_flag == 'codaone':
+                out, prompt_loss = self.feat(
+                    x, prompt=self.prompt,
+                    q=torch.zeros(x.size(0), self.embed_dim, device=x.device), train=train
+                )
             elif self.prompt_flag == 'mvp':
                 with torch.no_grad():
                     q, _ = self.feat(x)
@@ -149,6 +195,66 @@ class PromptModel(nn.Module):
             return out, prompt_loss
         else:
             return out
+        
+    # def forward(self, x, y=None, q=None, train=False, last=False, warmup=False, feat=False, **kwargs):
+    #     if last:
+    #         return self.head(x)
+
+    #     x_backbone = transforms.Normalize(self.dset_mean, self.dset_std)(x)
+    #     x_query = transforms.Normalize(self.dset_mean_q, self.dset_std_q)(x)
+
+    #     if self.prompt is not None:
+    #         if self.prompt_flag == 'os':
+    #             # q= None
+    #             with torch.no_grad():
+    #                 if self.args.query == 'vit':
+    #                     q, _ = self.feat_query(x_query)
+    #                     q = q[:,0,:]
+    #                 elif self.args.query in ['poolformer', 'swin']:
+    #                     q = self.feat_query(x_query)
+    #                     q = q[-1].mean(-2).mean(-1)
+    #                 else:
+    #                     q = self.feat_query(x_query)
+    #             out, prompt_loss = self.feat(x_backbone, prompt=self.prompt, q=q, train=train)
+    #         elif self.prompt_flag  == 'oneprompt':
+    #             out, prompt_loss = self.feat(
+    #                 x, prompt=self.prompt,
+    #                 q=torch.zeros(x.size(0), self.embed_dim, device=x.device), train=train
+    #             )
+    #         elif self.prompt_flag == 'mvp':
+    #             with torch.no_grad():
+    #                 q, _ = self.feat(x)
+    #                 q = q[:, 0, :]
+    #             out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
+    #             top_k = extract_topk_key(q, self.prompt.e_k, top_k=self.args.top_k)
+    #             mask = self.prompt.mask[top_k].mean(1).squeeze().clone()
+    #             mask = torch.sigmoid(mask)*2.
+    #         else:
+    #             with torch.no_grad():
+    #                 if q is None:
+    #                     q, _ = self.feat(x)
+    #                     # q = self.feat(x)
+    #                     q = q[:, 0, :]
+    #             out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
+    #             # out = self.feat(x, prompt=self.prompt, q=q, train=train)
+    #         out = out[:, 0, :]
+    #         if warmup:
+    #             prompt_loss = torch.zeros_like(prompt_loss)
+    #             out = out.detach()
+    #     else:
+    #         out, _ = self.feat(x)
+    #         out = out[:, 0, :]
+    #     out = out.view(out.size(0), -1)
+
+    #     if feat:
+    #         return out
+    #     out = self.head(out)
+    #     if hasattr(self.prompt, 'use_mask') and self.prompt.use_mask:
+    #         out = out * mask
+    #     if self.prompt is not None and train:
+    #         return out, prompt_loss
+    #     else:
+    #         return out
         
 def extract_topk_key(query, key, top_k=1):
     # cosine similarity to match keys/querries
