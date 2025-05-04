@@ -26,14 +26,24 @@ try:
     import torch
 
     if torch.cuda.is_available():
-        from utils.conf import get_alloc_memory_all_devices
+        def get_alloc_memory_by_torch() -> list[int]:
+            """
+            Returns GPU memory allocated by the current PyTorch process.
+            Values are in Bytes.
+            """
+            allocated = []
+            for i in range(torch.cuda.device_count()):
+                _ = torch.tensor([1], device=f'cuda:{i}')  # force context init
+                allocated.append(torch.cuda.max_memory_allocated(i))
+
+            return allocated
 
         def get_memory_gpu_mb():
             """
             Get the memory usage of all GPUs in MB.
             """
 
-            return [d / 1024 / 1024 for d in get_alloc_memory_all_devices()]
+            return [d / 1024 / 1024 for d in get_alloc_memory_by_torch()]
     else:
         get_memory_gpu_mb = None
 except BaseException:
