@@ -48,14 +48,14 @@ class OVOR(ContinualModel):
         parser.add_argument('--cov', type=float, default=1.0) # 0.1 for CUB200
         parser.add_argument('--thres_id', type=float, default=-24.0) # -15.0 for ImageNet-A
         parser.add_argument('--thres_ood', type=float, default=-3.0)
-        parser.add_argument('--num_per_class', type=int, default=40)
+        parser.add_argument('--num_per_class', type=int, default=160) # beta: Number of output outliers
         parser.add_argument('--id_bsz', type=int, default=16) # In-dist batch size에 의해 ood batch size 결정됨. 16 -> 1 , 128 -> 12
         parser.add_argument('--sample_from', type=int, default=600)
-        parser.add_argument('--select', type=int, default=50)
+        parser.add_argument('--select', type=int, default=50) # alpha: Number of selected boundary samples
         parser.add_argument('--pick_nums', type=int, default=30)
         parser.add_argument('--K', type=int, default=100)
         parser.add_argument('--lmda', type=float, default=0.1)
-        parser.add_argument('--huber',type=binary_to_boolean_type, default=False, help='Use Huber loss instead of MSE loss')
+        parser.add_argument('--huber',type=binary_to_boolean_type, default=True, help='Use Huber loss instead of MSE loss')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
@@ -109,7 +109,7 @@ class OVOR(ContinualModel):
         # with torch.amp.autocast(device_type=device.type, enabled=self.args.use_amp):
         if epoch >= int(self.args.n_epochs * 0.8):
             id_data, ood_data = next(self.id_iter), next(self.ood_iter)
-            logits, loss = self.model_ood_forward(id_data, ood_data)
+            logits, labels, loss = self.model_ood_forward(id_data, ood_data)
         else:
             logits, loss = self.model_forward(inputs, labels) 
         
@@ -170,7 +170,7 @@ class OVOR(ContinualModel):
         ood_loss, id_score, ood_score = self.ood.loss(id_logits[:, self.n_past_classes:], ood_logits)
         loss += ood_loss
 
-        return id_logits, loss
+        return id_logits, y, loss
 
     def get_parameters(self):
         return [p for n, p in self.net.named_parameters() if 'prompt' in n or 'head' in n]

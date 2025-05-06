@@ -20,7 +20,7 @@ class NPOS:
         self.sample_from = getattr(args, 'sample_from', 600)
         self.select = getattr(args, 'select', 50)
         self.cov_mat = getattr(args, 'cov', 1.0)
-        self.per_class = getattr(args, 'num_per_class', 40)
+        self.per_class = getattr(args, 'num_per_class', 160)
         self.dis = MultivariateNormal(torch.zeros(self.embed_dim), torch.eye(self.embed_dim))
         self.id_bsz = getattr(args, 'id_bsz', 32)
         self.thres_id = getattr(args, 'thres_id', -15.0)
@@ -43,7 +43,7 @@ class NPOS:
     def _generate(self, in_dist, num_cls):
         offsets = self.dis.rsample((self.sample_from,))
         normed = in_dist / torch.norm(in_dist, p=2, dim=1, keepdim=True)
-        select = min(self.select, normed.shape[0])
+        select = min(self.select * num_cls, normed.shape[0])
         self.knn_idx.add(normed.numpy()) # FAISS 인덱스에 데이터 백터 normed in-distribution 추가(search에서 사용됨)
         boundary_ids = self._boundary(normed, select)
         # modified code by mnmnk43434
