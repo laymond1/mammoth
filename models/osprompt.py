@@ -13,9 +13,10 @@ from datasets import get_dataset
 from utils.args import add_rehearsal_args, ArgumentParser
 
 from models.utils.continual_model import ContinualModel
-from models.prompt_utils.model import PromptModel
-# from models.prompt_utils.model_quantized import PromptModel
+from models.osprompt_utils.model import PromptModel
+from utils.schedulers import CosineSchedule
 from utils.buffer import Buffer
+from utils import parse_str_to_int, binary_to_boolean_type
 
 import wandb
 
@@ -29,7 +30,7 @@ class OneStagePrompt(ContinualModel):
     def get_parser(parser) -> ArgumentParser:
         # Parameters
         parser.add_argument('--vit_type', type=str, default='tiny', choices=['tiny', 'small', 'base'], help='ViT type')
-        parser.add_argument('--query', type=str, default='poolformer', choices=['vit', 'poolformer'], help="choose one of [poolformer]")
+        parser.add_argument('--query', type=str, default='vit', choices=['vit', 'poolformer'], help="choose one of [poolformer]")
         parser.add_argument('--e_prompt_layer_idx', type=int, default=[0, 1, 2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
         parser.add_argument('--e_prompt_pool_size', type=int, default=100, help='pool size')
         parser.add_argument('--e_prompt_length', type=int, default=8, help='prompt length')
@@ -37,11 +38,11 @@ class OneStagePrompt(ContinualModel):
         parser.add_argument('--pull_constraint_coeff', type=float, default=1.0, help='Coefficient(mu) for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
-        parser.add_argument('--n_splits', type=int, default=None, help='Number of splits for the prompt pool (default: 1).')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
         parser.add_argument('--use_amp', type=bool, default=True, help='Use automatic mixed precision')
+        parser.add_argument('--use_scheduler', type=binary_to_boolean_type, default=True, help='Use scheduler')
 
         return parser
 
@@ -55,8 +56,6 @@ class OneStagePrompt(ContinualModel):
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
         args.n_tasks = tmp_dataset.N_TASKS
-        if args.n_splits is not None:
-            assert num_classes % args.n_splits == 0
         backbone = PromptModel(args, 
                                num_classes=num_classes,
                                pretrained=True, prompt_flag='os',
@@ -72,6 +71,8 @@ class OneStagePrompt(ContinualModel):
             self.opt.zero_grad(set_to_none=True)
             del self.opt
         self.opt = self.get_optimizer()
+        if self.args.use_scheduler:
+            self.scheduler = CosineSchedule(self.opt, K=self.args.n_epochs)
 
     def begin_epoch(self, epoch, dataset):
         self.count = 0
