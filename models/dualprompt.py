@@ -15,7 +15,9 @@ from utils.args import add_rehearsal_args, ArgumentParser
 
 from models.utils.continual_model import ContinualModel
 from models.prompt_utils.model import PromptModel
+from utils.schedulers import CosineSchedule
 from utils.buffer import Buffer
+from utils import parse_str_to_int, binary_to_boolean_type
 
 import wandb
 
@@ -47,6 +49,7 @@ class DualPrompt(ContinualModel):
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
         parser.add_argument('--use_amp', type=bool, default=True, help='Use automatic mixed precision')
+        parser.add_argument('--use_scheduler', type=binary_to_boolean_type, default=False, help='Use scheduler')
 
         return parser
 
@@ -75,6 +78,13 @@ class DualPrompt(ContinualModel):
             self.opt.zero_grad(set_to_none=True)
             del self.opt
         self.opt = self.get_optimizer()
+        if self.args.use_scheduler:
+            self.scheduler = CosineSchedule(self.opt, K=self.args.n_epochs)
+
+    def begin_epoch(self, epoch, dataset):
+        self.count = 0
+        self.running_loss = 0.0
+        self.running_accuracy = 0.0
 
     def observe(self, inputs, labels, not_aug_inputs, epoch=None):
         if isinstance(self.device, str):
@@ -99,6 +109,17 @@ class DualPrompt(ContinualModel):
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
         # self.scaler.step(self.opt)
         # self.scaler.update()
+
+        # Calculate accuracy
+        preds = torch.argmax(logits[:, :self.n_seen_classes], dim=1)
+        correct = (preds == labels).sum().item()
+        total = labels.size(0)
+        accuracy = correct / total
+
+        # Update running loss와 accuracy
+        self.count += 1
+        self.running_loss += loss.item()
+        self.running_accuracy += accuracy
 
         return loss.item()
     

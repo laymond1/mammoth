@@ -39,6 +39,7 @@ class DualPrompt(nn.Module):
     def _init_smart(self, emb_d):
         
         self.top_k = self.args.top_k
+        self.task_id_bootstrap = True
 
         # prompt locations
         self.g_layers = self.args.g_prompt_layer_idx
@@ -71,14 +72,19 @@ class DualPrompt(nn.Module):
             cos_sim = torch.einsum('bj,kj->bk', q, n_K)
             
             if train:
-                top_k = torch.topk(cos_sim, self.top_k, dim=1)
-                k_idx = top_k.indices
-                loss = (1.0 - cos_sim[:,k_idx]).mean()
-                P_ = p[k_idx]
-                # count selected prompt when trianing
-                with torch.no_grad():
-                    num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
-                    self.train_count += num
+                # dual prompt during training uses task id
+                if self.task_id_bootstrap:
+                    loss = (1.0 - cos_sim[:, self.task_count]).mean()
+                    P_ = p[self.task_count].expand(len(x_querry),-1,-1)
+                else:
+                    top_k = torch.topk(cos_sim, self.top_k, dim=1)
+                    k_idx = top_k.indices
+                    loss = (1.0 - cos_sim[:,k_idx]).mean()
+                    P_ = p[k_idx]
+                    # count selected prompt when trianing
+                    with torch.no_grad():
+                        num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
+                        self.train_count += num
             else:
                 top_k = torch.topk(cos_sim, self.top_k, dim=1)
                 k_idx = top_k.indices
@@ -88,10 +94,17 @@ class DualPrompt(nn.Module):
                     num = k_idx.view(-1).bincount(minlength=self.e_pool_size)
                     self.eval_count += num
                 
-            i = int(self.e_p_length/2)
-            Ek = P_[:,:,:i,:].reshape((B,-1,self.emb_d))
-            Ev = P_[:,:,i:,:].reshape((B,-1,self.emb_d))
-        
+            # select prompts
+            if train and self.task_id_bootstrap:
+                i = int(self.e_p_length/2)
+                Ek = P_[:,:i,:].reshape((B,-1,self.emb_d))
+                Ev = P_[:,i:,:].reshape((B,-1,self.emb_d))
+            else:
+                i = int(self.e_p_length/2)
+                Ek = P_[:,:,:i,:].reshape((B,-1,self.emb_d))
+                Ev = P_[:,:,i:,:].reshape((B,-1,self.emb_d))
+
+
         g_valid = False
         if l in self.g_layers:
             g_valid = True
@@ -128,6 +141,7 @@ class L2P(DualPrompt):
 
     def _init_smart(self, emb_d):
         self.top_k = self.args.top_k
+        self.task_id_bootstrap = False
 
         # prompt locations
         self.g_layers = []
@@ -720,7 +734,7 @@ class OSPrompt(nn.Module):
         super().__init__()
         self.args = args
         self.task_count = 0
-        self.emb_d = 768  # emb_d
+        self.emb_d = emb_d # 768
         self.key_d = key_dim
         self.n_tasks = args.n_tasks
         self._init_smart(emb_d)
@@ -840,8 +854,7 @@ class OSPrompt(nn.Module):
             e_valid = True
 
             x_querry_ori = x_querry
-            x_querry = x_block[:, 0,:]
-
+            x_querry = x_block[:, 0, :]
 
             K = getattr(self, f'e_k_{l}')
             p = getattr(self, f'e_p_{l}')
@@ -878,7 +891,6 @@ class OSPrompt(nn.Module):
             Ev = P_[:, i:, :]
 
             # loss definition
-            # loss = 0
             loss = nn.MSELoss()(x_querry, x_querry_ori) * self.qr_loss_weight
             # print (aq_k.size())
             # print (aq_k.sum(1))
