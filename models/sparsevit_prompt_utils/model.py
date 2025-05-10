@@ -70,7 +70,6 @@ class PromptModel(nn.Module):
                 if q is None:
                     layer_idx = len(self.feat.blocks) - 1
                     q, _ = self.feat(x, register_blk=layer_idx)
-                    # q = q[:, 0, :]
             out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train, drop_rate=self.args.drop_rate, sparse_type=self.args.sparse_type)
             out = out[:, 0, :]
             if warmup:

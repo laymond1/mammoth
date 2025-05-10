@@ -15,6 +15,8 @@ from timm.models.registry import register_model
 from timm.models.layers import trunc_normal_, DropPath
 from timm.models.helpers import named_apply, adapt_input_conv
 
+from models.sparsevit_prompt_utils.patchdropout import PatchDropout
+
 
 class Mlp(nn.Module):
     """ MLP as used in Vision Transformer, MLP-Mixer and related networks
@@ -194,6 +196,8 @@ class VisionTransformer(nn.Module):
                 with torch.no_grad():
                     if sparse_type == 'random':
                         x = self.random_token_masking(x, drop_rate=drop_rate)
+                    elif sparse_type == 'patchdropout':
+                        x = PatchDropout(keep_rate=1-drop_rate, token_shuffling=False)(x)
                     elif sparse_type == 'attn_map':
                         x = self.attention_based_masking(x, drop_rate=drop_rate)
                     elif sparse_type == 'l2':
@@ -220,12 +224,18 @@ class VisionTransformer(nn.Module):
 
         return x, prompt_loss
 
-    def random_token_masking(self, x, drop_rate=0.0):
+    def random_token_masking(self, x, drop_rate=0.0, keep_sorted=True):
         """ Randomly drop patches """
         cls_token, patch_tokens = x[:, :1], x[:, 1:]
         keep_tokens = int((1 - drop_rate) * patch_tokens.size(1))
         idx = torch.randperm(patch_tokens.size(1))[:keep_tokens]
         patch_tokens = patch_tokens[:, idx]
+        if keep_sorted:
+            # Sort the selected indices to maintain original order
+            idx, _ = idx.sort()
+        # Gather the selected patches
+        patch_tokens = patch_tokens[:, idx]
+
         return torch.cat([cls_token, patch_tokens], dim=1)
     
     def attention_based_masking(self, x, drop_rate=0.0):
@@ -242,6 +252,7 @@ class VisionTransformer(nn.Module):
 
         k = int((1 - drop_rate) * N)
         topk_idx = torch.topk(attn_score, k=k, dim=1).indices  # [B, k]
+        topk_idx = topk_idx.sort()[0]
 
         selected = []
         for i in range(B):
