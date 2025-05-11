@@ -14,7 +14,6 @@ from utils.args import add_rehearsal_args, ArgumentParser
 
 from models.utils.continual_model import ContinualModel
 from models.prompt_utils.model import PromptModel
-# from models.prompt_utils.model_quantized import PromptModel
 from utils.schedulers import CosineSchedule
 from utils.buffer import Buffer
 from utils import parse_str_to_int, binary_to_boolean_type
@@ -41,7 +40,7 @@ class CodaPrompt(ContinualModel):
         parser.add_argument('--pull_constraint_coeff', type=float, default=1.0, help='Coefficient(mu) for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
-        parser.add_argument('--n_splits', type=int, default=None, help='Number of splits for the prompt pool (default: 1).')
+        parser.add_argument('--head_epoch_start_ratio', type=float, default=1.0, help='the ratio of the epochs to start training the head')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
@@ -60,8 +59,6 @@ class CodaPrompt(ContinualModel):
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
         args.n_tasks = tmp_dataset.N_TASKS
-        if args.n_splits is not None:
-            assert num_classes % args.n_splits == 0
         backbone = PromptModel(args, 
                                num_classes=num_classes,
                                pretrained=True, prompt_flag='coda',
@@ -92,7 +89,13 @@ class CodaPrompt(ContinualModel):
             device = self.device
 
         # with torch.amp.autocast(device_type=device.type, enabled=self.args.use_amp):
-        logits, loss_prompt = self.net(inputs, train=True)
+        if epoch < int(self.args.n_epochs * self.args.head_epoch_start_ratio):
+            logits, loss_prompt = self.net(inputs, train=True)
+        else:
+            with torch.no_grad():
+                feats = self.net(inputs, feat=True, train=False).detach()
+            logits = self.net(feats, last=True)
+            loss_prompt = None
         # here is the trick to mask out classes of non-current tasks
         logits[:, :self.n_past_classes] = -float('inf')
 
@@ -102,7 +105,7 @@ class CodaPrompt(ContinualModel):
 
         self.opt.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+        grad_total_norm = torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
         self.opt.step()
         # self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
