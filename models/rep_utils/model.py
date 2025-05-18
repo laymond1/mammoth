@@ -73,7 +73,6 @@ class PromptModel(nn.Module):
             # grad false
             self.feat.requires_grad_(False)
 
-
         rep.vit(self.feat, tome_type=args.tome_type, use_ald=args.use_ald)
         # AToM (ToMe)
         self.feat.r = args.r # 8
@@ -82,7 +81,13 @@ class PromptModel(nn.Module):
         self.feat.tau = 12 if not args.vit_type == 'large' else 16
 
         # query projection layer (Tiny's embedding to target embedding)
-        self.query_proj = nn.Linear(192, self.embed_dim)
+        if args.vit_type == 'tiny':
+            self.query_proj = nn.Identity()
+        else:
+            self.query_proj = nn.Sequential(
+            nn.Linear(192, self.embed_dim),
+            nn.ReLU()
+        )
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)
 

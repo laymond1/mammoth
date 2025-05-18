@@ -135,6 +135,7 @@ class CodaPromptREP(ContinualModel):
         return loss.item()
     
     def get_parameters(self):
+        # return [p for n, p in self.net.named_parameters() if 'prompt' in n or 'head' in n or 'query_proj' in n]
         return [p for n, p in self.net.named_parameters() if 'prompt' in n or 'head' in n]
     
     def forward(self, x):
