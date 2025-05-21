@@ -41,6 +41,7 @@ class ToMePrompt(ContinualModel):
 
         # ToMe 
         parser.add_argument('--r', type=int, default=18, help='number of tokens to merge')
+        parser.add_argument('--query_merge', type=binary_to_boolean_type, default=False, help='enable token merging during query forward pass for efficiency')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')

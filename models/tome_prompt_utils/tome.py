@@ -142,7 +142,7 @@ def make_tome_class(transformer_class):
                 else:
                     p_list = None
 
-                if q is None: 
+                if q is None and not self.query_merge: 
                     x = blk(x, register_blk==i, query=True) # query forward
                 else:
                     x = blk(x, register_blk==i, prompt=p_list)
@@ -173,6 +173,7 @@ def apply_patch(
 
     model.__class__ = ToMeVisionTransformer
     model.r = 0
+    model.query_merge = False
     model._tome_info = {
         "r": model.r,
         "size": None,

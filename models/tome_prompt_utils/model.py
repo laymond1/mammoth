@@ -57,6 +57,7 @@ class PromptModel(nn.Module):
         tome.apply_patch(self.feat)
         # ToMe
         self.feat.r = args.r
+        self.feat.query_merge = args.query_merge
 
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)
