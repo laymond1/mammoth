@@ -42,10 +42,11 @@ class EViTPrompt(ContinualModel):
 
         # EViT: 
         parser.add_argument('--fuse_token', type=binary_to_boolean_type, default=True, help='whether to fuse the inattentive tokens')
-        parser.add_argument('--drop_rate', type=float, default=0.3, help='Token purning ratio for EViT (by default, 0.3)')
+        parser.add_argument('--drop_rate', type=float, default=0.16, help='Token purning ratio for EViT (by default, 0.3)')
         parser.add_argument('--shrink_start_epoch', default=1, type=int, help='on which epoch to start shrinking of inattentive tokens')
         parser.add_argument('--shrink_epochs', default=6, type=int, help='how many epochs to perform gradual shrinking of inattentive tokens')
         parser.add_argument('--query_merge', type=binary_to_boolean_type, default=False, help='enable token merging during query forward pass for efficiency')
+        parser.add_argument('--head_full_token', type=binary_to_boolean_type, default=False, help='enable full token for head forward pass for effectiveness')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')

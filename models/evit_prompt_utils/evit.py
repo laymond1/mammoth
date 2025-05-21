@@ -21,7 +21,7 @@ class EViTBlock(Block):
     def forward(self, x, register_hook=False, prompt=None, keep_rate=None, tokens=None, get_idx=False, query=False):
         # Query Forward
         if query:
-            attn_out = self.attn(self.norm1(x), register_hook=register_hook, query=query)
+            attn_out = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, query=query)
             x = x + self.drop_path(attn_out)
             x = x + self.drop_path(self.mlp(self.norm2(x)))
             return x, None, None
@@ -70,7 +70,7 @@ class EViTAttention(Attention):
     def forward(self, x, register_hook=False, prompt=None, keep_rate=None, tokens=None, query=False):
         # Query Forward
         if query:
-            return super().forward(x, register_hook=register_hook)
+            return super().forward(x, register_hook=register_hook, prompt=prompt)
 
         if keep_rate is None:
             keep_rate = self.keep_rate
@@ -181,14 +181,27 @@ def make_evit_class(transformer_class):
                         query=True
                     )
                 else:
-                    x, left_token, idx = blk(
-                        x,
-                        register_hook=(register_blk == i),
-                        prompt=p_list,
-                        keep_rate=keep_rate[i],
-                        tokens=tokens[i],
-                        get_idx=get_idx  # Always get idx for better tracking
-                    )
+                    # Head forward with full token
+                    if self.head_full_token and not train:
+                        x, left_token, idx = blk(
+                            x,
+                            register_hook=(register_blk == i),
+                            prompt=p_list,
+                            keep_rate=keep_rate[i],
+                            tokens=tokens[i],
+                            get_idx=get_idx,
+                            query=True
+                        )
+                    # Normal forward
+                    else:
+                        x, left_token, idx = blk(
+                            x,
+                            register_hook=(register_blk == i),
+                            prompt=p_list,
+                            keep_rate=keep_rate[i],
+                            tokens=tokens[i],
+                            get_idx=get_idx # Always get idx for better tracking
+                        )
                     
                 left_tokens.append(left_token)
                 if idx is not None:
@@ -207,7 +220,7 @@ def make_evit_class(transformer_class):
 
 def apply_patch(
     model: VisionTransformer, trace_source: bool = False, prop_attn: bool = True, 
-    keep_rate: list = None, fuse_token: bool = False
+    keep_rate: float = None, fuse_token: bool = False
 ):
     """
     Applies ToMe to this transformer. Afterward, set r using model.r.
@@ -221,7 +234,7 @@ def apply_patch(
     EVisionTransformer = make_evit_class(model.__class__)
 
     model.__class__ = EVisionTransformer
-    model.keep_rate = keep_rate
+    model.keep_rate = [keep_rate] * len(model.blocks)
     model.fuse_token = fuse_token
     model.query_merge = False
     model._evit_info = {

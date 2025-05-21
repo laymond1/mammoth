@@ -58,6 +58,7 @@ class PromptModel(nn.Module):
         # ToMe
         self.feat.r = args.r
         self.feat.query_merge = args.query_merge
+        self.feat.head_full_token = args.head_full_token
 
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)

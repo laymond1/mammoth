@@ -56,9 +56,9 @@ class PromptModel(nn.Module):
 
         # EViT
         args.keep_rate = 1.0 - args.drop_rate # to be compatible with other model's arguments
-        args.keep_rate = [args.keep_rate] * len(self.feat.blocks)
         evit.apply_patch(self.feat, keep_rate=args.keep_rate, fuse_token=args.fuse_token)
         self.feat.query_merge = args.query_merge
+        self.feat.head_full_token = args.head_full_token
 
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)

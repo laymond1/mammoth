@@ -67,7 +67,7 @@ class ToMeAttention(Attention):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Query Forward
         if query:
-            return super().forward(x, register_hook=register_hook)
+            return super().forward(x, register_hook=register_hook, prompt=prompt)
 
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
@@ -145,7 +145,12 @@ def make_tome_class(transformer_class):
                 if q is None and not self.query_merge: 
                     x = blk(x, register_blk==i, query=True) # query forward
                 else:
-                    x = blk(x, register_blk==i, prompt=p_list)
+                    # Head forward with full token
+                    if self.head_full_token and not train:
+                        x = blk(x, register_blk==i, prompt=p_list, query=True)
+                    # Normal forward
+                    else:
+                        x = blk(x, register_blk==i, prompt=p_list)
 
             x = self.norm(x)
 

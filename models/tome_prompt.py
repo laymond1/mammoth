@@ -40,8 +40,9 @@ class ToMePrompt(ContinualModel):
         parser.add_argument('--head_epoch_start_ratio', type=float, default=1.0, help='the ratio of the epochs to start training the head')
 
         # ToMe 
-        parser.add_argument('--r', type=int, default=18, help='number of tokens to merge')
+        parser.add_argument('--r', type=int, default=19, help='number of tokens to merge')
         parser.add_argument('--query_merge', type=binary_to_boolean_type, default=False, help='enable token merging during query forward pass for efficiency')
+        parser.add_argument('--head_full_token', type=binary_to_boolean_type, default=False, help='enable full token for head forward pass for effectiveness')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
