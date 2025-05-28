@@ -1,0 +1,31 @@
+N_TASKS: 1
+N_CLASSES_PER_TASK: 200
+N_CLASSES: 200
+MEAN: [0, 0, 0]
+STD: [1, 1, 1]
+TRANSFORM:
+  - RandomResizedCrop:
+      size: 224
+      scale:
+        - 0.05
+        - 1.0
+      ratio:
+        - 0.75
+        - 1.3333
+  - RandomHorizontalFlip
+  - ToTensor
+  - Normalize:
+      mean: [0, 0, 0]
+      std: [1, 1, 1]
+TEST_TRANSFORM:
+  - Resize:
+      size: 256
+      interpolation: 3
+  - CenterCrop:
+      size: 224
+  - ToTensor
+  - Normalize:
+      mean: [0, 0, 0]
+      std: [1, 1, 1]
+batch_size: 16
+n_epochs: 20
