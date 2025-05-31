@@ -215,6 +215,21 @@ def resnet18(num_classes: int, num_filters: int = 64) -> ResNet:
     return ResNet(BasicBlock, [2, 2, 2, 2], num_classes, num_filters)
 
 
+@register_backbone("resnet18_7x7")
+def resnet18(num_classes: int) -> ResNet:
+    """
+    Instantiates a ResNet18 network with a 7x7 initial convolution and pretrained weights.
+
+    Args:
+        num_classes: number of output classes
+
+    Returns:
+        ResNet network
+    """
+
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes, 64, initial_conv_k=7)
+
+
 @register_backbone("resnet18_7x7_pt")
 def resnet18(num_classes: int) -> ResNet:
     """
