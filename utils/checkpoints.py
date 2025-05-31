@@ -218,11 +218,19 @@ def save_mammoth_checkpoint(task: int, end_task: int, args: Namespace, model: to
     Save a checkpoint for the model for the given task.
     Handles saving as a single file (will require `weights_only=False)` or separate weights (can be loaded safely with `weights_only=True`).
     """
+    # check base directory
+    if args.validation is not None:
+        base_dir = f'checkpoints/valid'
+    else:
+        base_dir = f'checkpoints/test'
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+    # check if savepoint is task or last
     if args.savecheck == 'task':
-        checkpoint_name = f'checkpoints/{args.ckpt_name}_joint' if args.joint else f'checkpoints/{args.ckpt_name}_{task}'
+        checkpoint_name = f'{base_dir}/{args.ckpt_name}_joint' if args.joint else f'checkpoints/{args.ckpt_name}_{task}'
     elif args.savecheck == 'last':
         if task == end_task - 1:
-            checkpoint_name = f'checkpoints/{args.ckpt_name}_joint' if args.joint else f'checkpoints/{args.ckpt_name}_last'
+            checkpoint_name = f'{base_dir}/{args.ckpt_name}_joint' if args.joint else f'checkpoints/{args.ckpt_name}_last'
         else:
             return
     else:
