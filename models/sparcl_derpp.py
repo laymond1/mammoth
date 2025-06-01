@@ -66,10 +66,15 @@ class SparCLDerpp(ContinualModel):
         prune_print_sparsity(self.net)
         _, total_sparsity = test_sparsity(self.net, column=False, channel=False, filter=False, kernel=False)
         self.total_sparsity = total_sparsity
-        log_filename_dir = os.path.dirname(self.args.log_filename)
-        if not os.path.exists(log_filename_dir):
-            os.makedirs(log_filename_dir)
-            print("New folder {} created...".format(log_filename_dir))
+        # check base directory
+        if args.validation is not None:
+            base_dir = f'checkpoints/valid'
+        else:
+            base_dir = f'checkpoints/test'
+        self.args.output_dir = f'{base_dir}/{self.args.output_dir}'
+        if not os.path.exists(self.args.output_dir):
+            os.makedirs(self.args.output_dir)
+            print("New folder {} created...".format(self.args.output_dir))
 
     def begin_task(self, dataset):
         self.example_stats_train = {}
@@ -127,8 +132,9 @@ class SparCLDerpp(ContinualModel):
             print('epoch before ordered_examples len', len(ordered_examples))
             print('epoch before len(train_dataset.targets)', len(dataset.train_loader.dataset.targets))
 
+            num_samples_to_remove = int(self.full_dataset.data.shape[0] * self.args.remove_n_ratio / (int(self.args.remove_data_epoch) / self.args.sp_mask_update_freq))
             elements_to_remove = np.array(
-                ordered_examples)[self.args.keep_lowest_n:self.args.keep_lowest_n + ( int(self.args.remove_n/( int(self.args.remove_data_epoch)/self.args.sp_mask_update_freq ) ) )]
+                ordered_examples)[self.args.keep_lowest_n:self.args.keep_lowest_n + num_samples_to_remove]
             # Remove the corresponding elements
             print('elements_to_remove', len(elements_to_remove))
 
@@ -137,10 +143,7 @@ class SparCLDerpp(ContinualModel):
             print('removed train_indx', len(self.train_indx))
 
             # Reassign train data and labels
-            if self.args.dataset == 'seq-cifar10' or self.args.dataset == 'seq-cifar100':
-                dataset.train_loader.dataset.data = self.full_dataset.data[self.train_indx, :, :, :]
-            elif self.args.dataset == 'seq-imagenet-r':
-                dataset.train_loader.dataset.data = self.full_dataset.data[self.train_indx]
+            dataset.train_loader.dataset.data = self.full_dataset.data[self.train_indx]
             dataset.train_loader.dataset.targets = np.array(self.full_dataset.targets)[self.train_indx].tolist()
             dataset.train_loader.dataset.indexes = np.array(self.full_dataset.indexes)[self.train_indx].tolist()
 

@@ -1,70 +1,220 @@
-seq-cifar100:
-  2000:
-    alpha: 0.1
-    beta: 0.5
-    lr: 0.03
-    model: derpp
+seq-cifar10:
+  500:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18
     optimizer: sgd
-    batch_size: 32
-    # lr_scheduler: cosine # None
+    batch_size: 16
     n_epochs: 20
     upper_bound: 0.75-0.76-0.75
     lower_bound: 0.74-0.75-0.75
-    mask_update_decay_epoch: 5-45
+    mask_update_decay_epoch: 5-15
     sp_mask_update_freq: 5
     remark: irr_0.75_mut
     sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
-    log_filename: checkpoints/gradient_effi/mutate_irr/seq_cifar100/buffer_2000/seed_0_log.txt
     gradient_sparse: 0.80
-    remove_n: 1500
+    remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 20
-    output_dir: checkpoints/gradient_effi/mutate_irr/seq_cifar100/buffer_2000/
-    output_name: irr_0.75_mut_RM_1500_20
-seq-cifar10:
-  500:
-    alpha: 0.1
-    beta: 0.5
-    lr: 0.03
-    model: derpp
+    output_dir: gradient_effi/mutate_irr/seq_cifar10/buffer_500/
+    output_name: irr_0.75_mut_RM_3000_10
+seq-cifar100-224:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
     optimizer: sgd
-    batch_size: 32
-    # lr_scheduler: cosine # None
+    batch_size: 16
+    n_epochs: 20
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 2-18 # 0.1-0.9
+    sp_mask_update_freq: 2 # 8 / 4
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    gradient_sparse: 0.80
+    remove_n_ratio: 0.3
+    keep_lowest_n: 0
+    remove_data_epoch: 8 # 4 cutoff stage (0.2 * 20)
+    output_dir: gradient_effi/mutate_irr/seq_cifar100_224/buffer_2000/
+    output_name: irr_0.75_mut_RM_1500_20
+seq-imagenet-r:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
+    optimizer: sgd
+    batch_size: 16
     n_epochs: 50
     upper_bound: 0.75-0.76-0.75
     lower_bound: 0.74-0.75-0.75
     mask_update_decay_epoch: 5-45
-    sp_mask_update_freq: 5
+    sp_mask_update_freq: 5 # 20 / 4
     remark: irr_0.75_mut
     sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
-    log_filename: checkpoints/gradient_effi/mutate_irr/seq_cifar10/buffer_500/seed_0_log.txt
     gradient_sparse: 0.80
-    remove_n: 3000 # 0.3
+    remove_n_ratio: 0.3
     keep_lowest_n: 0
-    remove_data_epoch: 20
-    output_dir: checkpoints/gradient_effi/mutate_irr/seq_cifar10/buffer_500/
-    output_name: irr_0.75_mut_RM_3000_20
-seq-cifar10-224:
-  500:
-    alpha: 0.1
-    beta: 0.5
-    lr: 0.03
-    model: derpp
+    remove_data_epoch: 20 # 4 cutoff stage (0.4 * 50)
+    output_dir: gradient_effi/mutate_irr/seq_imagenet_r/buffer_2000/
+    output_name: irr_0.75_mut_RM_650_20
+seq-cars196:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
     optimizer: sgd
     batch_size: 16
-    # lr_scheduler: cosine # None
-    n_epochs: 20
+    n_epochs: 50
     upper_bound: 0.75-0.76-0.75
     lower_bound: 0.74-0.75-0.75
     mask_update_decay_epoch: 5-45
-    sp_mask_update_freq: 5
+    sp_mask_update_freq: 5 # 20 / 4
     remark: irr_0.75_mut
     sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
-    log_filename: checkpoints/gradient_effi/mutate_irr/seq_cifar10_224/buffer_500/seed_0_log.txt
     gradient_sparse: 0.80
-    remove_n: 3000
+    remove_n_ratio: 0.3
     keep_lowest_n: 0
-    remove_data_epoch: 20
-    output_dir: checkpoints/gradient_effi/mutate_irr/seq_cifar10_224/buffer_500/
-    output_name: irr_0.75_mut_RM_3000_20
-
+    remove_data_epoch: 20 # 4 cutoff stage (0.4 * 50)
+    output_dir: gradient_effi/mutate_irr/seq_cars196/buffer_2000/
+    output_name: irr_0.75_mut_RM_650_20
+seq-cub200:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
+    optimizer: sgd
+    batch_size: 16
+    n_epochs: 50
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 5-45
+    sp_mask_update_freq: 5 # 20 / 4
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    gradient_sparse: 0.80
+    remove_n_ratio: 0.3
+    keep_lowest_n: 0
+    remove_data_epoch: 20 # 4 cutoff stage (0.4 * 50)
+    output_dir: gradient_effi/mutate_irr/seq_cub200/buffer_2000/
+    output_name: irr_0.75_mut_RM_650_20
+seq-eurosat-rgb:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
+    optimizer: sgd
+    batch_size: 16
+    n_epochs: 5
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 1-4 # 0.1-0.9
+    sp_mask_update_freq: 1 # 4 / 4
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    gradient_sparse: 0.80
+    remove_n_ratio: 0.3
+    keep_lowest_n: 0
+    remove_data_epoch: 4 # 4 cutoff stage (0.4 * 5)
+    output_dir: gradient_effi/mutate_irr/seq_eurosat_rgb/buffer_2000/
+    output_name: irr_0.75_mut_RM_650_20
+seq-resisc45:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
+    optimizer: sgd
+    batch_size: 16
+    n_epochs: 30
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 3-27 # 0.1-0.9
+    sp_mask_update_freq: 3 # 12 / 4
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    gradient_sparse: 0.80
+    remove_n_ratio: 0.3
+    keep_lowest_n: 0
+    remove_data_epoch: 12 # 4 cutoff stage (0.4 * 30)
+    output_dir: gradient_effi/mutate_irr/seq_resisc45/buffer_2000/
+    output_name: irr_0.75_mut_RM_650_20
+seq-chestx:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
+    optimizer: sgd
+    batch_size: 16
+    n_epochs: 30
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 3-27 # 0.1-0.9
+    sp_mask_update_freq: 3 # 12 / 4
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    gradient_sparse: 0.80
+    remove_n_ratio: 0.3
+    keep_lowest_n: 0
+    remove_data_epoch: 12 # 4 cutoff stage (0.4 * 30)
+    output_dir: gradient_effi/mutate_irr/seq_chestx/buffer_2000/
+    output_name: irr_0.75_mut_RM_650_20
+seq-isic:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
+    optimizer: sgd
+    batch_size: 16
+    n_epochs: 30
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 3-27 # 0.1-0.9
+    sp_mask_update_freq: 3 # 12 / 4
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    gradient_sparse: 0.80
+    remove_n_ratio: 0.3
+    keep_lowest_n: 0
+    remove_data_epoch: 12 # 4 cutoff stage (0.4 * 30)
+    output_dir: gradient_effi/mutate_irr/seq_isic/buffer_2000/
+    output_name: irr_0.75_mut_RM_650_20
+seq-cropdisease:
+  2000:
+    alpha: 0.5
+    beta: 1.0
+    lr: 0.003
+    model: sparcl_derpp
+    backbone: resnet18_7x7_pt
+    optimizer: sgd
+    batch_size: 16
+    n_epochs: 5
+    upper_bound: 0.75-0.76-0.75
+    lower_bound: 0.74-0.75-0.75
+    mask_update_decay_epoch: 1-4 # 0.1-0.9
+    sp_mask_update_freq: 1 # 4 / 4
+    remark: irr_0.75_mut
+    sp_config_file: ./models/sparcl_utils/resnet18_0.75.yaml
+    gradient_sparse: 0.80
+    remove_n_ratio: 0.3
+    keep_lowest_n: 0
+    remove_data_epoch: 4 # 4 cutoff stage (0.4 * 5)
+    output_dir: gradient_effi/mutate_irr/seq_cropdisease/buffer_2000/
+    output_name: irr_0.75_mut_RM_650_20
