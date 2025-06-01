@@ -75,6 +75,8 @@ class SparCLDerpp(ContinualModel):
         if not os.path.exists(self.args.output_dir):
             os.makedirs(self.args.output_dir)
             print("New folder {} created...".format(self.args.output_dir))
+        # set verbose
+        self.verbose = self.args.seed == 1
 
     def begin_task(self, dataset):
         self.example_stats_train = {}
@@ -89,7 +91,7 @@ class SparCLDerpp(ContinualModel):
     def begin_epoch(self, epoch, dataset):
         self.epoch_total_size = 0
         self.epoch_correct = 0
-        prune_update(epoch)
+        prune_update(epoch, self.verbose)
         # Dynamic Data Removal (DDR)
         #########remove data at 25 epoch, update dataset ######
         if epoch > 0 and epoch % self.args.sp_mask_update_freq == 0 and epoch <= self.args.remove_data_epoch:
@@ -109,7 +111,6 @@ class SparCLDerpp(ContinualModel):
             ordered_examples, ordered_values, num_unforget = self.sort_examples_by_forgetting(unlearned_per_presentation_all, 
                                                                                               first_learned_all,
                                                                                               int(self.args.n_epochs))
-                                                                                            #   int(self.args.n_epochs/self.n_tasks))
 
             # Save sorted output
             t = self.current_task
@@ -162,7 +163,7 @@ class SparCLDerpp(ContinualModel):
 
         loss = self.loss(outputs, labels)
 
-        if not self.buffer.is_empty() and self.current_task > 0:
+        if not self.buffer.is_empty():
             buf_inputs, _, buf_logits = self.buffer.get_data(self.args.minibatch_size, transform=self.transform, device=self.device)
 
             buf_outputs = self.net(buf_inputs)

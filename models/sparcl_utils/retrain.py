@@ -247,7 +247,7 @@ class SparseTraining(object):
                     np.set_printoptions(threshold=sys.maxsize)
                     print(np.squeeze(np_mask)[0], name)
 
-    def update_mask(self, epoch, batch_idx):
+    def update_mask(self, epoch, batch_idx, verbose=False):
         # a hacky way to differenate random GaP and others
         if not self.mask_update_decay_epoch:
             return
@@ -345,10 +345,11 @@ class SparseTraining(object):
                     sparsity = 1 - (num_nonzeros * 1.0) / total_num
                     np_orig_mask = self.masks[name].cpu().detach().numpy()
 
-                    print(("\n==> BEFORE UPDATE: {}: {}, {}, {}".format(name,
-                                                                    str(num_nonzeros),
-                                                                    str(total_num),
-                                                                    str(sparsity))))
+                    if verbose:
+                        print(("\n==> BEFORE UPDATE: {}: {}, {}, {}".format(name,
+                                                                        str(num_nonzeros),
+                                                                        str(total_num),
+                                                                        str(sparsity))))
 
                     ############## pruning #############
                     pruned_weight_np = None
@@ -357,7 +358,8 @@ class SparseTraining(object):
                         sparsity_type_list = (self.args.sp_admm_sparsity_type).split("+")
                         for i in range(len(sparsity_type_list)):
                             sparsity_type = sparsity_type_list[i]
-                            print("* sparsity type {} is {}".format(i, sparsity_type))
+                            if verbose:
+                                print("* sparsity type {} is {}".format(i, sparsity_type))
                             self.args.sp_admm_sparsity_type = sparsity_type
 
                             pruned_mask, pruned_weight = weight_pruning(self.args,
@@ -373,10 +375,11 @@ class SparseTraining(object):
 
                             non_zeros_prune = pruned_weight_np != 0
                             num_nonzeros_prune = np.count_nonzero(non_zeros_prune.astype(np.float32))
-                            print(("==> PRUNE: {}: {}, {}, {}".format(name,
-                                                             str(num_nonzeros_prune),
-                                                             str(total_num),
-                                                             str(1 - (num_nonzeros_prune * 1.0) / total_num))))
+                            if verbose:
+                                print(("==> PRUNE: {}: {}, {}, {}".format(name,
+                                                                str(num_nonzeros_prune),
+                                                                str(total_num),
+                                                                str(1 - (num_nonzeros_prune * 1.0) / total_num))))
 
                             self.masks[name] = pruned_mask.to(self.args.device)
 
@@ -401,7 +404,8 @@ class SparseTraining(object):
                                                       pruned_weight_np,
                                                       lower_bound_value,
                                                       upper_bound_value,
-                                                      self.update_init_method)
+                                                      self.update_init_method,
+                                                      verbose=verbose)
                         self.masks[name] = updated_mask
                         pass
 

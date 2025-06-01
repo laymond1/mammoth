@@ -51,8 +51,8 @@ def prune_init(args, model, logger=None, pre_defined_mask=None):
         return
 
 
-def prune_update(epoch=0, batch_idx=0):
-    retrain.update_mask(epoch, batch_idx)
+def prune_update(epoch=0, batch_idx=0, verbose=False):
+    retrain.update_mask(epoch, batch_idx, verbose)
 
 
 def prune_harden(args, model, option=None):

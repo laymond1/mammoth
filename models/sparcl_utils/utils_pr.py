@@ -368,7 +368,7 @@ def weight_pruning(args, configs, name, w, prune_ratio, mask_fixed_params=None):
     raise SyntaxError("Unknown sparsity type: {}".format(args.sp_admm_sparsity_type))
 
 
-def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_value, update_init_method, mask_fixed_params=None):
+def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_value, update_init_method, mask_fixed_params=None, verbose=False):
     shape = None
     weight1d = None
 
@@ -376,13 +376,15 @@ def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_
         mask_fixed_params = mask_fixed_params.detach().cpu().numpy()
 
     if upper_bound_value == 0:
-        print("==> GROW: {}: to DENSE despite the sparsity type is \n".format(name))
+        if verbose:
+            print("==> GROW: {}: to DENSE despite the sparsity type is \n".format(name))
         np_updated_mask = np.ones_like(pruned_weight_np, dtype=np.float32)
         updated_mask = torch.from_numpy(np_updated_mask).to(args.device)
         return updated_mask
 
     if upper_bound_value == lower_bound_value:
-        print("==> GROW: {}: no grow, keep the mask and do finetune \n".format(name))
+        if verbose:
+            print("==> GROW: {}: no grow, keep the mask and do finetune \n".format(name))
         non_zeros_updated = pruned_weight_np != 0
         non_zeros_updated = non_zeros_updated.astype(np.float32)
         np_updated_mask = non_zeros_updated
@@ -406,9 +408,10 @@ def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_
         indices = np.random.choice(zeros_indices,
                                    num_added_zeros,
                                    replace=False)
-        print("==> CALCULATE: all zeros: {}, need grow {} zeros, selected zeros: {} ".format(len(zeros_indices),
-                                                                                             num_added_zeros,
-                                                                                             len(indices)))
+        if verbose:
+            print("==> CALCULATE: all zeros: {}, need grow {} zeros, selected zeros: {} ".format(len(zeros_indices),
+                                                                                                num_added_zeros,
+                                                                                                len(indices)))
 
         # initialize selected weights
         if update_init_method == "weight":
@@ -439,7 +442,8 @@ def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_
             weight = weight1d.reshape(shape)
             non_zeros_updated = weight != 0
             non_zeros_updated = non_zeros_updated.astype(np.float32)
-            print("==> GROW: {}: revise sparse mask to sparsity {}\n".format(name, target_sparsity))
+            if verbose:
+                print("==> GROW: {}: revise sparse mask to sparsity {}\n".format(name, target_sparsity))
 
             # update mask
             # zero_mask = torch.from_numpy(non_zeros_updated).to(args.device)
@@ -458,10 +462,6 @@ def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_
         updated_mask = torch.from_numpy(np_updated_mask).to(args.device)
 
         return updated_mask
-
-
-
-
 
     elif "pattern" in args.sp_admm_sparsity_type:
 
@@ -515,8 +515,9 @@ def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_
 
             c = np.where(conv_kernel_indicate == -1) # empty kernel indices of the ones need to be grow
 
-            print("==> CALCULATE: all kernels: {}, need grow {} kernels ".format(np.size(conv_kernel_indicate),
-                                                                                 len(c[0])))
+            if verbose:
+                print("==> CALCULATE: all kernels: {}, need grow {} kernels ".format(np.size(conv_kernel_indicate),
+                                                                                        len(c[0])))
 
             for idx in range(len(c[0])):
                 target_kernel = pruned_weight_np[c[0][idx], c[1][idx], :, :] # find the empty kernel in weight
@@ -534,8 +535,9 @@ def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_
             updated_mask = torch.from_numpy(np_updated_mask).to(args.device)
 
             mask_sparsity = 1 - (np.count_nonzero(np_updated_mask)) * 1.0 / np.size(pruned_weight_np)
-
-            print("==> GROW: {}: revise sparse mask to sparsity {}\n".format(name, mask_sparsity))
+            
+            if verbose:
+                print("==> GROW: {}: revise sparse mask to sparsity {}\n".format(name, mask_sparsity))
 
             return updated_mask
 
@@ -565,7 +567,8 @@ def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_
         indices = np.random.choice(zeros_indices_per_block,
                                    num_added_block,
                                    replace=False)
-        print("==> CALCULATE: all blocks: {}, need grow {} blocks ".format(np.size(block_indicate), len(indices)))
+        if verbose:
+            print("==> CALCULATE: all blocks: {}, need grow {} blocks ".format(np.size(block_indicate), len(indices)))
 
         mat[:, indices] = -1
 
@@ -581,6 +584,7 @@ def weight_growing(args, name, pruned_weight_np, lower_bound_value, upper_bound_
 
         mask_sparsity = 1 - (np.count_nonzero(np_updated_mask)) * 1.0 / np.size(pruned_weight_np)
 
-        print("==> GROW: {}: revise sparse mask to sparsity {}\n".format(name, mask_sparsity))
+        if verbose:
+            print("==> GROW: {}: revise sparse mask to sparsity {}\n".format(name, mask_sparsity))
 
         return updated_mask
