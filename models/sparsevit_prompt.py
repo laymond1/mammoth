@@ -31,10 +31,6 @@ class SparseViTPrompt(ContinualModel):
     def get_parser(parser) -> ArgumentParser:
         # Parameters
         parser.add_argument('--vit_type', type=str, default='tiny', choices=['tiny', 'small', 'base'], help='ViT type')
-        parser.add_argument('--sparse_type', type=str, default='random', choices=['random', 'patchdropout', 'l2', 'attn_map'], help='sparse update type')
-        parser.add_argument('--drop_rate', type=float, default=0.3, help='Token purning ratio')
-        # parser.add_argument('--query', type=str, default='poolformer', choices=['vit', 'poolformer'], help="choose one of [poolformer]")
-        # parser.add_argument('--e_prompt_layer_idx', type=int, default=[-5, -4, -3, -2, -1], nargs="+", help='the layer index of the E-Prompt')
         parser.add_argument('--e_prompt_layer_idx', type=int, default=[0, 1, 2, 3, 4], nargs="+", help='the layer index of the E-Prompt')
         parser.add_argument('--e_prompt_pool_size', type=int, default=100, help='pool size')
         parser.add_argument('--e_prompt_length', type=int, default=8, help='prompt length')
@@ -43,6 +39,11 @@ class SparseViTPrompt(ContinualModel):
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
         parser.add_argument('--head_epoch_start_ratio', type=float, default=0.8, help='the ratio of the epochs to start training the head')
+        
+        # Sparse Prompt
+        parser.add_argument('--sparse_type', type=str, default='random', choices=['random', 'patchdropout', 'l2', 'attn_map'], help='sparse update type')
+        parser.add_argument('--drop_rate', type=float, default=0.3, help='Token purning ratio')
+        parser.add_argument('--query_merge', type=binary_to_boolean_type, default=False, help='enable token merging during query forward pass for efficiency')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')

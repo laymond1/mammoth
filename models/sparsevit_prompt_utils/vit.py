@@ -238,28 +238,99 @@ class VisionTransformer(nn.Module):
 
         return torch.cat([cls_token, patch_tokens], dim=1)
     
-    def attention_based_masking(self, x, drop_rate=0.0):
+    def attention_based_masking(self, x, drop_rate=0.0, random_ratio=1.0, mode='mean', keep_sorted=True):
         """ Select top-k patches based on attention score """
-        cls_token = x[:, 0:1]
-        patch_tokens = x[:, 1:]
+        cls_token = x[:, 0:1] # (B, 1, D)
+        patch_tokens = x[:, 1:] # (B, N, D)
         B, N, D = patch_tokens.shape
 
         # if self.blocks[attn_map_layer].attn.get_attention_map() is not None:
         attn_map_layer = len(self.blocks) - 1
         attn_map = self.blocks[attn_map_layer].attn.get_attention_map() # shape: [B, heads, tokens, tokens]
         cls_attn = attn_map[:, :, 0, 1:] # [B, heads, num_patches]
-        attn_score = cls_attn.mean(dim=1) # [B, num_patches]
+        
+        # Compute attention scores from CLS token to each patch
+        if mode == 'mean':
+            attn_score = cls_attn.mean(dim=1) # (B, N)
+        elif mode == 'max':
+            attn_score, _ = cls_attn.max(dim=1)
+        elif mode == 'min':
+            attn_score, _ = cls_attn.min(dim=1)
+        elif mode == 'sum':
+            attn_score = cls_attn.sum(dim=1)
+        else:
+            raise ValueError(f"Unknown mode: {mode}")
+        
+        # Determine how many tokens to keep
+        n_keep = int((1 - drop_rate) * N)
+        n_attn_keep = int((1 - random_ratio) * n_keep)
+        n_random_keep = n_keep - n_attn_keep
 
-        k = int((1 - drop_rate) * N)
-        topk_idx = torch.topk(attn_score, k=k, dim=1).indices  # [B, k]
-        topk_idx = topk_idx.sort()[0]
+        # 1. Select top-k attention tokens
+        attn_indices = attn_score.argsort(descending=True)[:, :n_attn_keep]  # (B, n_attn_keep)
 
-        selected = []
-        for i in range(B):
-            selected.append(patch_tokens[i, topk_idx[i]])
-        selected = torch.stack(selected, dim=0)
+        # 2. Create mask for selected attention indices
+        full_indices = torch.arange(N, device=x.device).unsqueeze(0).expand(B, -1)  # (B, N)
+        attn_mask = torch.zeros(B, N, dtype=torch.bool, device=x.device)
+        attn_mask.scatter_(1, attn_indices, True)  # mark attention indices as True
 
-        return torch.cat([cls_token, selected], dim=1)
+        # 3. Get remaining indices and randomly select from them
+        non_attn_mask = ~attn_mask
+        non_attn_indices = full_indices[non_attn_mask].view(B, -1)  # (B, N - n_attn_keep)
+
+        rand_perm = torch.rand(B, non_attn_indices.shape[1], device=x.device).argsort(dim=1)
+        rand_indices = non_attn_indices.gather(1, rand_perm[:, :n_random_keep])  # (B, n_random_keep)
+
+        # 4. Merge indices and optionally sort
+        final_indices = torch.cat([attn_indices, rand_indices], dim=1)  # (B, n_keep)
+        if keep_sorted:
+            final_indices, _ = final_indices.sort(dim=1)
+
+        # 5. Select patch tokens with torch.gather
+        gather_index = final_indices.unsqueeze(-1).expand(-1, -1, D)  # (B, n_keep, D)
+        selected_patches = torch.gather(patch_tokens, dim=1, index=gather_index)
+
+        # 6. Concatenate CLS token back
+        return torch.cat([cls_token, selected_patches], dim=1)  # (B, 1 + n_keep, D)
+
+        # all_indices = torch.arange(N, device=x.device).unsqueeze(0).expand(B, -1)  # shape: (B, N)
+        # # Create mask for attn_indices
+        # attn_mask = torch.zeros(B, N, dtype=torch.bool, device=x.device)
+        # attn_mask.scatter_(1, attn_indices, True)  # mark attn_indices as True
+
+        # # select top-k tokens based on attention score
+        # attn_indices = attn_score.sort(descending=True)[1]  # sort attention scores in ascending order
+        # attn_indices = attn_indices[:, :n_attn_keep]  # keep top-k scores
+        # # select random tokens
+        # rand_indices = torch.rand(B, N, device=x.device)
+        # rand_indices = torch.argsort(rand_indices, dim=1)
+        # rand_indices = rand_indices[:, :n_random_keep]
+
+        # if keep_sorted:
+        #     attn_indices, _ = attn_indices.sort()
+
+
+        # # select top-k tokens based on attention score
+        # patch_tokens = torch.gather(patch_tokens, dim=1, index=attn_indices.unsqueeze(-1).expand(-1, -1, D))
+
+        # return torch.cat([cls_token, patch_tokens], dim=1)
+
+        # n_keep = int((1 - drop_rate) * N)
+        # n_attn_keep = int((1 - random_ratio) * n_keep)
+        # n_random_keep = n_keep - n_attn_keep
+        # # select top-k tokens based on attention score
+        # topk_idx = torch.topk(attn_score, k=n_attn_keep, dim=1).indices  # [B, k]
+        # topk_idx = topk_idx.sort()[0]
+        # # select random tokens
+        # random_idx = torch.randperm(N)[:n_random_keep]
+        # random_idx = random_idx.sort()[0]
+
+        # selected = []
+        # for i in range(B):
+        #     selected.append(patch_tokens[i, topk_idx[i]])
+        # selected = torch.stack(selected, dim=0)
+
+        # return torch.cat([cls_token, selected], dim=1)
     
     def topk_l2_token_masking(self, x, patch, drop_rate=0.0):
         cls_token, patch_tokens = x[:, :1], x[:, 1:]

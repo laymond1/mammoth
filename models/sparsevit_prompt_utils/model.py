@@ -14,6 +14,7 @@ vit_config = {
     'tiny':  {'embed_dim': 192, 'depth': 12, 'num_heads': 3},
     'small': {'embed_dim': 384, 'depth': 12, 'num_heads': 6},
     'base':  {'embed_dim': 768, 'depth': 12, 'num_heads': 12},
+    'large': {'embed_dim': 1024, 'depth': 24, 'num_heads': 16},
 }
 
 
@@ -52,6 +53,9 @@ class PromptModel(nn.Module):
             # grad false
             self.feat.requires_grad_(False)
 
+        # Sparse Prompt
+        self.feat.query_merge = args.query_merge
+
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)
 
@@ -89,15 +93,3 @@ class PromptModel(nn.Module):
             return out, prompt_loss
         else:
             return out
-
-        
-def extract_topk_key(query, key, top_k=1):
-    # cosine similarity to match keys/querries
-    n_K = nn.functional.normalize(key, dim=1)
-    q = nn.functional.normalize(query, dim=1).detach()
-    cos_sim = torch.einsum('bj,kj->bk', q, n_K)
-
-    # top-k 
-    distance = 1 - cos_sim
-    _, top_k = torch.topk(distance, top_k, dim=1, largest=False)
-    return top_k
