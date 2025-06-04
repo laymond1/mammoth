@@ -193,5 +193,6 @@ def create_seeded_dataloader(args, dataset, non_verbose=False, **dataloader_args
     dataloader_args['generator'] = worker_generator if 'generator' not in dataloader_args else dataloader_args['generator']
     init_fn = partial(worker_init_fn, num_workers=num_workers, seed=args.seed) if args.seed is not None else None
     dataloader_args['worker_init_fn'] = init_fn if 'worker_init_fn' not in dataloader_args else dataloader_args['worker_init_fn']
+    dataloader_args['pin_memory'] = True if 'cuda' in args.device.type else None
 
     return DataLoader(dataset, **dataloader_args)
