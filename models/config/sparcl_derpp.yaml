@@ -2,7 +2,7 @@ seq-cifar10:
   500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18
     optimizer: sgd
@@ -21,10 +21,10 @@ seq-cifar10:
     output_dir: gradient_effi/mutate_irr/seq_cifar10/buffer_500/
     output_name: irr_0.75_mut_RM_3000_10
 seq-cifar100-224:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -40,13 +40,13 @@ seq-cifar100-224:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 8 # 4 cutoff stage (0.2 * 20)
-    output_dir: gradient_effi/mutate_irr/seq_cifar100_224/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_cifar100_224/buffer_500/
     output_name: irr_0.75_mut_RM_1500_20
 seq-imagenet-r:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -62,13 +62,13 @@ seq-imagenet-r:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 20 # 4 cutoff stage (0.4 * 50)
-    output_dir: gradient_effi/mutate_irr/seq_imagenet_r/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_imagenet_r/buffer_500/
     output_name: irr_0.75_mut_RM_650_20
 seq-cars196:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -84,13 +84,13 @@ seq-cars196:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 20 # 4 cutoff stage (0.4 * 50)
-    output_dir: gradient_effi/mutate_irr/seq_cars196/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_cars196/buffer_500/
     output_name: irr_0.75_mut_RM_650_20
 seq-cub200:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -106,13 +106,13 @@ seq-cub200:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 20 # 4 cutoff stage (0.4 * 50)
-    output_dir: gradient_effi/mutate_irr/seq_cub200/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_cub200/buffer_500/
     output_name: irr_0.75_mut_RM_650_20
 seq-eurosat-rgb:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -128,13 +128,13 @@ seq-eurosat-rgb:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 4 # 4 cutoff stage (0.4 * 5)
-    output_dir: gradient_effi/mutate_irr/seq_eurosat_rgb/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_eurosat_rgb/buffer_500/
     output_name: irr_0.75_mut_RM_650_20
 seq-resisc45:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -150,13 +150,13 @@ seq-resisc45:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 12 # 4 cutoff stage (0.4 * 30)
-    output_dir: gradient_effi/mutate_irr/seq_resisc45/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_resisc45/buffer_500/
     output_name: irr_0.75_mut_RM_650_20
 seq-chestx:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -172,13 +172,13 @@ seq-chestx:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 12 # 4 cutoff stage (0.4 * 30)
-    output_dir: gradient_effi/mutate_irr/seq_chestx/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_chestx/buffer_500/
     output_name: irr_0.75_mut_RM_650_20
 seq-isic:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -194,13 +194,13 @@ seq-isic:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 12 # 4 cutoff stage (0.4 * 30)
-    output_dir: gradient_effi/mutate_irr/seq_isic/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_isic/buffer_500/
     output_name: irr_0.75_mut_RM_650_20
 seq-cropdisease:
-  2000:
+  500:
     alpha: 0.5
     beta: 1.0
-    lr: 0.003
+    lr: 0.03
     model: sparcl_derpp
     backbone: resnet18_7x7_pt
     optimizer: sgd
@@ -216,5 +216,5 @@ seq-cropdisease:
     remove_n_ratio: 0.3
     keep_lowest_n: 0
     remove_data_epoch: 4 # 4 cutoff stage (0.4 * 5)
-    output_dir: gradient_effi/mutate_irr/seq_cropdisease/buffer_2000/
+    output_dir: gradient_effi/mutate_irr/seq_cropdisease/buffer_500/
     output_name: irr_0.75_mut_RM_650_20
