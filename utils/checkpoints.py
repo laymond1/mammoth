@@ -227,10 +227,10 @@ def save_mammoth_checkpoint(task: int, end_task: int, args: Namespace, model: to
         os.makedirs(base_dir)
     # check if savepoint is task or last
     if args.savecheck == 'task':
-        checkpoint_name = f'{base_dir}/{args.ckpt_name}_joint' if args.joint else f'checkpoints/{args.ckpt_name}_{task}'
+        checkpoint_name = f'{base_dir}/{args.ckpt_name}_joint' if args.joint else f'{base_dir}/{args.ckpt_name}_{task}'
     elif args.savecheck == 'last':
         if task == end_task - 1:
-            checkpoint_name = f'{base_dir}/{args.ckpt_name}_joint' if args.joint else f'checkpoints/{args.ckpt_name}_last'
+            checkpoint_name = f'{base_dir}/{args.ckpt_name}_joint' if args.joint else f'{base_dir}/{args.ckpt_name}_last'
         else:
             return
     else:
