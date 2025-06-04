@@ -7,13 +7,14 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 
 from models.osprompt_utils.vit import VisionTransformer
-from models.prompt_utils.prompt import L2P, DualPrompt, CodaPrompt, OSPrompt
+from models.prompt_utils.prompt import OSPrompt
 
 
 vit_config = {
     'tiny':  {'embed_dim': 192, 'depth': 12, 'num_heads': 3},
     'small': {'embed_dim': 384, 'depth': 12, 'num_heads': 6},
     'base':  {'embed_dim': 768, 'depth': 12, 'num_heads': 12},
+    'large': {'embed_dim': 1024, 'depth': 24, 'num_heads': 16},
 }
 
 
@@ -75,13 +76,7 @@ class PromptModel(nn.Module):
         self.head = nn.Linear(self.embed_dim, num_classes)
 
         # create prompting module
-        if self.prompt_flag == 'l2p':
-            self.prompt = L2P(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 30 20 -1
-        elif self.prompt_flag == 'dual':
-            self.prompt = DualPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 10 40 10
-        elif self.prompt_flag == 'coda':
-            self.prompt = CodaPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 100 8 0.0
-        elif self.prompt_flag == 'os':
+        if self.prompt_flag == 'os':
             self.prompt = OSPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 100 8 1e-4
         else:
             self.prompt = None
@@ -96,6 +91,7 @@ class PromptModel(nn.Module):
         else:
             self.dset_mean_q  = timm.data.resolve_model_data_config(zoo_model_query)['mean']
             self.dset_std_q  = timm.data.resolve_model_data_config(zoo_model_query)['std']
+            raise NotImplementedError(f"Input data is already normalized")
 
         print ('norm for query: {} /{}'.format(self.dset_mean_q, self.dset_std_q ))
         
@@ -103,8 +99,13 @@ class PromptModel(nn.Module):
         if last:
             return self.head(x)
 
-        x_backbone = transforms.Normalize(self.dset_mean, self.dset_std)(x)
-        x_query = transforms.Normalize(self.dset_mean_q, self.dset_std_q)(x)
+        if self.args.query == 'vit':
+            x_backbone = x
+            x_query = x.clone()
+        elif self.args.query in ['poolformer', 'swin']: # but not used and data is already normalized
+            x_backbone = transforms.Normalize(self.dset_mean, self.dset_std)(x)
+            x_query = transforms.Normalize(self.dset_mean_q, self.dset_std_q)(x)
+            raise NotImplementedError(f"Input data is already normalized")
 
         if self.prompt is not None:
             with torch.no_grad():

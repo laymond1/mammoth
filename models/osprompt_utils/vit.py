@@ -204,6 +204,7 @@ class VisionTransformer(nn.Module):
 
         x = self.norm(x)
 
+        # original code doen't scale prompt loss
         # if prompt is not None:
         #     prompt_loss /= len(prompt.e_layers)
         
