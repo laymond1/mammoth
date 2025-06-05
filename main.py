@@ -75,8 +75,11 @@ def check_args(args, dataset=None):
 
     assert 0 < args.label_perc <= 1, "label_perc must be in (0, 1]"
 
-    if args.seed == 1:
+    if args.savecheck is None and args.seed == 1:
         args.savecheck = "task"
+        # prevent overwriting checkpoints in debug mode
+        if args.debug_mode and args.validation is None:
+            args.savecheck = None
 
     if args.savecheck:
         assert not args.inference_only, "Should not save checkpoint in inference only mode"
@@ -278,6 +281,8 @@ def parse_args():
     except Exception:
         logging.error("Could not retrieve git hash.")
         args.conf_git_hash = None
+    
+    check_args(args)
 
     if args.savecheck:
         if not os.path.isdir('checkpoints'):
@@ -286,11 +291,13 @@ def parse_args():
         now = time.strftime("%Y%m%d-%H%M%S")
         uid = args.conf_jobnum.split('-')[0]
         extra_ckpt_name = "" if args.ckpt_name is None else f"{args.ckpt_name}_"
-        # args.ckpt_name = f"{extra_ckpt_name}{args.model}_{args.dataset}_{args.dataset_config}_{args.buffer_size if hasattr(args, 'buffer_size') else 0}_{args.n_epochs}_{str(now)}_{uid}"
-        args.ckpt_name = f"{extra_ckpt_name}{args.model}_{args.dataset}_{args.buffer_size if hasattr(args, 'buffer_size') else 0}_{args.n_epochs}_seed{args.seed}"
+        if 'prompt' in args.model or args.model in ['l2p', 'dap', 'ovor']:
+            extra_ckpt_name = extra_ckpt_name + f"{args.vit_type}_" if hasattr(args, 'vit_type') else ''
+            args.ckpt_name = f"{extra_ckpt_name}{args.model}_{args.dataset}_{args.dataset_config}_{args.buffer_size if hasattr(args, 'buffer_size') else 0}_{args.n_epochs}_seed{args.seed}"
+        else:    
+            # args.ckpt_name = f"{extra_ckpt_name}{args.model}_{args.dataset}_{args.dataset_config}_{args.buffer_size if hasattr(args, 'buffer_size') else 0}_{args.n_epochs}_{str(now)}_{uid}"
+            args.ckpt_name = f"{extra_ckpt_name}{args.model}_{args.dataset}_{args.dataset_config}_{args.buffer_size if hasattr(args, 'buffer_size') else 0}_{args.n_epochs}"
         print("Saving checkpoint into", args.ckpt_name, file=sys.stderr)
-
-    check_args(args)
 
     if args.validation is not None:
         logging.info(f"Using {args.validation}% of the training set as validation set.")
@@ -419,7 +426,7 @@ def main(args=None):
         setproctitle.setproctitle('{}_{}_{}'.format(args.model, args.buffer_size if 'buffer_size' in args else 0, args.dataset))
     except Exception:
         pass
-
+        
     if args.scenario == 'offline':
         offline_train(model, dataset, args)
     elif args.scenario == 'online':
