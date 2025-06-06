@@ -52,6 +52,7 @@ class Logger:
         self.forgetting_mask_classes = None
         self.cpu_res = []
         self.gpu_res = []
+        self.gpu_res_pynvml = []
 
     def dump(self):
         """
@@ -188,7 +189,7 @@ class Logger:
         elif self.setting == 'biased-class-il':
             self.fullaccs.append(accs)
 
-    def log_system_stats(self, cpu_res, gpu_res):
+    def log_system_stats(self, cpu_res, gpu_res, gpu_res_pynvml) -> None:
         """
         Logs the system stats.
         Supported only if the `psutil` and `torch` libraries are installed.
@@ -204,6 +205,11 @@ class Logger:
             gpu_res = {f'GPU_{i}_memory_usage': r for i, r in gpu_res.items()}
         else:
             gpu_res = {}
+        if gpu_res_pynvml is not None:
+            self.gpu_res_pynvml.append(gpu_res_pynvml)
+            gpu_res_pynvml = {f'GPU_{i}_memory_usage_pynvml': r for i, r in gpu_res_pynvml.items()}
+        else:
+            gpu_res_pynvml = {}
 
         if not self.args.nowand:
             wandb.log({'CPU_memory_usage': cpu_res, **gpu_res})
@@ -227,6 +233,7 @@ class Logger:
 
         wrargs['cpu_memory_usage'] = self.cpu_res
         wrargs['gpu_memory_usage'] = self.gpu_res
+        wrargs['gpu_memory_usage_pynvml'] = self.gpu_res_pynvml
 
         wrargs['forward_transfer'] = self.fwt
         wrargs['backward_transfer'] = self.bwt

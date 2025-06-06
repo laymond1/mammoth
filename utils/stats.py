@@ -49,6 +49,36 @@ try:
 except BaseException:
     get_memory_gpu_mb = None
 
+def get_memory_gpu_mb_pynvml_all() -> list[float]:
+    """
+    Get the GPU memory usage (in MB) for the current process on all GPUs as a list.
+
+    Returns:
+        List[float]: GPU memory usage per GPU (in MB) for the current process.
+    """
+    import os
+    import torch
+    from utils.conf import _get_gpu_memory_pynvml_all_processes
+
+    current_pid = os.getpid()
+    device_count = torch.cuda.device_count()
+    results = []
+
+    for device_id in range(device_count):
+        handle = getattr(_get_gpu_memory_pynvml_all_processes, f'handle_{device_id}')
+        procs = torch.cuda.pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+        
+        # Filter only current process and compute memory usage in MB
+        mem_usage = [
+            proc.usedGpuMemory / 1024**2
+            for proc in procs
+            if proc.pid == current_pid
+        ]
+
+        results.append(mem_usage[0] if mem_usage else 0.0)
+
+    return results
+
 from utils.loggers import Logger
 
 
@@ -87,8 +117,10 @@ class track_system_stats:
         gpu_res = None
         if get_memory_gpu_mb is not None:
             gpu_res = get_memory_gpu_mb()
+        if get_memory_gpu_mb_pynvml_all is not None:
+            gpu_res_pynvml = get_memory_gpu_mb_pynvml_all()
 
-        return cpu_res, gpu_res
+        return cpu_res, gpu_res, gpu_res_pynvml
 
     def __init__(self, logger: Logger = None, disabled=False):
         self.logger = logger
@@ -98,21 +130,25 @@ class track_system_stats:
     def __enter__(self):
         if self.disabled:
             return self
-        self.initial_cpu_res, self.initial_gpu_res = self.get_stats()
+        self.initial_cpu_res, self.initial_gpu_res, self.initial_gpu_res_pynvml = self.get_stats()
         if self.initial_cpu_res is None and self.initial_gpu_res is None:
             self.disabled = True
         else:
             if self.initial_gpu_res is not None:
                 self.initial_gpu_res = {g: g_res for g, g_res in enumerate(self.initial_gpu_res)}
-
+            if self.initial_gpu_res_pynvml is not None:
+                self.initial_gpu_res_pynvml = {g: g_res for g, g_res in enumerate(self.initial_gpu_res_pynvml)}
+            
             self.avg_gpu_res = self.initial_gpu_res
+            self.avg_gpu_res_pynvml = self.initial_gpu_res_pynvml
             self.avg_cpu_res = self.initial_cpu_res
 
             self.max_cpu_res = self.initial_cpu_res
             self.max_gpu_res = self.initial_gpu_res
+            self.max_gpu_res_pynvml = self.initial_gpu_res_pynvml
 
             if self.logger is not None:
-                self.logger.log_system_stats(self.initial_cpu_res, self.initial_gpu_res)
+                self.logger.log_system_stats(self.initial_cpu_res, self.initial_gpu_res, self.initial_gpu_res_pynvml)
 
         return self
 
@@ -120,8 +156,8 @@ class track_system_stats:
         if self.disabled:
             return
 
-        cpu_res, gpu_res = self.get_stats()
-        self.update_stats(cpu_res, gpu_res)
+        cpu_res, gpu_res, gpu_res_pynvml = self.get_stats()
+        self.update_stats(cpu_res, gpu_res, gpu_res_pynvml)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.disabled:
@@ -130,10 +166,10 @@ class track_system_stats:
         if torch.cuda.is_available():
             torch.cuda.synchronize()  # this allows to raise errors triggered previously by the GPU
 
-        cpu_res, gpu_res = self.get_stats()
-        self.update_stats(cpu_res, gpu_res)
+        cpu_res, gpu_res, gpu_res_pynvml = self.get_stats()
+        self.update_stats(cpu_res, gpu_res, gpu_res_pynvml)
 
-    def update_stats(self, cpu_res, gpu_res):
+    def update_stats(self, cpu_res, gpu_res, gpu_res_pynvml):
         """
         Update the memory usage statistics.
 
@@ -156,15 +192,20 @@ class track_system_stats:
             self.max_gpu_res = {g: max(self.max_gpu_res[g], g_res) for g, g_res in enumerate(gpu_res)}
             gpu_res = {g: g_res for g, g_res in enumerate(gpu_res)}
 
+        if self.initial_gpu_res_pynvml is not None:
+            self.avg_gpu_res_pynvml = {g: (g_res + alpha * (g_res - self.avg_gpu_res_pynvml[g])) for g, g_res in enumerate(gpu_res_pynvml)}
+            self.max_gpu_res_pynvml = {g: max(self.max_gpu_res_pynvml[g], g_res) for g, g_res in enumerate(gpu_res_pynvml)}
+            gpu_res_pynvml = {g: g_res for g, g_res in enumerate(gpu_res_pynvml)}
+
         if self.logger is not None:
-            self.logger.log_system_stats(cpu_res, gpu_res)
+            self.logger.log_system_stats(cpu_res, gpu_res, gpu_res_pynvml)
 
     def print_stats(self):
         """
         Print the memory usage statistics.
         """
 
-        cpu_res, gpu_res = self.get_stats()
+        cpu_res, gpu_res, gpu_res_pynvml = self.get_stats()
 
         # Print initial, average, final, and max memory usage
         print("System stats:")
@@ -180,3 +221,9 @@ class track_system_stats:
                 print(f"\tAverage GPU {gpu_id} memory usage: {self.avg_gpu_res[gpu_id]:.2f} MB", flush=True)
                 print(f"\tFinal GPU {gpu_id} memory usage: {g_res:.2f} MB", flush=True)
                 print(f"\tMax GPU {gpu_id} memory usage: {self.max_gpu_res[gpu_id]:.2f} MB", flush=True)
+        if gpu_res_pynvml is not None:
+            for gpu_id, g_res in enumerate(gpu_res_pynvml):
+                print(f"\tInitial GPU {gpu_id} memory usage (pynvml): {self.initial_gpu_res_pynvml[gpu_id]:.2f} MB", flush=True)
+                print(f"\tAverage GPU {gpu_id} memory usage (pynvml): {self.avg_gpu_res_pynvml[gpu_id]:.2f} MB", flush=True)
+                print(f"\tFinal GPU {gpu_id} memory usage (pynvml): {g_res:.2f} MB", flush=True)
+                print(f"\tMax GPU {gpu_id} memory usage (pynvml): {self.max_gpu_res_pynvml[gpu_id]:.2f} MB", flush=True)
