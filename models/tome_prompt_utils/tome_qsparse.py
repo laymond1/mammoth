@@ -114,7 +114,7 @@ def make_tome_class(transformer_class):
         - Initialize r, token size, and token sources.
         """
 
-        def forward(self, x, register_blk=-1, prompt=None, q=None, train=False) -> torch.Tensor:
+        def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, feat=False) -> torch.Tensor:
             self._tome_info["r"] = parse_r(len(self.blocks), self.r)
             self._tome_info["size"] = None
             self._tome_info["source"] = None
@@ -147,16 +147,25 @@ def make_tome_class(transformer_class):
                     x = blk(x, register_blk==i, prompt=p_list, sparse=False) # Train & Test
                 # Forward for query
                 else:
-                    # Sparse Token Forward
-                    if self.prompt_query_sparse and train: # train is true when training prompt
-                        x = blk(x, register_blk==i, prompt=p_list) # Train
-                    elif self.head_query_sparse and not train: # train is false when feat is true
-                        x = blk(x, register_blk==i, prompt=p_list) # Train
-                    elif self.test_query_sparse:
-                        x = blk(x, register_blk==i, prompt=p_list) # Test
-                    # Full Token Forward
+                    if train:
+                        # Query Forward for Prompt Training
+                        if self.prompt_query_sparse:
+                            # Sparse Token Forward (Train for Prompt)
+                            x = blk(x, register_blk==i, prompt=p_list)
+                        else:
+                            # Full Token Forward (Train for Prompt)
+                            x = blk(x, register_blk==i, prompt=p_list, sparse=False)
                     else:
-                        x = blk(x, register_blk==i, prompt=p_list, sparse=False) # Train & Test
+                        # Query Forward for Inference or Classifier Training
+                        if self.head_query_sparse and feat:
+                            # Sparse Token Forward (Train for Classifier, feat=True)
+                            x = blk(x, register_blk==i, prompt=p_list)
+                        elif self.test_query_sparse:
+                            # Sparse Token Forward (Inference)
+                            x = blk(x, register_blk==i, prompt=p_list)
+                        else:
+                            # Full Token Forward (Inference)
+                            x = blk(x, register_blk==i, prompt=p_list, sparse=False)
 
             x = self.norm(x)
 

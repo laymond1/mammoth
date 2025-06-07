@@ -88,7 +88,7 @@ class PromptModel(nn.Module):
                 )
             else:
                 with torch.no_grad():
-                    q, _ = self.feat(x)
+                    q, _ = self.feat(x, train=train, feat=feat)
                     q = q[:, 0, :]
                 out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
             out = out[:, 0, :]
