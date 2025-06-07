@@ -34,6 +34,30 @@ def warn_once(*msg):
         logging.warning(msg)
 
 
+def is_pynvml_available() -> bool:
+    """
+    Check whether torch.cuda.pynvml is available and functional.
+
+    Returns:
+        bool: True if pynvml via torch.cuda is available and working, False otherwise.
+    """
+    try:
+        if not hasattr(torch.cuda, 'pynvml'):
+            return False
+
+        torch.cuda.pynvml.nvmlInit()
+        device_count = torch.cuda.device_count()
+        if device_count == 0:
+            return False
+
+        handle = torch.cuda.pynvml.nvmlDeviceGetHandleByIndex(0)
+        _ = torch.cuda.pynvml.nvmlDeviceGetMemoryInfo(handle)
+        return True
+
+    except Exception:
+        return False
+
+
 def _get_gpu_memory_pynvml_all_processes(device_id: int = 0) -> int:
     """
     Use pynvml to get the memory allocated on the GPU.

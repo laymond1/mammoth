@@ -49,35 +49,65 @@ try:
 except BaseException:
     get_memory_gpu_mb = None
 
-def get_memory_gpu_mb_pynvml_all() -> list[float]:
-    """
-    Get the GPU memory usage (in MB) for the current process on all GPUs as a list.
+try:
+    from utils.conf import is_pynvml_available
 
-    Returns:
-        List[float]: GPU memory usage per GPU (in MB) for the current process.
-    """
-    import os
-    import torch
-    from utils.conf import _get_gpu_memory_pynvml_all_processes
+    if is_pynvml_available():
+        def get_memory_gpu_mb_pynvml_all() -> list[float]:
+            """
+            Get the GPU memory usage (in MB) for the current process on all GPUs as a list.
 
-    current_pid = os.getpid()
-    device_count = torch.cuda.device_count()
-    results = []
+            Returns:
+                List[float]: GPU memory usage per GPU (in MB) for the current process.
+            """
+            import os
+            import torch
+            from utils.conf import _get_gpu_memory_pynvml_all_processes
 
-    for device_id in range(device_count):
-        handle = getattr(_get_gpu_memory_pynvml_all_processes, f'handle_{device_id}')
-        procs = torch.cuda.pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+            current_pid = os.getpid()
+            device_count = torch.cuda.device_count()
+            results = []
+
+            for device_id in range(device_count):
+                handle = getattr(_get_gpu_memory_pynvml_all_processes, f'handle_{device_id}')
+                procs = torch.cuda.pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+                
+                # Filter only current process and compute memory usage in MB
+                mem_usage = [
+                    proc.usedGpuMemory / 1024**2
+                    for proc in procs
+                    if proc.pid == current_pid
+                ]
+
+                free, total = torch.cuda.mem_get_info(device_id)
+                mem_usage = [total / 1024**2 - free / 1024**2] if not mem_usage else mem_usage
+
+                results.append(mem_usage[0] if mem_usage else 0.0)
+
+            return results
+    else:
+        def get_memory_gpu_mb_jetson():
+            """
+            Get the GPU memory usage (in MB) for the current process on all GPUs as a list.
+            This is a fallback for Jetson devices where pynvml is not available.
+            """
+            # DOTO: its function is not the exact solution, but it works for Jetson devices.
+            import torch
+
+            device_count = torch.cuda.device_count()
+            results = []
+
+            for device_id in range(device_count):
+                free, total = torch.cuda.mem_get_info(device_id)
+                used = total - free
+                results.append(used / 1024**2)
+
+            return results
         
-        # Filter only current process and compute memory usage in MB
-        mem_usage = [
-            proc.usedGpuMemory / 1024**2
-            for proc in procs
-            if proc.pid == current_pid
-        ]
+        get_memory_gpu_mb_pynvml_all = get_memory_gpu_mb_jetson
 
-        results.append(mem_usage[0] if mem_usage else 0.0)
-
-    return results
+except BaseException:
+    get_memory_gpu_mb_pynvml_all = None
 
 from utils.loggers import Logger
 
