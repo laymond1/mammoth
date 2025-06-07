@@ -1,0 +1,60 @@
+seq-cifar10-224:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-cifar100-224:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-imagenet-r:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-cars196:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-cub200:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-eurosat-rgb:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-resisc45:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-chestx:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-isic:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
+seq-cropdisease:
+  lr: 1e-3
+  model: coda_qsparse_prompt
+  optim_mom: 0.9
+  optimizer: adam
+  batch_size: 16
