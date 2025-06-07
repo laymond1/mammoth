@@ -212,7 +212,7 @@ class Logger:
             gpu_res_pynvml = {}
 
         if not self.args.nowand:
-            wandb.log({'CPU_memory_usage': cpu_res, **gpu_res})
+            wandb.log({'CPU_memory_usage': cpu_res, **gpu_res, **gpu_res_pynvml})
 
     def write(self, args: Dict[str, Any]) -> None:
         """
