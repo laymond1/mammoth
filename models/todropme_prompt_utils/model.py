@@ -5,7 +5,7 @@ import torch
 import timm
 import torch.nn as nn
 import torchvision.transforms as transforms
-import models.dropmerge_prompt_utils.dropmerge as dropmerge
+import models.todropme_prompt_utils.todropme as todropme
 
 from models.prompt_utils.vit import VisionTransformer
 from models.prompt_utils.prompt import L2P, DualPrompt, CodaPrompt, MVPPrompt, OnePrompt, OSPrompt
@@ -54,7 +54,7 @@ class PromptModel(nn.Module):
             # grad false
             self.feat.requires_grad_(False)
 
-        dropmerge.apply_patch(self.feat)
+        todropme.apply_patch(self.feat)
         # PatchDrop
         self.feat.drop_rate = args.drop_rate
         self.feat.sampling = args.sampling

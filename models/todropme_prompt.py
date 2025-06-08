@@ -13,7 +13,7 @@ from datasets import get_dataset
 from utils.args import add_rehearsal_args, ArgumentParser
 
 from models.utils.continual_model import ContinualModel
-from models.dropmerge_prompt_utils.model import PromptModel
+from models.todropme_prompt_utils.model import PromptModel
 from utils.schedulers import CosineSchedule
 from utils.buffer import Buffer
 from utils import parse_str_to_int, binary_to_boolean_type
@@ -21,9 +21,9 @@ from utils import parse_str_to_int, binary_to_boolean_type
 import wandb
 
 
-class DropMergePrompt(ContinualModel):
+class ToDropMePrompt(ContinualModel):
     """Continual Learning via CODA-Prompt: COntinual Decomposed Attention-based Prompting."""
-    NAME = 'dropmerge-prompt'
+    NAME = 'todropme-prompt'
     COMPATIBILITY = ['class-il', 'domain-il', 'task-il', 'general-continual']
 
     @staticmethod
