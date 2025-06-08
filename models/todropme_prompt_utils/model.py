@@ -56,7 +56,7 @@ class PromptModel(nn.Module):
 
         todropme.apply_patch(self.feat)
         # PatchDrop
-        self.feat.drop_rate = args.drop_rate
+        self.feat.keep_rate = args.keep_rate
         self.feat.sampling = args.sampling
         self.feat.token_shuffling = args.token_shuffling
         # Token Merging
@@ -67,6 +67,9 @@ class PromptModel(nn.Module):
         self.feat.prompt_prompt_sparse = args.prompt_prompt_sparse
         self.feat.head_prompt_sparse = args.head_prompt_sparse
         self.feat.test_prompt_sparse = args.test_prompt_sparse
+        self.feat.prompt_prompt_tome_sparse = args.prompt_prompt_tome_sparse
+        self.feat.head_prompt_tome_sparse = args.head_prompt_tome_sparse
+        self.feat.test_prompt_tome_sparse = args.test_prompt_tome_sparse
         # query sparse
         self.feat.prompt_query_sparse = args.prompt_query_sparse
         self.feat.head_query_sparse = args.head_query_sparse

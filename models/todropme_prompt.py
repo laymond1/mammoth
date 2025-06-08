@@ -39,7 +39,7 @@ class ToDropMePrompt(ContinualModel):
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
         parser.add_argument('--head_epoch_start_ratio', type=float, default=0.8, help='the ratio of the epochs to start training the head')
         # PatchDrop
-        parser.add_argument('--drop_rate', type=float, default=0.5, help='Token purning ratio')
+        parser.add_argument('--keep_rate', type=float, default=0.5, help='keep rate for patch dropout')
         parser.add_argument('--sampling', type=str, default='uniform', choices=['uniform'], help='sampling method for patch dropout')
         parser.add_argument('--token_shuffling', type=binary_to_boolean_type, default=False, help='enable token shuffling during patch dropout')
         # ToMe
@@ -47,13 +47,16 @@ class ToDropMePrompt(ContinualModel):
         parser.add_argument('--prompt_r', type=int, default=16, help='number of tokens to merge')
         parser.add_argument('--query_r', type=int, default=99, help='number of tokens to merge')
         # Prompt Sparsity
-        parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
-        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during head forward pass for efficiency')
-        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during test forward pass for efficiency')
+        parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass at prompt training for efficiency')
+        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during prompt forward pass at head training for efficiency')
+        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during prompt forward pass at test for efficiency')
+        parser.add_argument('--prompt_prompt_tome_sparse', type=binary_to_boolean_type, default=True, help='enable token merging during prompt forward pass at prompt training for efficiency')
+        parser.add_argument('--head_prompt_tome_sparse', type=binary_to_boolean_type, default=False, help='enable token merging during prompt forward pass at head training for efficiency')
+        parser.add_argument('--test_prompt_tome_sparse', type=binary_to_boolean_type, default=False, help='enable token merging during prompt forward pass at test for efficiency')
         # Query Sparsity
-        parser.add_argument('--prompt_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
-        parser.add_argument('--head_query_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during head forward pass for efficiency')
-        parser.add_argument('--test_query_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during test forward pass for efficiency')
+        parser.add_argument('--prompt_query_sparse', type=binary_to_boolean_type, default=True, help='enable token merging during query forward pass at prompt training for efficiency')
+        parser.add_argument('--head_query_sparse', type=binary_to_boolean_type, default=True, help='enable token merging during query forward pass at head training for efficiency')
+        parser.add_argument('--test_query_sparse', type=binary_to_boolean_type, default=True, help='enable token merging during query forward pass at test for efficiency')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')

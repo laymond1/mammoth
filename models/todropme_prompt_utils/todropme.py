@@ -5,7 +5,6 @@ from typing import Tuple
 
 import torch
 from models.prompt_utils.vit import Attention, Block, VisionTransformer
-from models.toprune_prompt_utils.patchdropout import PatchDropout
 from models.tome_prompt_utils.merge import bipartite_soft_matching, merge_source, merge_wavg
 from models.tome_prompt_utils.utils import parse_r
 
@@ -83,7 +82,7 @@ class DropToMeBlock(Block):
 
     def forward(self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, sparse: bool = True) -> torch.Tensor:
         # Note: this is copied from timm.models.vision_transformer.Block with modifications.
-        attn_size = self._dropmerge_info["size"] if self._dropmerge_info["prop_attn"] else None
+        attn_size = self._todropme_info["size"] if self._todropme_info["prop_attn"] else None
         # Full Token Forward
         if not sparse:
             x_attn = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size, sparse=sparse)
@@ -96,20 +95,20 @@ class DropToMeBlock(Block):
             x_attn, metric = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size)
             x = x + self._drop_path1(x_attn)
 
-            r = self._dropmerge_info["r"].pop(0)
+            r = self._todropme_info["r"].pop(0)
             if r > 0:
                 # Apply ToMe here
                 merge, _ = bipartite_soft_matching(
                     metric,
                     r,
-                    self._dropmerge_info["class_token"],
-                    self._dropmerge_info["distill_token"],
+                    self._todropme_info["class_token"],
+                    self._todropme_info["distill_token"],
                 )
-                if self._dropmerge_info["trace_source"]:
-                    self._dropmerge_info["source"] = merge_source(
-                        merge, x, self._dropmerge_info["source"]
+                if self._todropme_info["trace_source"]:
+                    self._todropme_info["source"] = merge_source(
+                        merge, x, self._todropme_info["source"]
                     )
-                x, self._dropmerge_info["size"] = merge_wavg(merge, x, self._dropmerge_info["size"])
+                x, self._todropme_info["size"] = merge_wavg(merge, x, self._todropme_info["size"])
 
             x = x + self._drop_path2(self.mlp(self.norm2(x)))
             return x
@@ -167,25 +166,25 @@ class DropToMeAttention(Attention):
         return x, k.mean(1)
 
 
-def make_dropmerge_class(transformer_class):
-    class DropMergeVisionTransformer(transformer_class):
+def make_todropme_class(transformer_class):
+    class ToDropMeVisionTransformer(transformer_class):
         """
         Modifications:
         - Initialize r, token size, and token sources.
         """
 
         def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, feat=False) -> torch.Tensor:
-            # self.patchdrop = PatchDropout(
-            #     keep_rate=1-self.drop_rate, 
-            #     sampling=self.sampling, 
-            #     token_shuffling=self.token_shuffling
-            # )
+            self.patchdrop = PatchDropout(
+                keep_rate=self.keep_rate, 
+                sampling=self.sampling, 
+                token_shuffling=self.token_shuffling
+            )
             if prompt is not None:
-                self._dropmerge_info["r"] = parse_r(len(self.blocks), self.prompt_r)
+                self._todropme_info["r"] = parse_r(len(self.blocks), self.prompt_r)
             else:
-                self._dropmerge_info["r"] = parse_r(len(self.blocks), self.query_r)
-            self._dropmerge_info["size"] = None
-            self._dropmerge_info["source"] = None
+                self._todropme_info["r"] = parse_r(len(self.blocks), self.query_r)
+            self._todropme_info["size"] = None
+            self._todropme_info["source"] = None
 
 
             B = x.shape[0]
@@ -203,11 +202,12 @@ def make_dropmerge_class(transformer_class):
                     # Prompt Forward for Prompt Training
                     if self.prompt_prompt_sparse:
                         # Sparse Token Forward (Train for Prompt)
-                        x = PatchDropout(
-                                keep_rate=1-self.drop_rate, 
-                                sampling=self.sampling, 
-                                token_shuffling=self.token_shuffling
-                            )(x)
+                        # x = PatchDropout(
+                        #         keep_rate=self.keep_rate, 
+                        #         sampling=self.sampling, 
+                        #         token_shuffling=self.token_shuffling
+                        #     )(x)
+                        x = self.patchdrop(x)
                     else:
                         # Full Token Forward (Train for Prompt)
                         pass
@@ -215,54 +215,58 @@ def make_dropmerge_class(transformer_class):
                     # Query Forward for Inference or Classifier Training
                     if self.head_prompt_sparse and feat:
                         # Sparse Token Forward (Train for Classifier, feat=True)
-                        x = PatchDropout(
-                                keep_rate=1-self.drop_rate, 
-                                sampling=self.sampling, 
-                                token_shuffling=self.token_shuffling
-                            )(x)
+                        # x = PatchDropout(
+                        #         keep_rate=self.keep_rate, 
+                        #         sampling=self.sampling, 
+                        #         token_shuffling=self.token_shuffling
+                        #     )(x)
+                        x = self.patchdrop(x)
                     elif self.test_prompt_sparse:
                         # Sparse Token Forward (Inference)
-                        x = PatchDropout(
-                                keep_rate=1-self.drop_rate, 
-                                sampling=self.sampling, 
-                                token_shuffling=self.token_shuffling
-                            )(x)
+                        # x = PatchDropout(
+                        #         keep_rate=self.keep_rate, 
+                        #         sampling=self.sampling, 
+                        #         token_shuffling=self.token_shuffling
+                        #     )(x)
+                        x = self.patchdrop(x)
                     else:
                         # Full Token Forward (Inference)
                         pass
             # Forward for query
             else:
-                if train:
-                    # Query Forward for Prompt Training
-                    if self.prompt_query_sparse:
-                        # Sparse Token Forward (Train for Prompt)
-                        x = PatchDropout(
-                                keep_rate=1-self.drop_rate, 
-                                sampling=self.sampling, 
-                                token_shuffling=self.token_shuffling
-                            )(x)
-                    else:
-                        # Full Token Forward (Train for Prompt)
-                        pass
-                else:
-                    # Query Forward for Inference or Classifier Training
-                    if self.head_query_sparse and feat:
-                        # Sparse Token Forward (Train for Classifier, feat=True)
-                        x = PatchDropout(
-                                keep_rate=1-self.drop_rate, 
-                                sampling=self.sampling, 
-                                token_shuffling=self.token_shuffling
-                            )(x)
-                    elif self.test_query_sparse:
-                        # Sparse Token Forward (Inference)
-                        x = PatchDropout(
-                                keep_rate=1-self.drop_rate, 
-                                sampling=self.sampling, 
-                                token_shuffling=self.token_shuffling
-                            )(x)
-                    else:
-                        # Full Token Forward (Inference)
-                        pass
+                # tokens will be drastically reduced in the attention block
+                pass
+                # if train:
+                #     # Query Forward for Prompt Training
+                #     if self.prompt_query_sparse:
+                #         # Sparse Token Forward (Train for Prompt)
+                #         x = PatchDropout(
+                #                 keep_rate=self.keep_rate, 
+                #                 sampling=self.sampling, 
+                #                 token_shuffling=self.token_shuffling
+                #             )(x)
+                #     else:
+                #         # Full Token Forward (Train for Prompt)
+                #         pass
+                # else:
+                #     # Query Forward for Inference or Classifier Training
+                #     if self.head_query_sparse and feat:
+                #         # Sparse Token Forward (Train for Classifier, feat=True)
+                #         x = PatchDropout(
+                #                 keep_rate=self.keep_rate, 
+                #                 sampling=self.sampling, 
+                #                 token_shuffling=self.token_shuffling
+                #             )(x)
+                #     elif self.test_query_sparse:
+                #         # Sparse Token Forward (Inference)
+                #         x = PatchDropout(
+                #                 keep_rate=self.keep_rate, 
+                #                 sampling=self.sampling, 
+                #                 token_shuffling=self.token_shuffling
+                #             )(x)
+                #     else:
+                #         # Full Token Forward (Inference)
+                #         pass
 
             prompt_loss = torch.zeros((1,), requires_grad=True).to(x.device)
 
@@ -282,7 +286,7 @@ def make_dropmerge_class(transformer_class):
                 if prompt is not None and not self.late_merge:
                     if train:
                         # Prompt Forward for Prompt Training
-                        if self.prompt_prompt_sparse:
+                        if self.prompt_prompt_tome_sparse:
                             # Sparse Token Forward (Train for Prompt)
                             x = blk(x, register_blk==i, prompt=p_list)
                         else:
@@ -290,10 +294,10 @@ def make_dropmerge_class(transformer_class):
                             x = blk(x, register_blk==i, prompt=p_list, sparse=False)
                     else:
                         # Query Forward for Inference or Classifier Training
-                        if self.head_prompt_sparse and feat:
+                        if self.head_prompt_tome_sparse and feat:
                             # Sparse Token Forward (Train for Classifier, feat=True)
                             x = blk(x, register_blk==i, prompt=p_list)
-                        elif self.test_prompt_sparse:
+                        elif self.test_prompt_tome_sparse:
                             # Sparse Token Forward (Inference)
                             x = blk(x, register_blk==i, prompt=p_list)
                         else:
@@ -336,7 +340,7 @@ def make_dropmerge_class(transformer_class):
             
             return x, prompt_loss
 
-    return DropMergeVisionTransformer
+    return ToDropMeVisionTransformer
 
 
 def apply_patch(
@@ -346,15 +350,15 @@ def apply_patch(
     Applies ToPrune to this transformer. Afterward, set r using model.r.
 
     If you want to know the source of each token (e.g., for visualization), set trace_source = true.
-    The sources will be available at model._dropmerge_info["source"] afterward.
+    The sources will be available at model._todropme_info["source"] afterward.
 
     For proportional attention, set prop_attn to True. This is only necessary when evaluating models off
     the shelf. For trianing and for evaluating MAE models off the self set this to be False.
     """
-    DropMergeVisionTransformer = make_dropmerge_class(model.__class__)
+    ToDropMeVisionTransformer = make_todropme_class(model.__class__)
 
-    model.__class__ = DropMergeVisionTransformer
-    model.drop_rate = 0.0
+    model.__class__ = ToDropMeVisionTransformer
+    model.keep_rate = 0.0
     model.late_merge = False
     model.prompt_r = 0
     model.query_r = 0
@@ -364,11 +368,14 @@ def apply_patch(
     model.prompt_prompt_sparse = False
     model.head_prompt_sparse = False
     model.test_prompt_sparse = False
+    model.prompt_prompt_tome_sparse = False
+    model.head_prompt_tome_sparse = False
+    model.test_prompt_tome_sparse = False
     model.prompt_query_sparse = False
     model.head_query_sparse = False
     model.test_query_sparse = False
-    model._dropmerge_info = {
-        "drop_rate": model.drop_rate,
+    model._todropme_info = {    
+        "keep_rate": model.keep_rate,
         "prompt_r": model.prompt_r,
         "query_r": model.query_r,
         "size": None,
@@ -380,11 +387,11 @@ def apply_patch(
     }
 
     if hasattr(model, "dist_token") and model.dist_token is not None:
-        model._dropmerge_info["distill_token"] = True
+        model._todropme_info["distill_token"] = True
 
     for module in model.modules():
         if isinstance(module, Block):
             module.__class__ = DropToMeBlock
-            module._dropmerge_info = model._dropmerge_info
+            module._todropme_info = model._todropme_info
         elif isinstance(module, Attention):
             module.__class__ = DropToMeAttention
