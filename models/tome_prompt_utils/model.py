@@ -57,8 +57,8 @@ class PromptModel(nn.Module):
         tome.apply_patch(self.feat)
         # ToMe
         self.feat.r = args.r
-        self.feat.query_merge = args.query_merge
-        self.feat.head_full_token = args.head_full_token
+        # self.feat.query_merge = args.query_merge
+        # self.feat.head_full_token = args.head_full_token
 
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)
@@ -89,7 +89,11 @@ class PromptModel(nn.Module):
                 with torch.no_grad():
                     q, _ = self.feat(x)
                     q = q[:, 0, :]
-                out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
+                if feat:
+                    with torch.no_grad():
+                        out, _ = self.feat(x, prompt=self.prompt, q=q, train=train)
+                else:
+                    out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
             out = out[:, 0, :]
             if warmup:
                 prompt_loss = torch.zeros_like(prompt_loss)

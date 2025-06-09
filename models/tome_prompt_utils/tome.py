@@ -22,37 +22,29 @@ class ToMeBlock(Block):
     def _drop_path2(self, x):
         return self.drop_path2(x) if hasattr(self, "drop_path2") else self.drop_path(x)
 
-    def forward(self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, query: bool = False) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None) -> torch.Tensor:
         # Note: this is copied from timm.models.vision_transformer.Block with modifications.
         attn_size = self._tome_info["size"] if self._tome_info["prop_attn"] else None
-        # Query Forward
-        if query:
-            x_attn = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size, query=query)
-            metric = None
-            x = x + self._drop_path1(x_attn)
-            x = x + self._drop_path2(self.mlp(self.norm2(x)))
-            return x
-        else:
-            x_attn, metric = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size)
-            x = x + self._drop_path1(x_attn)
+        x_attn, metric = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size)
+        x = x + self._drop_path1(x_attn)
 
-            r = self._tome_info["r"].pop(0)
-            if r > 0:
-                # Apply ToMe here
-                merge, _ = bipartite_soft_matching(
-                    metric,
-                    r,
-                    self._tome_info["class_token"],
-                    self._tome_info["distill_token"],
+        r = self._tome_info["r"].pop(0)
+        if r > 0:
+            # Apply ToMe here
+            merge, _ = bipartite_soft_matching(
+                metric,
+                r,
+                self._tome_info["class_token"],
+                self._tome_info["distill_token"],
+            )
+            if self._tome_info["trace_source"]:
+                self._tome_info["source"] = merge_source(
+                    merge, x, self._tome_info["source"]
                 )
-                if self._tome_info["trace_source"]:
-                    self._tome_info["source"] = merge_source(
-                        merge, x, self._tome_info["source"]
-                    )
-                x, self._tome_info["size"] = merge_wavg(merge, x, self._tome_info["size"])
+            x, self._tome_info["size"] = merge_wavg(merge, x, self._tome_info["size"])
 
-            x = x + self._drop_path2(self.mlp(self.norm2(x)))
-            return x
+        x = x + self._drop_path2(self.mlp(self.norm2(x)))
+        return x
 
 
 class ToMeAttention(Attention):
@@ -63,12 +55,8 @@ class ToMeAttention(Attention):
     """
 
     def forward(
-        self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, size: torch.Tensor = None, query: bool = False
+        self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, size: torch.Tensor = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        # Query Forward
-        if query:
-            return super().forward(x, register_hook=register_hook, prompt=prompt)
-
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
@@ -142,15 +130,7 @@ def make_tome_class(transformer_class):
                 else:
                     p_list = None
 
-                if q is None and not self.query_merge: 
-                    x = blk(x, register_blk==i, query=True) # query forward
-                else:
-                    # Head forward with full token
-                    if self.head_full_token and not train:
-                        x = blk(x, register_blk==i, prompt=p_list, query=True)
-                    # Normal forward
-                    else:
-                        x = blk(x, register_blk==i, prompt=p_list)
+                x = blk(x, register_blk==i, prompt=p_list)
 
             x = self.norm(x)
 
@@ -178,7 +158,7 @@ def apply_patch(
 
     model.__class__ = ToMeVisionTransformer
     model.r = 0
-    model.query_merge = False
+    # model.query_merge = False
     model._tome_info = {
         "r": model.r,
         "size": None,
