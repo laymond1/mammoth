@@ -74,12 +74,6 @@ def make_patchdrop_class(transformer_class):
         """
 
         def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, feat=False) -> torch.Tensor:
-            self.patchdrop = PatchDropout(
-                keep_rate=self.keep_rate, 
-                sampling=self.sampling, 
-                token_shuffling=self.token_shuffling
-            )
-
             B = x.shape[0]
             x = self.patch_embed(x)
 
@@ -95,7 +89,11 @@ def make_patchdrop_class(transformer_class):
                     # Prompt Forward for Prompt Training
                     if self.prompt_prompt_sparse:
                         # Sparse Token Forward (Train for Prompt)
-                        x = self.patchdrop(x)
+                        x = PatchDropout(
+                            keep_rate=self.keep_rate, 
+                            sampling=self.sampling, 
+                            token_shuffling=self.token_shuffling
+                        )
                     else:
                         # Full Token Forward (Train for Prompt)
                         pass
@@ -103,10 +101,18 @@ def make_patchdrop_class(transformer_class):
                     # Query Forward for Inference or Classifier Training
                     if self.head_prompt_sparse and feat:
                         # Sparse Token Forward (Train for Classifier, feat=True)
-                        x = self.patchdrop(x)
+                        x = PatchDropout(
+                            keep_rate=self.keep_rate, 
+                            sampling=self.sampling, 
+                            token_shuffling=self.token_shuffling
+                        )
                     elif self.test_prompt_sparse:
                         # Sparse Token Forward (Inference)
-                        x = self.patchdrop(x)
+                        x = PatchDropout(
+                            keep_rate=self.keep_rate, 
+                            sampling=self.sampling, 
+                            token_shuffling=self.token_shuffling
+                        )
                     else:
                         # Full Token Forward (Inference)
                         pass
@@ -116,7 +122,11 @@ def make_patchdrop_class(transformer_class):
                     # Query Forward for Prompt Training
                     if self.prompt_query_sparse:
                         # Sparse Token Forward (Train for Prompt)
-                        x = self.patchdrop(x)
+                        x = PatchDropout(
+                            keep_rate=self.keep_rate, 
+                            sampling=self.sampling, 
+                            token_shuffling=self.token_shuffling
+                        )
                     else:
                         # Full Token Forward (Train for Prompt)
                         pass
@@ -124,10 +134,18 @@ def make_patchdrop_class(transformer_class):
                     # Query Forward for Inference or Classifier Training
                     if self.head_query_sparse and feat:
                         # Sparse Token Forward (Train for Classifier, feat=True)
-                        x = self.patchdrop(x)
+                        x = PatchDropout(
+                            keep_rate=self.keep_rate, 
+                            sampling=self.sampling, 
+                            token_shuffling=self.token_shuffling
+                        )
                     elif self.test_query_sparse:
                         # Sparse Token Forward (Inference)
-                        x = self.patchdrop(x)
+                        x = PatchDropout(
+                            keep_rate=self.keep_rate, 
+                            sampling=self.sampling, 
+                            token_shuffling=self.token_shuffling
+                        )
                     else:
                         # Full Token Forward (Inference)
                         pass

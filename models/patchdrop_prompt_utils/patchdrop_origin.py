@@ -89,48 +89,10 @@ def make_patchdrop_class(transformer_class):
             x = x + self.pos_embed[:,:x.size(1),:]
             x = self.pos_drop(x)
 
-            # Forward for prompt 
-            if prompt is not None:
-                if train:
-                    # Prompt Forward for Prompt Training
-                    if self.prompt_prompt_sparse:
-                        # Sparse Token Forward (Train for Prompt)
-                        x = self.patchdrop(x)
-                    else:
-                        # Full Token Forward (Train for Prompt)
-                        pass
-                else:
-                    # Query Forward for Inference or Classifier Training
-                    if self.head_prompt_sparse and feat:
-                        # Sparse Token Forward (Train for Classifier, feat=True)
-                        x = self.patchdrop(x)
-                    elif self.test_prompt_sparse:
-                        # Sparse Token Forward (Inference)
-                        x = self.patchdrop(x)
-                    else:
-                        # Full Token Forward (Inference)
-                        pass
-            # Forward for query
+            if train:
+                x = self.patchdrop(x)
             else:
-                if train:
-                    # Query Forward for Prompt Training
-                    if self.prompt_query_sparse:
-                        # Sparse Token Forward (Train for Prompt)
-                        x = self.patchdrop(x)
-                    else:
-                        # Full Token Forward (Train for Prompt)
-                        pass
-                else:
-                    # Query Forward for Inference or Classifier Training
-                    if self.head_query_sparse and feat:
-                        # Sparse Token Forward (Train for Classifier, feat=True)
-                        x = self.patchdrop(x)
-                    elif self.test_query_sparse:
-                        # Sparse Token Forward (Inference)
-                        x = self.patchdrop(x)
-                    else:
-                        # Full Token Forward (Inference)
-                        pass
+                x = self.patchdrop(x, force_drop=False)
 
             prompt_loss = torch.zeros((1,), requires_grad=True).to(x.device)
 
@@ -177,12 +139,6 @@ def apply_patch(
     model.patchdrop = None
     model.sampling = "uniform"
     model.token_shuffling = False
-    model.prompt_prompt_sparse = False
-    model.head_prompt_sparse = False
-    model.test_prompt_sparse = False
-    model.prompt_query_sparse = False
-    model.head_query_sparse = False
-    model.test_query_sparse = False
     model._patchdrop_info = {
         "keep_rate": model.keep_rate,
         "size": None,

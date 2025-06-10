@@ -37,9 +37,9 @@ class PatchDropPrompt(ContinualModel):
         parser.add_argument('--pull_constraint_coeff', type=float, default=1.0, help='Coefficient(mu) for the pull constraint term, \
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
-        parser.add_argument('--head_epoch_start_ratio', type=float, default=0.8, help='the ratio of the epochs to start training the head')
+        parser.add_argument('--head_epoch_start_ratio', type=float, default=1.0, help='the ratio of the epochs to start training the head')
         # PatchDrop
-        parser.add_argument('--drop_rate', type=float, default=0.5, help='Token purning ratio')
+        parser.add_argument('--keep_rate', type=float, default=0.5, help='keep rate for patch dropout')
         parser.add_argument('--sampling', type=str, default='uniform', choices=['uniform'], help='sampling method for patch dropout')
         parser.add_argument('--token_shuffling', type=binary_to_boolean_type, default=False, help='enable token shuffling during patch dropout')
         # Prompt Sparsity
