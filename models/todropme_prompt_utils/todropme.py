@@ -293,7 +293,7 @@ def make_todropme_class(transformer_class):
                             # Full Token Forward (Train for Prompt)
                             x = blk(x, register_blk==i, prompt=p_list, sparse=False)
                     else:
-                        # Query Forward for Inference or Classifier Training
+                        # Prompt Forward for Inference or Classifier Training
                         if self.head_prompt_tome_sparse and feat:
                             # Sparse Token Forward (Train for Classifier, feat=True)
                             x = blk(x, register_blk==i, prompt=p_list)
