@@ -116,7 +116,10 @@ def make_tome_class(transformer_class):
         """
 
         def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, feat=False) -> torch.Tensor:
-            self._tome_info["r"] = parse_r(len(self.blocks), self.r)
+            if prompt is not None:
+                self._tome_info["r"] = parse_r(len(self.blocks), self.prompt_r)
+            else:
+                self._tome_info["r"] = parse_r(len(self.blocks), self.query_r)
             self._tome_info["size"] = None
             self._tome_info["source"] = None
 
@@ -211,7 +214,8 @@ def apply_patch(
     ToMeVisionTransformer = make_tome_class(model.__class__)
 
     model.__class__ = ToMeVisionTransformer
-    model.r = 0
+    model.prompt_r = 0
+    model.query_r = 0
     model.prompt_prompt_sparse = False
     model.head_prompt_sparse = False
     model.test_prompt_sparse = False
@@ -219,7 +223,8 @@ def apply_patch(
     model.head_query_sparse = False
     model.test_query_sparse = False
     model._tome_info = {
-        "r": model.r,
+        "prompt_r": model.prompt_r,
+        "query_r": model.query_r,
         "size": None,
         "source": None,
         "trace_source": trace_source,

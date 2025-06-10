@@ -56,7 +56,8 @@ class PromptModel(nn.Module):
 
         tome.apply_patch(self.feat)
         # ToMe
-        self.feat.r = args.r
+        self.feat.prompt_r = args.prompt_r
+        self.feat.query_r = args.query_r
         # prompt sparse
         self.feat.prompt_prompt_sparse = args.prompt_prompt_sparse
         self.feat.head_prompt_sparse = args.head_prompt_sparse

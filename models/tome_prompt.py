@@ -40,11 +40,12 @@ class ToMePrompt(ContinualModel):
         parser.add_argument('--head_epoch_start_ratio', type=float, default=1.0, help='the ratio of the epochs to start training the head')
 
         # ToMe 
-        parser.add_argument('--r', type=int, default=19, help='number of tokens to merge')
+        parser.add_argument('--prompt_r', type=int, default=0, help='number of tokens to merge')
+        parser.add_argument('--query_r', type=int, default=99, help='number of tokens to merge')
         # Prompt Sparsity
-        parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
-        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
-        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
+        parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during prompt forward pass for efficiency')
+        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during head forward pass for efficiency')
+        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during test forward pass for efficiency')
         # Query Sparsity
         parser.add_argument('--prompt_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
         parser.add_argument('--head_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
