@@ -9,6 +9,30 @@ from models.tome_prompt_utils.merge import bipartite_soft_matching, merge_source
 from models.tome_prompt_utils.utils import parse_r
 
 
+def complement_idx(idx, dim):
+    """
+    Compute the complement: set(range(dim)) - set(idx).
+    idx is a multi-dimensional tensor, find the complement for its trailing dimension,
+    all other dimension is considered batched.
+    Args:
+        idx: input index, shape: [N, *, K]
+        dim: the max index for complement
+    """
+    a = torch.arange(dim, device=idx.device)
+    ndim = idx.ndim
+    dims = idx.shape
+    n_idx = dims[-1]
+    dims = dims[:-1] + (-1, )
+    for i in range(1, ndim):
+        a = a.unsqueeze(0)
+    a = a.expand(*dims)
+    masked = torch.scatter(a, -1, idx, 0)
+    compl, _ = torch.sort(masked, dim=-1, descending=False)
+    compl = compl.permute(-1, *tuple(range(ndim - 1)))
+    compl = compl[n_idx:].permute(*(tuple(range(1, ndim)) + (0,)))
+    return compl
+
+
 class ToMeBlock(Block):
     """
     Modifications:
@@ -24,33 +48,29 @@ class ToMeBlock(Block):
 
     def forward(self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, sparse: bool = True) -> torch.Tensor:
         # Note: this is copied from timm.models.vision_transformer.Block with modifications.
-        attn_size = self._tome_info["size"] if self._tome_info["prop_attn"] else None
         # Full Token Forward
         if not sparse:
-            x_attn = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size, sparse=sparse)
+            x_attn = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, sparse=sparse)
             metric = None
             x = x + self._drop_path1(x_attn)
             x = x + self._drop_path2(self.mlp(self.norm2(x)))
             return x
         # Sparse Token Forward
         else:
-            x_attn, metric = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size)
+            B, N, C = x.shape
+            x_attn, cls_attn, indices, idx, r = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt)
             x = x + self._drop_path1(x_attn)
 
-            r = self._tome_info["r"].pop(0)
             if r > 0:
                 # Apply ToMe here
-                merge, _ = bipartite_soft_matching(
-                    metric,
-                    r,
-                    self._tome_info["class_token"],
-                    self._tome_info["distill_token"],
-                )
-                if self._tome_info["trace_source"]:
-                    self._tome_info["source"] = merge_source(
-                        merge, x, self._tome_info["source"]
-                    )
-                x, self._tome_info["size"] = merge_wavg(merge, x, self._tome_info["size"])
+                non_cls = x[:, 1:, :]  # Exclude class token
+                x_others = torch.gather(non_cls, dim=1, index=indices)
+                
+                compl = complement_idx(idx, N - 1)
+                non_topk = torch.gather(non_cls, dim=1, index=compl.unsqueeze(-1).expand(-1, -1, C))  # [B, N-1-left_tokens, C]
+                non_topk_attn = torch.gather(cls_attn, dim=1, index=compl)  # [B, N-1-left_tokens]
+                extra_token = torch.sum(non_topk * non_topk_attn.unsqueeze(-1), dim=1, keepdim=True)  # [B, 1, C]
+                x = torch.cat([x[:, 0:1], x_others, extra_token], dim=1)
 
             x = x + self._drop_path2(self.mlp(self.norm2(x)))
             return x
@@ -64,7 +84,7 @@ class ToMeAttention(Attention):
     """
 
     def forward(
-        self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, size: torch.Tensor = None, sparse: bool = True
+        self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, sparse: bool = True
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Full Token Forward
         if not sparse:
@@ -83,14 +103,6 @@ class ToMeAttention(Attention):
             v = torch.cat((pv,v), dim=2)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
-
-        # Apply proportional attention
-        if size is not None:
-            if prompt is not None:
-                attn[:, :, :, 4:] = attn[:, :, :, 4:] + size.log()[:, None, None, :, 0]
-            else:
-                attn = attn + size.log()[:, None, None, :, 0]
-
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
 
@@ -103,9 +115,20 @@ class ToMeAttention(Attention):
         x = self.proj_drop(x)
 
         if prompt is not None:
-            k = k[:, :, 4:, :]
-        # Return k as well here
-        return x, k.mean(1)
+            cls_attn = attn[:, :, 0, 5:]
+        else:
+            cls_attn = attn[:, :, 0, 1:]
+        cls_attn = cls_attn.mean(dim=1) # [B, N-1]
+
+        r = self._tome_info["r"].pop(0)
+        if r > 0:
+            # We can only reduce by a maximum of 50% tokens
+            protected = 5 if prompt is not None else 1
+            r = min(r, (N - protected) // 2)
+            _, idx = torch.topk(cls_attn, N-r, dim=1, largest=True, sorted=True)
+            indices = idx.unsqueeze(-1).expand(-1, -1, C)  # [B, left_tokens, C]
+
+        return x, cls_attn, indices, idx, r
 
 
 def make_tome_class(transformer_class):
@@ -234,6 +257,6 @@ def apply_patch(
     for module in model.modules():
         if isinstance(module, Block):
             module.__class__ = ToMeBlock
-            module._tome_info = model._tome_info
         elif isinstance(module, Attention):
             module.__class__ = ToMeAttention
+            module._tome_info = model._tome_info

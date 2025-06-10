@@ -41,8 +41,14 @@ class ToMePrompt(ContinualModel):
 
         # ToMe 
         parser.add_argument('--r', type=int, default=19, help='number of tokens to merge')
-        # parser.add_argument('--query_merge', type=binary_to_boolean_type, default=False, help='enable token merging during query forward pass for efficiency')
-        # parser.add_argument('--head_full_token', type=binary_to_boolean_type, default=False, help='enable full token for head forward pass for effectiveness')
+        # Prompt Sparsity
+        parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
+        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
+        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
+        # Query Sparsity
+        parser.add_argument('--prompt_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
+        parser.add_argument('--head_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
+        parser.add_argument('--test_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')

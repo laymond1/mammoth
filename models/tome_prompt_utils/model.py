@@ -57,8 +57,14 @@ class PromptModel(nn.Module):
         tome.apply_patch(self.feat)
         # ToMe
         self.feat.r = args.r
-        # self.feat.query_merge = args.query_merge
-        # self.feat.head_full_token = args.head_full_token
+        # prompt sparse
+        self.feat.prompt_prompt_sparse = args.prompt_prompt_sparse
+        self.feat.head_prompt_sparse = args.head_prompt_sparse
+        self.feat.test_prompt_sparse = args.test_prompt_sparse
+        # query sparse
+        self.feat.prompt_query_sparse = args.prompt_query_sparse
+        self.feat.head_query_sparse = args.head_query_sparse
+        self.feat.test_query_sparse = args.test_query_sparse
 
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)
@@ -87,13 +93,9 @@ class PromptModel(nn.Module):
                 )
             else:
                 with torch.no_grad():
-                    q, _ = self.feat(x)
+                    q, _ = self.feat(x, train=train, feat=feat)
                     q = q[:, 0, :]
-                if feat:
-                    with torch.no_grad():
-                        out, _ = self.feat(x, prompt=self.prompt, q=q, train=train)
-                else:
-                    out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
+                out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train, feat=feat)
             out = out[:, 0, :]
             if warmup:
                 prompt_loss = torch.zeros_like(prompt_loss)
