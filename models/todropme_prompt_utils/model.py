@@ -105,10 +105,10 @@ class PromptModel(nn.Module):
                     q, _ = self.feat(x, train=train, feat=feat)
                     q = q[:, 0, :]
                 if train:
-                    out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
+                    out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train, feat=feat)
                 else:
                     with torch.no_grad():
-                        out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train)
+                        out, prompt_loss = self.feat(x, prompt=self.prompt, q=q, train=train, feat=feat)
             out = out[:, 0, :]
             if warmup:
                 prompt_loss = torch.zeros_like(prompt_loss)
