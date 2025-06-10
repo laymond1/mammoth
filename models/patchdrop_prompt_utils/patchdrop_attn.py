@@ -65,6 +65,91 @@ class PatchDropout(torch.nn.Module):
         return patch_mask
 
 
+class ToPruneBlock(Block):
+    """
+    Modifications:
+     - Apply ToPrune between the attention and mlp blocks
+     - Compute and propogate token size and potentially the token sources.
+    """
+
+    def _drop_path1(self, x):
+        return self.drop_path1(x) if hasattr(self, "drop_path1") else self.drop_path(x)
+
+    def _drop_path2(self, x):
+        return self.drop_path2(x) if hasattr(self, "drop_path2") else self.drop_path(x)
+
+    def forward(self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, query: bool = False) -> torch.Tensor:
+        # Note: this is copied from timm.models.vision_transformer.Block with modifications.
+        attn_size = self._patchdrop_info["size"] if self._patchdrop_info["prop_attn"] else None
+        # Query Forward
+        if query:
+            x_attn = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size, query=query)
+            x = x + self._drop_path1(x_attn)
+            x = x + self._drop_path2(self.mlp(self.norm2(x)))
+            return x
+        else:
+            x_attn = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size)
+            x = x + self._drop_path1(x_attn)
+
+            r = self._patchdrop_info["r"].pop(0)
+            if r > 0:
+                # Apply ToPrune here
+                x = PatchDropout(r)(x)
+
+            x = x + self._drop_path2(self.mlp(self.norm2(x)))
+            return x
+
+
+class ToPruneAttention(Attention):
+    """
+    Modifications:
+     - Apply proportional attention
+     - Return the mean of k over heads from attention
+    """
+
+    def forward(
+        self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, size: torch.Tensor = None, query: bool = False
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        # Query Forward
+        if query:
+            return super().forward(x, register_hook=register_hook, prompt=prompt)
+
+        B, N, C = x.shape
+        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+        q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
+
+        if prompt is not None:
+            # import ipdb; ipdb.set_trace()
+            pk, pv = prompt
+            pk = pk.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+            pv = pv.reshape(B, -1, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+            k = torch.cat((pk,k), dim=2)
+            v = torch.cat((pv,v), dim=2)
+
+        attn = (q @ k.transpose(-2, -1)) * self.scale
+
+        # Apply proportional attention
+        # if size is not None:
+        #     if prompt is not None:
+        #         attn[:, :, :, 4:] = attn[:, :, :, 4:] + size.log()[:, None, None, :, 0]
+        #     else:
+        #         attn = attn + size.log()[:, None, None, :, 0]
+
+        attn = attn.softmax(dim=-1)
+        attn = self.attn_drop(attn)
+
+        if register_hook:
+            self.save_attention_map(attn)
+            # attn.register_hook(self.save_attn_gradients)
+
+        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        x = self.proj(x)
+        x = self.proj_drop(x)
+
+        # if prompt is not None:
+        return x
+
+
 def make_patchdrop_class(transformer_class):
     class PatchDropVisionTransformer(transformer_class):
         """
@@ -203,3 +288,10 @@ def apply_patch(
 
     if hasattr(model, "dist_token") and model.dist_token is not None:
         model._patchdrop_info["distill_token"] = True
+
+    for module in model.modules():
+        if isinstance(module, Block):
+            module.__class__ = ToPruneBlock
+            module._patchdrop_info = model._patchdrop_info
+        elif isinstance(module, Attention):
+            module.__class__ = ToPruneAttention

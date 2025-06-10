@@ -56,7 +56,8 @@ class PromptModel(nn.Module):
 
         patchdrop.apply_patch(self.feat)
         # PatchDrop
-        self.feat.keep_rate = args.keep_rate
+        self.feat.prompt_keep_rate = args.prompt_keep_rate
+        self.feat.query_keep_rate = args.query_keep_rate
         self.feat.sampling = args.sampling
         self.feat.token_shuffling = args.token_shuffling
         # prompt sparse
