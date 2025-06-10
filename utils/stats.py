@@ -33,7 +33,7 @@ try:
             """
             allocated = []
             for i in range(torch.cuda.device_count()):
-                _ = torch.tensor([1], device=f'cuda:{i}')  # force context init
+                # _ = torch.tensor([1], device=f'cuda:{i}')  # force context init
                 allocated.append(torch.cuda.max_memory_allocated(i))
 
             return allocated
@@ -79,8 +79,8 @@ try:
                     if proc.pid == current_pid
                 ]
 
-                free, total = torch.cuda.mem_get_info(device_id)
-                mem_usage = [total / 1024**2 - free / 1024**2] if not mem_usage else mem_usage
+                # free, total = torch.cuda.mem_get_info(device_id) # force context init
+                # mem_usage = [total / 1024**2 - free / 1024**2] if not mem_usage else mem_usage
 
                 results.append(mem_usage[0] if mem_usage else 0.0)
 
@@ -98,7 +98,7 @@ try:
             results = []
 
             for device_id in range(device_count):
-                free, total = torch.cuda.mem_get_info(device_id)
+                free, total = torch.cuda.mem_get_info(device_id) # force context init
                 used = total - free
                 results.append(used / 1024**2)
 

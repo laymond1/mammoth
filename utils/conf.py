@@ -88,7 +88,7 @@ def get_alloc_memory_all_devices(return_all=False) -> list[int]:
     gpu_memory_allocated = []
     gpu_memory_nvidiasmi = []
     for i in range(torch.cuda.device_count()):
-        _ = torch.tensor([1]).to(i)  # allocate memory to get more accurate reading from torch
+        # _ = torch.tensor([1]).to(i)  # allocate memory to get more accurate reading from torch
         gpu_memory_reserved.append(torch.cuda.max_memory_reserved(i))
         gpu_memory_allocated.append(torch.cuda.max_memory_allocated(i))
 
