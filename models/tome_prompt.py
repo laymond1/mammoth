@@ -40,12 +40,13 @@ class ToMePrompt(ContinualModel):
         parser.add_argument('--head_epoch_start_ratio', type=float, default=1.0, help='the ratio of the epochs to start training the head')
 
         # ToMe 
-        parser.add_argument('--prompt_r', type=int, default=0, help='number of tokens to merge')
-        parser.add_argument('--query_r', type=int, default=99, help='number of tokens to merge')
+        parser.add_argument('--r', type=int, help='given a value of r, the prompt_r and query_r are ignored')
+        parser.add_argument('--prompt_r', type=int, default=19, help='number of tokens to merge')
+        parser.add_argument('--query_r', type=int, default=19, help='number of tokens to merge')
         # Prompt Sparsity
-        parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during prompt forward pass for efficiency')
-        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during head forward pass for efficiency')
-        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during test forward pass for efficiency')
+        parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
+        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
+        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
         # Query Sparsity
         parser.add_argument('--prompt_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
         parser.add_argument('--head_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
@@ -68,6 +69,9 @@ class ToMePrompt(ContinualModel):
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
         args.n_tasks = tmp_dataset.N_TASKS
+        if args.r is not None:
+            args.prompt_r = args.r
+            args.query_r = args.r
         backbone = PromptModel(args, 
                                num_classes=num_classes,
                                pretrained=True, prompt_flag='coda',
