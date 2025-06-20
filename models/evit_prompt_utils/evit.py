@@ -18,10 +18,10 @@ class EViTBlock(Block):
      - Compute and propogate token size and potentially the token sources.
     """
 
-    def forward(self, x, register_hook=False, prompt=None, keep_rate=None, tokens=None, get_idx=False, query=False):
-        # Query Forward
-        if query:
-            attn_out = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, query=query)
+    def forward(self, x, register_hook=False, prompt=None, keep_rate=None, tokens=None, get_idx=False, sparse: bool = True):
+        # Full Token Forward
+        if not sparse:
+            attn_out = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, sparse=sparse)
             x = x + self.drop_path(attn_out)
             x = x + self.drop_path(self.mlp(self.norm2(x)))
             return x, None, None
@@ -35,7 +35,8 @@ class EViTBlock(Block):
             register_hook=register_hook,
             prompt=prompt,
             keep_rate=keep_rate,
-            tokens=tokens
+            tokens=tokens,
+            sparse=sparse
         )
         x = x + self.drop_path(attn_out)
 
@@ -67,9 +68,9 @@ class EViTAttention(Attention):
      - Return the mean of k over heads from attention
     """
 
-    def forward(self, x, register_hook=False, prompt=None, keep_rate=None, tokens=None, query=False):
-        # Query Forward
-        if query:
+    def forward(self, x, register_hook=False, prompt=None, keep_rate=None, tokens=None, sparse: bool = True):
+        # Full Token Forward
+        if not sparse:
             return super().forward(x, register_hook=register_hook, prompt=prompt)
 
         if keep_rate is None:
@@ -130,7 +131,7 @@ def make_evit_class(transformer_class):
         - Initialize r, token size, and token sources.
         """
 
-        def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, keep_rate=None, tokens=None, get_idx=False):
+        def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, feat=False, keep_rate=None, tokens=None, get_idx=False):
             # forward features
             B, _, h, w = x.shape
             if not isinstance(keep_rate, (tuple, list)):
@@ -173,35 +174,122 @@ def make_evit_class(transformer_class):
                 else:
                     p_list = None
 
-                # Query forward
-                if q is None and not self.query_merge:
-                    x, left_token, idx = blk(
-                        x,
-                        register_hook=(register_blk == i),
-                        query=True
-                    )
-                else:
-                    # Head forward with full token
-                    if self.head_full_token and not train:
-                        x, left_token, idx = blk(
-                            x,
-                            register_hook=(register_blk == i),
-                            prompt=p_list,
-                            keep_rate=keep_rate[i],
-                            tokens=tokens[i],
-                            get_idx=get_idx,
-                            query=True
-                        )
-                    # Normal forward
+                # Forward for prompt 
+                if prompt is not None:
+                    if train:
+                        # Prompt Forward for Prompt Training
+                        if self.prompt_prompt_sparse:
+                            # Sparse Token Forward (Train for Prompt)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx
+                                )
+                        else:
+                            # Full Token Forward (Train for Prompt)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx, # Always get idx for better tracking
+                                sparse=False
+                            )
                     else:
-                        x, left_token, idx = blk(
-                            x,
-                            register_hook=(register_blk == i),
-                            prompt=p_list,
-                            keep_rate=keep_rate[i],
-                            tokens=tokens[i],
-                            get_idx=get_idx # Always get idx for better tracking
-                        )
+                        # Prompt Forward for Inference or Classifier Training
+                        if self.head_prompt_sparse and feat:
+                            # Sparse Token Forward (Train for Classifier, feat=True)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx
+                            )
+                        elif self.test_prompt_sparse:
+                            # Sparse Token Forward (Inference)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx
+                            )
+                        else:
+                            # Full Token Forward (Inference)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx, # Always get idx for better tracking
+                                sparse=False
+                            )
+                # Forward for query
+                else:
+                    if train:
+                        # Query Forward for Prompt Training
+                        if self.prompt_query_sparse:
+                            # Sparse Token Forward (Train for Prompt)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx
+                            )
+                        else:
+                            # Full Token Forward (Train for Prompt)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx, # Always get idx for better tracking
+                                sparse=False
+                            )
+                    else:
+                        # Query Forward for Inference or Classifier Training
+                        if self.head_query_sparse and feat:
+                            # Sparse Token Forward (Train for Classifier, feat=True)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx
+                            )
+                        elif self.test_query_sparse:
+                            # Sparse Token Forward (Inference)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx
+                            )
+                        else:
+                            # Full Token Forward (Inference)
+                            x, left_token, idx = blk(
+                                x,
+                                register_hook=(register_blk == i),
+                                prompt=p_list,
+                                keep_rate=keep_rate[i],
+                                tokens=tokens[i],
+                                get_idx=get_idx, # Always get idx for better tracking
+                                sparse=False
+                            )
                     
                 left_tokens.append(left_token)
                 if idx is not None:
@@ -236,7 +324,12 @@ def apply_patch(
     model.__class__ = EVisionTransformer
     model.keep_rate = [keep_rate] * len(model.blocks)
     model.fuse_token = fuse_token
-    model.query_merge = False
+    model.prompt_prompt_sparse = False
+    model.head_prompt_sparse = False
+    model.test_prompt_sparse = False
+    model.prompt_query_sparse = False
+    model.head_query_sparse = False
+    model.test_query_sparse = False
     model._evit_info = {
         "keep_rate": model.keep_rate,
         "fuse_token": model.fuse_token,
@@ -260,6 +353,6 @@ def apply_patch(
     # set keep rate for each block
     for i, block in enumerate(model.blocks):
         if isinstance(block, EViTBlock):
-            print(f"Block {i} keep rate: {model._evit_info['keep_rate'][i]:.2f}")
+            # print(f"Block {i} keep rate: {model._evit_info['keep_rate'][i]:.2f}")
             block.keep_rate = model._evit_info["keep_rate"][i]
             block.fuse_token = model._evit_info["fuse_token"]

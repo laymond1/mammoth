@@ -55,10 +55,15 @@ class PromptModel(nn.Module):
             self.feat.requires_grad_(False)
 
         # EViT
-        args.keep_rate = 1.0 - args.drop_rate # to be compatible with other model's arguments
         evit.apply_patch(self.feat, keep_rate=args.keep_rate, fuse_token=args.fuse_token)
-        self.feat.query_merge = args.query_merge
-        self.feat.head_full_token = args.head_full_token
+        # prompt sparse
+        self.feat.prompt_prompt_sparse = args.prompt_prompt_sparse
+        self.feat.head_prompt_sparse = args.head_prompt_sparse
+        self.feat.test_prompt_sparse = args.test_prompt_sparse
+        # query sparse
+        self.feat.prompt_query_sparse = args.prompt_query_sparse
+        self.feat.head_query_sparse = args.head_query_sparse
+        self.feat.test_query_sparse = args.test_query_sparse
 
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)
@@ -87,9 +92,9 @@ class PromptModel(nn.Module):
                 )
             else:
                 with torch.no_grad():
-                    q, _, _, _ = self.feat(x)
+                    q, _, _, _ = self.feat(x, train=train, feat=feat)
                     q = q[:, 0, :]
-                out, prompt_loss, _, idxs = self.feat(x, prompt=self.prompt, q=q, train=train, **kwargs)
+                out, prompt_loss, _, idxs = self.feat(x, prompt=self.prompt, q=q, train=train, feat=feat, **kwargs)
             out = out[:, 0, :]
             if warmup:
                 prompt_loss = torch.zeros_like(prompt_loss)

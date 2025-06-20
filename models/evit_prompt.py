@@ -40,13 +40,21 @@ class EViTPrompt(ContinualModel):
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
         parser.add_argument('--head_epoch_start_ratio', type=float, default=1.0, help='the ratio of the epochs to start training the head')
 
-        # EViT: 
+        # EViT
         parser.add_argument('--fuse_token', type=binary_to_boolean_type, default=True, help='whether to fuse the inattentive tokens')
-        parser.add_argument('--drop_rate', type=float, default=0.16, help='Token purning ratio for EViT (by default, 0.3)')
-        parser.add_argument('--shrink_start_epoch', default=1, type=int, help='on which epoch to start shrinking of inattentive tokens')
-        parser.add_argument('--shrink_epochs', default=6, type=int, help='how many epochs to perform gradual shrinking of inattentive tokens')
-        parser.add_argument('--query_merge', type=binary_to_boolean_type, default=False, help='enable token merging during query forward pass for efficiency')
-        parser.add_argument('--head_full_token', type=binary_to_boolean_type, default=False, help='enable full token for head forward pass for effectiveness')
+        parser.add_argument('--keep_rate', type=float, help='given a value of keep rate, the prompt_keep_rate and query_keep_rate are ignored')
+        parser.add_argument('--prompt_keep_rate', type=float, default=0.84, help='keep rate for patch dropout')
+        parser.add_argument('--query_keep_rate', type=float, default=0.84, help='keep rate for patch dropout')
+        # parser.add_argument('--shrink_start_epoch', default=0, type=int, help='on which epoch to start shrinking of inattentive tokens')
+        # parser.add_argument('--shrink_epochs', default=0, type=int, help='how many epochs to perform gradual shrinking of inattentive tokens')
+        # Prompt Sparsity
+        parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
+        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
+        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
+        # Query Sparsity
+        parser.add_argument('--prompt_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
+        parser.add_argument('--head_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
+        parser.add_argument('--test_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
@@ -65,6 +73,9 @@ class EViTPrompt(ContinualModel):
         tmp_dataset = get_dataset(args) if dataset is None else dataset
         num_classes = tmp_dataset.N_CLASSES
         args.n_tasks = tmp_dataset.N_TASKS
+        if args.keep_rate is not None:
+            args.prompt_keep_rate = args.keep_rate
+            args.query_keep_rate = args.keep_rate
         backbone = PromptModel(args, 
                                num_classes=num_classes,
                                pretrained=True, prompt_flag='coda',
@@ -83,8 +94,8 @@ class EViTPrompt(ContinualModel):
         if self.args.use_scheduler:
             self.scheduler = CosineSchedule(self.opt, K=self.args.n_epochs)
         # to adjust keep rate
-        self.total_iter = self.args.n_epochs * len(dataset.train_loader)
-        self.iter_per_epoch = len(dataset.train_loader)
+        # self.total_iter = self.args.n_epochs * len(dataset.train_loader)
+        # self.iter_per_epoch = len(dataset.train_loader)
 
     def begin_epoch(self, epoch, dataset):
         self.count = 0
@@ -98,13 +109,13 @@ class EViTPrompt(ContinualModel):
             device = self.device
 
         # adjust the keep rate
-        keep_rate = adjust_keep_rate(self.total_iter, epoch, warmup_epochs=self.args.shrink_start_epoch,
-                                     total_epochs=self.args.shrink_start_epoch + self.args.shrink_epochs,
-                                     ITERS_PER_EPOCH=self.iter_per_epoch, base_keep_rate=self.args.keep_rate)
+        # keep_rate = adjust_keep_rate(self.total_iter, epoch, warmup_epochs=self.args.shrink_start_epoch,
+        #                              total_epochs=self.args.shrink_start_epoch + self.args.shrink_epochs,
+        #                              ITERS_PER_EPOCH=self.iter_per_epoch, base_keep_rate=self.args.keep_rate)
 
         # with torch.amp.autocast(device_type=device.type, enabled=self.args.use_amp):
         if epoch < int(self.args.n_epochs * self.args.head_epoch_start_ratio):
-            logits, loss_prompt = self.net(inputs, keep_rate=keep_rate, tokens=None, train=True)
+            logits, loss_prompt = self.net(inputs, keep_rate=self.args.keep_rate, tokens=None, train=True)
         else:
             with torch.no_grad():
                 feats = self.net(inputs, feat=True, train=False).detach()
