@@ -38,13 +38,12 @@ class ToDropMePrompt(ContinualModel):
                             controlling the weight of the prompt loss in the total loss calculation')
         parser.add_argument('--same_key_value', type=bool, default=False, help='the same key-value across all layers of the E-Prompt')
         parser.add_argument('--head_epoch_start_ratio', type=float, default=0.8, help='the ratio of the epochs to start training the head')
-        # PatchDrop
-        parser.add_argument('--keep_rate', type=float, default=0.5, help='keep rate for patch dropout')
+        # ToDropMe
+        parser.add_argument('--keep_rate', type=float, default=0.7, help='keep rate for patch dropout')
         parser.add_argument('--sampling', type=str, default='uniform', choices=['uniform'], help='sampling method for patch dropout')
         parser.add_argument('--token_shuffling', type=binary_to_boolean_type, default=False, help='enable token shuffling during patch dropout')
-        # ToMe
         parser.add_argument('--late_merge', type=binary_to_boolean_type, default=False, help='enable late token merging to improve prompt tokens')
-        parser.add_argument('--prompt_r', type=int, default=16, help='number of tokens to merge')
+        parser.add_argument('--prompt_r', type=int, default=9, help='number of tokens to merge')
         parser.add_argument('--query_r', type=int, default=99, help='number of tokens to merge')
         # Prompt Sparsity
         parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass at prompt training for efficiency')
