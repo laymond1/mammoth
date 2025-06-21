@@ -1,0 +1,33 @@
+# OS-Prompt (Base) method on Class-Incremental Learning Setting
+name: 'Evaluate Training Time of OS-Prompt (Base)'
+project: 'Training Time Results on the On-Device CIL Scenario'
+entity: 'laymond1'
+
+method: grid
+metric:
+  goal: maximize
+  name: RESULT_class_mean_accs
+program: main.py
+
+parameters:
+  model:
+    values: ['osprompt']
+  model_config:
+    values: ['best']
+  num_workers:
+    value: 4
+  vit_type:
+    values: ['base']
+  ckpt_name:
+    values: ['time']
+  # hyperparameters
+  dataset:
+    values: ['seq-cifar100-224', 'seq-imagenet-r', 'seq-cub200']
+  lr:
+    values: [1e-3]
+  seed:
+    values: [1]  # [6,7,8,9,10]
+  
+  
+# CUDA_VISIBLE_DEVICES=0 wandb agent 'laymond1/Experimental Results on the On-Device CIL Scenario/ro59x26d'
+# CUDA_VISIBLE_DEVICES=1 wandb agent 'laymond1/Experimental Results on the On-Device CIL Scenario/ro59x26d'
