@@ -64,7 +64,8 @@ def make_tome_class(transformer_class):
                         keep = torch.rand(1).item() < prob  # single decision per block
                         drop_block = not keep
 
-                    if not train or not drop_block:
+                    # if not train or not drop_block:
+                    if not drop_block:
                         # Prompt
                         if prompt is not None:
                             if train:

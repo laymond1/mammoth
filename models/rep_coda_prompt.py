@@ -21,9 +21,9 @@ from utils import parse_str_to_int, binary_to_boolean_type
 import wandb
 
 
-class CodaPromptREP(ContinualModel):
+class REPCodaPrompt(ContinualModel):
     """Resource Efficient Prompt."""
-    NAME = 'coda-prompt-rep'
+    NAME = 'rep-coda-prompt'
     COMPATIBILITY = ['class-il', 'domain-il', 'task-il', 'general-continual']
 
     @staticmethod
@@ -81,8 +81,8 @@ class CodaPromptREP(ContinualModel):
         # reset step
         self.net.feat._pld_info["step"] = 0
         # set gamma
-        # num_total_steps = len(dataset.train_loader) * self.args.n_epochs
-        # self.net.feat._pld_info["gamma"] = 100 / num_total_steps # following PLD paper hyp
+        num_total_steps = len(dataset.train_loader) * self.args.n_epochs
+        self.net.feat._pld_info["gamma"] = 100 / num_total_steps # following PLD paper hyp
         # self.net.feat._pld_info["gamma"] = 0.001 # following deepspeed hyp
 
     def begin_epoch(self, epoch, dataset):
