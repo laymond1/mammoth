@@ -18,8 +18,10 @@ import torch
 from datasets import get_dataset
 from models.utils.continual_model import ContinualModel
 from models.vit_utils.model import ViT
+from utils.schedulers import CosineSchedule
 from utils.args import add_rehearsal_args, ArgumentParser
 from utils.buffer import Buffer
+from utils import binary_to_boolean_type
 
 
 class Er(ContinualModel):
@@ -36,6 +38,8 @@ class Er(ContinualModel):
         """
         add_rehearsal_args(parser)
         parser.add_argument('--vit_type', type=str, default='tiny', choices=['tiny', 'small', 'base'], help='ViT type')
+        parser.add_argument('--use_scheduler', type=binary_to_boolean_type, default=True, help='Use scheduler')
+
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -48,6 +52,10 @@ class Er(ContinualModel):
         backbone = ViT(args, num_classes=num_classes, pretrained=True)
         super(Er, self).__init__(backbone, loss, args, transform, dataset=dataset)
         self.buffer = Buffer(self.args.buffer_size)
+
+    def begin_task(self, dataset):
+        if self.args.use_scheduler:
+            self.scheduler = CosineSchedule(self.opt, K=self.args.n_epochs)
 
     def observe(self, inputs, labels, not_aug_inputs, epoch=None):
         """

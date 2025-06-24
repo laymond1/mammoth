@@ -1,52 +1,52 @@
 seq-cifar10:
   lr: 0.03
-  optimizer: sgd
+  optimizer: adam
   model: lwf
 seq-cifar100-224:
   lr: 0.03
   alpha: 0.5
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16
 seq-imagenet-r:
   lr: 0.03
   alpha: 1.0
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16
 seq-cars196:
   lr: 0.03
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16
 seq-cub200:
   lr: 0.03
   alpha: 0.5
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16
 seq-eurosat-rgb:
   lr: 0.03
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16
 seq-resisc45:
   lr: 0.03
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16
 seq-chestx:
   lr: 0.03
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16
 seq-isic:
   lr: 0.03
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16
 seq-cropdisease:
   lr: 0.03
-  optimizer: sgd
+  optimizer: adam
   model: lwf
   batch_size: 16

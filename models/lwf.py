@@ -8,9 +8,11 @@ from torch.optim import SGD
 
 from models.utils.continual_model import ContinualModel
 from models.vit_utils.model import ViT
+from utils.schedulers import CosineSchedule
 from utils.args import ArgumentParser
 from utils.kornia_utils import to_kornia_transform
 from torchvision import transforms
+from utils import binary_to_boolean_type
 
 
 def smooth(logits, temp, dim):
@@ -29,11 +31,12 @@ class Lwf(ContinualModel):
 
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
-        parser.add_argument('--alpha', type=float, default=0.5,
+        parser.add_argument('--alpha', type=float, default=1.0,
                             help='Penalty weight.')
         parser.add_argument('--softmax_temp', type=float, default=2,
                             help='Temperature of the softmax function.')
         parser.add_argument('--vit_type', type=str, default='tiny', choices=['tiny', 'small', 'base'], help='ViT type')
+        parser.add_argument('--use_scheduler', type=binary_to_boolean_type, default=True, help='Use scheduler')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -50,18 +53,18 @@ class Lwf(ContinualModel):
         if self.current_task > 0:
             test_tf = to_kornia_transform(transforms.Compose([transforms.ToPILImage(), dataset.TEST_TRANSFORM]))
             # warm-up
-            opt = SGD(self.net.head.parameters(), lr=self.args.lr)
-            for epoch in range(self.args.n_epochs):
-                for i, data in enumerate(dataset.train_loader):
-                    inputs, labels = data[0], data[1]
-                    inputs, labels = inputs.to(self.device), labels.to(self.device)
-                    opt.zero_grad()
-                    with torch.no_grad():
-                        feats = self.net(inputs, feat=True)
-                    outputs = self.net.head(feats)[:, self.n_past_classes: self.n_seen_classes]
-                    loss = self.loss(outputs, labels - self.n_past_classes)
-                    loss.backward()
-                    opt.step()
+            # opt = SGD(self.net.head.parameters(), lr=self.args.lr)
+            # for epoch in range(self.args.n_epochs):
+            #     for i, data in enumerate(dataset.train_loader):
+            #         inputs, labels = data[0], data[1]
+            #         inputs, labels = inputs.to(self.device), labels.to(self.device)
+            #         opt.zero_grad()
+            #         with torch.no_grad():
+            #             feats = self.net(inputs, feat=True)
+            #         outputs = self.net.head(feats)[:, self.n_past_classes: self.n_seen_classes]
+            #         loss = self.loss(outputs, labels - self.n_past_classes)
+            #         loss.backward()
+            #         opt.step()
 
             logits = []
             with torch.no_grad():
@@ -74,6 +77,8 @@ class Lwf(ContinualModel):
             dataset.train_loader.dataset.logits = torch.cat(logits)
             dataset.train_loader.dataset.extra_return_fields += ('logits',)
         self.net.train()
+        if self.args.use_scheduler:
+            self.scheduler = CosineSchedule(self.opt, K=self.args.n_epochs)
 
     def observe(self, inputs, labels, not_aug_inputs, logits=None, epoch=None):
         self.opt.zero_grad()

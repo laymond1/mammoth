@@ -1,59 +1,59 @@
 seq-cifar10:
   500:
     lr: 0.1
-    optimizer: sgd
+    optimizer: adam
     model: er
 seq-cifar100-224:
   2000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
 seq-imagenet-r:
   2000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
 seq-cars196:
   2000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
 seq-cub200:
   1000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
 seq-eurosat-rgb:
   2000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
 seq-resisc45:
   2000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
 seq-chestx:
   2000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
 seq-isic:
   2000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
 seq-cropdisease:
   2000:
     lr: 0.001
+    optimizer: adam
     model: er
-    optimizer: sgd
     batch_size: 16
