@@ -9,6 +9,8 @@ from torch.optim import SGD
 from models.utils.continual_model import ContinualModel
 from models.vit_utils.model import ViT
 from utils.args import ArgumentParser
+from utils.kornia_utils import to_kornia_transform
+from torchvision import transforms
 
 
 def smooth(logits, temp, dim):
@@ -46,6 +48,7 @@ class Lwf(ContinualModel):
     def begin_task(self, dataset):
         self.net.eval()
         if self.current_task > 0:
+            test_tf = to_kornia_transform(transforms.Compose([transforms.ToPILImage(), dataset.TEST_TRANSFORM]))
             # warm-up
             opt = SGD(self.net.head.parameters(), lr=self.args.lr)
             for epoch in range(self.args.n_epochs):
@@ -63,7 +66,7 @@ class Lwf(ContinualModel):
             logits = []
             with torch.no_grad():
                 for i in range(0, dataset.train_loader.dataset.data.shape[0], self.args.batch_size):
-                    inputs = torch.stack([dataset.train_loader.dataset.__getitem__(j)[2]
+                    inputs = torch.stack([test_tf(dataset.train_loader.dataset.__getitem__(j)[2]).squeeze(0)
                                           for j in range(i, min(i + self.args.batch_size,
                                                          len(dataset.train_loader.dataset)))])
                     log = self.net(inputs.to(self.device)).cpu()
