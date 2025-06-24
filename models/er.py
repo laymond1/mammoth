@@ -15,7 +15,9 @@ Example usage:
 
 import torch
 
+from datasets import get_dataset
 from models.utils.continual_model import ContinualModel
+from models.vit_utils.model import ViT
 from utils.args import add_rehearsal_args, ArgumentParser
 from utils.buffer import Buffer
 
@@ -33,12 +35,17 @@ class Er(ContinualModel):
         This model requires the `add_rehearsal_args` to include the buffer-related arguments.
         """
         add_rehearsal_args(parser)
+        parser.add_argument('--vit_type', type=str, default='tiny', choices=['tiny', 'small', 'base'], help='ViT type')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
         """
         The ER model maintains a buffer of previously seen examples and uses them to augment the current batch during training.
         """
+
+        num_classes = dataset.N_CLASSES
+        args.n_tasks = dataset.N_TASKS
+        backbone = ViT(args, num_classes=num_classes, pretrained=True)
         super(Er, self).__init__(backbone, loss, args, transform, dataset=dataset)
         self.buffer = Buffer(self.args.buffer_size)
 
