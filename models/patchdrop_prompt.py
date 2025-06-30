@@ -40,17 +40,17 @@ class PatchDropPrompt(ContinualModel):
         parser.add_argument('--head_epoch_start_ratio', type=float, default=1.0, help='the ratio of the epochs to start training the head')
         # PatchDrop
         parser.add_argument('--keep_rate', type=float, help='given a value of keep rate, the prompt_keep_rate and query_keep_rate are ignored')
-        parser.add_argument('--prompt_keep_rate', type=float, default=0.5, help='keep rate for patch dropout')
-        parser.add_argument('--query_keep_rate', type=float, default=0.5, help='keep rate for patch dropout')
+        parser.add_argument('--prompt_keep_rate', type=float, help='keep rate for patch dropout')
+        parser.add_argument('--query_keep_rate', type=float, help='keep rate for patch dropout')
         parser.add_argument('--sampling', type=str, default='uniform', choices=['uniform'], help='sampling method for patch dropout')
         parser.add_argument('--token_shuffling', type=binary_to_boolean_type, default=False, help='enable token shuffling during patch dropout')
         # Prompt Sparsity
         parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
-        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
+        parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during head forward pass for efficiency')
         parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during test forward pass for efficiency')
         # Query Sparsity
-        parser.add_argument('--prompt_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
-        parser.add_argument('--head_query_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during head forward pass for efficiency')
+        parser.add_argument('--prompt_query_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during prompt forward pass for efficiency')
+        parser.add_argument('--head_query_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during head forward pass for efficiency')
         parser.add_argument('--test_query_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during test forward pass for efficiency')
 
         # ETC
