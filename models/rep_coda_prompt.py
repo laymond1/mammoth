@@ -82,7 +82,7 @@ class REPCodaPrompt(ContinualModel):
         self.net.feat._pld_info["step"] = 0
         # set gamma
         num_total_steps = len(dataset.train_loader) * self.args.n_epochs
-        self.net.feat._pld_info["gamma"] = 100 / num_total_steps # following PLD paper hyp
+        self.net.feat._pld_info["gamma"] = 10 / num_total_steps # following PLD paper hyp
         # self.net.feat._pld_info["gamma"] = 0.001 # following deepspeed hyp
 
     def begin_epoch(self, epoch, dataset):
