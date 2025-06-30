@@ -1,22 +1,10 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# All rights reserved.
-
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-# --------------------------------------------------------
-# References:
-# timm: https://github.com/rwightman/pytorch-image-models/tree/master/timm
-# --------------------------------------------------------
-
-
 from typing import Tuple
 
 import torch
-# from timm.models.vision_transformer import Attention, Block, VisionTransformer
+from timm.models.layers import DropPath
 from models.prompt_utils.vit import Attention, Block, VisionTransformer
-
-from ..merge import bipartite_soft_matching, merge_source, merge_wavg
-from ..utils import parse_r, AToM_parse_r
+from models.rep_utils.merge import bipartite_soft_matching, merge_source, merge_wavg
+from models.rep_utils.utils import parse_r, AToM_parse_r, parse_theta
 
 
 class ToMeBlock(Block):
@@ -32,10 +20,10 @@ class ToMeBlock(Block):
     def _drop_path2(self, x):
         return self.drop_path2(x) if hasattr(self, "drop_path2") else self.drop_path(x)
 
-    def forward(self, x: torch.Tensor, prompt: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None) -> torch.Tensor:
         # Note: this is copied from timm.models.vision_transformer.Block with modifications.
         attn_size = self._tome_info["size"] if self._tome_info["prop_attn"] else None
-        x_attn, metric = self.attn(self.norm1(x), attn_size, prompt=prompt)
+        x_attn, metric = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size)
         x = x + self._drop_path1(x_attn)
 
         r = self._tome_info["r"].pop(0)
@@ -65,7 +53,7 @@ class ToMeAttention(Attention):
     """
 
     def forward(
-        self, x: torch.Tensor, size: torch.Tensor = None, prompt: torch.Tensor = None
+        self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, size: torch.Tensor = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # Note: this is copied from timm.models.vision_transformer.Attention with modifications.
         B, N, C = x.shape
@@ -100,6 +88,10 @@ class ToMeAttention(Attention):
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
 
+        if register_hook:
+            self.save_attention_map(attn)
+            # attn.register_hook(self.save_attn_gradients)
+
         x = (attn @ v).transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
@@ -110,29 +102,71 @@ class ToMeAttention(Attention):
         return x, k.mean(1)
 
 
-def make_tome_class(transformer_class):
-    class ToMeVisionTransformer(transformer_class):
+def make_rep_class(transformer_class):
+    class REPVisionTransformer(transformer_class):
         """
         Modifications:
         - Initialize r, token size, and token sources.
         """
 
-        def forward(self, *args, **kwdargs) -> torch.Tensor:
+        def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, feat=False) -> torch.Tensor:
             if self._tome_info["tome_type"] == 'tome':
                 self._tome_info["r"] = parse_r(len(self.blocks), self.r)
             elif self._tome_info["tome_type"] == 'atom':
                 self._tome_info["r"] = AToM_parse_r(len(self.blocks), self.r)
             self._tome_info["size"] = None
             self._tome_info["source"] = None
+            self._pld_info["step"] += 1
+            self._pld_info["theta"] = parse_theta(self._tome_info["r"], **self._pld_info)
 
-            return super().forward(*args, **kwdargs)
+            B = x.shape[0]
+            x = self.patch_embed(x)
 
-    return ToMeVisionTransformer
+            cls_tokens = self.cls_token.expand(B, -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
+            x = torch.cat((cls_tokens, x), dim=1)
+    
+            x = x + self.pos_embed[:,:x.size(1),:]
+            x = self.pos_drop(x)
+
+            prompt_loss = torch.zeros((1,), requires_grad=True).to(x.device)
+
+            theta = self._pld_info["theta"]  # keep probs per layer
+            for i, blk in enumerate(self.blocks):
+
+                # Prompt
+                if prompt is not None:
+                    if train:
+                        p_list, loss, x = prompt.forward(q, i, x, train=True)
+                        prompt_loss += loss
+                    else:
+                        p_list, _, x = prompt.forward(q, i, x, train=False)
+
+                else:
+                    p_list = None
+
+                blk.drop_path.drop_prob = 1-theta[i]
+                x = blk(x, register_blk==i, prompt=p_list)
+
+            x = self.norm(x)
+
+            if prompt is not None:
+                prompt_loss /= len(prompt.e_layers)
+
+            return x, prompt_loss
+
+        
+        def get_step(self):
+            return self._step
+        
+        def update_step(self):
+            self._step += 1
+
+    return REPVisionTransformer
 
 
-def apply_patch(
+def apply_patch_layer(
     model: VisionTransformer, trace_source: bool = False, prop_attn: bool = True,
-    tome_type: str = "tome"
+    tome_type: str = "tome", use_ald: bool = True
 ):
     """
     Applies ToMe to this transformer. Afterward, set r using model.r.
@@ -143,9 +177,9 @@ def apply_patch(
     For proportional attention, set prop_attn to True. This is only necessary when evaluating models off
     the shelf. For trianing and for evaluating MAE models off the self set this to be False.
     """
-    ToMeVisionTransformer = make_tome_class(model.__class__)
+    REPVisionTransformer = make_rep_class(model.__class__)
 
-    model.__class__ = ToMeVisionTransformer
+    model.__class__ = REPVisionTransformer
     model.r = 0
     model._tome_info = {
         "r": model.r,
@@ -157,6 +191,18 @@ def apply_patch(
         "distill_token": False,
         "tome_type": tome_type
     }
+    model.gamma = 0.001 # initial gamma following deepspeed hyp
+    model.theta_min = 0.5 # minimum probability
+    model.tau = 12 # 12 (Base) / 16 (Large)
+    model._step = 0
+    model._pld_info = {
+        "gamma": model.gamma,
+        "step": model._step,
+        "theta": None,
+        "theta_min": model.theta_min,
+        "tau": model.tau,
+        "use_ald": use_ald
+    }
 
     if hasattr(model, "dist_token") and model.dist_token is not None:
         model._tome_info["distill_token"] = True
@@ -164,6 +210,8 @@ def apply_patch(
     for module in model.modules():
         if isinstance(module, Block):
             module.__class__ = ToMeBlock
+            module.drop_path = DropPath(model.theta_min) if use_ald else DropPath(0.0)
             module._tome_info = model._tome_info
+            module._pld_info = model._pld_info
         elif isinstance(module, Attention):
             module.__class__ = ToMeAttention

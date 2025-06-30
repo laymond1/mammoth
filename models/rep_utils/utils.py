@@ -145,7 +145,8 @@ def get_layer_drop_prob(r, gamma, step, theta_min=0.5, tau=12):
     """
     Calculate the drop probability for a given layer and step.
     """
-    alpha = 0.9 if r >= tau else 1.0
+    # alpha = 0.9 if r >= tau else 1.0
+    alpha = 1.0
     prob = alpha * ((1 - theta_min) * math.exp(-gamma * step) + theta_min)
 
     return prob

@@ -29,7 +29,7 @@ class REPCodaPrompt(ContinualModel):
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
         # Parameters
-        parser.add_argument('--vit_type', type=str, default='base', choices=['tiny', 'small', 'base'], help='ViT type')
+        parser.add_argument('--vit_type', type=str, default='tiny', choices=['tiny', 'small', 'base'], help='ViT type')
         parser.add_argument('--e_prompt_layer_idx', type=parse_str_to_int, default=[0, 1, 2, 3, 4], help='the layer index of the E-Prompt')
         parser.add_argument('--e_prompt_pool_size', type=int, default=100, help='pool size')
         parser.add_argument('--e_prompt_length', type=int, default=8, help='prompt length')

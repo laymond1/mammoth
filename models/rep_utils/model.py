@@ -73,7 +73,7 @@ class PromptModel(nn.Module):
             # grad false
             self.feat.requires_grad_(False)
 
-        rep.vit(self.feat, tome_type=args.tome_type, use_ald=args.use_ald)
+        rep.apply_patch_layer(self.feat, tome_type=args.tome_type, use_ald=args.use_ald)
         # AToM (ToMe)
         self.feat.r = args.r # 8
         # ALD (PLD)
