@@ -729,7 +729,7 @@ class OnePrompt(nn.Module):
         return p_return, 0, x_block
 
 
-class OSPrompt(nn.Module):
+class OSPromptPP(nn.Module):
     def __init__(self, args, emb_d, prompt_param, key_dim=768):
         super().__init__()
         self.args = args
@@ -896,6 +896,62 @@ class OSPrompt(nn.Module):
             # print (aq_k.sum(1))
             # loss = nn.MSELoss()(aq_k, aq_k_ori) * self.qr_loss_weight
 
+        else:
+            loss = 0
+
+        # combine prompts for prefix tuning
+        if e_valid:
+            p_return = [Ek, Ev]
+        else:
+            p_return = None
+
+        # return
+        return p_return, loss, x_block
+    
+
+class OSPrompt(OSPromptPP):
+    def __init__(self, args, emb_d, prompt_param, key_dim=768):
+        super().__init__(args, emb_d, prompt_param, key_dim)
+
+    def forward(self, x_querry_ori, l, x_block, train=False):
+
+        # e prompts
+        e_valid = False
+        if l in self.e_layers:
+            e_valid = True
+
+            x_querry = x_block[:, 0, :]
+
+            K = getattr(self, f'e_k_{l}')
+            p = getattr(self, f'e_p_{l}')
+            pt = int(self.e_pool_size / (self.n_tasks))
+            s = int(self.task_count * pt)
+            f = int((self.task_count + 1) * pt)
+
+            # freeze/control past tasks
+            if train:
+                if self.task_count > 0:
+                    K = torch.cat((K[:s].detach().clone(), K[s:f]), dim=0)
+                    p = torch.cat((p[:s].detach().clone(), p[s:f]), dim=0)
+                else:
+                    K = K[s:f]
+                    p = p[s:f]
+            else:
+                K = K[0:f]
+                p = p[0:f]
+
+            n_K = nn.functional.normalize(K, dim=1)
+            a_querry = x_querry.unsqueeze(1).repeat(1, n_K.size(0),1)
+            q = nn.functional.normalize(a_querry, dim=2)
+            aq_k = torch.einsum('bkd,kd->bk', q, n_K)
+            P_ = torch.einsum('bk,kld->bld', aq_k, p)
+
+            # select prompts
+            i = int(self.e_p_length / 2)
+            Ek = P_[:, :i, :]
+            Ev = P_[:, i:, :]
+
+            loss = 0
         else:
             loss = 0
 

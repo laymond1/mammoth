@@ -7,7 +7,7 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 
 from models.osprompt_utils.vit import VisionTransformer
-from models.prompt_utils.prompt import OSPrompt
+from models.prompt_utils.prompt import OSPrompt, OSPromptPP
 
 
 vit_config = {
@@ -49,10 +49,13 @@ class PromptModel(nn.Module):
             elif self.args.query == 'poolformer':
                 print( "Load poolformer fine-tuned on in1k ...")
                 zoo_model_query = timm.create_model('poolformerv2_m36.sail_in1k', pretrained=True, features_only=True)
+            elif self.args.query == 'None':
+                zoo_model_query = None
             else:
                 NotImplementedError
             self.feat_query = zoo_model_query
-            self.feat_query.requires_grad_(False)
+            if self.feat_query is not None:
+                self.feat_query.requires_grad_(False)
 
             # load prompt model
             self.feat = VisionTransformer(img_size=224, patch_size=16,
@@ -78,6 +81,8 @@ class PromptModel(nn.Module):
         # create prompting module
         if self.prompt_flag == 'os':
             self.prompt = OSPrompt(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 100 8 1e-4
+        elif self.prompt_flag == 'ospp':
+            self.prompt = OSPromptPP(args, self.embed_dim, prompt_param, self.embed_dim) # prompt_param: 100 8 1e-4
         else:
             self.prompt = None
 
@@ -86,6 +91,9 @@ class PromptModel(nn.Module):
         self.dset_std = (1.0, 1.0, 1.0)
 
         if self.args.query == 'vit':
+            self.dset_mean_q = (0.0,0.0,0.0)
+            self.dset_std_q = (1.0,1.0,1.0)
+        elif self.args.query == 'None':
             self.dset_mean_q = (0.0,0.0,0.0)
             self.dset_std_q = (1.0,1.0,1.0)
         else:
@@ -106,6 +114,9 @@ class PromptModel(nn.Module):
             x_backbone = transforms.Normalize(self.dset_mean, self.dset_std)(x)
             x_query = transforms.Normalize(self.dset_mean_q, self.dset_std_q)(x)
             raise NotImplementedError(f"Input data is already normalized")
+        elif self.args.query == 'None':
+            x_backbone = x
+            x_query = x.clone()
 
         if self.prompt is not None:
             with torch.no_grad():
@@ -115,6 +126,8 @@ class PromptModel(nn.Module):
                 elif self.args.query in ['poolformer', 'swin']:
                     q = self.feat_query(x_query)
                     q = q[-1].mean(-2).mean(-1)
+                elif self.args.query == 'None':
+                    q = None
                 else:
                     q = self.feat_query(x_query)
             # Forward with prompt
