@@ -144,9 +144,6 @@ class CodaPrompt(nn.Module):
             pt = int(self.e_pool_size / (self.n_tasks))
             s = int(self.task_count * pt)
             f = int((self.task_count + 1) * pt)
-            # super prompt dim
-            # arch = self.args.arch # tiny, small, base, large
-            
             
             # freeze/control past tasks
             if train:
@@ -162,13 +159,7 @@ class CodaPrompt(nn.Module):
                 K = K[0:f]
                 A = A[0:f]
                 p = p[0:f]
-                
-            # control activated dim
-            # K = K[:,:self.activated_emd_d]
-            # A = A[:,:self.activated_emd_d]
-            # p = p[:,:,:self.activated_emd_d]
             
-
             # with attention and cosine sim
             # (b x 1 x d) * soft([1 x k x d]) = (b x k x d) -> attention = k x d
             a_querry = torch.einsum('bd,kd->bkd', x_querry, A)
