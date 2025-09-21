@@ -1,0 +1,5 @@
+N_TASKS: 10
+N_CLASSES_PER_TASK: 10
+N_CLASSES: 100
+batch_size: 16
+n_epochs: 20
