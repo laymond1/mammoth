@@ -1,0 +1,45 @@
+seq-cifar10-224:
+  alpha: 1.0
+  tau: 1.2
+  margin: 0.0
+  lr: 1e-2
+  model: cprompt
+  optim_mom: 0.9
+  optimizer: sgd
+  batch_size: 16
+seq-cifar100-224:
+  alpha: 1.0
+  tau: 1.2
+  margin: 0.0
+  lr: 1e-2
+  model: cprompt
+  optim_mom: 0.9
+  optimizer: sgd
+  batch_size: 16
+seq-imagenet-r:
+  alpha: 1.0
+  tau: 1.15
+  margin: 0.1
+  lr: 1e-2
+  model: cprompt
+  optim_mom: 0.9
+  optimizer: sgd
+  batch_size: 16
+seq-cars196:
+  alpha: 1.0
+  tau: 1.15
+  margin: 0.1
+  lr: 1e-2
+  model: cprompt
+  optim_mom: 0.9
+  optimizer: sgd
+  batch_size: 16
+seq-cub200:
+  alpha: 1.0
+  tau: 1.15
+  margin: 0.1
+  lr: 1e-2
+  model: cprompt
+  optim_mom: 0.9
+  optimizer: sgd
+  batch_size: 16
