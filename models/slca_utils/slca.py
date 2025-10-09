@@ -16,7 +16,8 @@ class SLCA_Model(BaseLearner):
         super().__init__(device, args)
         self.device = device
         self.args = args
-        self._network = FinetuneIncrementalNet(args.feature_extractor_type, pretrained=True)
+        self._network = FinetuneIncrementalNet(args.vit_type, pretrained=True)
+        # self._network = FinetuneIncrementalNet(args.feature_extractor_type, pretrained=True)
         self.bcb_lrscale = 1.0 / 100
         self.fix_bcb = False
         self.save_before_ca = False

@@ -1,4 +1,45 @@
 seq-cifar100-224:
-  dataset_config: slca
   lr: 0.01
   model: slca
+  optimizer: sgd
+  batch_size: 16
+seq-imagenet-r:
+  lr: 0.01
+  model: slca
+  optimizer: sgd
+  batch_size: 16
+seq-cars196:
+  lr: 0.01
+  model: slca
+  optimizer: sgd
+  batch_size: 16
+seq-cub200:
+  lr: 0.01
+  model: slca
+  optimizer: sgd
+  batch_size: 16
+seq-eurosat-rgb:
+  lr: 0.01
+  model: slca
+  optimizer: sgd
+  batch_size: 16
+seq-resisc45:
+  lr: 0.01
+  model: slca
+  optimizer: sgd
+  batch_size: 16
+seq-chestx:
+  lr: 0.01
+  model: slca
+  optimizer: sgd
+  batch_size: 16
+seq-isic:
+  lr: 0.01
+  model: slca
+  optimizer: sgd
+  batch_size: 16
+seq-cropdisease:
+  lr: 0.01
+  model: slca
+  optimizer: sgd
+  batch_size: 16

@@ -2,13 +2,23 @@ import copy
 import os
 import sys
 import torch
+import timm
 from torch import nn
 import torch.nn.functional as F
 from backbone.ResNetBlock import resnet18, resnet34
 from backbone.ResNetBottleneck import resnet50
 from backbone.vit import vit_base_patch16_224_prompt_prototype
 from models.slca_utils.convs.cifar_resnet import resnet32
+from backbone.vit import VisionTransformer
 from models.slca_utils.convs.linears import SimpleContinualLinear
+
+
+vit_config = {
+    'tiny':  {'embed_dim': 192, 'depth': 12, 'num_heads': 3},
+    'small': {'embed_dim': 384, 'depth': 12, 'num_heads': 6},
+    'base':  {'embed_dim': 768, 'depth': 12, 'num_heads': 12},
+    'large': {'embed_dim': 1024, 'depth': 24, 'num_heads': 16},
+}
 
 
 def get_convnet(feature_extractor_type, pretrained=False):
@@ -25,6 +35,10 @@ def get_convnet(feature_extractor_type, pretrained=False):
         return resnet34(pretrained=pretrained)
     elif name == 'resnet50':
         return resnet50(pretrained=pretrained)
+    elif name in ['tiny', 'small', 'base']:
+        if name not in vit_config:
+            raise ValueError(f"Unknown ViT type: {name}")
+        return _create_vit_model(name, vit_config[name])
     elif name == 'vit-b-p16':
         print("Using ViT-B/16 pretrained on ImageNet21k (NO FINETUNE ON IN1K)")
         model = vit_base_patch16_224_prompt_prototype(pretrained=pretrained, pretrain_type='in21k', num_classes=0)
@@ -48,6 +62,32 @@ def get_convnet(feature_extractor_type, pretrained=False):
         return model
     else:
         raise NotImplementedError('Unknown type {}'.format(feature_extractor_type))
+
+
+def _create_vit_model(name, config):
+    """Helper function to create ViT model with pretrained weights."""
+    model = VisionTransformer(
+        img_size=224, 
+        patch_size=16,
+        embed_dim=config['embed_dim'],
+        depth=config['depth'],
+        num_heads=config['num_heads'],
+        drop_path_rate=0
+    )
+    
+    pretrained_model = timm.create_model(f'vit_{name}_patch16_224', pretrained=True)
+    load_dict = pretrained_model.state_dict()
+    
+    # Remove head weights if they exist
+    if 'head.weight' in load_dict:
+        del load_dict['head.weight']
+        del load_dict['head.bias']
+    
+    missing, unexpected = model.load_state_dict(load_dict, strict=False)
+    assert len([m for m in missing if 'head' not in m]) == 0, f"Missing keys: {missing}"
+    assert len(unexpected) == 0, f"Unexpected keys: {unexpected}"
+    
+    return model
 
 
 class BaseNet(nn.Module):

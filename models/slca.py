@@ -2,10 +2,10 @@
 Slow Learner with Classifier Alignment.
 
 Note:
-    SLCA USES A CUSTOM BACKBONE (see `feature_extractor_type` argument)
+    SLCA USES A CUSTOM BACKBONE (see `vit_type` argument)
 
 Arguments:
-    --feature_extractor_type: the type of convnet to use. `vit-b-p16` is the default: ViT-B/16 pretrained on Imagenet 21k (**NO** finetuning on ImageNet 1k)
+    --vit_type: the type of convnet to use. `vit-b-p16` is the default: ViT-B/16 pretrained on Imagenet 21k (**NO** finetuning on ImageNet 1k)
 """
 
 from utils import binary_to_boolean_type
@@ -29,9 +29,9 @@ class SLCA(ContinualModel):
         parser.add_argument('--memory_per_class', type=int, default=0)
         parser.add_argument('--fixed_memory', type=binary_to_boolean_type, default=0)
         parser.add_argument(
-            '--feature_extractor_type',
+            '--vit_type',
             type=str,
-            default='vit-b-p16',
+            default='tiny',# 'vit-b-p16',
             help='the type of feature extractor to use. `vit-b-p16` is the default: '
             'ViT-B/16 pretrained on Imagenet 21k (**NO** finetuning on ImageNet 1k)')
         parser.add_argument('--ca_epochs', type=int, default=5, help='number of epochs for classifier alignment')
@@ -46,7 +46,7 @@ class SLCA(ContinualModel):
         self.device = get_device()
         del backbone
         print("-" * 20)
-        print(f"WARNING: SLCA USES A CUSTOM BACKBONE: {args.feature_extractor_type}")
+        print(f"WARNING: SLCA USES A CUSTOM BACKBONE: {args.vit_type}")
         backbone = SLCA_Model(self.device, args)
         print("-" * 20)
 
