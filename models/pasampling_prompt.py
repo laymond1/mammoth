@@ -41,9 +41,9 @@ class PaSamplingPrompt(ContinualModel):
 
         # PatchSampling
         parser.add_argument('--keep_rate', type=float, default=0.5, help='given a value of r, the prompt_r and query_r are ignored')
-        parser.add_argument('--sampling', type=str, default='significance_score', choices=['uniform', 'attention', 'significance_score'], help='sampling method for patch merging')
+        parser.add_argument('--sampling', type=str, default='significance_score', choices=['uniform', 'attention', 'significance_score', 'topk_attention', 'topk_significance_score'], help='sampling method for patch merging')
         parser.add_argument('--temperature', type=float, default=1.0, help='temperature for the attention scaling')
-        parser.add_argument('--drop_curriculum', type=binary_to_boolean_type, default=False, help='whether to drop the curriculum learning')
+        # parser.add_argument('--drop_curriculum', type=binary_to_boolean_type, help='whether to drop the curriculum learning')
         # Prompt Sparsity
         parser.add_argument('--prompt_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during prompt forward pass for efficiency')
         parser.add_argument('--head_prompt_sparse', type=binary_to_boolean_type, default=False, help='enable token pruning during head forward pass for efficiency')

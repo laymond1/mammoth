@@ -52,6 +52,10 @@ class PatchSampling(torch.nn.Module):
             return self.attention_mask(x, attn_scores)
         elif self.sampling == "significance_score":
             return self.significance_score_mask(x, attn_scores)
+        elif self.sampling == "topk_attention":
+            return self.topk_attention_mask(x, attn_scores)
+        elif self.sampling == "topk_significance_score":
+            return self.topk_significance_score_mask(x, attn_scores)
         else:
             return NotImplementedError(f"PatchSampling does ot support {self.sampling} sampling")
     
@@ -72,7 +76,7 @@ class PatchSampling(torch.nn.Module):
 
     def attention_mask(self, x, attn_logits):
         """
-        Returns an id-mask using attention scores
+        Returns an id-mask using attention scores (stochastic sampling)
         """
         N, L, D = x.shape
         _L = L -1
@@ -96,7 +100,7 @@ class PatchSampling(torch.nn.Module):
     
     def significance_score_mask(self, x, attn_scores):
         """
-        Returns an id-mask using attention scores
+        Returns an id-mask using significance scores (stochastic sampling)
         """
         N, L, D = x.shape
         _L = L - 1
@@ -113,6 +117,43 @@ class PatchSampling(torch.nn.Module):
         if not self.token_shuffling:
             patch_mask = patch_mask.sort(1)[0]
 
+        return patch_mask
+
+    def topk_attention_mask(self, x, attn_logits):
+        """
+        Returns an id-mask using top-k attention scores (deterministic selection)
+        """
+        N, L, D = x.shape
+        _L = L - 1
+        keep = int(_L * self.keep_rate)
+
+        # Compute mean attention scores from CLS token to all patch tokens
+        cls_attn_logits = attn_logits[:, :, 0, 1:].mean(dim=1)  # shape: (B, 196)
+        
+        # Select top-k tokens with highest attention scores
+        _, topk_indices = torch.topk(cls_attn_logits, k=keep, dim=1)  # (B, keep)
+        patch_mask = topk_indices + 1  # shift by 1 to exclude CLS token
+        
+        if not self.token_shuffling:
+            patch_mask = patch_mask.sort(1)[0]
+        
+        return patch_mask
+    
+    def topk_significance_score_mask(self, x, attn_scores):
+        """
+        Returns an id-mask using top-k significance scores (deterministic selection)
+        """
+        N, L, D = x.shape
+        _L = L - 1
+        keep = int(_L * self.keep_rate)
+
+        # Select top-k tokens with highest significance scores
+        _, topk_indices = torch.topk(attn_scores, k=keep, dim=1)  # (B, keep)
+        patch_mask = topk_indices + 1  # shift by 1 to exclude CLS token
+        
+        if not self.token_shuffling:
+            patch_mask = patch_mask.sort(1)[0]
+        
         return patch_mask
 
 
@@ -175,9 +216,9 @@ class PaSamplingAttention(Attention):
         x = self.proj_drop(x)
     
         if register_hook:
-            if self._pasampling_info['sampling'] == 'attention':
+            if self._pasampling_info['sampling'] == 'attention' or self._pasampling_info['sampling'] == 'topk_attention':
                 return x, attn_logit
-            elif self._pasampling_info['sampling'] == 'significance_score':
+            elif self._pasampling_info['sampling'] == 'significance_score' or self._pasampling_info['sampling'] == 'topk_significance_score':
                 v_norm = torch.linalg.norm(
                     v.transpose(1, 2).reshape(B, attn.shape[2], C), ord=2, dim=2
                 )  # value norm of size [B x T]
