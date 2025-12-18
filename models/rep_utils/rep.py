@@ -116,8 +116,10 @@ def make_rep_class(transformer_class):
                 self._tome_info["r"] = AToM_parse_r(len(self.blocks), self.r)
             self._tome_info["size"] = None
             self._tome_info["source"] = None
-            self._pld_info["step"] += 1
-            self._pld_info["theta"] = parse_theta(self._tome_info["r"], **self._pld_info)
+            # Only update epoch if it has changed
+            if self._pld_info["epoch"] != self._epoch:
+                self._pld_info["epoch"] = self._epoch
+            theta = parse_theta(self._tome_info["r"], **self._pld_info)
 
             B = x.shape[0]
             x = self.patch_embed(x)
@@ -130,7 +132,6 @@ def make_rep_class(transformer_class):
 
             prompt_loss = torch.zeros((1,), requires_grad=True).to(x.device)
 
-            theta = self._pld_info["theta"]  # keep probs per layer
             for i, blk in enumerate(self.blocks):
 
                 # Prompt
@@ -144,7 +145,11 @@ def make_rep_class(transformer_class):
                 else:
                     p_list = None
 
-                blk.drop_path.drop_prob = 1-theta[i]
+                if self.training and self._pld_info["use_ald"]:
+                    # Bernoulli 샘플링으로 블록 전체를 드랍
+                    if torch.rand(1, device=x.device) > theta[i] :
+                        continue   # 이 레이어는 완전히 스킵
+
                 x = blk(x, register_blk==i, prompt=p_list)
 
             x = self.norm(x)
@@ -153,13 +158,12 @@ def make_rep_class(transformer_class):
                 prompt_loss /= len(prompt.e_layers)
 
             return x, prompt_loss
-
         
-        def get_step(self):
-            return self._step
-        
-        def update_step(self):
-            self._step += 1
+        def update_epoch(self, epoch: int):
+            """Update epoch value. This should be called when epoch changes."""
+            if self._epoch != epoch:
+                self._epoch = epoch
+                self._pld_info["epoch"] = epoch
 
     return REPVisionTransformer
 
@@ -180,7 +184,7 @@ def apply_patch_layer(
     REPVisionTransformer = make_rep_class(model.__class__)
 
     model.__class__ = REPVisionTransformer
-    model.r = 0
+    model.r = 8
     model._tome_info = {
         "r": model.r,
         "size": None,
@@ -193,12 +197,11 @@ def apply_patch_layer(
     }
     model.gamma = 0.001 # initial gamma following deepspeed hyp
     model.theta_min = 0.5 # minimum probability
-    model.tau = 12 # 12 (Base) / 16 (Large)
-    model._step = 0
+    model.tau = 8 # 8 (Tiny) / 12 (Base) / 16 (Large)
+    model._epoch = 0
     model._pld_info = {
         "gamma": model.gamma,
-        "step": model._step,
-        "theta": None,
+        "epoch": model._epoch,
         "theta_min": model.theta_min,
         "tau": model.tau,
         "use_ald": use_ald
@@ -210,8 +213,6 @@ def apply_patch_layer(
     for module in model.modules():
         if isinstance(module, Block):
             module.__class__ = ToMeBlock
-            module.drop_path = DropPath(model.theta_min) if use_ald else DropPath(0.0)
             module._tome_info = model._tome_info
-            module._pld_info = model._pld_info
         elif isinstance(module, Attention):
             module.__class__ = ToMeAttention

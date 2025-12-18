@@ -43,7 +43,9 @@ class REPCodaPrompt(ContinualModel):
         parser.add_argument('--r', type=int, default=8, help='the number of tokens to be remained after merging')
         # ALD (Adaptive Layer Droping)
         parser.add_argument('--use_ald', type=binary_to_boolean_type, default=True, help='Use Adaptive Layer Droping')
-        parser.add_argument('--theta_min', type=float, default=0.5, help='the threshold to drop the layer')
+        parser.add_argument('--theta_min', type=float, default=0.8, help='the threshold to drop the layer')
+        # parser.add_argument('--gamma', type=float, default=0.05, help='scaling factor for layer dropping')
+        
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
         parser.add_argument('--use_amp', type=bool, default=True, help='Use automatic mixed precision')
@@ -78,17 +80,19 @@ class REPCodaPrompt(ContinualModel):
         self.opt = self.get_optimizer()
         if self.args.use_scheduler:
             self.scheduler = CosineSchedule(self.opt, K=self.args.n_epochs)
-        # reset step
-        self.net.feat._pld_info["step"] = 0
+        
+        self.net.feat._pld_info["epoch"] = 0
         # set gamma
-        num_total_steps = len(dataset.train_loader) * self.args.n_epochs
-        self.net.feat._pld_info["gamma"] = 10 / num_total_steps # following PLD paper hyp
-        # self.net.feat._pld_info["gamma"] = 0.001 # following deepspeed hyp
+        self.net.feat._pld_info["gamma"] = 1 / self.args.n_epochs # following PLD paper hyp
+        # self.net.feat._pld_info["gamma"] = self.args.gamma # following deepspeed hyp
 
     def begin_epoch(self, epoch, dataset):
         self.count = 0
         self.running_loss = 0.0
         self.running_accuracy = 0.0
+        
+        # Use update_epoch method for optimized epoch update
+        self.net.feat.update_epoch(epoch)
 
     def observe(self, inputs, labels, not_aug_inputs, epoch=None):
         if isinstance(self.device, str):

@@ -133,7 +133,7 @@ def parse_theta(r_list: List[int], **kwargs) -> List[float]:
      - int: A constant number of tokens per layer.
      - List[int]: A specific number of tokens per layer. For extreme granularity.
     """
-    allowed_keys = {"gamma", "step", "theta_min", "tau"}
+    allowed_keys = {"gamma", "epoch", "theta_min", "tau"}
     filtered_kwargs = {k: v for k, v in kwargs.items() if k in allowed_keys}
     
     theta_list = [get_layer_drop_prob(r, **filtered_kwargs) for r in r_list]
@@ -141,12 +141,11 @@ def parse_theta(r_list: List[int], **kwargs) -> List[float]:
     return theta_list
 
 
-def get_layer_drop_prob(r, gamma, step, theta_min=0.5, tau=12):
+def get_layer_drop_prob(r, gamma, epoch, theta_min=0.5, tau=12):
     """
     Calculate the drop probability for a given layer and step.
     """
-    # alpha = 0.9 if r >= tau else 1.0
-    alpha = 1.0
-    prob = alpha * ((1 - theta_min) * math.exp(-gamma * step) + theta_min)
+    alpha = 0.9 if r >= tau else 1.0
+    prob = alpha * ((1 - theta_min) * math.exp(-gamma * epoch) + theta_min)
 
     return prob

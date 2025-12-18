@@ -12,10 +12,10 @@ from models.prompt_utils.prompt import L2P, DualPrompt, CodaPrompt, MVPPrompt, O
 
 
 vit_config = {
-    'tiny':  {'embed_dim': 192, 'depth': 12, 'num_heads': 3},
-    'small': {'embed_dim': 384, 'depth': 12, 'num_heads': 6},
-    'base':  {'embed_dim': 768, 'depth': 12, 'num_heads': 12},
-    'large': {'embed_dim': 1024, 'depth': 24, 'num_heads': 16},
+    'tiny':  {'embed_dim': 192, 'depth': 12, 'num_heads': 3, 'tau': 8},
+    'small': {'embed_dim': 384, 'depth': 12, 'num_heads': 6, 'tau': 10},
+    'base':  {'embed_dim': 768, 'depth': 12, 'num_heads': 12, 'tau': 12},
+    'large': {'embed_dim': 1024, 'depth': 24, 'num_heads': 16, 'tau': 16},
 }
 
 
@@ -78,16 +78,27 @@ class PromptModel(nn.Module):
         self.feat.r = args.r # 8
         # ALD (PLD)
         self.feat.theta_min = args.theta_min # 0.5
-        self.feat.tau = 12 if not args.vit_type == 'large' else 16
+        self.feat._pld_info["theta_min"] = args.theta_min
+        # self.feat._pld_info["gamma"] = args.gamma
+        self.feat.tau = cfg['tau']
+        self.feat._pld_info["tau"] = self.feat.tau
 
         # query projection layer (Tiny's embedding to target embedding)
         if args.vit_type == 'tiny':
             self.query_proj = nn.Identity()
         else:
+            # Random Projection by RanPAC 
+            # Create a linear layer and initialize it with random weights (fixed, no training)
+            in_dim = vit_config['tiny']['embed_dim']
+            random_proj = nn.Linear(in_dim, self.embed_dim, bias=False)
+            with torch.no_grad():
+                random_proj.weight.data = torch.randn(self.embed_dim, in_dim)
+            random_proj.requires_grad_(False)  # Fix the weights, no training
+            
             self.query_proj = nn.Sequential(
-            nn.Linear(192, self.embed_dim),
-            nn.ReLU()
-        )
+                random_proj,
+                nn.ReLU()
+            )
         # classifier
         self.head = nn.Linear(self.embed_dim, num_classes)
 
