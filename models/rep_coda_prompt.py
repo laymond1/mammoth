@@ -41,6 +41,7 @@ class REPCodaPrompt(ContinualModel):
         # AToM (Adaptive Token Merging)
         parser.add_argument('--tome_type', type=str, default='atom', choices=['tome', 'atom'], help='Adaptive Token Merging')
         parser.add_argument('--r', type=int, default=8, help='the number of tokens to be remained after merging')
+        parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
         # ALD (Adaptive Layer Droping)
         parser.add_argument('--use_ald', type=binary_to_boolean_type, default=True, help='Use Adaptive Layer Droping')
         parser.add_argument('--theta_min', type=float, default=0.8, help='the threshold to drop the layer')

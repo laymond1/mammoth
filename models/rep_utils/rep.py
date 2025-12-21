@@ -20,29 +20,38 @@ class ToMeBlock(Block):
     def _drop_path2(self, x):
         return self.drop_path2(x) if hasattr(self, "drop_path2") else self.drop_path(x)
 
-    def forward(self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, sparse: bool = True) -> torch.Tensor:
         # Note: this is copied from timm.models.vision_transformer.Block with modifications.
         attn_size = self._tome_info["size"] if self._tome_info["prop_attn"] else None
-        x_attn, metric = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size)
-        x = x + self._drop_path1(x_attn)
+        # Full Token Forward
+        if not sparse:
+            x_attn = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size, sparse=sparse)
+            metric = None
+            x = x + self._drop_path1(x_attn)
+            x = x + self._drop_path2(self.mlp(self.norm2(x)))
+            return x
+        # Sparse Token Forward
+        else:
+            x_attn, metric = self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, size=attn_size)
+            x = x + self._drop_path1(x_attn)
 
-        r = self._tome_info["r"].pop(0)
-        if r > 0:
-            # Apply ToMe here
-            merge, _ = bipartite_soft_matching(
-                metric,
-                r,
-                self._tome_info["class_token"],
-                self._tome_info["distill_token"],
-            )
-            if self._tome_info["trace_source"]:
-                self._tome_info["source"] = merge_source(
-                    merge, x, self._tome_info["source"]
+            r = self._tome_info["r"].pop(0)
+            if r > 0:
+                # Apply ToMe here
+                merge, _ = bipartite_soft_matching(
+                    metric,
+                    r,
+                    self._tome_info["class_token"],
+                    self._tome_info["distill_token"],
                 )
-            x, self._tome_info["size"] = merge_wavg(merge, x, self._tome_info["size"])
+                if self._tome_info["trace_source"]:
+                    self._tome_info["source"] = merge_source(
+                        merge, x, self._tome_info["source"]
+                    )
+                x, self._tome_info["size"] = merge_wavg(merge, x, self._tome_info["size"])
 
-        x = x + self._drop_path2(self.mlp(self.norm2(x)))
-        return x
+            x = x + self._drop_path2(self.mlp(self.norm2(x)))
+            return x
 
 
 class ToMeAttention(Attention):
@@ -53,9 +62,12 @@ class ToMeAttention(Attention):
     """
 
     def forward(
-        self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, size: torch.Tensor = None
+        self, x: torch.Tensor, register_hook: bool = False, prompt: torch.Tensor = None, size: torch.Tensor = None, sparse: bool = True
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        # Note: this is copied from timm.models.vision_transformer.Attention with modifications.
+        # Full Token Forward
+        if not sparse:
+            return super().forward(x, register_hook=register_hook, prompt=prompt)
+        
         B, N, C = x.shape
         qkv = (
             self.qkv(x)
@@ -150,8 +162,21 @@ def make_rep_class(transformer_class):
                     if torch.rand(1, device=x.device) > theta[i] :
                         continue   # 이 레이어는 완전히 스킵
 
-                x = blk(x, register_blk==i, prompt=p_list)
-
+                # Forward for prompt 
+                if prompt is not None:
+                    if train:
+                        # Sparse Token Forward (Training)
+                        x = blk(x, register_blk==i, prompt=p_list)
+                    else:
+                        if self.test_prompt_sparse:
+                            # Sparse Token Forward (Inference)
+                            x = blk(x, register_blk==i, prompt=p_list)
+                        else:
+                            # Full Token Forward (Inference)
+                            x = blk(x, register_blk==i, prompt=p_list, sparse=False)
+                else:
+                    x = blk(x, register_blk==i, prompt=p_list)
+                        
             x = self.norm(x)
 
             if prompt is not None:
