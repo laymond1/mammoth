@@ -76,6 +76,7 @@ class PromptModel(nn.Module):
         rep.apply_patch_layer(self.feat, tome_type=args.tome_type, use_ald=args.use_ald)
         # AToM (ToMe)
         self.feat.r = args.r # 8
+        self.feat.test_prompt_sparse = args.test_prompt_sparse
         # ALD (PLD)
         self.feat.theta_min = args.theta_min # 0.5
         self.feat._pld_info["theta_min"] = args.theta_min
