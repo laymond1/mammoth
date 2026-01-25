@@ -53,6 +53,7 @@ class Logger:
         self.cpu_res = []
         self.gpu_res = []
         self.gpu_res_pynvml = []
+        self.power_res = []
 
     def dump(self):
         """
@@ -189,7 +190,7 @@ class Logger:
         elif self.setting == 'biased-class-il':
             self.fullaccs.append(accs)
 
-    def log_system_stats(self, cpu_res, gpu_res, gpu_res_pynvml) -> None:
+    def log_system_stats(self, cpu_res, gpu_res, gpu_res_pynvml, power_res) -> None:
         """
         Logs the system stats.
         Supported only if the `psutil` and `torch` libraries are installed.
@@ -197,6 +198,8 @@ class Logger:
         Args:
             cpu_res: the CPU memory usage
             gpu_res: the GPU memory usage
+            gpu_res_pynvml: the GPU memory usage via pynvml
+            power_res: the power consumption
         """
         if cpu_res is not None:
             self.cpu_res.append(cpu_res)
@@ -210,9 +213,14 @@ class Logger:
             gpu_res_pynvml = {f'GPU_{i}_memory_usage_pynvml': r for i, r in gpu_res_pynvml.items()}
         else:
             gpu_res_pynvml = {}
+        if power_res is not None:
+            self.power_res.append(power_res)
+            power_res = {f'Power': power_res}
+        else:
+            power_res = {}
 
         if not self.args.nowand:
-            wandb.log({'CPU_memory_usage': cpu_res, **gpu_res, **gpu_res_pynvml})
+            wandb.log({'CPU_memory_usage': cpu_res, **gpu_res, **gpu_res_pynvml, **power_res})
 
     def write(self, args: Dict[str, Any]) -> None:
         """
