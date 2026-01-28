@@ -64,6 +64,8 @@ class PromptModel(nn.Module):
         self.feat = _create_vision_transformer(f'vit_{vit_type}_patch16_224', pretrained=True, **model_kwargs)
         # grad false
         self.feat.requires_grad_(False)
+        if getattr(args, 'use_grad_checkpoint', False):
+            self.feat.set_grad_checkpointing(True)
 
         self.task_tokens = copy.deepcopy(self.feat.cls_token) # not used
         self.keys = tensor_prompt(self.num_classes, self.feat.embed_dim, ortho=True)
