@@ -101,12 +101,30 @@ def binary_to_boolean_type(value: str) -> bool:
     return value in true_values
 
 
-def parse_str_to_int(value: list) -> list:
-    if not isinstance(value, list):
-        if isinstance(value, str):
-            value = eval(value)
+def parse_str_to_int(value: Union[str, list]) -> list:
+    """
+    Parse a string or list to a list of integers.
     
-    return [int(v) for v in value]
+    Examples:
+        "1,2,3" -> [1, 2, 3]
+        "[1,2,3]" -> [1, 2, 3]
+        [1, 2, 3] -> [1, 2, 3]
+        "5" -> [5]
+    """
+    if isinstance(value, str):
+        # Remove brackets if present
+        value = value.strip()
+        if value.startswith('[') and value.endswith(']'):
+            value = value[1:-1]
+        # Split by comma and convert to int
+        if ',' in value:
+            return [int(v.strip()) for v in value.split(',') if v.strip()]
+        else:
+            return [int(value.strip())]
+    elif isinstance(value, list):
+        return [int(v) for v in value]
+    else:
+        return [int(value)]
 
 
 def custom_str_underscore(value):
