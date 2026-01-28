@@ -13,6 +13,7 @@ from typing import Iterable
 import logging
 import torch
 from tqdm import tqdm
+import time
 
 from datasets import get_dataset
 from datasets.utils.continual_dataset import ContinualDataset, MammothDatasetWrapper
@@ -107,8 +108,8 @@ def train_single_epoch(model: ContinualModel,
         if scheduler is not None and args.scheduler_mode == 'iter':
             scheduler.step()
 
-        if args.code_optimization == 0 and 'cuda' in str(args.device):
-            torch.cuda.synchronize()
+        # if args.code_optimization == 0 and 'cuda' in str(args.device):
+            # torch.cuda.synchronize()
         system_tracker()
         i += 1
 
@@ -204,6 +205,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
             model.meta_begin_task(dataset)
 
+            task_train_start = None
+
             if not can_compute_fwd_beforetask and is_fwd_enabled and args.enable_other_metrics:
                 if train_loader.dataset.num_times_iterated == 0:  # compute only if the model has not been trained yet
                     try:
@@ -219,6 +222,9 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                     is_fwd_enabled = False
 
             if not args.inference_only and args.n_epochs > 0:
+                if torch.cuda.is_available() and 'cuda' in str(model.device):
+                    torch.cuda.synchronize()
+                task_train_start = time.perf_counter()
                 if t and args.enable_other_metrics:
                     accs = eval_dataset.evaluate(model, eval_dataset, last=True)
                     results[t - 1] = results[t - 1] + accs[0]
@@ -290,6 +296,15 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                         eval_dataset.log(args, logger, epoch_accs, t, dataset.SETTING, epoch=epoch)
 
                 train_pbar.close()
+
+                if torch.cuda.is_available() and 'cuda' in str(model.device):
+                    torch.cuda.synchronize()
+                task_train_time_s = time.perf_counter() - task_train_start
+                print(f"Task {t + 1} training time: {task_train_time_s:.2f}s", file=sys.stderr)
+                if not args.disable_log:
+                    logger.task_train_times.append(task_train_time_s)
+                if not args.nowand:
+                    wandb.log({'train_time_task_s': task_train_time_s, 'Task': t})
 
             model.meta_end_task(dataset)
 

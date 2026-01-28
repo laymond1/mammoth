@@ -54,6 +54,7 @@ class Logger:
         self.gpu_res = []
         self.gpu_res_pynvml = []
         self.power_res = []
+        self.task_train_times = []
 
     def dump(self):
         """
@@ -71,6 +72,7 @@ class Logger:
             'fwt_mask_classes': self.fwt_mask_classes,
             'bwt_mask_classes': self.bwt_mask_classes,
             'forgetting_mask_classes': self.forgetting_mask_classes,
+            'task_train_times': self.task_train_times,
         }
         if self.setting == 'class-il':
             dic['accs_mask_classes'] = self.accs_mask_classes
@@ -90,9 +92,10 @@ class Logger:
         self.fwt = dic['fwt']
         self.bwt = dic['bwt']
         self.forgetting = dic['forgetting']
-        self.fwt_mask_classes = dic['fwt_mask_classes']
-        self.bwt_mask_classes = dic['bwt_mask_classes']
-        self.forgetting_mask_classes = dic['forgetting_mask_classes']
+        self.fwt_mask_classes = dic.get('fwt_mask_classes')
+        self.bwt_mask_classes = dic.get('bwt_mask_classes')
+        self.forgetting_mask_classes = dic.get('forgetting_mask_classes')
+        self.task_train_times = dic.get('task_train_times', [])
         if self.setting == 'class-il':
             self.accs_mask_classes = dic['accs_mask_classes']
             self.fullaccs_mask_classes = dic['fullaccs_mask_classes']
@@ -113,6 +116,7 @@ class Logger:
             self.fwt_mask_classes = self.fwt_mask_classes[:-num]
             self.bwt_mask_classes = self.bwt_mask_classes[:-num]
             self.forgetting_mask_classes = self.forgetting_mask_classes[:-num]
+            self.task_train_times = self.task_train_times[:-num]
 
         if self.setting == 'class-il':
             self.accs_mask_classes = self.accs_mask_classes[:-num]
@@ -242,6 +246,10 @@ class Logger:
         wrargs['cpu_memory_usage'] = self.cpu_res
         wrargs['gpu_memory_usage'] = self.gpu_res
         wrargs['gpu_memory_usage_pynvml'] = self.gpu_res_pynvml
+        wrargs['task_train_times_s'] = self.task_train_times
+
+        for i, ttime in enumerate(self.task_train_times):
+            wrargs['task_train_time_s_task' + str(i + 1)] = ttime
 
         wrargs['forward_transfer'] = self.fwt
         wrargs['backward_transfer'] = self.bwt
