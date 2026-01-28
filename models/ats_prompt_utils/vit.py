@@ -46,7 +46,7 @@ class Mlp(nn.Module):
 
 
 class Attention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0.):
+    def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0., enable_softmax_policy=False):
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // num_heads
@@ -58,6 +58,7 @@ class Attention(nn.Module):
         self.proj_drop = nn.Dropout(proj_drop)
         self.attn_gradients = None
         self.attention_map = None
+        self.enable_softmax_policy = enable_softmax_policy
         
     def save_attn_gradients(self, attn_gradients):
         self.attn_gradients = attn_gradients
@@ -130,7 +131,7 @@ class Attention(nn.Module):
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
         
-        if policy is None:
+        if policy is None or not self.enable_softmax_policy:
             attn = attn.softmax(dim=-1)
         else:
             attn = self.softmax_with_policy(attn, policy)
@@ -489,17 +490,17 @@ class AdaptiveTokenSampler(Attention):
 class Block(nn.Module):
 
     def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
-                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
+                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm, enable_softmax_policy=False):
         super().__init__()
         self.norm1 = norm_layer(dim)
         self.attn = Attention(
-            dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
+            dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop,
+            enable_softmax_policy=enable_softmax_policy)
         # NOTE: drop path for stochastic depth, we shall see if this is better than dropout here
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
-
 
     def forward(self, x, register_hook=False, prompt=None, policy=None, sampler=None):
         x = x + self.drop_path(self.attn(self.norm1(x), register_hook=register_hook, prompt=prompt, policy=policy, sampler=sampler))
@@ -568,7 +569,7 @@ class VisionTransformer(nn.Module):
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0., norm_layer=None, ckpt_layer=0, 
                  ats_blocks=[3, 4, 5, 6, 7, 8, 9, 10, 11],
                  num_tokens=[197, 197, 197, 197, 197, 197, 197, 197, 197, 197, 197, 197],
-                 drop_tokens=False):
+                 drop_tokens=False, enable_softmax_policy=False):
         """
         Args:
             img_size (int, tuple): input image size
@@ -586,6 +587,7 @@ class VisionTransformer(nn.Module):
             attn_drop_rate (float): attention dropout rate
             drop_path_rate (float): stochastic depth rate
             norm_layer: (nn.Module): normalization layer
+            enable_softmax_policy (bool): enable softmax with policy in attention
         """
         super().__init__()
         self.num_features = self.embed_dim = embed_dim  # num_features for consistency with other models
@@ -621,7 +623,6 @@ class VisionTransformer(nn.Module):
                         attn_drop=attn_drop_rate,
                         drop_path=dpr[i],
                         norm_layer=norm_layer,
-                        # insert_control_point=control_flags[i],
                         drop_tokens=drop_tokens,
                     )
                 )
@@ -637,7 +638,7 @@ class VisionTransformer(nn.Module):
                         attn_drop=attn_drop_rate,
                         drop_path=dpr[i],
                         norm_layer=norm_layer,
-                        # insert_control_point=control_flags[i],
+                        enable_softmax_policy=enable_softmax_policy,
                     )
                 )
         self.blocks = nn.ModuleList(self.blocks)

@@ -4,8 +4,6 @@
 import torch
 import timm
 import torch.nn as nn
-import torchvision.transforms as transforms
-import  models.ats_prompt_utils.ats as ats
 
 from models.prompt_utils.vit import VisionTransformer as QueryVisionTransformer
 from models.ats_prompt_utils.vit import VisionTransformer
@@ -67,9 +65,8 @@ class PromptModel(nn.Module):
                                         ckpt_layer=0, drop_path_rate=0,
                                         ats_blocks=args.ats_blocks,
                                         num_tokens=num_tokens,
-                                        drop_tokens=args.drop_tokens)
-                                        # num_tokens=args.num_tokens,
-                                        # drop_tokens=args.drop_tokens)
+                                        drop_tokens=args.drop_tokens,
+                                        enable_softmax_policy=getattr(args, 'enable_softmax_policy', False))
             pretrained_model = timm.create_model(f'vit_{vit_type}_patch16_224', pretrained=True)
             load_dict = pretrained_model.state_dict()
             if 'head.weight' in load_dict:

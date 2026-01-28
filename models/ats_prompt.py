@@ -45,6 +45,7 @@ class ATSPrompt(ContinualModel):
         parser.add_argument('--ats_blocks', type=parse_str_to_int, default=[3], help='the ratio of patches to reduce')
         # parser.add_argument('--num_tokens', type=parse_str_to_int, default=[197, 197, 197, 197, 197, 197, 197, 197, 197, 197, 197, 197], help='the ratio of patches to reduce')
         parser.add_argument('--drop_tokens', type=binary_to_boolean_type, default=True, help='whether to drop tokens or not during training')
+        parser.add_argument('--enable_softmax_policy', type=binary_to_boolean_type, default=False, help='enable softmax with policy')
         # Prompt Sparsity
         # parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
         
