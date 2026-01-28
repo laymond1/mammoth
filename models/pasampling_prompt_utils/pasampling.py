@@ -4,6 +4,7 @@
 from typing import Tuple
 
 import torch
+import torch.utils.checkpoint
 from models.prompt_utils.vit import Attention, Block, VisionTransformer
 
 
@@ -247,8 +248,10 @@ def make_pasampling_class(transformer_class):
         """
 
         def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, feat=False, q_attn_scores=None) -> torch.Tensor:
+            # Update PatchSampling with current keep_rate and temperature (for curriculum learning)
+            # Create new instances to reflect updated values
             self.patchsampling = PatchSampling(keep_rate=self.keep_rate, sampling=self.sampling, token_shuffling=False, temperature=self.temperature)
-            self.query_patchsampling = PatchSampling(keep_rate=self.keep_rate, sampling="uniform", token_shuffling=False)
+            self.query_patchsampling = PatchSampling(keep_rate=self.keep_rate, sampling="uniform", token_shuffling=False, temperature=1.0)
 
             B = x.shape[0]
             x = self.patch_embed(x)
@@ -304,12 +307,45 @@ def make_pasampling_class(transformer_class):
 
             prompt_loss = torch.zeros((1,), requires_grad=True).to(x.device)
 
-            for i,blk in enumerate(self.blocks):
+            depth = len(self.blocks)
+            attn_score_layers = getattr(self, "attn_score_layers", None)
+            if attn_score_layers is None:
+                attn_score_layers = [depth - 1]
+            elif isinstance(attn_score_layers, int):
+                attn_score_layers = [attn_score_layers]
+            # normalize negative indices and drop out-of-range values
+            norm_layers = []
+            for layer_idx in attn_score_layers:
+                if layer_idx < 0:
+                    layer_idx = depth + layer_idx
+                if 0 <= layer_idx < depth:
+                    norm_layers.append(layer_idx)
+            if len(norm_layers) == 0:
+                norm_layers = [depth - 1]
+
+            attn_score_mode = getattr(self, "attn_score_mode", "single")
+            if attn_score_mode == "single" and len(norm_layers) > 1:
+                norm_layers = [norm_layers[0]]
+
+            attn_scores_list = []
+
+            def _run_block(blk, x, register_hook, p_list):
+                if getattr(self, "grad_checkpointing", False) and not torch.jit.is_scripting():
+                    if not x.requires_grad:
+                        x = x.detach().requires_grad_(True)
+                    return torch.utils.checkpoint.checkpoint(
+                        lambda x: blk(x, register_hook=register_hook, prompt=p_list),
+                        x,
+                        use_reentrant=False,
+                    )
+                return blk(x, register_hook=register_hook, prompt=p_list)
+
+            for i, blk in enumerate(self.blocks):
 
                 if prompt is not None:
                     if train:
                         p_list, loss, x = prompt.forward(q, i, x, train=True)
-                        prompt_loss += loss
+                        prompt_loss = prompt_loss + loss
                     else:
                         p_list, _, x = prompt.forward(q, i, x, train=False)
                 
@@ -317,15 +353,26 @@ def make_pasampling_class(transformer_class):
                     p_list = None
 
                 if prompt is not None:
-                    x, attn_scores = blk(x, register_hook=(i == register_blk), prompt=p_list) # attn_scores is None
+                    register_hook = (i == register_blk)
+                    x, attn_scores = _run_block(blk, x, register_hook, p_list)  # attn_scores is None
                 else:
-                    x, attn_scores = blk(x, register_hook=(i == 11), prompt=p_list) # attn_scores is only for the last block
+                    register_hook = i in norm_layers
+                    x, attn_scores = _run_block(blk, x, register_hook, p_list)
+                    if register_hook and attn_scores is not None:
+                        attn_scores_list.append(attn_scores)
 
             x = self.norm(x)
 
             if prompt is not None:
                 prompt_loss /= len(prompt.e_layers)
-            
+            else:
+                if len(attn_scores_list) == 0:
+                    attn_scores = None
+                elif len(attn_scores_list) == 1:
+                    attn_scores = attn_scores_list[0]
+                else:
+                    attn_scores = torch.stack(attn_scores_list, dim=0).mean(dim=0)
+
             return x, prompt_loss, attn_scores
 
     return PaSamplingVisionTransformer

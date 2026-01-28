@@ -59,6 +59,9 @@ class PromptModel(nn.Module):
         self.feat.keep_rate = args.keep_rate
         self.feat.sampling = args.sampling
         self.feat.temperature = args.temperature
+        self.feat.attn_score_mode = getattr(args, 'attn_score_mode', 'single')
+        self.feat.attn_score_layers = getattr(args, 'attn_score_layers', [-1])
+
         # prompt sparse
         self.feat.prompt_prompt_sparse = args.prompt_prompt_sparse
         self.feat.head_prompt_sparse = args.head_prompt_sparse
