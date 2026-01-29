@@ -212,6 +212,10 @@ class VisionTransformer(nn.Module):
     @torch.jit.ignore()
     def load_pretrained(self, checkpoint_path, prefix=''):
         _load_weights(self, checkpoint_path, prefix)
+    
+    @torch.jit.ignore
+    def set_grad_checkpointing(self, enable=True):
+        self.grad_checkpointing = enable
         
 
 @torch.no_grad()
