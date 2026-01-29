@@ -247,6 +247,17 @@ def make_pasampling_class(transformer_class):
         - Initialize r, token size, and token sources.
         """
 
+        def _run_block(self, blk, x, register_hook, p_list):
+            if getattr(self, "grad_checkpointing", False) and not torch.jit.is_scripting():
+                if not x.requires_grad:
+                    x = x.detach().requires_grad_(True)
+                return torch.utils.checkpoint.checkpoint(
+                    lambda x: blk(x, register_hook=register_hook, prompt=p_list),
+                    x,
+                    use_reentrant=False,
+                )
+            return blk(x, register_hook=register_hook, prompt=p_list)
+
         def forward(self, x, register_blk=-1, prompt=None, q=None, train=False, feat=False, q_attn_scores=None) -> torch.Tensor:
             # Update PatchSampling with current keep_rate and temperature (for curriculum learning)
             # Create new instances to reflect updated values
@@ -329,17 +340,6 @@ def make_pasampling_class(transformer_class):
 
             attn_scores_list = []
 
-            def _run_block(blk, x, register_hook, p_list):
-                if getattr(self, "grad_checkpointing", False) and not torch.jit.is_scripting():
-                    if not x.requires_grad:
-                        x = x.detach().requires_grad_(True)
-                    return torch.utils.checkpoint.checkpoint(
-                        lambda x: blk(x, register_hook=register_hook, prompt=p_list),
-                        x,
-                        use_reentrant=False,
-                    )
-                return blk(x, register_hook=register_hook, prompt=p_list)
-
             for i, blk in enumerate(self.blocks):
 
                 if prompt is not None:
@@ -354,10 +354,10 @@ def make_pasampling_class(transformer_class):
 
                 if prompt is not None:
                     register_hook = (i == register_blk)
-                    x, attn_scores = _run_block(blk, x, register_hook, p_list)  # attn_scores is None
+                    x, attn_scores = self._run_block(blk, x, register_hook, p_list)  # attn_scores is None
                 else:
                     register_hook = i in norm_layers
-                    x, attn_scores = _run_block(blk, x, register_hook, p_list)
+                    x, attn_scores = self._run_block(blk, x, register_hook, p_list)
                     if register_hook and attn_scores is not None:
                         attn_scores_list.append(attn_scores)
 
