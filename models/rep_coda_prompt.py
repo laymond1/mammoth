@@ -44,12 +44,12 @@ class REPCodaPrompt(ContinualModel):
         parser.add_argument('--test_prompt_sparse', type=binary_to_boolean_type, default=True, help='enable token pruning during test forward pass for efficiency')
         # ALD (Adaptive Layer Droping)
         parser.add_argument('--use_ald', type=binary_to_boolean_type, default=True, help='Use Adaptive Layer Droping')
-        parser.add_argument('--theta_min', type=float, default=0.8, help='the threshold to drop the layer')
+        parser.add_argument('--theta_min', type=float, default=1.0, help='the threshold to drop the layer')
         # parser.add_argument('--gamma', type=float, default=0.05, help='scaling factor for layer dropping')
         
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
-        parser.add_argument('--use_amp', type=bool, default=True, help='Use automatic mixed precision')
+        parser.add_argument('--use_amp_opt', type=bool, default=True, help='Use automatic mixed precision')
         parser.add_argument('--use_scheduler', type=binary_to_boolean_type, default=True, help='Use scheduler')
 
         return parser
@@ -70,7 +70,7 @@ class REPCodaPrompt(ContinualModel):
                                prompt_param=[args.e_prompt_pool_size, args.e_prompt_length, args.ortho_mu])
 
         super().__init__(backbone, loss, args, transform, dataset=dataset)
-        self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp)
+        self.scaler = torch.amp.GradScaler(enabled=self.args.use_amp_opt)
     
     def begin_task(self, dataset):
         if self.current_task > 0:
@@ -101,14 +101,23 @@ class REPCodaPrompt(ContinualModel):
         else:
             device = self.device
 
-        # with torch.amp.autocast(device_type=device.type, enabled=self.args.use_amp):
-        if epoch < int(self.args.n_epochs * self.args.head_epoch_start_ratio):
-            logits, loss_prompt = self.net(inputs, train=True)
+        if self.args.use_amp_opt:
+            with torch.amp.autocast(device_type=device.type, enabled=True):
+                if epoch < int(self.args.n_epochs * self.args.head_epoch_start_ratio):
+                    logits, loss_prompt = self.net(inputs, train=True)
+                else:
+                    with torch.no_grad():
+                        feats = self.net(inputs, feat=True, train=False).detach()
+                    logits = self.net(feats, last=True)
+                    loss_prompt = None
         else:
-            with torch.no_grad():
-                feats = self.net(inputs, feat=True, train=False).detach()
-            logits = self.net(feats, last=True)
-            loss_prompt = None
+            if epoch < int(self.args.n_epochs * self.args.head_epoch_start_ratio):
+                logits, loss_prompt = self.net(inputs, train=True)
+            else:
+                with torch.no_grad():
+                    feats = self.net(inputs, feat=True, train=False).detach()
+                logits = self.net(feats, last=True)
+                loss_prompt = None
         # here is the trick to mask out classes of non-current tasks
         logits[:, :self.n_past_classes] = -float('inf')
 
@@ -116,10 +125,17 @@ class REPCodaPrompt(ContinualModel):
         if self.args.pull_constraint_coeff > 0.0 and loss_prompt is not None:
             loss = loss + self.args.pull_constraint_coeff * loss_prompt.mean()  # the mean is needed for data-parallel (concatenates instead of averaging)
 
-        self.opt.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
-        self.opt.step()
+        self.opt.zero_grad(set_to_none=True)
+        if self.args.use_amp_opt:
+            self.scaler.scale(loss).backward()
+            self.scaler.unscale_(self.opt)
+            torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+            self.scaler.step(self.opt)
+            self.scaler.update()
+        else:
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
+            self.opt.step()
 
         # self.scaler.scale(loss).backward()
         # torch.nn.utils.clip_grad_norm_(self.get_parameters(), self.args.clip_grad)
