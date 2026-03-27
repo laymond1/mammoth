@@ -38,8 +38,8 @@ class CPrompt(ContinualModel):
 
         # ETC
         parser.add_argument('--clip_grad', type=float, default=1.0, help='Clip gradient norm')
-        parser.add_argument('--use_amp_opt', type=binary_to_boolean_type, default=True, help='Use automatic mixed precision')
-        parser.add_argument('--use_grad_checkpoint', type=binary_to_boolean_type, default=True,
+        parser.add_argument('--use_amp_opt', type=binary_to_boolean_type, default=False, help='Use automatic mixed precision')
+        parser.add_argument('--use_grad_checkpoint', type=binary_to_boolean_type, default=False,
                             help='Use activation checkpointing per block in ViT')
         parser.add_argument('--use_scheduler', type=binary_to_boolean_type, default=True, help='Use scheduler')
 
