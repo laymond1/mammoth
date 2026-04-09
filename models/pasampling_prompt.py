@@ -45,7 +45,7 @@ class PaSamplingPrompt(ContinualModel):
         parser.add_argument('--temperature', type=float, default=1.0, help='temperature for the attention scaling')
         parser.add_argument('--attn_score_mode', type=str, default='single', choices=['single', 'multi'],
                             help='attention score aggregation: single uses one layer, multi averages multiple layers')
-        parser.add_argument('--attn_score_layers', type=int, default=[-1], nargs="+",
+        parser.add_argument('--attn_score_layers', type=parse_str_to_int, default=[-1],
                             help='layer indices to extract attention scores from (negative indices allowed)')
         # parser.add_argument('--drop_curriculum', type=binary_to_boolean_type, help='whether to drop the curriculum learning')
         # Prompt Sparsity
