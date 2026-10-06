@@ -46,7 +46,8 @@ def test_native_config_and_cli_precedence_without_initialization(monkeypatch, si
     from main import parse_args
     command = ['--model', 'ease', '--dataset', 'seq-cifar100-224', '--model_config', 'default',
                '--vit_size', size, '--adapter_size', str(bottleneck), '--n_epochs', '1',
-               '--batch_size', '64', '--stop_after', '1', '--device', 'cpu']
+               '--batch_size', '64', '--stop_after', '1', '--device', 'cpu',
+               '--ease_checkpoint', '/tmp/selected-base.npz']
     monkeypatch.setattr(sys, 'argv', ['main.py', *command])
     args = parse_args(cmd=command)
     assert args.backbone == 'ease-vit'
@@ -54,6 +55,7 @@ def test_native_config_and_cli_precedence_without_initialization(monkeypatch, si
     assert args.ease_pretrain_type == 'in21k_ft_in1k'
     assert args.dataset_config == 'ease'
     assert args.pretrained is True
+    assert args.ease_checkpoint == '/tmp/selected-base.npz'
     assert (args.n_epochs, args.batch_size, args.stop_after) == (1, 64, 1)
     assert args.lr_scheduler == 'cosine' and args.enable_other_metrics is False
 

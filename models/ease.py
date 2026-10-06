@@ -33,6 +33,9 @@ class Ease(ContinualModel):
         parser.add_argument('--ease_pretrain_type', choices=['in21k', 'in21k_ft_in1k'],
                             default='in21k_ft_in1k')
         parser.add_argument('--adapter_size', type=int, default=64)
+        # A None default has no inferable path type in the dynamic backbone
+        # parser; declare the optional local checkpoint explicitly.
+        parser.add_argument('--ease_checkpoint', type=str, default=None)
         parser.add_argument('--ease_alpha', type=float, default=0.1)
         parser.add_argument('--ease_recalc_sim', type=binary_to_boolean_type, default=True)
         parser.add_argument('--ease_use_reweight', type=binary_to_boolean_type, default=True)
