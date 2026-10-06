@@ -1,0 +1,14 @@
+{
+  "url": "https://wandb.ai/laymond1/cl-efficiency/runs/s12v4g1o",
+  "state": "finished",
+  "smoke_status": "completed",
+  "steps": 2,
+  "accuracy_evaluated": false,
+  "artifacts": [
+    {
+      "name": "ease-base-smoke-20261006T160323Z:v0",
+      "state": "COMMITTED",
+      "type": "cl-implementation-smoke"
+    }
+  ]
+}

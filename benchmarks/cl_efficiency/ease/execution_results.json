@@ -1,0 +1,526 @@
+{
+  "schema_version": 1,
+  "completed_on": "2026-10-07",
+  "branch": "codex/ease",
+  "dataset": "seq-cifar100-224",
+  "seed": 1993,
+  "physical_gpu": "1",
+  "gpu_model": "NVIDIA RTX 4090",
+  "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+  "checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+  "checkpoint_tag": "vit_base_patch16_224.augreg_in21k_ft_in1k",
+  "execution_source_sha256": {
+    "scripts/run_ease_reference.py": "dfd8a9e0b26d6f8f431195eadd926641f80e5fa5a4cd04a7c8d27d79438a839a",
+    "scripts/check_ease_runtime.py": "419749d73c3448b750a61952f3718941df10a56b79ff5a02241c3c425471263e",
+    "scripts/ease_reference_utils.py": "26f2f9831c527fd0f231d01d2af5810b4eefc096009f7430873223d2fa934909",
+    "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+    "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+    "models/ease.py": "174156c50346bb65aee6de85a0e40dc2cbb1f12880d2efd03c8dce49290f8f79",
+    "backbone/ease_vit.py": "7362ae4cbee61b0327fe6133fc315a5b7317c2153253cc27effe8103f3713cde",
+    "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+  },
+  "native_smoke": {
+    "local_run": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease/benchmarks/cl_efficiency/ease/runs/ease-base-smoke-20261006T160323Z",
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/s12v4g1o",
+    "status": "completed",
+    "steps": 2,
+    "accuracy_evaluated": false,
+    "frozen_backbone_gradients_absent": true,
+    "loss": [
+      2.299607038497925,
+      2.3099331855773926
+    ],
+    "metrics": {
+      "process_wall_s": 7.781222871009959,
+      "outer_training_stream_examples": 4,
+      "evaluation_examples": 0,
+      "outer_observe_steps": 2,
+      "tasks_completed": 0,
+      "cuda_peak_allocated_mib": 542.109375,
+      "cuda_peak_reserved_mib": 562.0,
+      "peak_process_tree_rss_mib": 1957.38671875,
+      "peak_gpu_device_memory_mib": 1051.0,
+      "peak_gpu_utilization_percent": 4.0,
+      "peak_gpu_power_w": 60.42,
+      "gpu_board_energy_j": 143.49899601886676,
+      "gpu_energy_coverage_s": 7.735997936979402,
+      "gpu_energy_coverage_fraction": 0.994187940021735,
+      "gpu_board_energy_wh": 0.03986083222746299,
+      "outer_training_examples_per_s": null,
+      "evaluation_examples_per_s": null,
+      "process_tree_cpu_s": 11.609663
+    }
+  },
+  "official_reference": {
+    "local_run": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease/benchmarks/cl_efficiency/ease/runs/ease-official-reference-20261006T161154Z",
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ldobe8bo",
+    "status": "completed",
+    "wandb_logging_status": "uploaded",
+    "commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+    "tasks": [
+      {
+        "task": 1,
+        "seen_classes": 10,
+        "seen_accuracy_pct": 99.6,
+        "old_accuracy_pct": null,
+        "new_accuracy_pct": 99.6,
+        "official_accuracy": {
+          "grouped": {
+            "total": 99.6,
+            "00-09": 99.6,
+            "old": 0,
+            "new": 99.6
+          },
+          "top1": 99.6,
+          "top5": 100.0
+        },
+        "prototype_shape": [
+          10,
+          768
+        ],
+        "observed_adapters": 1,
+        "train_epochs_wall_s": 268.4137357530999,
+        "prototype_completion_wall_s": 7.014377051993506,
+        "evaluation_wall_s": 1.4935226119996514
+      },
+      {
+        "task": 2,
+        "seen_classes": 20,
+        "seen_accuracy_pct": 97.2,
+        "old_accuracy_pct": 96.6,
+        "new_accuracy_pct": 97.8,
+        "official_accuracy": {
+          "grouped": {
+            "total": 97.2,
+            "00-09": 96.6,
+            "10-19": 97.8,
+            "old": 96.6,
+            "new": 97.8
+          },
+          "top1": 97.2,
+          "top5": 99.9
+        },
+        "prototype_shape": [
+          20,
+          1536
+        ],
+        "observed_adapters": 2,
+        "train_epochs_wall_s": 268.3072654629941,
+        "prototype_completion_wall_s": 14.007698094006628,
+        "evaluation_wall_s": 5.3266857209964655
+      }
+    ],
+    "metrics": {
+      "process_wall_s": 572.0958470519981,
+      "outer_training_stream_examples": 200000,
+      "evaluation_examples": 3000,
+      "outer_observe_steps": 4200,
+      "tasks_completed": 2,
+      "cuda_peak_allocated_mib": 4462.11572265625,
+      "cuda_peak_reserved_mib": 4748.0,
+      "peak_process_tree_rss_mib": 8363.171875,
+      "peak_gpu_device_memory_mib": 5237.0,
+      "peak_gpu_utilization_percent": 100.0,
+      "peak_gpu_power_w": 427.04,
+      "gpu_board_energy_j": 235990.50796955443,
+      "gpu_energy_coverage_s": 572.0565872180159,
+      "gpu_energy_coverage_fraction": 0.999931375425666,
+      "gpu_board_energy_wh": 65.55291888043179,
+      "outer_training_examples_per_s": 372.6330804027477,
+      "evaluation_examples_per_s": 439.8692611024831,
+      "process_tree_cpu_s": 704.358582
+    },
+    "phases": {
+      "after_task": {
+        "wall_s": 0.013189727993449196,
+        "calls": 1,
+        "gpu_board_energy_j": 4.093290545834581,
+        "gpu_energy_coverage_s": 0.013189727993449196
+      },
+      "data_loading": {
+        "wall_s": 0.5223304690152872,
+        "calls": 1,
+        "gpu_board_energy_j": 7.422307209306805,
+        "gpu_energy_coverage_s": 0.5223304690152872
+      },
+      "evaluation": {
+        "wall_s": 6.820208332996117,
+        "calls": 2,
+        "gpu_board_energy_j": 2799.7164138800076,
+        "gpu_energy_coverage_s": 6.820208332996117
+      },
+      "incremental_train": {
+        "wall_s": 558.0472560499911,
+        "calls": 2,
+        "gpu_board_energy_j": 232618.14602496798,
+        "gpu_energy_coverage_s": 558.0472560499911
+      },
+      "initialize": {
+        "wall_s": 0.9111742999812122,
+        "calls": 1,
+        "gpu_board_energy_j": 16.222985441185163,
+        "gpu_energy_coverage_s": 0.9111742999812122
+      },
+      "prototype_completion": {
+        "wall_s": 21.022075146000134,
+        "calls": 2,
+        "gpu_board_energy_j": 8583.63081850774,
+        "gpu_energy_coverage_s": 21.022075146000134
+      },
+      "train_epoch": {
+        "wall_s": 536.721001216094,
+        "calls": 40,
+        "gpu_board_energy_j": 223992.15575116008,
+        "gpu_energy_coverage_s": 536.721001216094
+      }
+    },
+    "model_snapshots": {
+      "task1_before_after_task": {
+        "parameters_total": 87003650,
+        "parameters_trainable": 1204994,
+        "parameters_in_optimizer": 1204994,
+        "parameter_storage_bytes": 348014600,
+        "registered_buffer_storage_bytes": 0,
+        "optimizer_state_storage_bytes": 4789252,
+        "replay_allocated_tensor_bytes": 0,
+        "replay_buffers": {
+          "buffers": 0
+        },
+        "auxiliary_tensor_bytes": 0
+      },
+      "task2_before_after_task": {
+        "parameters_total": 87026690,
+        "parameters_trainable": 1228034,
+        "parameters_in_optimizer": 1228034,
+        "parameter_storage_bytes": 348106760,
+        "registered_buffer_storage_bytes": 0,
+        "optimizer_state_storage_bytes": 4789252,
+        "replay_allocated_tensor_bytes": 0,
+        "replay_buffers": {
+          "buffers": 0
+        },
+        "auxiliary_tensor_bytes": 0
+      }
+    },
+    "unregistered_old_adapter_parameters": {
+      "task1": 0,
+      "task2": 1189632
+    },
+    "data_snapshots": {
+      "task1_train": {
+        "n_samples": 5000,
+        "image_shape": [
+          32,
+          32,
+          3
+        ],
+        "image_dtype": "uint8",
+        "class_counts": {
+          "0": 500,
+          "1": 500,
+          "2": 500,
+          "3": 500,
+          "4": 500,
+          "5": 500,
+          "6": 500,
+          "7": 500,
+          "8": 500,
+          "9": 500
+        },
+        "samples_ordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+        "samples_unordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+        "global_ids_ordered_sha256": "ffe8eed6aa9fc6cc6c76bea1dded57f4d26f4bc10b072707f45839087307e38c",
+        "first_global_ids": [
+          2,
+          4,
+          16,
+          30,
+          53,
+          55,
+          102,
+          113,
+          130,
+          145
+        ],
+        "transform_repr": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n)",
+        "transform_repr_sha256": "907b38ae778f5188230db57d3b5b0273c3c9bd6c359e7fb9669e6601d19a423b"
+      },
+      "task1_test": {
+        "n_samples": 1000,
+        "image_shape": [
+          32,
+          32,
+          3
+        ],
+        "image_dtype": "uint8",
+        "class_counts": {
+          "0": 100,
+          "1": 100,
+          "2": 100,
+          "3": 100,
+          "4": 100,
+          "5": 100,
+          "6": 100,
+          "7": 100,
+          "8": 100,
+          "9": 100
+        },
+        "samples_ordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+        "samples_unordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+        "global_ids_ordered_sha256": "13426959977bbd025df58f740b4408f523b0f41e9256342512ab92294ddf7f28",
+        "first_global_ids": [
+          9,
+          27,
+          28,
+          50,
+          51,
+          52,
+          54,
+          64,
+          83,
+          113
+        ],
+        "transform_repr": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n)",
+        "transform_repr_sha256": "c6a9a6a35901cbf946b69ee85f1d6e4c4155acd3b674f71183de40a06799da01"
+      },
+      "task2_train": {
+        "n_samples": 5000,
+        "image_shape": [
+          32,
+          32,
+          3
+        ],
+        "image_dtype": "uint8",
+        "class_counts": {
+          "10": 500,
+          "11": 500,
+          "12": 500,
+          "13": 500,
+          "14": 500,
+          "15": 500,
+          "16": 500,
+          "17": 500,
+          "18": 500,
+          "19": 500
+        },
+        "samples_ordered_sha256": "11012b63b45baf0b5e2394d7ad8384a55a3f434fb390ea8a5e6d799f53a60efd",
+        "samples_unordered_sha256": "11012b63b45baf0b5e2394d7ad8384a55a3f434fb390ea8a5e6d799f53a60efd",
+        "global_ids_ordered_sha256": "4dff2535c4aa14488838d2218aa60983b4f92771768ac620ebe254af74dbf941",
+        "first_global_ids": [
+          0,
+          3,
+          13,
+          31,
+          37,
+          46,
+          51,
+          72,
+          75,
+          89
+        ],
+        "transform_repr": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n)",
+        "transform_repr_sha256": "907b38ae778f5188230db57d3b5b0273c3c9bd6c359e7fb9669e6601d19a423b"
+      },
+      "task2_test": {
+        "n_samples": 2000,
+        "image_shape": [
+          32,
+          32,
+          3
+        ],
+        "image_dtype": "uint8",
+        "class_counts": {
+          "0": 100,
+          "1": 100,
+          "2": 100,
+          "3": 100,
+          "4": 100,
+          "5": 100,
+          "6": 100,
+          "7": 100,
+          "8": 100,
+          "9": 100,
+          "10": 100,
+          "11": 100,
+          "12": 100,
+          "13": 100,
+          "14": 100,
+          "15": 100,
+          "16": 100,
+          "17": 100,
+          "18": 100,
+          "19": 100
+        },
+        "samples_ordered_sha256": "950aa45d74ee15d73b38c09eada71ef822863102d031e7e35d42ef79a60f2fe8",
+        "samples_unordered_sha256": "950aa45d74ee15d73b38c09eada71ef822863102d031e7e35d42ef79a60f2fe8",
+        "global_ids_ordered_sha256": "3ca12d294dcaccc22667e84bfa1d06a2bad778601f9bdf09f1c9b0edf604a9c5",
+        "first_global_ids": [
+          6,
+          7,
+          9,
+          25,
+          27,
+          28,
+          37,
+          49,
+          50,
+          51
+        ],
+        "transform_repr": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n)",
+        "transform_repr_sha256": "c6a9a6a35901cbf946b69ee85f1d6e4c4155acd3b674f71183de40a06799da01"
+      }
+    },
+    "versions": {
+      "torch": "2.13.0+cu126",
+      "torchvision": "0.28.0+cu126",
+      "timm": "0.9.8",
+      "numpy": "2.5.2",
+      "pyarrow": "25.0.1",
+      "easydict": "1.13",
+      "wandb": "0.29.0"
+    },
+    "precision": {
+      "matmul_precision": "highest",
+      "tf32_allowed": false,
+      "autocast": false,
+      "parameter_dtype": "float32"
+    },
+    "parent_completion": {
+      "exit_code": 0,
+      "status": "completed",
+      "timeout": false,
+      "wandb_logging_status": "uploaded",
+      "wall_s": 579.5458248170034
+    },
+    "notifications": [
+      {
+        "message": "EASE official reference started: Base/adapter64; first 2 tasks; 20 epochs/task; GPU 1",
+        "status": "sent"
+      },
+      {
+        "message": "EASE official reference completed; logging=uploaded; W&B https://wandb.ai/laymond1/cl-efficiency/runs/ldobe8bo; local results preserved",
+        "status": "sent"
+      },
+      {
+        "task": 1,
+        "status": "sent"
+      },
+      {
+        "task": 2,
+        "status": "sent"
+      }
+    ]
+  },
+  "native_vs_reference_task1_data_match": {
+    "task1_train": {
+      "n_samples": true,
+      "class_counts": true,
+      "samples_ordered_sha256": true,
+      "samples_unordered_sha256": true,
+      "global_ids_ordered_sha256": true
+    },
+    "task1_test": {
+      "n_samples": true,
+      "class_counts": true,
+      "samples_ordered_sha256": true,
+      "samples_unordered_sha256": true,
+      "global_ids_ordered_sha256": true
+    }
+  },
+  "measurement_scope": {
+    "whole_run": "Recorder start before worker imports to local result save; excludes final W&B artifact upload/finish.",
+    "phase_nesting": "incremental_train includes train_epoch and prototype_completion; do not add the inclusive and nested times/energy.",
+    "gpu_energy": "Physical GPU1 board energy sampled from NVML/nvidia-smi; CPU/RAM and whole-machine energy are not measured.",
+    "memory": "CUDA allocated/reserved peaks are PyTorch peaks; GPU device memory and summed process-tree RSS are different sensors. RSS can count shared pages more than once.",
+    "prototype_work": "15,000 adapter-image pairs across both tasks, excluded from train/evaluation sample counters.",
+    "parameter_storage": "Official parameter snapshots omit old unregistered adapters; record these separately. Native uses a registered ModuleList.",
+    "flops_measured": false,
+    "common_one_epoch_efficiency_protocol": false
+  },
+  "acceptance": {
+    "port_two_task_accuracy_evaluated": false,
+    "accuracy_margin_pp": null,
+    "seed_variability_measured": false,
+    "paper_reproduction": false,
+    "native_two_task_training_authorized": false,
+    "efficiency_pilot_authorized": false,
+    "tiny_small_training_executed": false,
+    "merged": false
+  },
+  "startup_attempts": [
+    {
+      "name": "ease-base-smoke-20261006T155929Z",
+      "stage": "native_smoke",
+      "status": "failed_before_optimizer_step",
+      "cause": "Optional checkpoint parser inferred NoneType; corrected to explicit str.",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/pi3zkro4"
+    },
+    {
+      "name": "ease-official-reference-20261006T160721Z",
+      "stage": "official_reference",
+      "status": "failed_before_training",
+      "cause": "Official namespace packages collided with native regular packages; isolated worker sys.path.",
+      "wandb_url": null
+    }
+  ],
+  "wandb_server_readback": {
+    "url": "https://wandb.ai/laymond1/cl-efficiency/runs/ldobe8bo",
+    "state": "finished",
+    "summary": {
+      "reference_status": "completed",
+      "port_acceptance_evaluated": false,
+      "paper_reproduction": false,
+      "reference/seen_accuracy_pct": 97.2,
+      "reference/old_accuracy_pct": 96.6,
+      "reference/new_accuracy_pct": 97.8,
+      "reference_resources/tasks_completed": 2
+    },
+    "artifacts": [
+      {
+        "name": "ease-official-reference-20261006T161154Z:v0",
+        "state": "COMMITTED",
+        "type": "cl-reference-calibration"
+      }
+    ],
+    "artifact_metrics_match_local": {
+      "tasks_results": true,
+      "epoch_results": true,
+      "metrics": true,
+      "data_snapshots": true,
+      "runtime_patches": true
+    },
+    "artifact_metadata_note": "Artifact is saved before its upload completion status is added locally; numerical results and provenance match."
+  },
+  "source_hash_scope": "Published source tree after execution; smoke logging/failure handling was hardened after its successful run. Reference execution code matches these hashes.",
+  "audits": {
+    "saved_prediction_counts_verified": {
+      "task1": {
+        "correct": 996,
+        "total": 1000
+      },
+      "task2": {
+        "correct": 1944,
+        "total": 2000,
+        "old_correct": 966,
+        "new_correct": 978
+      }
+    },
+    "old_adapter_preserved": {
+      "tensors_compared": 48,
+      "elements": 1189632,
+      "all_keys_shapes_dtypes_and_values_equal": true,
+      "verification": "CPU-only torch.load(weights_only=True), torch.equal; no new model inference."
+    },
+    "reference_task2_model_including_unregistered_old_adapter": {
+      "parameters": 88216322,
+      "parameter_storage_bytes": 352865288
+    },
+    "original_cifar_task1_train_test_identical_raw_images": {
+      "pairs": 4,
+      "source": "Existing shared CIFAR100 train/test files; unchanged by this integration.",
+      "excluded_duplicate_reference_check_correct": 992,
+      "excluded_duplicate_reference_check_samples": 996,
+      "primary_metrics_preserved": true
+    }
+  }
+}

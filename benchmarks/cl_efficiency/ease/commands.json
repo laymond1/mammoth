@@ -58,7 +58,9 @@
         "--wandb_project",
         "cl-efficiency",
         "--results_path",
-        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease/benchmarks/cl_efficiency/ease/runs/base_fixed64/validation/mammoth"
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease/benchmarks/cl_efficiency/ease/runs/base_fixed64/validation/mammoth",
+        "--ease_checkpoint",
+        "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz"
       ],
       "executed": false,
       "purpose": "Native configuration reference only; do not execute yet. W&B/local Mammoth logs configured. Efficiency telemetry, Slack and artifact upload require the prepared benchmark_cl.py runner.",
@@ -121,7 +123,9 @@
         "--wandb_project",
         "cl-efficiency",
         "--results_path",
-        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease/benchmarks/cl_efficiency/ease/runs/base_fixed64/efficiency/mammoth"
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease/benchmarks/cl_efficiency/ease/runs/base_fixed64/efficiency/mammoth",
+        "--ease_checkpoint",
+        "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz"
       ],
       "executed": false,
       "purpose": "Native configuration reference only; do not execute yet. W&B/local Mammoth logs configured. Efficiency telemetry, Slack and artifact upload require the prepared benchmark_cl.py runner.",

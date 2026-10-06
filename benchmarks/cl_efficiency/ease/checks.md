@@ -1,4 +1,27 @@
-# 2026-10-07 EASE 준비 검증 기록
+# EASE 검증 기록
+
+최신 실제 실행과 검증은 [실행 보고서](execution_report.md)를 참고합니다. 아래 준비 단계 기록은 실행 승인 전의 이력입니다.
+
+## 2026-10-07 실제 실행 승인 후 검증
+
+최종 focused tests는 PyArrow 선행 import나 OpenCLIP mock 없이 **197 passed in 5.58s**입니다. CUDA를 비활성화한 테스트이며 여기서 실제 학습을 하는 기존 full suite를 실행하지는 않았습니다.
+
+```bash
+CUDA_VISIBLE_DEVICES='' uv run --no-sync python -m pytest tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_prepare_ease.py tests/test_ease_reference_utils.py tests/test_ease_execution.py tests/test_cl_efficiency.py tests/test_cl_runtime.py -q --tb=short
+```
+
+실제 GPU1 실행 명령은 아래 두 개이며 모두 exit0입니다. 첫 명령은 batch2의 두 optimizer step만 수행하고 정확도를 평가하지 않습니다. 두 번째는 공식 source의 matched 첫 2개 태스크를 실행합니다. 포팅 코드의 full-task 학습 명령과 공통 효율성 runner에는 `--execute`를 추가하지 않았습니다.
+
+```bash
+uv run --no-sync python scripts/check_ease_runtime.py --execute
+uv run --no-sync python scripts/run_ease_reference.py --execute
+```
+
+설정/manifest 갱신 후 `uv run --no-sync python -m pytest tests/test_prepare_ease.py tests/test_cl_efficiency.py -q --tb=short`도 **31 passed in 1.16s**였습니다. 이는 위 197개 중 해당 subset을 다시 확인한 값이며 총 228개로 합산하지 않습니다. `uv run --no-sync python scripts/prepare_ease.py`로 다섯 variant의 실행 없는 계획을 재생성했습니다.
+
+W&B Public API의 finished/COMMITTED 상태와 원격 artifact metrics를 확인했고, 저장된 예측의 정확도와 task별 epoch/update/sample 수를 다시 계산했습니다. 공유 CIFAR 파일 hash·native/reference Task1 fingerprint가 같고, CPU-only `torch.load(map_location='cpu', weights_only=True)` 및 `torch.equal`로 과거 adapter의 48개 저장 텐서가 보존됨을 확인했습니다. 이 추가 확인에서는 학습이나 model image inference를 수행하지 않았습니다. 결과·관측 범위·초기 실패 시도는 [실행 보고서](execution_report.md)와 [JSON 결과](execution_results.json)에 기록합니다.
+
+## 2026-10-07 실행 승인 전 준비 검증
 
 모든 명령은 EASE worktree에서 실행했습니다. **학습, ViT image forward/backward, optimizer step, dataset/weight 다운로드와 새 W&B/Slack 전송은 수행하지 않았습니다.** 기존 framework import의 cached CLIP 생성/로딩 side effect는 최초 조사 중 발생했으며, 최종 검사는 factory mock으로 차단했습니다.
 

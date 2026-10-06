@@ -1,6 +1,6 @@
 # ViT 크기와 adapter 비교 준비
 
-세 크기를 AugReg **IN21K → IN1K fine-tuned** 계열로 맞춥니다. 같은 weight family라도 크기별 pretraining recipe·학습 계산량까지 동일하다는 뜻은 아닙니다. 파일/hash와 weight metadata를 실행 결과에 기록해야 하며, 현재는 registry 확인만 했습니다.
+세 크기를 AugReg **IN21K → IN1K fine-tuned** 계열로 맞춥니다. 같은 weight family라도 크기별 pretraining recipe·학습 계산량까지 동일하다는 뜻은 아닙니다. 파일/hash와 weight metadata를 실행 결과에 기록해야 하며, Base의 파일/hash는 실제 smoke·공식 reference 실행에서 확인했습니다. Tiny·Small은 registry 확인만 했으며 파일/hash와 실제 forward/backward는 아직 미검증입니다.
 
 | 설정 | timm tag | feature D | adapter r | adapter parameters/task 예상 |
 |---|---|---:|---:|---:|
@@ -18,4 +18,4 @@
 
 모델과 parser는 크기별 D·attention head 수를 timm에서 얻습니다. Adapter width, proxy head, prototype concatenation과 checkpoint 검증도 D를 따라가며, Base의 768을 하드코딩하지 않았습니다. 학습 없는 metadata tests에서 세 크기의 선택과 상태 구성을 검증했습니다. 실제 Tiny·Small forward/backward와 학습 정확도는 아직 미검증입니다.
 
-이제 추가 사용자 결정은 필요하지 않습니다. 다음 실제 실행 전에 checkpoint hash와 공식 코드 대비 허용 accuracy 차이를 확정하고, 원칙대로 Base부터 검증합니다. 이 항목은 [실행 계획](validation_plan.json)의 선행 조건으로 남겼습니다.
+Tiny·Small의 family와 adapter 설정은 확정됐습니다. Base 공식 기준선 뒤 포팅 코드 대비 허용 accuracy 차이를 확정하고, 원칙대로 Base의 두 태스크 acceptance 평가부터 진행합니다. 이 항목은 [실행 계획](validation_plan.json)의 선행 조건으로 남겼습니다.

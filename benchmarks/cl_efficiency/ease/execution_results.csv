@@ -1,0 +1,3 @@
+task,seen_classes,seen_accuracy_pct,old_accuracy_pct,new_accuracy_pct,observed_adapters,prototype_shape,train_epochs_wall_s,prototype_completion_wall_s,evaluation_wall_s
+1,10,99.6,,99.6,1,"[10, 768]",268.4137357530999,7.014377051993506,1.4935226119996514
+2,20,97.2,96.6,97.8,2,"[20, 1536]",268.3072654629941,14.007698094006628,5.3266857209964655

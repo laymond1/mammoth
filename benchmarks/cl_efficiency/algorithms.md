@@ -1,6 +1,6 @@
 # 현재 CL 알고리즘과 특성
 
-2026년 10월 1일 확인한 70개 모델에 10월 7일 EASE를 추가하여, 현재 `models/*.py`의 NAME과 COMPATIBILITY 기준으로 71개 엔트리입니다. 전체 모델의 import 성공이나 실험 재현을 뜻하지 않습니다. 정적 추론 3개와 joint 기준선 2개를 제외하면 학습 방법 및 변형 66개입니다. `models/lora_prototype_utils/`는 `second_order`의 내부 구성요소이며 독립 모델 엔트리가 아닙니다. EASE는 학습 없는 연결·구조 검증 단계이며, 실제 성능 검증은 보류했습니다.
+2026년 10월 1일 확인한 70개 모델에 10월 7일 EASE를 추가하여, 현재 `models/*.py`의 NAME과 COMPATIBILITY 기준으로 71개 엔트리입니다. 전체 모델의 import 성공이나 실험 재현을 뜻하지 않습니다. 정적 추론 3개와 joint 기준선 2개를 제외하면 학습 방법 및 변형 66개입니다. `models/lora_prototype_utils/`는 `second_order`의 내부 구성요소이며 독립 모델 엔트리가 아닙니다. EASE는 실제 두 미니배치 smoke를 통과하고 동일 조건 공식 기준선을 측정했습니다. 포팅 코드의 두 태스크 정확도 검증은 아직 남아 있습니다. [실행 보고서](ease/execution_report.md)를 참고합니다.
 
 표의 장단점과 효율성 영향은 현재 코드 구조에 근거한 분석입니다. 아직 측정한 정확도·시간·메모리·에너지 수치는 없습니다. 기본 실행 조건, 필요한 외부 데이터, 상세 args는 `manifest.json`에 기록했습니다.
 
@@ -25,7 +25,7 @@
 | [derpp-lider](../../models/derpp_lider.py) | 리플레이 | DER logits distillation과 replay label CE; LiDER: replay buffer에서 Lipschitz regularization | 안정적이고 강력한 비교 기준선; 작은 buffer의 과적합을 제어 | 추가 replay forward와 두 손실 가중치; 중간 feature 및 power iteration 비용; 가중치가 0이면 효과 없음 |
 | [derpp-star](../../models/derpp_star.py) | 리플레이 | DER logits distillation과 replay label CE; STAR: 가중치 perturbation을 이용한 안정성 정규화 | 안정적이고 강력한 비교 기준선; 과거 지식의 안정성을 보강 | 추가 replay forward와 두 손실 가중치; 추가 perturbation/gradient 연산; STARPrompt와 다른 방법 |
 | [dualprompt](../../models/dualprompt.py) | Prompt | 공유 G-prompt와 태스크 특화 E-prompt | 공유/특화 지식 분리 | prompt 선택 및 frozen feature 추출 비용 |
-| [ease](../../models/ease.py) | 확장형 Adapter | frozen ViT에 태스크별 adapter를 추가하고 raw prototype과 semantic 보완으로 분류 | 과거 원본 이미지 replay 없이 완료한 adapter를 보존 | adapter·prototype 저장량 증가, 태스크 말과 추론에서 adapter별 transformer 반복. 학습/성능 검증 보류 |
+| [ease](../../models/ease.py) | 확장형 Adapter | frozen ViT에 태스크별 adapter를 추가하고 raw prototype과 semantic 보완으로 분류 | 과거 원본 이미지 replay 없이 완료한 adapter를 보존 | adapter·prototype 저장량 증가, 태스크 말과 추론에서 adapter별 transformer 반복. 포팅 코드의 두 태스크 정확도 미검증 |
 | [er](../../models/er.py) | 리플레이 | 과거 원본 샘플을 buffer에서 재학습 | 강력하고 이해하기 쉬운 기준선 | 원본 데이터 저장과 추가 배치 연산 |
 | [er-ace](../../models/er_ace.py) | 리플레이 | 현재 배치의 unseen/old class 간섭을 비대칭 CE로 제어 | 클래스 간섭을 줄이는 간단한 확장 | buffer가 필요하고 첫 태스크에는 효과가 충분히 드러나지 않음 |
 | [er-ace-aer-abs](../../models/er_ace_aer_abs.py) | 노이즈 CL | alternate replay와 asymmetrical buffer sampling | 라벨 노이즈의 악영향을 완화 | buffer fitting 비용과 태스크별 스케줄 영향 |
@@ -101,7 +101,7 @@
 | `derpp-lider` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `derpp-star` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `dualprompt` | class-il, task-il | pretrained_224 | seq-cifar100-224 | 첫 태스크 pilot |
-| `ease` | class-il, task-il | pretrained_224 | seq-cifar100-224 | 학습/성능 검증 보류; Base IN21K→IN1K adapter64 |
+| `ease` | class-il, task-il | pretrained_224 | seq-cifar100-224 | 포팅 코드의 두 태스크 정확도 미검증; Base IN21K→IN1K adapter64 |
 | `er` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `er-ace` | class-il, task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `er-ace-aer-abs` | class-il, task-il | noisy_clean_224 | seq-cifar100-224 | Shared clean-label pilot; native wrapper supplies true_labels=labels. No noisy-label robustness claim. |

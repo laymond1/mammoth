@@ -1,17 +1,21 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "prepared_on": "2026-10-07",
   "implementation_branch": "codex/ease",
-  "experiment_executed": false,
-  "training_executed": false,
-  "image_inference_executed": false,
+  "experiment_executed": true,
+  "training_executed": true,
+  "image_inference_executed": true,
   "reference": {
     "repository": "https://github.com/sun-hailong/CVPR24-Ease",
     "commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
     "config": "exps/ease_cifar.json",
     "checkpoint_policy": "Override any implicit reference alias with the exact same resolved pretrained file/hash used by native EASE. Do not accept an IN21K-only checkpoint as the selected IN21K->IN1K reference.",
-    "checkpoint_file": null,
-    "checkpoint_sha256": null
+    "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+    "checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+    "training_authorized": true,
+    "runtime_status": "completed",
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ldobe8bo",
+    "result_summary": "execution_results.json"
   },
   "selected_pretrain_family": "augreg_in21k_ft_in1k",
   "variants": [
@@ -110,8 +114,8 @@
     ],
     "repeat_policy": "Start with matched seed 1993; expand to 3 seeds when differences or uncertainty justify it.",
     "accuracy_margin_pp": null,
-    "margin_policy": "Measure the official reference variability and freeze the acceptable margin before evaluating the port for acceptance. Below-threshold performance blocks merging; high training loss alone is not a sufficient diagnostic.",
-    "runtime_status": "not_executed"
+    "margin_policy": "Review the matched official reference before fixing a margin. A single reference seed does not measure seed variability; additional seeds are a separate decision. Fix the margin before native acceptance evaluation. Below-threshold accuracy blocks merging.",
+    "runtime_status": "native_smoke_passed_two_task_accuracy_not_executed"
   },
   "efficiency": {
     "dataset": "seq-cifar100-224",
@@ -132,11 +136,23 @@
     "training_authorized": false,
     "accuracy_is_paper_reproduction": false
   },
-  "before_any_training": [
-    "Approve training separately.",
-    "Resolve and record the identical Base checkpoint file/hash for native and official implementations.",
-    "Pin reference environment versions and the exact class/sample/transform mapping.",
-    "Calibrate and freeze the acceptance margin before examining candidate accuracy.",
-    "Validate image forward/backward paths; current checks are metadata, mocks and synthetic feature arithmetic only."
+  "efficiency_experiment_executed": false,
+  "native_smoke": {
+    "training_authorized": true,
+    "runtime_status": "completed",
+    "steps": 2,
+    "accuracy_evaluated": false,
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/s12v4g1o"
+  },
+  "before_port_acceptance": [
+    "Decide and freeze the accuracy margin; decide whether additional reference seeds are needed.",
+    "Authorize the native first-two-task acceptance run as a separate stage.",
+    "Use the pinned Base checkpoint and the matched class/sample/transform/loader protocol."
+  ],
+  "remaining_steps": [
+    "Native two-task accuracy acceptance",
+    "One-task/one-epoch efficiency pilot with separate FLOPs pass",
+    "Tiny/Small and ratio-aligned adapter experiments",
+    "Merge after native acceptance"
   ]
 }

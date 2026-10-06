@@ -1,0 +1,28 @@
+{
+  "url": "https://wandb.ai/laymond1/cl-efficiency/runs/ldobe8bo",
+  "state": "finished",
+  "summary": {
+    "reference_status": "completed",
+    "port_acceptance_evaluated": false,
+    "paper_reproduction": false,
+    "reference/seen_accuracy_pct": 97.2,
+    "reference/old_accuracy_pct": 96.6,
+    "reference/new_accuracy_pct": 97.8,
+    "reference_resources/tasks_completed": 2
+  },
+  "artifacts": [
+    {
+      "name": "ease-official-reference-20261006T161154Z:v0",
+      "state": "COMMITTED",
+      "type": "cl-reference-calibration"
+    }
+  ],
+  "artifact_metrics_match_local": {
+    "tasks_results": true,
+    "epoch_results": true,
+    "metrics": true,
+    "data_snapshots": true,
+    "runtime_patches": true
+  },
+  "artifact_metadata_note": "Artifact is saved before its upload completion status is added locally; numerical results and provenance match."
+}
