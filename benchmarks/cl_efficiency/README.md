@@ -2,6 +2,8 @@
 
 EASE Base64·seed1993의 첫 2개 태스크 구현 검증이 통과했습니다. Native 정확도는 Task 1 99.40%, Task 2 전체 97.30%·과거 96.60%·신규 98.00%이며, 네 정확도 지표와 일곱 구조 검사가 모두 통과했습니다. [Native 검증 보고서](ease/native_validation_report.md)와 [JSON 결과](ease/native_validation_results.json)에 결과를 기록합니다. 알고리즘별 특징·장단점, 추가 구현 후보와 첫 태스크 효율성 비교 도구도 준비했습니다. 전체 알고리즘의 공통 효율성 비교는 아직 실행하지 않았으며, 기본 실행은 준비 파일 생성만 수행합니다.
 
+EASE Base64의 공통 조건 첫 태스크 효율성 pilot도 **측정 3회와 별도 부분 FLOPs 진단 1회**를 완료했습니다. 세 측정의 정확도는 모두 96.50%이며 전체 관측 시간 중앙값 29.7629초, CUDA peak allocated 5760.5054 MiB, GPU 보드 에너지 중앙값 2.4432 Wh입니다. [효율성 보고서](ease/efficiency_pilot_report.md), [JSON 결과](ease/efficiency_pilot_results.json), [측정 CSV](ease/efficiency_pilot_results.csv)에 연산 범위와 측정 한계를 함께 기록합니다. W&B 저장·Slack 알림·독립 감사가 통과했고 실행 source `49897a3`을 로컬 공통 기반에 병합했습니다. Tiny·Small과 다른 알고리즘의 공통 효율성 실험, 원격 push는 수행하지 않았습니다.
+
 ## 검토 자료
 
 - [현재 71개 모델의 특징과 장단점](algorithms.md)
@@ -10,6 +12,7 @@ EASE Base64·seed1993의 첫 2개 태스크 구현 검증이 통과했습니다.
 - [공통 환경·worktree 사용법과 10월 6일 연결 검증](foundation.md)
 - [EASE 구현 범위·실행 결과·다음 단계](ease/README.md)
 - [EASE Base64 native 검증 결과](ease/native_validation_report.md), [공식 기준선·smoke 측정 이력](ease/execution_report.md)
+- [EASE 첫 태스크 효율성 pilot 결과](ease/efficiency_pilot_report.md), [측정 3회 JSON/부분 FLOPs](ease/efficiency_pilot_results.json)
 - [ViT Base·Small·Tiny 및 adapter 비교 설정](ease/tiny_small_review.md)
 - [표 형태의 전체 목록](inventory.csv)
 - [모델별 데이터셋과 인자 및 외부 요구사항](manifest.json)
@@ -19,9 +22,9 @@ EASE Base64·seed1993의 첫 2개 태스크 구현 검증이 통과했습니다.
 
 ## 현재 준비 상태 (10월 7일)
 
-독립 worktree `.worktrees/ease`, 브랜치 `codex/ease`에 EASE의 기본 replay-free 경로를 구현했습니다. 첫 2개 태스크의 구현 검증과 첫 1개 태스크의 효율성 측정 설정을 분리했으며, 세 크기 모두 **AugReg IN21K → IN1K fine-tuned**, 공통 adapter 64 및 Tiny16·Small32·Base64의 비율 정렬 비교를 준비했습니다. Base64 native 검증은 동일 조건 공식 기준선 대비 사용자 판정 기준을 통과했습니다. W&B run 종료와 artifact COMMITTED 상태도 서버에서 확인했습니다. Tiny·Small 학습, 공통 효율성 pilot, FLOPs 측정, 병합과 push는 아직 수행하지 않았습니다.
+독립 worktree `.worktrees/ease`, 브랜치 `codex/ease`에 EASE의 기본 replay-free 경로를 구현했습니다. 첫 2개 태스크의 구현 검증과 첫 1개 태스크의 효율성 측정을 분리했으며, 세 크기 모두 **AugReg IN21K → IN1K fine-tuned**, 공통 adapter 64 및 Tiny16·Small32·Base64의 비율 정렬 비교를 준비했습니다. Base64 native 검증은 동일 조건 공식 기준선 대비 사용자 판정 기준을 통과했습니다. 이후 승인한 Base64 효율성 측정 3회·부분 FLOPs 진단 1회도 통과했고 W&B run 종료와 artifact COMMITTED 상태를 서버에서 확인했습니다. 실행 source `49897a3`은 `codex/cl-foundation`에 fast-forward 병합했습니다. Tiny·Small 학습, 다른 알고리즘의 공통 효율성 실험과 원격 push는 수행하지 않았습니다.
 
-현재 manifest는 71개, 실행 준비 66개·보류 5개입니다. 준비 파일은 측정 결과가 아닙니다. EASE Base64의 구현 검증 조건은 충족했고, 다음 결정은 병합 범위와 첫 태스크 효율성 pilot의 실행 범위입니다. 자세한 결과는 [Native 검증 보고서](ease/native_validation_report.md), 검증 이력과 남은 단계는 [EASE 문서](ease/README.md)를 참고합니다. 아래 10월 1일·6일 기록은 당시의 상태입니다.
+현재 manifest는 71개, 실행 대상으로 준비한 엔트리 66개·보류 5개입니다. 이 수는 실행 가능한 계획의 수이며 완료한 실험의 수가 아닙니다. 측정한 공통 효율성 설정은 EASE Base64 하나이며, 다섯 EASE variant 중 나머지 네 Tiny·Small 설정은 미실행입니다. 추가 알고리즘 또는 크기 비교의 실행 범위를 후속 단계에서 정합니다. 자세한 결과는 [효율성 보고서](ease/efficiency_pilot_report.md)와 [Native 검증 보고서](ease/native_validation_report.md), 검증 이력과 남은 단계는 [EASE 문서](ease/README.md)를 참고합니다. 아래 10월 1일·6일 기록은 당시의 상태입니다.
 
 ## 공통 기반 준비 당시 상태 (10월 6일)
 
@@ -56,7 +59,7 @@ native `MammothDatasetWrapper`가 만든 샘플 index/label의 SHA256을 train/t
 
 모든 알고리즘의 내부 학습을 1 epoch로 바꾸지는 않습니다. GDumb의 buffer fitting, STARPrompt의 첫 단계와 생성 replay, `second_order`의 pre-tuning/Fisher/alignment, SPR의 expert 학습은 고유 알고리즘 비용으로 그대로 포함합니다. **1개 태스크가 짧은 실행을 보장하지 않습니다.** 기본 timeout은 pass당 2시간이고, 초과/실패/누락을 결과에 표시합니다. 논문 재현용 최적 hyperparameter나 공정한 최종 성능 순위로 해석할 조건은 아닙니다.
 
-**70개 중 65개를 첫 태스크 실행 대상으로 준비하고 5개는 보류**합니다. Joint와 Joint-GCL은 다른 protocol이 필요합니다. LwS는 편향 데이터 필드가 필요하고, PuriDivER는 constructor에서 seq-cifar100-224를 허용하지 않습니다. CNLL은 hard augmentation이 32 pixel crop으로 고정되어 공통 224 pixel 입력과의 혼합 학습 경로를 이식해야 합니다. 비교 조건을 맞추기 위해 이번 준비 과정에서 알고리즘을 수정하지는 않았습니다.
+**71개 중 66개를 첫 태스크 실행 대상으로 준비하고 5개는 보류**합니다. Joint와 Joint-GCL은 다른 protocol이 필요합니다. LwS는 편향 데이터 필드가 필요하고, PuriDivER는 constructor에서 seq-cifar100-224를 허용하지 않습니다. CNLL은 hard augmentation이 32 pixel crop으로 고정되어 공통 224 pixel 입력과의 혼합 학습 경로를 이식해야 합니다. 보류한 방법의 알고리즘이나 protocol을 이번 비교에 맞추어 수정하지는 않았습니다.
 
 ZSCL은 학습용 기준 데이터는 동일하게 사용하지만 distillation reference로 `data/conceptual_captions`를 추가로 필요로 합니다. CLIP·LLaVA·IDEFICS는 학습 없이 첫 태스크의 추론 비용과 정확도를 측정합니다. TwF pilot은 별도 논문 pretrained teacher checkpoint를 지정하지 않습니다. AttriCLIP에는 원논문 성능 미재현 경고가 있으므로 추천/순위에 그 한계를 표시합니다.
 
@@ -97,7 +100,7 @@ uv run --no-sync python scripts/benchmark_cl.py --models l2p,dualprompt,coda-pro
 
 Slack은 **Incoming Webhook이 연결된 채널**로 알립니다. `SLACK_WEBHOOK_URL` 환경변수에 실제 URL을 설정해야 합니다. URL은 결과나 W&B config에 저장하지 않습니다. 임의 채널을 선택하는 Slack connector 연결은 이 도구에서 수행하지 않습니다. [Slack Incoming Webhooks 문서](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/)
 
-실험이 시작되면 suite 시작, 모델별 시작/완료/실패, 진행 중 10분 간격, suite 완료/중단을 전송합니다. 알림의 성공/실패는 `notifications.json`에 남고, 측정 실패와 알림 실패를 구분합니다. 이번 환경 준비에서는 연결 확인 메시지 1회만 전송했습니다.
+실험이 시작되면 suite 시작, 모델별 시작/완료/실패, 진행 중 10분 간격, suite 완료/중단을 전송합니다. 알림의 성공/실패는 `notifications.json`에 남고, 측정 실패와 알림 실패를 구분합니다. 10월 6일 환경 준비의 연결 확인에 이어 EASE 검증·효율성 실행의 진행 알림을 사용했고, 이번 효율성 pilot의 모든 suite 알림은 `sent`였습니다.
 
 W&B에는 기존 Mammoth의 학습 loss/accuracy와 추가 효율성 scalar summary, 실행 config, 측정 파일 artifact가 같은 run에 저장됩니다. measurement와 FLOPs pass는 별도 run이며 suite group으로 연결합니다. 로컬에는 run별 native 로그·effective args·metrics·telemetry·phase 기록·console 로그와 suite 통합 JSON/CSV가 남습니다. artifact 업로드는 [W&B SDK 방식](https://docs.wandb.ai/models/artifacts/construct-an-artifact)을 사용합니다.
 
@@ -105,7 +108,7 @@ W&B에는 기존 Mammoth의 학습 loss/accuracy와 추가 효율성 scalar summ
 
 ## 추후 실행할 명령
 
-아래 명령은 `--execute`가 있어 실제 실험을 시작합니다. **이번 작업에서는 실행하지 않았습니다.** GPU 환경과 인증/Slack 설정을 준비하고 대상 모델을 검토한 뒤 사용합니다.
+아래 명령은 `--execute`가 있어 실제 실험을 시작합니다. **아래 모델 묶음은 아직 실행하지 않았습니다.** EASE Base64만 앞서 별도 pilot을 완료했습니다. 후속 대상 모델과 실행 범위를 검토한 뒤 사용합니다.
 
 ```bash
 uv run --no-sync python scripts/benchmark_cl.py \

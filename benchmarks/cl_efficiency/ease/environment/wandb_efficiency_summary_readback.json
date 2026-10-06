@@ -1,0 +1,169 @@
+{
+  "url": "https://wandb.ai/laymond1/cl-efficiency/runs/q61iouic",
+  "state": "finished",
+  "report_only": true,
+  "summary_metrics_match_local": {
+    "pilot/status": true,
+    "pilot/measurement_count": true,
+    "pilot/flops_count": true,
+    "pilot/new_training": true,
+    "accuracy/mean_accuracy_pct": true,
+    "flops/supported_ops_total": true,
+    "efficiency/process_wall_s/median": true,
+    "efficiency/process_wall_s/min": true,
+    "efficiency/process_wall_s/max": true,
+    "efficiency/cuda_peak_allocated_mib/median": true,
+    "efficiency/cuda_peak_allocated_mib/min": true,
+    "efficiency/cuda_peak_allocated_mib/max": true,
+    "efficiency/cuda_peak_reserved_mib/median": true,
+    "efficiency/cuda_peak_reserved_mib/min": true,
+    "efficiency/cuda_peak_reserved_mib/max": true,
+    "efficiency/peak_process_tree_rss_mib/median": true,
+    "efficiency/peak_process_tree_rss_mib/min": true,
+    "efficiency/peak_process_tree_rss_mib/max": true,
+    "efficiency/peak_gpu_device_memory_mib/median": true,
+    "efficiency/peak_gpu_device_memory_mib/min": true,
+    "efficiency/peak_gpu_device_memory_mib/max": true,
+    "efficiency/gpu_board_energy_j/median": true,
+    "efficiency/gpu_board_energy_j/min": true,
+    "efficiency/gpu_board_energy_j/max": true,
+    "efficiency/gpu_board_energy_wh/median": true,
+    "efficiency/gpu_board_energy_wh/min": true,
+    "efficiency/gpu_board_energy_wh/max": true,
+    "efficiency/gpu_energy_coverage_fraction/median": true,
+    "efficiency/gpu_energy_coverage_fraction/min": true,
+    "efficiency/gpu_energy_coverage_fraction/max": true,
+    "efficiency/outer_training_examples_per_s/median": true,
+    "efficiency/outer_training_examples_per_s/min": true,
+    "efficiency/outer_training_examples_per_s/max": true,
+    "efficiency/evaluation_examples_per_s/median": true,
+    "efficiency/evaluation_examples_per_s/min": true,
+    "efficiency/evaluation_examples_per_s/max": true,
+    "phase/initialize/wall_s/median": true,
+    "phase/initialize/wall_s/min": true,
+    "phase/initialize/wall_s/max": true,
+    "phase/initialize/gpu_board_energy_j/median": true,
+    "phase/initialize/gpu_board_energy_j/min": true,
+    "phase/initialize/gpu_board_energy_j/max": true,
+    "phase/initialize/gpu_energy_coverage_s/median": true,
+    "phase/initialize/gpu_energy_coverage_s/min": true,
+    "phase/initialize/gpu_energy_coverage_s/max": true,
+    "phase/data_loading/wall_s/median": true,
+    "phase/data_loading/wall_s/min": true,
+    "phase/data_loading/wall_s/max": true,
+    "phase/data_loading/gpu_board_energy_j/median": true,
+    "phase/data_loading/gpu_board_energy_j/min": true,
+    "phase/data_loading/gpu_board_energy_j/max": true,
+    "phase/data_loading/gpu_energy_coverage_s/median": true,
+    "phase/data_loading/gpu_energy_coverage_s/min": true,
+    "phase/data_loading/gpu_energy_coverage_s/max": true,
+    "phase/begin_task/wall_s/median": true,
+    "phase/begin_task/wall_s/min": true,
+    "phase/begin_task/wall_s/max": true,
+    "phase/begin_task/gpu_board_energy_j/median": true,
+    "phase/begin_task/gpu_board_energy_j/min": true,
+    "phase/begin_task/gpu_board_energy_j/max": true,
+    "phase/begin_task/gpu_energy_coverage_s/median": true,
+    "phase/begin_task/gpu_energy_coverage_s/min": true,
+    "phase/begin_task/gpu_energy_coverage_s/max": true,
+    "phase/train_epoch/wall_s/median": true,
+    "phase/train_epoch/wall_s/min": true,
+    "phase/train_epoch/wall_s/max": true,
+    "phase/train_epoch/gpu_board_energy_j/median": true,
+    "phase/train_epoch/gpu_board_energy_j/min": true,
+    "phase/train_epoch/gpu_board_energy_j/max": true,
+    "phase/train_epoch/gpu_energy_coverage_s/median": true,
+    "phase/train_epoch/gpu_energy_coverage_s/min": true,
+    "phase/train_epoch/gpu_energy_coverage_s/max": true,
+    "phase/end_task/wall_s/median": true,
+    "phase/end_task/wall_s/min": true,
+    "phase/end_task/wall_s/max": true,
+    "phase/end_task/gpu_board_energy_j/median": true,
+    "phase/end_task/gpu_board_energy_j/min": true,
+    "phase/end_task/gpu_board_energy_j/max": true,
+    "phase/end_task/gpu_energy_coverage_s/median": true,
+    "phase/end_task/gpu_energy_coverage_s/min": true,
+    "phase/end_task/gpu_energy_coverage_s/max": true,
+    "phase/evaluation/wall_s/median": true,
+    "phase/evaluation/wall_s/min": true,
+    "phase/evaluation/wall_s/max": true,
+    "phase/evaluation/gpu_board_energy_j/median": true,
+    "phase/evaluation/gpu_board_energy_j/min": true,
+    "phase/evaluation/gpu_board_energy_j/max": true,
+    "phase/evaluation/gpu_energy_coverage_s/median": true,
+    "phase/evaluation/gpu_energy_coverage_s/min": true,
+    "phase/evaluation/gpu_energy_coverage_s/max": true
+  },
+  "artifacts": [
+    {
+      "name": "ease-base64-efficiency-pilot-summary-20261007:v0",
+      "type": "cl-efficiency-summary",
+      "state": "COMMITTED"
+    }
+  ],
+  "artifact_file_hash_match_local": {
+    "efficiency_pilot_results.json": true,
+    "efficiency_pilot_results.csv": true,
+    "efficiency_pilot_report.md": true,
+    "environment/wandb_efficiency_readback.json": true,
+    "environment/efficiency_independent_audit.json": true
+  },
+  "all_verified": true,
+  "summary_float_roundtrip_differences": {
+    "efficiency/process_wall_s/min": {
+      "local": 29.592132926976774,
+      "remote": 29.592132926976777,
+      "absolute_difference": 3.552713678800501e-15
+    },
+    "efficiency/gpu_energy_coverage_fraction/median": {
+      "local": 0.9982611129750775,
+      "remote": 0.9982611129750776,
+      "absolute_difference": 1.1102230246251565e-16
+    },
+    "efficiency/gpu_energy_coverage_fraction/max": {
+      "local": 0.9982738044252187,
+      "remote": 0.9982738044252188,
+      "absolute_difference": 1.1102230246251565e-16
+    },
+    "efficiency/outer_training_examples_per_s/max": {
+      "local": 374.86946381796844,
+      "remote": 374.8694638179685,
+      "absolute_difference": 5.684341886080802e-14
+    },
+    "phase/train_epoch/wall_s/median": {
+      "local": 13.342535000992939,
+      "remote": 13.34253500099294,
+      "absolute_difference": 1.7763568394002505e-15
+    },
+    "phase/train_epoch/wall_s/max": {
+      "local": 13.342821886006277,
+      "remote": 13.342821886006275,
+      "absolute_difference": 1.7763568394002505e-15
+    },
+    "phase/train_epoch/gpu_energy_coverage_s/median": {
+      "local": 13.342535000992939,
+      "remote": 13.34253500099294,
+      "absolute_difference": 1.7763568394002505e-15
+    },
+    "phase/train_epoch/gpu_energy_coverage_s/max": {
+      "local": 13.342821886006277,
+      "remote": 13.342821886006275,
+      "absolute_difference": 1.7763568394002505e-15
+    },
+    "phase/evaluation/wall_s/median": {
+      "local": 1.4635015749954619,
+      "remote": 1.463501574995462,
+      "absolute_difference": 2.220446049250313e-16
+    },
+    "phase/evaluation/gpu_energy_coverage_s/median": {
+      "local": 1.4635015749954619,
+      "remote": 1.463501574995462,
+      "absolute_difference": 2.220446049250313e-16
+    }
+  },
+  "summary_float_tolerance": {
+    "relative": 1e-12,
+    "absolute": 1e-12,
+    "artifact_files": "exact SHA256 match, no tolerance"
+  }
+}

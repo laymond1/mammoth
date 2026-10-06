@@ -1,0 +1,183 @@
+{
+  "pilot": "ease-efficiency-pilot-20261006T182523Z",
+  "run_readbacks": [
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/zrctmk8h",
+      "state": "finished",
+      "summary": {
+        "benchmark_status": "completed",
+        "benchmark_pass": "measurement",
+        "efficiency/process_wall_s": 30.068036895012483,
+        "efficiency/gpu_board_energy_wh": 2.443183544207932,
+        "accuracy/mean_accuracy_pct": 96.5,
+        "flops/supported_ops_total": null
+      },
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261006T182523Z-4087919-ease-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "prototype_adapter_image_pairs": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/fzn84ciy",
+      "state": "finished",
+      "summary": {
+        "benchmark_status": "completed",
+        "benchmark_pass": "measurement",
+        "efficiency/process_wall_s": 29.592132926976777,
+        "efficiency/gpu_board_energy_wh": 2.437814392568506,
+        "accuracy/mean_accuracy_pct": 96.5,
+        "flops/supported_ops_total": null
+      },
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261006T182603Z-4087919-ease-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "prototype_adapter_image_pairs": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/qitfg8hb",
+      "state": "finished",
+      "summary": {
+        "benchmark_status": "completed",
+        "benchmark_pass": "measurement",
+        "efficiency/process_wall_s": 29.76287087300443,
+        "efficiency/gpu_board_energy_wh": 2.472424025047783,
+        "accuracy/mean_accuracy_pct": 96.5,
+        "flops/supported_ops_total": null
+      },
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261006T182644Z-4087919-ease-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "prototype_adapter_image_pairs": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/tuk4smi4",
+      "state": "finished",
+      "summary": {
+        "benchmark_status": "completed",
+        "benchmark_pass": "flops",
+        "efficiency/process_wall_s": 47.91063800800475,
+        "efficiency/gpu_board_energy_wh": 2.439266122032975,
+        "accuracy/mean_accuracy_pct": 96.5,
+        "flops/supported_ops_total": 562696180049887
+      },
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261006T182644Z-4087919-ease-flops:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "prototype_adapter_image_pairs": true,
+        "flops": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    }
+  ],
+  "all_verified": true
+}

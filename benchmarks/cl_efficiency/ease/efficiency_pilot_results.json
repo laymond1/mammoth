@@ -1,0 +1,1775 @@
+{
+  "schema_version": 1,
+  "completed_on": "2026-10-07",
+  "status": "completed",
+  "pilot_status": "pass",
+  "scope": "EASE ViT-B/16 adapter64, seq-cifar100-224 first task, one epoch, seed1993 repeated measurements",
+  "local_run_absolute": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease/benchmarks/cl_efficiency/ease/runs/ease-efficiency-pilot-20261006T182523Z",
+  "local_run_in_ease_worktree": "runs/ease-efficiency-pilot-20261006T182523Z",
+  "execution_source_commit": "49897a3",
+  "execution_source_sha256": {
+    "scripts/run_ease_efficiency.py": "adf35e247e4c25bd458e130547ec8ecf177c214c6e324f52807820771df7dc2e",
+    "scripts/benchmark_cl.py": "c4503df477a7a5fa4ce9d4fa376b1c0bad1784bb917570eb7815f84fbc0c04b6",
+    "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+    "models/ease.py": "174156c50346bb65aee6de85a0e40dc2cbb1f12880d2efd03c8dce49290f8f79",
+    "backbone/ease_vit.py": "7362ae4cbee61b0327fe6133fc315a5b7317c2153253cc27effe8103f3713cde",
+    "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+  },
+  "worker_execution_source_sha256": {
+    "scripts/benchmark_cl.py": "c4503df477a7a5fa4ce9d4fa376b1c0bad1784bb917570eb7815f84fbc0c04b6",
+    "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+    "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+    "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+    "models/ease.py": "174156c50346bb65aee6de85a0e40dc2cbb1f12880d2efd03c8dce49290f8f79",
+    "backbone/ease_vit.py": "7362ae4cbee61b0327fe6133fc315a5b7317c2153253cc27effe8103f3713cde",
+    "models/ease_utils/vit.py": "13dff74fdd1fc52147ca68ab555733b8cfc450ac0ce0c557c8e28d0b5a16ace0",
+    "models/ease_utils/network.py": "37e46b56d84e9d507e292b9831ec95b9558aa19b4d544e9076076c373c128b56",
+    "models/ease_utils/classifier.py": "8a24d92e2c8a58069d5a608acb7ed6b697dfda0702ac86e8f94ff9a0bb4d902c",
+    "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+    "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+  },
+  "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+  "checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+  "checkpoint_tag": "vit_base_patch16_224.augreg_in21k_ft_in1k",
+  "protocol": {
+    "dataset": "seq-cifar100-224",
+    "dataset_config": "ease",
+    "tasks": 1,
+    "classes_per_task": 10,
+    "n_epochs": 1,
+    "batch_size": 64,
+    "seed": 1993,
+    "num_workers": 4,
+    "permute_classes": false,
+    "flops": "One separate partial-operator diagnostic run after three measurements",
+    "logging": {
+      "entity": "laymond1",
+      "project": "cl-efficiency",
+      "slack": "existing configured webhook"
+    },
+    "training_authorized": true,
+    "accuracy_is_paper_reproduction": false,
+    "approved_on": "2026-10-07",
+    "approved_by": "user",
+    "runtime_status": "authorized_preparing_base_pilot",
+    "initial_variant": "base_fixed64",
+    "measurement_repeats": 3,
+    "flops_runs": 1,
+    "repeat_policy": "Three fresh-process measurement runs with seed1993, then one separate FLOPs pass with the same seed/config; median and min/max report only measurement observations.",
+    "execution_scope": "EASE Base64 only; first task, one epoch; after successful measurements and logging verification, local merge into codex/cl-foundation; no remote push.",
+    "precision": "FP32, no autocast, CUDA matmul TF32 off; cuDNN deterministic and benchmark disabled, matched native acceptance.",
+    "accuracy_policy": "One-epoch pilot accuracy is recorded; twenty-epoch reference margins are not applied. Non-finite or structurally invalid behavior fails.",
+    "merge_authorized": true,
+    "push_authorized": false
+  },
+  "summary": {
+    "status": "pass",
+    "measurement_count": 3,
+    "flops_count": 1,
+    "resources": {
+      "process_wall_s": {
+        "median": 29.76287087300443,
+        "min": 29.592132926976774,
+        "max": 30.068036895012483,
+        "values": [
+          30.068036895012483,
+          29.592132926976774,
+          29.76287087300443
+        ]
+      },
+      "cuda_peak_allocated_mib": {
+        "median": 5760.50537109375,
+        "min": 5760.50537109375,
+        "max": 5760.50537109375,
+        "values": [
+          5760.50537109375,
+          5760.50537109375,
+          5760.50537109375
+        ]
+      },
+      "cuda_peak_reserved_mib": {
+        "median": 6036.0,
+        "min": 6036.0,
+        "max": 6036.0,
+        "values": [
+          6036.0,
+          6036.0,
+          6036.0
+        ]
+      },
+      "peak_process_tree_rss_mib": {
+        "median": 13355.5,
+        "min": 13317.0234375,
+        "max": 13361.36328125,
+        "values": [
+          13355.5,
+          13361.36328125,
+          13317.0234375
+        ]
+      },
+      "peak_gpu_device_memory_mib": {
+        "median": 6527.0,
+        "min": 6527.0,
+        "max": 6527.0,
+        "values": [
+          6527.0,
+          6527.0,
+          6527.0
+        ]
+      },
+      "gpu_board_energy_j": {
+        "median": 8795.460759148555,
+        "min": 8776.131813246622,
+        "max": 8900.72649017202,
+        "values": [
+          8795.460759148555,
+          8776.131813246622,
+          8900.72649017202
+        ]
+      },
+      "gpu_board_energy_wh": {
+        "median": 2.443183544207932,
+        "min": 2.437814392568506,
+        "max": 2.472424025047783,
+        "values": [
+          2.443183544207932,
+          2.437814392568506,
+          2.472424025047783
+        ]
+      },
+      "gpu_energy_coverage_fraction": {
+        "median": 0.9982611129750775,
+        "min": 0.9982392594101298,
+        "max": 0.9982738044252187,
+        "values": [
+          0.9982392594101298,
+          0.9982611129750775,
+          0.9982738044252187
+        ]
+      },
+      "outer_training_examples_per_s": {
+        "median": 374.74138157613265,
+        "min": 374.7333242336027,
+        "max": 374.86946381796844,
+        "values": [
+          374.86946381796844,
+          374.7333242336027,
+          374.74138157613265
+        ]
+      },
+      "evaluation_examples_per_s": {
+        "median": 683.2927391985218,
+        "min": 682.9849212346396,
+        "max": 683.5015462460891,
+        "values": [
+          683.2927391985218,
+          683.5015462460891,
+          682.9849212346396
+        ]
+      }
+    },
+    "phases": {
+      "initialize": {
+        "wall_s": {
+          "median": 0.631622332992265,
+          "min": 0.6216254240134731,
+          "max": 0.647620199015364,
+          "values": [
+            0.6216254240134731,
+            0.631622332992265,
+            0.647620199015364
+          ]
+        },
+        "gpu_board_energy_j": {
+          "median": 16.056519045512143,
+          "min": 15.694526987014788,
+          "max": 17.0325557162264,
+          "values": [
+            16.056519045512143,
+            15.694526987014788,
+            17.0325557162264
+          ]
+        },
+        "gpu_energy_coverage_s": {
+          "median": 0.631622332992265,
+          "min": 0.6216254240134731,
+          "max": 0.647620199015364,
+          "values": [
+            0.6216254240134731,
+            0.631622332992265,
+            0.647620199015364
+          ]
+        }
+      },
+      "data_loading": {
+        "wall_s": {
+          "median": 0.8076490179810207,
+          "min": 0.8033620189817157,
+          "max": 0.8083694489905611,
+          "values": [
+            0.8033620189817157,
+            0.8076490179810207,
+            0.8083694489905611
+          ]
+        },
+        "gpu_board_energy_j": {
+          "median": 50.83446411311178,
+          "min": 49.058225952157976,
+          "max": 51.0268250694392,
+          "values": [
+            49.058225952157976,
+            50.83446411311178,
+            51.0268250694392
+          ]
+        },
+        "gpu_energy_coverage_s": {
+          "median": 0.8076490179810207,
+          "min": 0.8033620189817157,
+          "max": 0.8083694489905611,
+          "values": [
+            0.8033620189817157,
+            0.8076490179810207,
+            0.8083694489905611
+          ]
+        }
+      },
+      "begin_task": {
+        "wall_s": {
+          "median": 0.01287788400077261,
+          "min": 0.012363808986265212,
+          "max": 0.013428222999209538,
+          "values": [
+            0.012363808986265212,
+            0.01287788400077261,
+            0.013428222999209538
+          ]
+        },
+        "gpu_board_energy_j": {
+          "median": 0.8129763516711109,
+          "min": 0.7576785216216513,
+          "max": 0.851028508405349,
+          "values": [
+            0.7576785216216513,
+            0.8129763516711109,
+            0.851028508405349
+          ]
+        },
+        "gpu_energy_coverage_s": {
+          "median": 0.01287788400077261,
+          "min": 0.012363808986265212,
+          "max": 0.013428222999209538,
+          "values": [
+            0.012363808986265212,
+            0.01287788400077261,
+            0.013428222999209538
+          ]
+        }
+      },
+      "train_epoch": {
+        "wall_s": {
+          "median": 13.342535000992939,
+          "min": 13.33797623598366,
+          "max": 13.342821886006277,
+          "values": [
+            13.33797623598366,
+            13.342821886006277,
+            13.342535000992939
+          ]
+        },
+        "gpu_board_energy_j": {
+          "median": 5138.572371170207,
+          "min": 5093.7359022763385,
+          "max": 5188.856279544164,
+          "values": [
+            5138.572371170207,
+            5093.7359022763385,
+            5188.856279544164
+          ]
+        },
+        "gpu_energy_coverage_s": {
+          "median": 13.342535000992939,
+          "min": 13.33797623598366,
+          "max": 13.342821886006277,
+          "values": [
+            13.33797623598366,
+            13.342821886006277,
+            13.342535000992939
+          ]
+        }
+      },
+      "end_task": {
+        "wall_s": {
+          "median": 6.540796745015541,
+          "min": 6.535639958980028,
+          "max": 6.548199893004494,
+          "values": [
+            6.540796745015541,
+            6.535639958980028,
+            6.548199893004494
+          ]
+        },
+        "gpu_board_energy_j": {
+          "median": 2742.382385272238,
+          "min": 2719.6010164798654,
+          "max": 2742.8103485363395,
+          "values": [
+            2742.382385272238,
+            2719.6010164798654,
+            2742.8103485363395
+          ]
+        },
+        "gpu_energy_coverage_s": {
+          "median": 6.540796745015541,
+          "min": 6.535639958980028,
+          "max": 6.548199893004494,
+          "values": [
+            6.540796745015541,
+            6.535639958980028,
+            6.548199893004494
+          ]
+        }
+      },
+      "evaluation": {
+        "wall_s": {
+          "median": 1.4635015749954619,
+          "min": 1.463054480991559,
+          "max": 1.4641611679980997,
+          "values": [
+            1.4635015749954619,
+            1.463054480991559,
+            1.4641611679980997
+          ]
+        },
+        "gpu_board_energy_j": {
+          "median": 514.6840159583967,
+          "min": 511.219491607691,
+          "max": 529.9130485920502,
+          "values": [
+            514.6840159583967,
+            511.219491607691,
+            529.9130485920502
+          ]
+        },
+        "gpu_energy_coverage_s": {
+          "median": 1.4635015749954619,
+          "min": 1.463054480991559,
+          "max": 1.4641611679980997,
+          "values": [
+            1.4635015749954619,
+            1.463054480991559,
+            1.4641611679980997
+          ]
+        }
+      }
+    },
+    "accuracy": [
+      {
+        "setting": "class-il",
+        "mean_accuracy_pct": 96.5,
+        "task_il_mean_accuracy_pct": 96.5,
+        "fullaccs": [
+          96.5
+        ],
+        "fullaccs_mask_classes": [
+          96.5
+        ]
+      },
+      {
+        "setting": "class-il",
+        "mean_accuracy_pct": 96.5,
+        "task_il_mean_accuracy_pct": 96.5,
+        "fullaccs": [
+          96.5
+        ],
+        "fullaccs_mask_classes": [
+          96.5
+        ]
+      },
+      {
+        "setting": "class-il",
+        "mean_accuracy_pct": 96.5,
+        "task_il_mean_accuracy_pct": 96.5,
+        "fullaccs": [
+          96.5
+        ],
+        "fullaccs_mask_classes": [
+          96.5
+        ]
+      }
+    ],
+    "flops": {
+      "supported_ops_total": 562696180049887,
+      "scope": "Partial supported PyTorch operator estimate over initialization, train forward/backward, task-end prototypes, evaluation and diagnostic audits in this separate pass.",
+      "limitations": "Unsupported/fused operators, optimizer and linear algebra may be omitted; phase FLOPs are not attributed. Not training-only FLOPs. No backward x3 extrapolation."
+    },
+    "same_seed_repeat": true,
+    "seed_variation_estimated": false,
+    "aggregation_scope": "Three measurement passes only; FLOPs-pass time, memory and energy excluded.",
+    "accuracy_scope": "One-epoch pilot accuracy; the matched twenty-epoch 1.5/3.0pp margins do not apply."
+  },
+  "measurements": [
+    {
+      "pass": "measurement",
+      "status": "completed",
+      "wandb_logging_status": "uploaded",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/zrctmk8h",
+      "git_commit": "49897a31e72cff4390a54d8e896ff495e2d987f5",
+      "git_dirty": false,
+      "accuracy": {
+        "setting": "class-il",
+        "mean_accuracy_pct": 96.5,
+        "task_il_mean_accuracy_pct": 96.5,
+        "fullaccs": [
+          96.5
+        ],
+        "fullaccs_mask_classes": [
+          96.5
+        ]
+      },
+      "metrics": {
+        "process_wall_s": 30.068036895012483,
+        "outer_training_stream_examples": 5000,
+        "evaluation_examples": 1000,
+        "outer_observe_steps": 79,
+        "tasks_completed": 1,
+        "cuda_peak_allocated_mib": 5760.50537109375,
+        "cuda_peak_reserved_mib": 6036.0,
+        "peak_process_tree_rss_mib": 13355.5,
+        "peak_gpu_device_memory_mib": 6527.0,
+        "peak_gpu_utilization_percent": 100.0,
+        "peak_gpu_power_w": 428.33,
+        "gpu_board_energy_j": 8795.460759148555,
+        "gpu_energy_coverage_s": 30.01509488199372,
+        "gpu_energy_coverage_fraction": 0.9982392594101298,
+        "gpu_board_energy_wh": 2.443183544207932,
+        "outer_training_examples_per_s": 374.86946381796844,
+        "evaluation_examples_per_s": 683.2927391985218,
+        "process_tree_cpu_s": 41.856708
+      },
+      "phases": {
+        "begin_epoch": {
+          "wall_s": 0.00032360301702283323,
+          "calls": 1,
+          "gpu_board_energy_j": 0.019842691262396045,
+          "gpu_energy_coverage_s": 0.00032360301702283323
+        },
+        "begin_task": {
+          "wall_s": 0.012363808986265212,
+          "calls": 1,
+          "gpu_board_energy_j": 0.7576785216216513,
+          "gpu_energy_coverage_s": 0.012363808986265212
+        },
+        "data_loading": {
+          "wall_s": 0.8033620189817157,
+          "calls": 1,
+          "gpu_board_energy_j": 49.058225952157976,
+          "gpu_energy_coverage_s": 0.8033620189817157
+        },
+        "end_epoch": {
+          "wall_s": 3.7676014471799135e-05,
+          "calls": 1,
+          "gpu_board_energy_j": 0.015900990751037108,
+          "gpu_energy_coverage_s": 3.7676014471799135e-05
+        },
+        "end_task": {
+          "wall_s": 6.540796745015541,
+          "calls": 1,
+          "gpu_board_energy_j": 2742.382385272238,
+          "gpu_energy_coverage_s": 6.540796745015541
+        },
+        "evaluation": {
+          "wall_s": 1.4635015749954619,
+          "calls": 1,
+          "gpu_board_energy_j": 514.6840159583967,
+          "gpu_energy_coverage_s": 1.4635015749954619
+        },
+        "initialize": {
+          "wall_s": 0.6216254240134731,
+          "calls": 1,
+          "gpu_board_energy_j": 16.056519045512143,
+          "gpu_energy_coverage_s": 0.6216254240134731
+        },
+        "state_audit": {
+          "wall_s": 0.37813154503237456,
+          "calls": 4,
+          "gpu_board_energy_j": 102.07055660396807,
+          "gpu_energy_coverage_s": 0.37813154503237456
+        },
+        "train_epoch": {
+          "wall_s": 13.33797623598366,
+          "calls": 1,
+          "gpu_board_energy_j": 5138.572371170207,
+          "gpu_energy_coverage_s": 13.33797623598366
+        }
+      },
+      "model_snapshots": {
+        "after_initialize": {
+          "parameters_total": 85798656,
+          "parameters_trainable": 0,
+          "parameters_in_optimizer": 0,
+          "parameter_storage_bytes": 343194624,
+          "registered_buffer_storage_bytes": 5,
+          "optimizer_state_storage_bytes": 0,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        },
+        "after_begin_task": {
+          "parameters_total": 86995969,
+          "parameters_trainable": 1197313,
+          "parameters_in_optimizer": 1197313,
+          "parameter_storage_bytes": 347983876,
+          "registered_buffer_storage_bytes": 30741,
+          "optimizer_state_storage_bytes": 0,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        },
+        "after_end_task": {
+          "parameters_total": 86995969,
+          "parameters_trainable": 0,
+          "parameters_in_optimizer": 1197313,
+          "parameter_storage_bytes": 347983876,
+          "registered_buffer_storage_bytes": 30741,
+          "optimizer_state_storage_bytes": 4789252,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        }
+      },
+      "data_snapshots": {
+        "first_task": {
+          "train": {
+            "samples": 5000,
+            "classes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "indices_labels_sha256": "049941decf3447f83c5af2b83a4e04921e3187ed460737edd8a99908511a81c5",
+            "extra_return_fields": [],
+            "transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "clean_true_labels_added": false,
+            "n_samples": 5000,
+            "image_shape": [
+              32,
+              32,
+              3
+            ],
+            "image_dtype": "uint8",
+            "class_counts": {
+              "0": 500,
+              "1": 500,
+              "2": 500,
+              "3": 500,
+              "4": 500,
+              "5": 500,
+              "6": 500,
+              "7": 500,
+              "8": 500,
+              "9": 500
+            },
+            "samples_ordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+            "samples_unordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+            "global_ids_ordered_sha256": "ffe8eed6aa9fc6cc6c76bea1dded57f4d26f4bc10b072707f45839087307e38c",
+            "first_global_ids": [
+              2,
+              4,
+              16,
+              30,
+              53,
+              55,
+              102,
+              113,
+              130,
+              145
+            ],
+            "transform_repr": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "transform_repr_sha256": "2b87a34cb83d20320607074f03b709cb68998ff546243dccb2b89d0e5670e412"
+          },
+          "test": {
+            "samples": 1000,
+            "classes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "indices_labels_sha256": "513e3d1f7703115a90756265d3195fcf3d459446c1c7ebefc093380725da2f50",
+            "extra_return_fields": [],
+            "transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "clean_true_labels_added": false,
+            "n_samples": 1000,
+            "image_shape": [
+              32,
+              32,
+              3
+            ],
+            "image_dtype": "uint8",
+            "class_counts": {
+              "0": 100,
+              "1": 100,
+              "2": 100,
+              "3": 100,
+              "4": 100,
+              "5": 100,
+              "6": 100,
+              "7": 100,
+              "8": 100,
+              "9": 100
+            },
+            "samples_ordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+            "samples_unordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+            "global_ids_ordered_sha256": "13426959977bbd025df58f740b4408f523b0f41e9256342512ab92294ddf7f28",
+            "first_global_ids": [
+              9,
+              27,
+              28,
+              50,
+              51,
+              52,
+              54,
+              64,
+              83,
+              113
+            ],
+            "transform_repr": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "transform_repr_sha256": "c3425775bd0c9bad0848f553b08357b2a74f4ad5dcb661665ae199095869dc01"
+          }
+        },
+        "after_begin_task": {
+          "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)"
+        },
+        "after_end_task": {
+          "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)"
+        }
+      },
+      "precision": {
+        "parameter_dtype": "float32",
+        "autocast": false,
+        "matmul_precision": "highest",
+        "tf32_allowed": false,
+        "cudnn_tf32_allowed": true,
+        "cudnn_deterministic": true,
+        "cudnn_benchmark": false
+      },
+      "versions": {
+        "torch": "2.13.0+cu126",
+        "torchvision": "0.28.0+cu126",
+        "timm": "0.9.8",
+        "wandb": "0.29.0"
+      },
+      "structural_checks": {
+        "finite_loss_and_gradients": true,
+        "frozen_backbone_gradients_absent": true,
+        "frozen_backbone_unchanged": true,
+        "finite_prototypes": true,
+        "prototype_and_adapter_shapes": true,
+        "evaluation_predictions_match_accuracy": true,
+        "dataset_matches_reference": true,
+        "training_protocol_complete": true
+      },
+      "training_loss": {
+        "batches": 79,
+        "mean": 1.826995300341256,
+        "minimum": 1.0527782440185547,
+        "maximum": 2.3098063468933105
+      },
+      "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+      "final_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+      "prototype_adapter_image_pairs": 5000,
+      "sensor_errors": []
+    },
+    {
+      "pass": "measurement",
+      "status": "completed",
+      "wandb_logging_status": "uploaded",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/fzn84ciy",
+      "git_commit": "49897a31e72cff4390a54d8e896ff495e2d987f5",
+      "git_dirty": false,
+      "accuracy": {
+        "setting": "class-il",
+        "mean_accuracy_pct": 96.5,
+        "task_il_mean_accuracy_pct": 96.5,
+        "fullaccs": [
+          96.5
+        ],
+        "fullaccs_mask_classes": [
+          96.5
+        ]
+      },
+      "metrics": {
+        "process_wall_s": 29.592132926976774,
+        "outer_training_stream_examples": 5000,
+        "evaluation_examples": 1000,
+        "outer_observe_steps": 79,
+        "tasks_completed": 1,
+        "cuda_peak_allocated_mib": 5760.50537109375,
+        "cuda_peak_reserved_mib": 6036.0,
+        "peak_process_tree_rss_mib": 13361.36328125,
+        "peak_gpu_device_memory_mib": 6527.0,
+        "peak_gpu_utilization_percent": 100.0,
+        "peak_gpu_power_w": 428.61,
+        "gpu_board_energy_j": 8776.131813246622,
+        "gpu_energy_coverage_s": 29.540675550990272,
+        "gpu_energy_coverage_fraction": 0.9982611129750775,
+        "gpu_board_energy_wh": 2.437814392568506,
+        "outer_training_examples_per_s": 374.7333242336027,
+        "evaluation_examples_per_s": 683.5015462460891,
+        "process_tree_cpu_s": 41.77511500000001
+      },
+      "phases": {
+        "begin_epoch": {
+          "wall_s": 0.0001599100069142878,
+          "calls": 1,
+          "gpu_board_energy_j": 0.010100470382714525,
+          "gpu_energy_coverage_s": 0.0001599100069142878
+        },
+        "begin_task": {
+          "wall_s": 0.01287788400077261,
+          "calls": 1,
+          "gpu_board_energy_j": 0.8129763516711109,
+          "gpu_energy_coverage_s": 0.01287788400077261
+        },
+        "data_loading": {
+          "wall_s": 0.8076490179810207,
+          "calls": 1,
+          "gpu_board_energy_j": 50.83446411311178,
+          "gpu_energy_coverage_s": 0.8076490179810207
+        },
+        "end_epoch": {
+          "wall_s": 0.0002933430077973753,
+          "calls": 1,
+          "gpu_board_energy_j": 0.11970536187802765,
+          "gpu_energy_coverage_s": 0.0002933430077973753
+        },
+        "end_task": {
+          "wall_s": 6.535639958980028,
+          "calls": 1,
+          "gpu_board_energy_j": 2719.6010164798654,
+          "gpu_energy_coverage_s": 6.535639958980028
+        },
+        "evaluation": {
+          "wall_s": 1.463054480991559,
+          "calls": 1,
+          "gpu_board_energy_j": 511.219491607691,
+          "gpu_energy_coverage_s": 1.463054480991559
+        },
+        "initialize": {
+          "wall_s": 0.631622332992265,
+          "calls": 1,
+          "gpu_board_energy_j": 15.694526987014788,
+          "gpu_energy_coverage_s": 0.631622332992265
+        },
+        "state_audit": {
+          "wall_s": 0.3741691629984416,
+          "calls": 4,
+          "gpu_board_energy_j": 90.42186432821774,
+          "gpu_energy_coverage_s": 0.3741691629984416
+        },
+        "train_epoch": {
+          "wall_s": 13.342821886006277,
+          "calls": 1,
+          "gpu_board_energy_j": 5093.7359022763385,
+          "gpu_energy_coverage_s": 13.342821886006277
+        }
+      },
+      "model_snapshots": {
+        "after_initialize": {
+          "parameters_total": 85798656,
+          "parameters_trainable": 0,
+          "parameters_in_optimizer": 0,
+          "parameter_storage_bytes": 343194624,
+          "registered_buffer_storage_bytes": 5,
+          "optimizer_state_storage_bytes": 0,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        },
+        "after_begin_task": {
+          "parameters_total": 86995969,
+          "parameters_trainable": 1197313,
+          "parameters_in_optimizer": 1197313,
+          "parameter_storage_bytes": 347983876,
+          "registered_buffer_storage_bytes": 30741,
+          "optimizer_state_storage_bytes": 0,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        },
+        "after_end_task": {
+          "parameters_total": 86995969,
+          "parameters_trainable": 0,
+          "parameters_in_optimizer": 1197313,
+          "parameter_storage_bytes": 347983876,
+          "registered_buffer_storage_bytes": 30741,
+          "optimizer_state_storage_bytes": 4789252,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        }
+      },
+      "data_snapshots": {
+        "first_task": {
+          "train": {
+            "samples": 5000,
+            "classes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "indices_labels_sha256": "049941decf3447f83c5af2b83a4e04921e3187ed460737edd8a99908511a81c5",
+            "extra_return_fields": [],
+            "transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "clean_true_labels_added": false,
+            "n_samples": 5000,
+            "image_shape": [
+              32,
+              32,
+              3
+            ],
+            "image_dtype": "uint8",
+            "class_counts": {
+              "0": 500,
+              "1": 500,
+              "2": 500,
+              "3": 500,
+              "4": 500,
+              "5": 500,
+              "6": 500,
+              "7": 500,
+              "8": 500,
+              "9": 500
+            },
+            "samples_ordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+            "samples_unordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+            "global_ids_ordered_sha256": "ffe8eed6aa9fc6cc6c76bea1dded57f4d26f4bc10b072707f45839087307e38c",
+            "first_global_ids": [
+              2,
+              4,
+              16,
+              30,
+              53,
+              55,
+              102,
+              113,
+              130,
+              145
+            ],
+            "transform_repr": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "transform_repr_sha256": "2b87a34cb83d20320607074f03b709cb68998ff546243dccb2b89d0e5670e412"
+          },
+          "test": {
+            "samples": 1000,
+            "classes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "indices_labels_sha256": "513e3d1f7703115a90756265d3195fcf3d459446c1c7ebefc093380725da2f50",
+            "extra_return_fields": [],
+            "transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "clean_true_labels_added": false,
+            "n_samples": 1000,
+            "image_shape": [
+              32,
+              32,
+              3
+            ],
+            "image_dtype": "uint8",
+            "class_counts": {
+              "0": 100,
+              "1": 100,
+              "2": 100,
+              "3": 100,
+              "4": 100,
+              "5": 100,
+              "6": 100,
+              "7": 100,
+              "8": 100,
+              "9": 100
+            },
+            "samples_ordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+            "samples_unordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+            "global_ids_ordered_sha256": "13426959977bbd025df58f740b4408f523b0f41e9256342512ab92294ddf7f28",
+            "first_global_ids": [
+              9,
+              27,
+              28,
+              50,
+              51,
+              52,
+              54,
+              64,
+              83,
+              113
+            ],
+            "transform_repr": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "transform_repr_sha256": "c3425775bd0c9bad0848f553b08357b2a74f4ad5dcb661665ae199095869dc01"
+          }
+        },
+        "after_begin_task": {
+          "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)"
+        },
+        "after_end_task": {
+          "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)"
+        }
+      },
+      "precision": {
+        "parameter_dtype": "float32",
+        "autocast": false,
+        "matmul_precision": "highest",
+        "tf32_allowed": false,
+        "cudnn_tf32_allowed": true,
+        "cudnn_deterministic": true,
+        "cudnn_benchmark": false
+      },
+      "versions": {
+        "torch": "2.13.0+cu126",
+        "torchvision": "0.28.0+cu126",
+        "timm": "0.9.8",
+        "wandb": "0.29.0"
+      },
+      "structural_checks": {
+        "finite_loss_and_gradients": true,
+        "frozen_backbone_gradients_absent": true,
+        "frozen_backbone_unchanged": true,
+        "finite_prototypes": true,
+        "prototype_and_adapter_shapes": true,
+        "evaluation_predictions_match_accuracy": true,
+        "dataset_matches_reference": true,
+        "training_protocol_complete": true
+      },
+      "training_loss": {
+        "batches": 79,
+        "mean": 1.826995300341256,
+        "minimum": 1.0527782440185547,
+        "maximum": 2.3098063468933105
+      },
+      "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+      "final_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+      "prototype_adapter_image_pairs": 5000,
+      "sensor_errors": []
+    },
+    {
+      "pass": "measurement",
+      "status": "completed",
+      "wandb_logging_status": "uploaded",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/qitfg8hb",
+      "git_commit": "49897a31e72cff4390a54d8e896ff495e2d987f5",
+      "git_dirty": false,
+      "accuracy": {
+        "setting": "class-il",
+        "mean_accuracy_pct": 96.5,
+        "task_il_mean_accuracy_pct": 96.5,
+        "fullaccs": [
+          96.5
+        ],
+        "fullaccs_mask_classes": [
+          96.5
+        ]
+      },
+      "metrics": {
+        "process_wall_s": 29.76287087300443,
+        "outer_training_stream_examples": 5000,
+        "evaluation_examples": 1000,
+        "outer_observe_steps": 79,
+        "tasks_completed": 1,
+        "cuda_peak_allocated_mib": 5760.50537109375,
+        "cuda_peak_reserved_mib": 6036.0,
+        "peak_process_tree_rss_mib": 13317.0234375,
+        "peak_gpu_device_memory_mib": 6527.0,
+        "peak_gpu_utilization_percent": 100.0,
+        "peak_gpu_power_w": 428.18,
+        "gpu_board_energy_j": 8900.72649017202,
+        "gpu_energy_coverage_s": 29.711494337010663,
+        "gpu_energy_coverage_fraction": 0.9982738044252187,
+        "gpu_board_energy_wh": 2.472424025047783,
+        "outer_training_examples_per_s": 374.74138157613265,
+        "evaluation_examples_per_s": 682.9849212346396,
+        "process_tree_cpu_s": 41.942651
+      },
+      "phases": {
+        "begin_epoch": {
+          "wall_s": 0.00023957298253662884,
+          "calls": 1,
+          "gpu_board_energy_j": 0.015194089051974382,
+          "gpu_energy_coverage_s": 0.00023957298253662884
+        },
+        "begin_task": {
+          "wall_s": 0.013428222999209538,
+          "calls": 1,
+          "gpu_board_energy_j": 0.851028508405349,
+          "gpu_energy_coverage_s": 0.013428222999209538
+        },
+        "data_loading": {
+          "wall_s": 0.8083694489905611,
+          "calls": 1,
+          "gpu_board_energy_j": 51.0268250694392,
+          "gpu_energy_coverage_s": 0.8083694489905611
+        },
+        "end_epoch": {
+          "wall_s": 0.00014385301619768143,
+          "calls": 1,
+          "gpu_board_energy_j": 0.05770007058327931,
+          "gpu_energy_coverage_s": 0.00014385301619768143
+        },
+        "end_task": {
+          "wall_s": 6.548199893004494,
+          "calls": 1,
+          "gpu_board_energy_j": 2742.8103485363395,
+          "gpu_energy_coverage_s": 6.548199893004494
+        },
+        "evaluation": {
+          "wall_s": 1.4641611679980997,
+          "calls": 1,
+          "gpu_board_energy_j": 529.9130485920502,
+          "gpu_energy_coverage_s": 1.4641611679980997
+        },
+        "initialize": {
+          "wall_s": 0.647620199015364,
+          "calls": 1,
+          "gpu_board_energy_j": 17.0325557162264,
+          "gpu_energy_coverage_s": 0.647620199015364
+        },
+        "state_audit": {
+          "wall_s": 0.38497181102866307,
+          "calls": 4,
+          "gpu_board_energy_j": 109.35687427900572,
+          "gpu_energy_coverage_s": 0.38497181102866307
+        },
+        "train_epoch": {
+          "wall_s": 13.342535000992939,
+          "calls": 1,
+          "gpu_board_energy_j": 5188.856279544164,
+          "gpu_energy_coverage_s": 13.342535000992939
+        }
+      },
+      "model_snapshots": {
+        "after_initialize": {
+          "parameters_total": 85798656,
+          "parameters_trainable": 0,
+          "parameters_in_optimizer": 0,
+          "parameter_storage_bytes": 343194624,
+          "registered_buffer_storage_bytes": 5,
+          "optimizer_state_storage_bytes": 0,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        },
+        "after_begin_task": {
+          "parameters_total": 86995969,
+          "parameters_trainable": 1197313,
+          "parameters_in_optimizer": 1197313,
+          "parameter_storage_bytes": 347983876,
+          "registered_buffer_storage_bytes": 30741,
+          "optimizer_state_storage_bytes": 0,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        },
+        "after_end_task": {
+          "parameters_total": 86995969,
+          "parameters_trainable": 0,
+          "parameters_in_optimizer": 1197313,
+          "parameter_storage_bytes": 347983876,
+          "registered_buffer_storage_bytes": 30741,
+          "optimizer_state_storage_bytes": 4789252,
+          "replay_allocated_tensor_bytes": 0,
+          "replay_buffers": {},
+          "auxiliary_tensor_bytes": 0
+        }
+      },
+      "data_snapshots": {
+        "first_task": {
+          "train": {
+            "samples": 5000,
+            "classes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "indices_labels_sha256": "049941decf3447f83c5af2b83a4e04921e3187ed460737edd8a99908511a81c5",
+            "extra_return_fields": [],
+            "transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "clean_true_labels_added": false,
+            "n_samples": 5000,
+            "image_shape": [
+              32,
+              32,
+              3
+            ],
+            "image_dtype": "uint8",
+            "class_counts": {
+              "0": 500,
+              "1": 500,
+              "2": 500,
+              "3": 500,
+              "4": 500,
+              "5": 500,
+              "6": 500,
+              "7": 500,
+              "8": 500,
+              "9": 500
+            },
+            "samples_ordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+            "samples_unordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+            "global_ids_ordered_sha256": "ffe8eed6aa9fc6cc6c76bea1dded57f4d26f4bc10b072707f45839087307e38c",
+            "first_global_ids": [
+              2,
+              4,
+              16,
+              30,
+              53,
+              55,
+              102,
+              113,
+              130,
+              145
+            ],
+            "transform_repr": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "transform_repr_sha256": "2b87a34cb83d20320607074f03b709cb68998ff546243dccb2b89d0e5670e412"
+          },
+          "test": {
+            "samples": 1000,
+            "classes": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "indices_labels_sha256": "513e3d1f7703115a90756265d3195fcf3d459446c1c7ebefc093380725da2f50",
+            "extra_return_fields": [],
+            "transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "clean_true_labels_added": false,
+            "n_samples": 1000,
+            "image_shape": [
+              32,
+              32,
+              3
+            ],
+            "image_dtype": "uint8",
+            "class_counts": {
+              "0": 100,
+              "1": 100,
+              "2": 100,
+              "3": 100,
+              "4": 100,
+              "5": 100,
+              "6": 100,
+              "7": 100,
+              "8": 100,
+              "9": 100
+            },
+            "samples_ordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+            "samples_unordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+            "global_ids_ordered_sha256": "13426959977bbd025df58f740b4408f523b0f41e9256342512ab92294ddf7f28",
+            "first_global_ids": [
+              9,
+              27,
+              28,
+              50,
+              51,
+              52,
+              54,
+              64,
+              83,
+              113
+            ],
+            "transform_repr": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+            "transform_repr_sha256": "c3425775bd0c9bad0848f553b08357b2a74f4ad5dcb661665ae199095869dc01"
+          }
+        },
+        "after_begin_task": {
+          "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)"
+        },
+        "after_end_task": {
+          "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)"
+        }
+      },
+      "precision": {
+        "parameter_dtype": "float32",
+        "autocast": false,
+        "matmul_precision": "highest",
+        "tf32_allowed": false,
+        "cudnn_tf32_allowed": true,
+        "cudnn_deterministic": true,
+        "cudnn_benchmark": false
+      },
+      "versions": {
+        "torch": "2.13.0+cu126",
+        "torchvision": "0.28.0+cu126",
+        "timm": "0.9.8",
+        "wandb": "0.29.0"
+      },
+      "structural_checks": {
+        "finite_loss_and_gradients": true,
+        "frozen_backbone_gradients_absent": true,
+        "frozen_backbone_unchanged": true,
+        "finite_prototypes": true,
+        "prototype_and_adapter_shapes": true,
+        "evaluation_predictions_match_accuracy": true,
+        "dataset_matches_reference": true,
+        "training_protocol_complete": true
+      },
+      "training_loss": {
+        "batches": 79,
+        "mean": 1.826995300341256,
+        "minimum": 1.0527782440185547,
+        "maximum": 2.3098063468933105
+      },
+      "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+      "final_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+      "prototype_adapter_image_pairs": 5000,
+      "sensor_errors": []
+    }
+  ],
+  "flops_diagnostic": {
+    "pass": "flops",
+    "status": "completed",
+    "wandb_logging_status": "uploaded",
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/tuk4smi4",
+    "git_commit": "49897a31e72cff4390a54d8e896ff495e2d987f5",
+    "git_dirty": false,
+    "accuracy": {
+      "setting": "class-il",
+      "mean_accuracy_pct": 96.5,
+      "task_il_mean_accuracy_pct": 96.5,
+      "fullaccs": [
+        96.5
+      ],
+      "fullaccs_mask_classes": [
+        96.5
+      ]
+    },
+    "metrics": {
+      "process_wall_s": 47.91063800800475,
+      "outer_training_stream_examples": 5000,
+      "evaluation_examples": 1000,
+      "outer_observe_steps": 79,
+      "tasks_completed": 1,
+      "cuda_peak_allocated_mib": 5760.50537109375,
+      "cuda_peak_reserved_mib": 6036.0,
+      "peak_process_tree_rss_mib": 23225.43359375,
+      "peak_gpu_device_memory_mib": 6527.0,
+      "peak_gpu_utilization_percent": 100.0,
+      "peak_gpu_power_w": 428.1,
+      "gpu_board_energy_j": 8781.358039318711,
+      "gpu_energy_coverage_s": 29.313864641007967,
+      "gpu_energy_coverage_fraction": 0.6118445894231319,
+      "gpu_board_energy_wh": 2.439266122032975,
+      "outer_training_examples_per_s": 373.59663155076646,
+      "evaluation_examples_per_s": 669.3645086394208,
+      "process_tree_cpu_s": 63.34588
+    },
+    "phases": {
+      "begin_epoch": {
+        "wall_s": 0.0002709559921640903,
+        "calls": 1,
+        "gpu_board_energy_j": 0.017083398282800498,
+        "gpu_energy_coverage_s": 0.0002709559921640903
+      },
+      "begin_task": {
+        "wall_s": 0.01301014400087297,
+        "calls": 1,
+        "gpu_board_energy_j": 0.8199536487731575,
+        "gpu_energy_coverage_s": 0.01301014400087297
+      },
+      "data_loading": {
+        "wall_s": 0.8144694780057762,
+        "calls": 1,
+        "gpu_board_energy_j": 51.2686956232866,
+        "gpu_energy_coverage_s": 0.8144694780057762
+      },
+      "end_epoch": {
+        "wall_s": 4.409099346958101e-05,
+        "calls": 1,
+        "gpu_board_energy_j": 0.017811185936619692,
+        "gpu_energy_coverage_s": 4.409099346958101e-05
+      },
+      "end_task": {
+        "wall_s": 6.614742408011807,
+        "calls": 1,
+        "gpu_board_energy_j": 2736.4883583128717,
+        "gpu_energy_coverage_s": 6.614742408011807
+      },
+      "evaluation": {
+        "wall_s": 1.493954320991179,
+        "calls": 1,
+        "gpu_board_energy_j": 385.8667156208132,
+        "gpu_energy_coverage_s": 1.1517388735082932
+      },
+      "initialize": {
+        "wall_s": 0.646520924026845,
+        "calls": 1,
+        "gpu_board_energy_j": 19.246334205575454,
+        "gpu_energy_coverage_s": 0.646520924026845
+      },
+      "state_audit": {
+        "wall_s": 0.41551549299038015,
+        "calls": 4,
+        "gpu_board_energy_j": 105.03851391476789,
+        "gpu_energy_coverage_s": 0.41497766599059105
+      },
+      "train_epoch": {
+        "wall_s": 13.383418312005233,
+        "calls": 1,
+        "gpu_board_energy_j": 5102.975588923835,
+        "gpu_energy_coverage_s": 13.383418312005233
+      }
+    },
+    "model_snapshots": {
+      "after_initialize": {
+        "parameters_total": 85798656,
+        "parameters_trainable": 0,
+        "parameters_in_optimizer": 0,
+        "parameter_storage_bytes": 343194624,
+        "registered_buffer_storage_bytes": 5,
+        "optimizer_state_storage_bytes": 0,
+        "replay_allocated_tensor_bytes": 0,
+        "replay_buffers": {},
+        "auxiliary_tensor_bytes": 0
+      },
+      "after_begin_task": {
+        "parameters_total": 86995969,
+        "parameters_trainable": 1197313,
+        "parameters_in_optimizer": 1197313,
+        "parameter_storage_bytes": 347983876,
+        "registered_buffer_storage_bytes": 30741,
+        "optimizer_state_storage_bytes": 0,
+        "replay_allocated_tensor_bytes": 0,
+        "replay_buffers": {},
+        "auxiliary_tensor_bytes": 0
+      },
+      "after_end_task": {
+        "parameters_total": 86995969,
+        "parameters_trainable": 0,
+        "parameters_in_optimizer": 1197313,
+        "parameter_storage_bytes": 347983876,
+        "registered_buffer_storage_bytes": 30741,
+        "optimizer_state_storage_bytes": 4789252,
+        "replay_allocated_tensor_bytes": 0,
+        "replay_buffers": {},
+        "auxiliary_tensor_bytes": 0
+      }
+    },
+    "data_snapshots": {
+      "first_task": {
+        "train": {
+          "samples": 5000,
+          "classes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "indices_labels_sha256": "049941decf3447f83c5af2b83a4e04921e3187ed460737edd8a99908511a81c5",
+          "extra_return_fields": [],
+          "transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "clean_true_labels_added": false,
+          "n_samples": 5000,
+          "image_shape": [
+            32,
+            32,
+            3
+          ],
+          "image_dtype": "uint8",
+          "class_counts": {
+            "0": 500,
+            "1": 500,
+            "2": 500,
+            "3": 500,
+            "4": 500,
+            "5": 500,
+            "6": 500,
+            "7": 500,
+            "8": 500,
+            "9": 500
+          },
+          "samples_ordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+          "samples_unordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+          "global_ids_ordered_sha256": "ffe8eed6aa9fc6cc6c76bea1dded57f4d26f4bc10b072707f45839087307e38c",
+          "first_global_ids": [
+            2,
+            4,
+            16,
+            30,
+            53,
+            55,
+            102,
+            113,
+            130,
+            145
+          ],
+          "transform_repr": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "transform_repr_sha256": "2b87a34cb83d20320607074f03b709cb68998ff546243dccb2b89d0e5670e412"
+        },
+        "test": {
+          "samples": 1000,
+          "classes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "indices_labels_sha256": "513e3d1f7703115a90756265d3195fcf3d459446c1c7ebefc093380725da2f50",
+          "extra_return_fields": [],
+          "transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "clean_true_labels_added": false,
+          "n_samples": 1000,
+          "image_shape": [
+            32,
+            32,
+            3
+          ],
+          "image_dtype": "uint8",
+          "class_counts": {
+            "0": 100,
+            "1": 100,
+            "2": 100,
+            "3": 100,
+            "4": 100,
+            "5": 100,
+            "6": 100,
+            "7": 100,
+            "8": 100,
+            "9": 100
+          },
+          "samples_ordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+          "samples_unordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5",
+          "global_ids_ordered_sha256": "13426959977bbd025df58f740b4408f523b0f41e9256342512ab92294ddf7f28",
+          "first_global_ids": [
+            9,
+            27,
+            28,
+            50,
+            51,
+            52,
+            54,
+            64,
+            83,
+            113
+          ],
+          "transform_repr": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+          "transform_repr_sha256": "c3425775bd0c9bad0848f553b08357b2a74f4ad5dcb661665ae199095869dc01"
+        }
+      },
+      "after_begin_task": {
+        "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+        "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)"
+      },
+      "after_end_task": {
+        "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.05, 1.0), ratio=(0.75, 1.3333), interpolation=bilinear, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)",
+        "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0, 0, 0], std=[1, 1, 1])\n)"
+      }
+    },
+    "precision": {
+      "parameter_dtype": "float32",
+      "autocast": false,
+      "matmul_precision": "highest",
+      "tf32_allowed": false,
+      "cudnn_tf32_allowed": true,
+      "cudnn_deterministic": true,
+      "cudnn_benchmark": false
+    },
+    "versions": {
+      "torch": "2.13.0+cu126",
+      "torchvision": "0.28.0+cu126",
+      "timm": "0.9.8",
+      "wandb": "0.29.0"
+    },
+    "structural_checks": {
+      "finite_loss_and_gradients": true,
+      "frozen_backbone_gradients_absent": true,
+      "frozen_backbone_unchanged": true,
+      "finite_prototypes": true,
+      "prototype_and_adapter_shapes": true,
+      "evaluation_predictions_match_accuracy": true,
+      "dataset_matches_reference": true,
+      "training_protocol_complete": true
+    },
+    "training_loss": {
+      "batches": 79,
+      "mean": 1.826995300341256,
+      "minimum": 1.0527782440185547,
+      "maximum": 2.3098063468933105
+    },
+    "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+    "final_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+    "prototype_adapter_image_pairs": 5000,
+    "sensor_errors": [],
+    "flops": {
+      "supported_ops_total": 562696180049887,
+      "scope": "Partial supported PyTorch operator estimate over initialization, train forward/backward, task-end prototypes, evaluation and diagnostic audits in this separate pass.",
+      "limitations": "Unsupported/fused operators, optimizer and linear algebra may be omitted; phase FLOPs are not attributed. Not training-only FLOPs. No backward x3 extrapolation."
+    }
+  },
+  "server_readback": {
+    "pilot": "ease-efficiency-pilot-20261006T182523Z",
+    "run_readbacks": [
+      {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/zrctmk8h",
+        "state": "finished",
+        "summary": {
+          "benchmark_status": "completed",
+          "benchmark_pass": "measurement",
+          "efficiency/process_wall_s": 30.068036895012483,
+          "efficiency/gpu_board_energy_wh": 2.443183544207932,
+          "accuracy/mean_accuracy_pct": 96.5,
+          "flops/supported_ops_total": null
+        },
+        "artifacts": [
+          {
+            "name": "cl-efficiency-20261006T182523Z-4087919-ease-measurement:v0",
+            "state": "COMMITTED",
+            "type": "cl-efficiency"
+          }
+        ],
+        "artifact_metrics_match_local": {
+          "model": true,
+          "pass": true,
+          "accuracy": true,
+          "metrics": true,
+          "phases": true,
+          "model_snapshots": true,
+          "data_snapshots": true,
+          "precision": true,
+          "checkpoint_file": true,
+          "checkpoint_sha256": true,
+          "execution_source_sha256": true,
+          "structural_checks": true,
+          "initial_frozen_backbone_sha256": true,
+          "final_frozen_backbone_sha256": true,
+          "prototype_adapter_image_pairs": true
+        },
+        "artifact_file_hash_match_local": {
+          "spec.json": true,
+          "task1_predictions.npz": true,
+          "telemetry.csv": true,
+          "phases.json": true
+        },
+        "suite_slack_all_sent": true,
+        "verified": true
+      },
+      {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/fzn84ciy",
+        "state": "finished",
+        "summary": {
+          "benchmark_status": "completed",
+          "benchmark_pass": "measurement",
+          "efficiency/process_wall_s": 29.592132926976777,
+          "efficiency/gpu_board_energy_wh": 2.437814392568506,
+          "accuracy/mean_accuracy_pct": 96.5,
+          "flops/supported_ops_total": null
+        },
+        "artifacts": [
+          {
+            "name": "cl-efficiency-20261006T182603Z-4087919-ease-measurement:v0",
+            "state": "COMMITTED",
+            "type": "cl-efficiency"
+          }
+        ],
+        "artifact_metrics_match_local": {
+          "model": true,
+          "pass": true,
+          "accuracy": true,
+          "metrics": true,
+          "phases": true,
+          "model_snapshots": true,
+          "data_snapshots": true,
+          "precision": true,
+          "checkpoint_file": true,
+          "checkpoint_sha256": true,
+          "execution_source_sha256": true,
+          "structural_checks": true,
+          "initial_frozen_backbone_sha256": true,
+          "final_frozen_backbone_sha256": true,
+          "prototype_adapter_image_pairs": true
+        },
+        "artifact_file_hash_match_local": {
+          "spec.json": true,
+          "task1_predictions.npz": true,
+          "telemetry.csv": true,
+          "phases.json": true
+        },
+        "suite_slack_all_sent": true,
+        "verified": true
+      },
+      {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/qitfg8hb",
+        "state": "finished",
+        "summary": {
+          "benchmark_status": "completed",
+          "benchmark_pass": "measurement",
+          "efficiency/process_wall_s": 29.76287087300443,
+          "efficiency/gpu_board_energy_wh": 2.472424025047783,
+          "accuracy/mean_accuracy_pct": 96.5,
+          "flops/supported_ops_total": null
+        },
+        "artifacts": [
+          {
+            "name": "cl-efficiency-20261006T182644Z-4087919-ease-measurement:v0",
+            "state": "COMMITTED",
+            "type": "cl-efficiency"
+          }
+        ],
+        "artifact_metrics_match_local": {
+          "model": true,
+          "pass": true,
+          "accuracy": true,
+          "metrics": true,
+          "phases": true,
+          "model_snapshots": true,
+          "data_snapshots": true,
+          "precision": true,
+          "checkpoint_file": true,
+          "checkpoint_sha256": true,
+          "execution_source_sha256": true,
+          "structural_checks": true,
+          "initial_frozen_backbone_sha256": true,
+          "final_frozen_backbone_sha256": true,
+          "prototype_adapter_image_pairs": true
+        },
+        "artifact_file_hash_match_local": {
+          "spec.json": true,
+          "task1_predictions.npz": true,
+          "telemetry.csv": true,
+          "phases.json": true
+        },
+        "suite_slack_all_sent": true,
+        "verified": true
+      },
+      {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/tuk4smi4",
+        "state": "finished",
+        "summary": {
+          "benchmark_status": "completed",
+          "benchmark_pass": "flops",
+          "efficiency/process_wall_s": 47.91063800800475,
+          "efficiency/gpu_board_energy_wh": 2.439266122032975,
+          "accuracy/mean_accuracy_pct": 96.5,
+          "flops/supported_ops_total": 562696180049887
+        },
+        "artifacts": [
+          {
+            "name": "cl-efficiency-20261006T182644Z-4087919-ease-flops:v0",
+            "state": "COMMITTED",
+            "type": "cl-efficiency"
+          }
+        ],
+        "artifact_metrics_match_local": {
+          "model": true,
+          "pass": true,
+          "accuracy": true,
+          "metrics": true,
+          "phases": true,
+          "model_snapshots": true,
+          "data_snapshots": true,
+          "precision": true,
+          "checkpoint_file": true,
+          "checkpoint_sha256": true,
+          "execution_source_sha256": true,
+          "structural_checks": true,
+          "initial_frozen_backbone_sha256": true,
+          "final_frozen_backbone_sha256": true,
+          "prototype_adapter_image_pairs": true,
+          "flops": true
+        },
+        "artifact_file_hash_match_local": {
+          "spec.json": true,
+          "task1_predictions.npz": true,
+          "telemetry.csv": true,
+          "phases.json": true
+        },
+        "suite_slack_all_sent": true,
+        "verified": true
+      }
+    ],
+    "all_verified": true
+  },
+  "independent_audit_file": "environment/efficiency_independent_audit.json",
+  "measurement_scope": {
+    "time": "Recorder process window includes startup/import, native W&B initialization, training, prototype completion, evaluation, audits and local output I/O; excludes final W&B artifact upload/finish.",
+    "energy": "GPU1 board sensor only; not CPU/RAM/whole-machine. Three measurement runs aggregate; profiler run excluded.",
+    "memory": "CUDA allocated/reserved and entire device sensor memory differ. Process-tree RSS sums shared pages repeatedly.",
+    "flops": "Separate diagnostic supported operators across initialization/native train forward/backward/optimizer, prototypes, evaluation and audits. Partial count, no phase attribution, not training-only or per-image FLOPs.",
+    "repeat": "Same seed and weights in new worker processes; median/min/max describe execution costs, not across-seed accuracy variation. Shared caches already populated.",
+    "validation": "Eight structural checks pass per run. 1epoch accuracy does not use20epoch1.5/3.0pp gate. Existing two-task acceptance remains distinct;3+tasks untested."
+  },
+  "local_merge": {
+    "authorized": true,
+    "target": "codex/cl-foundation",
+    "push_authorized": false,
+    "status": "code_fast_forward_completed",
+    "from_commit": "607703b",
+    "validated_code_commit": "49897a31e72cff4390a54d8e896ff495e2d987f5",
+    "additional_report_commit_pending": true
+  },
+  "additional_algorithms_executed": false,
+  "tiny_small_executed": false,
+  "paper_reproduction_executed": false,
+  "wandb_summary_run": {
+    "url": "https://wandb.ai/laymond1/cl-efficiency/runs/q61iouic",
+    "report_only": true,
+    "experiment_runs": 4,
+    "new_training": false
+  }
+}

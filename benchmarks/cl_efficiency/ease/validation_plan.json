@@ -29,9 +29,9 @@
       "checkpoint_tag": "vit_base_patch16_224.augreg_in21k_ft_in1k",
       "adapter_parameters_per_task_estimate": 1189632,
       "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
-      "executed": false,
+      "executed": true,
       "validation_executed": true,
-      "efficiency_executed": false
+      "efficiency_executed": true
     },
     {
       "name": "small_fixed64",
@@ -220,18 +220,28 @@
     "accuracy_is_paper_reproduction": false,
     "approved_on": "2026-10-07",
     "approved_by": "user",
-    "runtime_status": "authorized_preparing_base_pilot",
+    "runtime_status": "completed",
     "initial_variant": "base_fixed64",
     "measurement_repeats": 3,
     "flops_runs": 1,
     "repeat_policy": "Three fresh-process measurement runs with seed1993, then one separate FLOPs pass with the same seed/config; median and min/max report only measurement observations.",
     "execution_scope": "EASE Base64 only; first task, one epoch; after successful measurements and logging verification, local merge into codex/cl-foundation; no remote push.",
-    "precision": "FP32, no autocast, CUDA matmul TF32 off; cuDNN deterministic and benchmark disabled, matched native acceptance.",
+    "precision": "FP32 parameters, no autocast, CUDA matmul TF32 off; cuDNN TF32 allowed, deterministic=True, benchmark=False, matched native acceptance. This is not a claim of strict FP32 for every operator.",
     "accuracy_policy": "One-epoch pilot accuracy is recorded; twenty-epoch reference margins are not applied. Non-finite or structurally invalid behavior fails.",
     "merge_authorized": true,
-    "push_authorized": false
+    "push_authorized": false,
+    "pilot_status": "pass",
+    "completed_on": "2026-10-07",
+    "measurement_runs_completed": 3,
+    "flops_runs_completed": 1,
+    "result_summary": "efficiency_pilot_results.json",
+    "result_report": "efficiency_pilot_report.md",
+    "wandb_readback": "environment/wandb_efficiency_readback.json",
+    "independent_audit": "environment/efficiency_independent_audit.json",
+    "remote_logging_verified": true,
+    "slack_delivery_verified": true
   },
-  "efficiency_experiment_executed": false,
+  "efficiency_experiment_executed": true,
   "native_smoke": {
     "training_authorized": true,
     "runtime_status": "completed",
@@ -245,10 +255,15 @@
     "Completed: W&B finished/COMMITTED artifact readback and Slack delivery statuses verified."
   ],
   "remaining_steps": [
-    "Decide first-task/one-epoch efficiency pilot scope and separate FLOPs pass.",
-    "Review local codex/ease changes and decide merge timing; no merge performed in this stage.",
-    "Tiny/Small and ratio-aligned adapter experiments in a later approved stage.",
-    "Paper reproduction and BudgetCL/aL-SAR budget comparisons in later stages."
+    "Choose the next approved scope: Tiny/Small comparison or other CL-method efficiency pilots.",
+    "Pin Tiny/Small checkpoint files/hashes and approve their validation/efficiency scope before training.",
+    "Additional seeds, whole-sequence paper reproduction and BudgetCL/aL-SAR budget comparisons remain later stages; no remote push."
   ],
-  "variant_execution_tracking": "For prepared variants, executed/efficiency_executed track the unexecuted efficiency experiment; validation_executed separately records Base first-two-task acceptance."
+  "variant_execution_tracking": "executed/efficiency_executed record completed efficiency experiments: Base64 only. validation_executed separately records the Base first-two-task acceptance. Freshly generated dry-run plans remain experiment_executed=false because preparation does not launch an experiment.",
+  "local_merge": {
+    "status": "completed",
+    "target": "codex/cl-foundation",
+    "execution_source_commit": "49897a3",
+    "remote_push_executed": false
+  }
 }

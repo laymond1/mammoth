@@ -1,6 +1,32 @@
 # EASE 검증 기록
 
-최신 실제 실행과 검증은 [Native 검증 보고서](native_validation_report.md)를 참고합니다. [기존 실행 보고서](execution_report.md)는 smoke와 공식 기준선의 이력입니다. 아래 이전 단계 기록은 각 단계 당시의 승인 범위와 결과를 보존합니다.
+최신 효율성 실행은 [Pilot 보고서](efficiency_pilot_report.md), 구현 검증은 [Native 검증 보고서](native_validation_report.md)를 참고합니다. [기존 실행 보고서](execution_report.md)는 smoke와 공식 기준선의 이력입니다. 아래 이전 단계 기록은 각 단계 당시의 승인 범위와 결과를 보존합니다.
+
+## 2026-10-07 효율성 pilot와 로컬 병합
+
+사용자가 승인한 EASE ViT-B/16·adapter64만 GPU1에서 실행했습니다. `seq-cifar100-224`의 첫 태스크, 1 epoch, batch64, workers4, seed1993으로 새 프로세스 측정 3회와 별도 부분 FLOPs 진단 1회를 완료했습니다. 네 실행 모두 exit0·completed, 정확도965/1000=96.50%, 여덟 구조 검사 통과입니다. 전체 관측 시간 중앙값29.7629초·CUDA peak allocated5760.5054MiB·GPU 보드 에너지 중앙값2.4432Wh입니다. 진단의 지원 연산 합계562696180049887 FLOPs이며, 이 실행의 시간·메모리·에너지는 측정3회의 통계에 포함하지 않습니다.
+
+실행 전 EASE worktree에서 아래 focused suite는 **295 passed in5.67s**였습니다. 실제 네 실행은 추가 smoke 역할도 수행했습니다.
+
+```bash
+CUDA_VISIBLE_DEVICES='' uv run --no-sync python -m pytest tests/test_ease_efficiency.py tests/test_ease_acceptance.py tests/test_ease_execution.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_prepare_ease.py tests/test_cl_efficiency.py tests/test_cl_runtime.py -q --tb=short
+uv run --no-sync python scripts/run_ease_efficiency.py --execute
+python3 -m py_compile scripts/benchmark_cl.py scripts/run_ease_efficiency.py tests/test_cl_efficiency.py tests/test_ease_efficiency.py
+git diff --check
+```
+
+[독립 감사](environment/efficiency_independent_audit.json)에서 raw 데이터/source/사전학습 가중치 hash, frozen PTM hash·finite 근거,79updates·5000train·5000prototype·1000eval, NPZ 정확도와 모든 phase/전체 telemetry 에너지 적분을 확인했습니다. 세 측정만으로 재계산한 median/min/max도 동일합니다. 이번 pilot은 full .pt를 저장하지 않았으므로 저장 tensor 직접 재검사 대신 실행 중 검사와 hash 증거를 따릅니다. 같은 seed의 반복 비용 측정이며20-epoch 정확도 허용폭, forgetting이나 seed간 변동을 평가하지 않습니다.
+
+[W&B 네 실행 확인](environment/wandb_efficiency_readback.json)은 finished/COMMITTED 상태, 원격 metrics 일치와 spec·NPZ·telemetry·phase파일의 정확한 SHA256 일치를 기록합니다. 모든 suite의 Slack 요청 상태는 sent입니다. [집계 W&B](https://wandb.ai/laymond1/cl-efficiency/runs/q61iouic)는 기존 결과만 저장한 report-only 기록이며 추가 실험이 아닙니다. [집계 서버 확인](environment/wandb_efficiency_summary_readback.json)에서 artifact5개파일의 정확한 hash 일치를 확인했습니다. 첫 dashboard 검사는 float에 완전 일치를 요구해 실패했으나, 실제 차이는 최대5.684e-14였습니다. API 재조회에서 float에만 relative/absolute1e-12를 적용해 모두 통과했고 artifact검증은 정확한 bytes 비교를 유지했습니다.
+
+모델/worker/orchestrator source를 측정 도중 변경하지 않았습니다. 실행 commit49897a3과 source hashes는 원본 로그와 [집계 JSON](efficiency_pilot_results.json)에 보존했습니다. 완료·저장·독립 감사 확인 후 깨끗한 `codex/cl-foundation`의607703b를49897a3으로 fast-forward 병합했습니다. 집계 JSON의 report-commit pending 값은 업로드 시점의 이력이며, 결과 문서는 이후 별도 커밋으로 반영합니다. 원격 push는 하지 않습니다.
+
+Foundation worktree의 이전 Miniconda Python3.12.2 환경을 아래 명령으로 검증한 managed Python3.12.15·lock 의존성에 맞췄습니다. 공유 캐시의 기존 파일로 오프라인 동기화했으며 데이터/가중치 다운로드나 추가 학습은 하지 않았습니다.
+
+```bash
+git merge --ff-only codex/ease
+XDG_CACHE_HOME=/mnt/sdab1/userHome/wslim/.cache uv sync --locked --offline --python /mnt/sdab1/userHome/wslim/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12 --group dev --extra extra
+```
 
 ## 2026-10-07 Native 첫 2개 태스크 검증 완료
 

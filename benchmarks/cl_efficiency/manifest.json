@@ -453,9 +453,9 @@
         "ease_pretrain_type": "in21k_ft_in1k",
         "adapter_size": 64
       },
-      "status": "native_two_task_acceptance_passed",
+      "status": "native_two_task_and_base_efficiency_passed",
       "requirements": [
-        "AugReg IN21K -> IN1K fine-tuned ViT weights; Base64 seed1993 native first-two-task acceptance passed; Tiny/Small and efficiency pilot not executed"
+        "AugReg IN21K -> IN1K fine-tuned ViT weights; Base64 seed1993 native first-two-task acceptance passed; first-task efficiency completed: three measurements and one partial FLOPs diagnostic; Tiny/Small not executed"
       ]
     },
     {

@@ -66,7 +66,7 @@ Task2 모델의 등록 파라미터는 **88185601개 / 352742404 bytes**, 등록
 ## 로컬·W&B·Slack과 검증
 
 - [Native validation W&B](https://wandb.ai/laymond1/cl-efficiency/runs/n3nlg2ah): `finished`, artifact `ease-native-validation-20261006T174313Z:v0`는 `COMMITTED`.
-- [JSON 결과](native_validation_results.json), [네 지표 CSV](native_validation_results.csv), 로컬 [run 폴더](runs/ease-native-validation-20261006T174313Z/). Full checkpoints는 로컬에 저장하고 metrics·예측·telemetry·phase·acceptance는 W&B artifact에 저장했습니다.
+- [JSON 결과](native_validation_results.json), [네 지표 CSV](native_validation_results.csv), 로컬 [run 폴더](/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease/benchmarks/cl_efficiency/ease/runs/ease-native-validation-20261006T174313Z/). Full checkpoints는 EASE worktree의 ignored run 폴더에 저장하고 metrics·예측·telemetry·phase·acceptance는 W&B artifact에 저장했습니다. Git 병합은 이 원시 폴더를 복사하지 않습니다.
 - [W&B 서버 조회 기록](environment/wandb_native_readback.json): 원격 artifact의 정확도·epoch·자원 지표·데이터 fingerprint·동결 audit·판정·정밀도와 실행 spec가 로컬과 일치합니다.
 - Slack 시작·Task1·Task2·종료 알림의 요청 상태가 모두 `sent`입니다. Webhook 요청 성공을 확인한 것이며 채널 열람 여부는 측정하지 않습니다. 비밀값은 보고서에 저장하지 않았습니다.
 - Focused tests **239 passed**와 실제 native 실행 exit0. 실제 명령과 후속 확인은 [checks.md](checks.md)에 기록합니다.
