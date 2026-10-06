@@ -29,7 +29,9 @@
       "checkpoint_tag": "vit_base_patch16_224.augreg_in21k_ft_in1k",
       "adapter_parameters_per_task_estimate": 1189632,
       "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
-      "executed": false
+      "executed": false,
+      "validation_executed": true,
+      "efficiency_executed": false
     },
     {
       "name": "small_fixed64",
@@ -41,7 +43,9 @@
       "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
       "adapter_parameters_per_task_estimate": 595200,
       "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
-      "executed": false
+      "executed": false,
+      "validation_executed": false,
+      "efficiency_executed": false
     },
     {
       "name": "tiny_fixed64",
@@ -53,7 +57,9 @@
       "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
       "adapter_parameters_per_task_estimate": 297984,
       "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
-      "executed": false
+      "executed": false,
+      "validation_executed": false,
+      "efficiency_executed": false
     },
     {
       "name": "small_relative32",
@@ -65,7 +71,9 @@
       "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
       "adapter_parameters_per_task_estimate": 299904,
       "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
-      "executed": false
+      "executed": false,
+      "validation_executed": false,
+      "efficiency_executed": false
     },
     {
       "name": "tiny_relative16",
@@ -77,7 +85,9 @@
       "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
       "adapter_parameters_per_task_estimate": 76224,
       "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
-      "executed": false
+      "executed": false,
+      "validation_executed": false,
+      "efficiency_executed": false
     }
   ],
   "validation": {
@@ -97,7 +107,7 @@
     "noise_rate": 0,
     "labels": "fully_labeled",
     "initial_variant": "base_fixed64",
-    "training_authorized": false,
+    "training_authorized": true,
     "paper_reproduction": false,
     "official_config_differences": [
       "Official CIFAR config uses 5 initial classes and 5-class increments; matched implementation check uses the agreed 10-class split.",
@@ -112,10 +122,10 @@
       "new_class_accuracy",
       "prototype_shapes_and_adapter_count"
     ],
-    "repeat_policy": "Start with matched seed 1993; expand to 3 seeds when differences or uncertainty justify it.",
+    "repeat_policy": "Matched seed1993 completed and passed every metric and structural check. No additional seed is required for this implementation acceptance. Single-seed results do not estimate across-seed variation; paper reproduction may use additional matched seeds in a later stage.",
     "accuracy_margin_pp": 1.5,
     "margin_policy": "User-confirmed: each of four accuracy metrics passes at <=1.5pp drop, requires review at >1.5pp and <=3.0pp, and fails at >3.0pp. Any structural failure is a failure. Fail overrides review; review overrides pass. Both review and fail block merging and advancement until resolved.",
-    "runtime_status": "native_smoke_passed_two_task_accuracy_not_executed",
+    "runtime_status": "native_two_task_acceptance_passed",
     "accuracy_review_limit_pp": 3.0,
     "accuracy_policy": {
       "confirmed_on": "2026-10-07",
@@ -182,7 +192,13 @@
       ],
       "comparison_precision": "Use correct/sample counts or unrounded accuracy; do not classify from display-rounded percentages.",
       "basis": "User-selected operational margins, not a statistical tolerance inferred from the single reference seed."
-    }
+    },
+    "seed_policy_confirmed": true,
+    "execution_scope": "native first two tasks and result reporting only; no efficiency pilot, Tiny/Small training or merge",
+    "acceptance_status": "pass",
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/n3nlg2ah",
+    "result_summary": "native_validation_results.json",
+    "result_report": "native_validation_report.md"
   },
   "efficiency": {
     "dataset": "seq-cifar100-224",
@@ -212,14 +228,15 @@
     "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/s12v4g1o"
   },
   "before_port_acceptance": [
-    "Accuracy policy is fixed in validation.accuracy_policy. Decide the seed repetition and execution scope before starting native acceptance.",
-    "Authorize the native first-two-task acceptance run as a separate stage.",
-    "Use the pinned Base checkpoint and the matched class/sample/transform/loader protocol."
+    "Completed: native seed1993 first-two-task protocol and the confirmed 1.5/3.0pp policy.",
+    "Completed: pinned Base checkpoint, matched raw data, frozen backbone and old adapters verified.",
+    "Completed: W&B finished/COMMITTED artifact readback and Slack delivery statuses verified."
   ],
   "remaining_steps": [
-    "Native two-task accuracy acceptance",
-    "One-task/one-epoch efficiency pilot with separate FLOPs pass",
-    "Tiny/Small and ratio-aligned adapter experiments",
-    "Merge after native acceptance"
-  ]
+    "Decide first-task/one-epoch efficiency pilot scope and separate FLOPs pass.",
+    "Review local codex/ease changes and decide merge timing; no merge performed in this stage.",
+    "Tiny/Small and ratio-aligned adapter experiments in a later approved stage.",
+    "Paper reproduction and BudgetCL/aL-SAR budget comparisons in later stages."
+  ],
+  "variant_execution_tracking": "For prepared variants, executed/efficiency_executed track the unexecuted efficiency experiment; validation_executed separately records Base first-two-task acceptance."
 }
