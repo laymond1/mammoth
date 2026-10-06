@@ -4,17 +4,25 @@
 
 ## 검토 자료
 
-- [현재 70개 모델의 특징과 장단점](algorithms.md)
+- [현재 71개 모델의 특징과 장단점](algorithms.md)
 - [추가 검토할 14개 항목과 우선순위: 방법 13개·예산 프로토콜 1개](recommendations.md)
 - [BudgetCL·aL-SAR의 추가 가능성 및 이식 범위](budgeted_cl_review.md)
 - [공통 환경·worktree 사용법과 10월 6일 연결 검증](foundation.md)
+- [EASE 구현 범위·학습 없는 검증·다음 실행 단계](ease/README.md)
+- [ViT Base·Small·Tiny 및 adapter 비교 설정](ease/tiny_small_review.md)
 - [표 형태의 전체 목록](inventory.csv)
 - [모델별 데이터셋과 인자 및 외부 요구사항](manifest.json)
 - [생성된 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)
 
-70개는 소스의 모델 엔트리 수입니다. 정적 추론 기준선 3개와 Joint 기준선 2개를 포함하며, 학습 방법과 그 변형은 65개입니다. CaSpeR·CSCCT·LiDER·STAR 변형도 독립 실행 엔트리로 기록합니다. STAR 정규화 변형과 STARPrompt는 서로 다른 방법입니다.
+71개는 EASE를 추가한 소스의 모델 엔트리 수입니다. 정적 추론 기준선 3개와 Joint 기준선 2개를 포함하며, 학습 방법과 그 변형은 66개입니다. CaSpeR·CSCCT·LiDER·STAR 변형도 독립 실행 엔트리로 기록합니다. STAR 정규화 변형과 STARPrompt는 서로 다른 방법입니다.
 
-## 현재 준비 상태 (10월 6일)
+## 현재 준비 상태 (10월 7일)
+
+독립 worktree `.worktrees/ease`, 브랜치 `codex/ease`에 EASE의 기본 replay-free 경로를 구현했습니다. 첫 2개 태스크의 구현 검증과 첫 1개 태스크의 효율성 측정 설정을 분리했으며, 세 크기 모두 **AugReg IN21K → IN1K fine-tuned**, 공통 adapter 64 및 Tiny16·Small32·Base64의 비율 정렬 비교를 준비했습니다. **학습·ViT 이미지 추론·정확도/효율성 측정은 실행하지 않았고, 공통 기반 브랜치에 합치지 않았습니다.**
+
+현재 manifest는 71개, 실행 준비 66개·보류 5개입니다. 준비 파일은 측정 결과가 아닙니다. EASE의 실제 forward/backward와 동일 조건 공식 코드 대비 정확도 검증이 통과해야 병합할 수 있습니다. 자세한 검증 이력과 남은 단계는 [EASE 문서](ease/README.md)를 참고합니다. 아래 10월 1일·6일 기록은 당시의 상태입니다.
+
+## 공통 기반 준비 당시 상태 (10월 6일)
 
 공통 기반 `codex/cl-foundation`에 Python 3.12/uv lock, 물리 GPU **1**, W&B **laymond1/cl-efficiency**, 공유 데이터·캐시 경로 및 개인 설정 로더를 준비했습니다. CUDA 초기화·의존성 import·공유 경로 접근을 확인했고, W&B 연결 run의 서버 summary와 artifact 업로드, Slack 테스트 메시지 전달을 검증했습니다. 환경 상세는 로컬에만 저장하며 외부 연결 테스트에는 합성 표식만 전송했습니다.
 

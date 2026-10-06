@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "prepared_on": "2026-10-07",
+  "implementation_branch": "codex/ease",
+  "experiment_executed": false,
+  "training_executed": false,
+  "image_inference_executed": false,
+  "reference": {
+    "repository": "https://github.com/sun-hailong/CVPR24-Ease",
+    "commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+    "config": "exps/ease_cifar.json",
+    "checkpoint_policy": "Override any implicit reference alias with the exact same resolved pretrained file/hash used by native EASE. Do not accept an IN21K-only checkpoint as the selected IN21K->IN1K reference.",
+    "checkpoint_file": null,
+    "checkpoint_sha256": null
+  },
+  "selected_pretrain_family": "augreg_in21k_ft_in1k",
+  "variants": [
+    {
+      "name": "base_fixed64",
+      "vit_size": "base",
+      "feature_dim": 768,
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_size": 64,
+      "checkpoint_tag": "vit_base_patch16_224.augreg_in21k_ft_in1k",
+      "adapter_parameters_per_task_estimate": 1189632,
+      "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
+      "executed": false
+    },
+    {
+      "name": "small_fixed64",
+      "vit_size": "small",
+      "feature_dim": 384,
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_size": 64,
+      "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+      "adapter_parameters_per_task_estimate": 595200,
+      "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
+      "executed": false
+    },
+    {
+      "name": "tiny_fixed64",
+      "vit_size": "tiny",
+      "feature_dim": 192,
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_size": 64,
+      "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+      "adapter_parameters_per_task_estimate": 297984,
+      "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
+      "executed": false
+    },
+    {
+      "name": "small_relative32",
+      "vit_size": "small",
+      "feature_dim": 384,
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_size": 32,
+      "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+      "adapter_parameters_per_task_estimate": 299904,
+      "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
+      "executed": false
+    },
+    {
+      "name": "tiny_relative16",
+      "vit_size": "tiny",
+      "feature_dim": 192,
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_size": 16,
+      "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+      "adapter_parameters_per_task_estimate": 76224,
+      "estimate_excludes": "proxy head, classifier prototype buffers and frozen backbone",
+      "executed": false
+    }
+  ],
+  "validation": {
+    "dataset": "seq-cifar100-224",
+    "dataset_config": "ease",
+    "tasks": 2,
+    "classes_per_task": 10,
+    "class_order": "0..99 (permute_classes=0)",
+    "seed": 1993,
+    "n_epochs_per_task": 20,
+    "batch_size": 48,
+    "optimizer": "sgd",
+    "lr": 0.025,
+    "momentum": 0.9,
+    "weight_decay": 0.0005,
+    "scheduler": "cosine",
+    "noise_rate": 0,
+    "labels": "fully_labeled",
+    "initial_variant": "base_fixed64",
+    "training_authorized": false,
+    "paper_reproduction": false,
+    "official_config_differences": [
+      "Official CIFAR config uses 5 initial classes and 5-class increments; matched implementation check uses the agreed 10-class split.",
+      "Official class shuffle is disabled for the matched implementation check.",
+      "Pretrained checkpoint is pinned to the selected AugReg IN21K->IN1K family rather than inferred from an alias."
+    ],
+    "metrics": [
+      "task1_class_il_accuracy",
+      "task2_class_il_accuracy",
+      "seen_class_class_il_accuracy",
+      "old_class_accuracy",
+      "new_class_accuracy",
+      "prototype_shapes_and_adapter_count"
+    ],
+    "repeat_policy": "Start with matched seed 1993; expand to 3 seeds when differences or uncertainty justify it.",
+    "accuracy_margin_pp": null,
+    "margin_policy": "Measure the official reference variability and freeze the acceptable margin before evaluating the port for acceptance. Below-threshold performance blocks merging; high training loss alone is not a sufficient diagnostic.",
+    "runtime_status": "not_executed"
+  },
+  "efficiency": {
+    "dataset": "seq-cifar100-224",
+    "dataset_config": "ease",
+    "tasks": 1,
+    "classes_per_task": 10,
+    "n_epochs": 1,
+    "batch_size": 64,
+    "seed": 1993,
+    "num_workers": 4,
+    "permute_classes": false,
+    "flops": "paired diagnostic pass kept separate from measurement",
+    "logging": {
+      "entity": "laymond1",
+      "project": "cl-efficiency",
+      "slack": "existing configured webhook"
+    },
+    "training_authorized": false,
+    "accuracy_is_paper_reproduction": false
+  },
+  "before_any_training": [
+    "Approve training separately.",
+    "Resolve and record the identical Base checkpoint file/hash for native and official implementations.",
+    "Pin reference environment versions and the exact class/sample/transform mapping.",
+    "Calibrate and freeze the acceptance margin before examining candidate accuracy.",
+    "Validate image forward/backward paths; current checks are metadata, mocks and synthetic feature arithmetic only."
+  ]
+}

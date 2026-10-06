@@ -1,0 +1,30 @@
+# Same CIFAR100 classes as the common pilot; EASE reference preprocessing.
+N_TASKS: 10
+N_CLASSES_PER_TASK: 10
+N_CLASSES: 100
+SIZE: [224, 224]
+MEAN: [0, 0, 0]
+STD: [1, 1, 1]
+TRANSFORM:
+  - RandomResizedCrop:
+      size: 224
+      scale: [0.05, 1.0]
+      ratio: [0.75, 1.3333333333333333]
+  - RandomHorizontalFlip:
+      p: 0.5
+  - ToTensor
+  - Normalize:
+      mean: [0, 0, 0]
+      std: [1, 1, 1]
+TEST_TRANSFORM:
+  - Resize:
+      size: 256
+      interpolation: 3
+  - CenterCrop:
+      size: 224
+  - ToTensor
+  - Normalize:
+      mean: [0, 0, 0]
+      std: [1, 1, 1]
+n_epochs: 20
+batch_size: 48

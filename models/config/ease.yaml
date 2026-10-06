@@ -1,0 +1,20 @@
+default:
+  backbone: ease-vit
+  vit_size: base
+  ease_pretrain_type: in21k_ft_in1k
+  pretrained: true
+  adapter_size: 64
+  ease_alpha: 0.1
+  ease_recalc_sim: true
+  ease_use_reweight: true
+  dataset_config: ease
+  optimizer: sgd
+  lr: 0.025
+  optim_mom: 0.9
+  optim_wd: 0.0005
+  lr_scheduler: cosine
+  n_epochs: 20
+  batch_size: 48
+  enable_other_metrics: false
+seq-cifar100-224:
+  dataset_config: ease

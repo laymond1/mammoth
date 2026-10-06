@@ -431,6 +431,34 @@
       "requirements": []
     },
     {
+      "model": "ease",
+      "source": "models/ease.py",
+      "line": 21,
+      "category": "확장형 Adapter",
+      "feature": "Frozen ViT의 태스크별 adapter와 semantic-guided prototype 보완",
+      "benefit": "원본 replay 없이 과거 adapter 보존; Tiny/Small/Base 지원",
+      "drawback": "태스크별 adapter·prototype 저장 및 transformer 반복 추론 증가; 실제 학습·정확도 미검증",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.025,
+        "backbone": "ease-vit",
+        "dataset_config": "ease",
+        "vit_size": "base",
+        "ease_pretrain_type": "in21k_ft_in1k",
+        "adapter_size": 64
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "AugReg IN21K -> IN1K fine-tuned ViT weights; implementation-validation training deferred"
+      ]
+    },
+    {
       "model": "er",
       "source": "models/er.py",
       "line": 23,
