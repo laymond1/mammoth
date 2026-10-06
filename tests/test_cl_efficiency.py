@@ -418,6 +418,276 @@ def test_worker_preserves_native_hooks_and_saves_before_wandb_finish(tmp_path, m
     assert wandb_module.finish is native_finish
     native_finish.assert_called_once_with(exit_code=int(fails))
     wandb_module.run.log_artifact.assert_called_once_with(artifact)
+    wandb_module.run.log_artifact.return_value.wait.assert_called_once_with()
     wandb_module.log.assert_called_once()
     if not fails:
         assert record['accuracy']['mean_accuracy_pct'] == 75.
+
+
+def test_ease_dry_run_does_not_hash_weights_or_initialize_a_model(tmp_path, monkeypatch):
+    pin = Mock(side_effect=AssertionError('Weight access requires execution'))
+    monkeypatch.setattr(benchmark_cl, 'ease_execution_pin', pin)
+    monkeypatch.setattr(benchmark_cl, 'readiness', lambda *args: {'experiment_executed': False})
+    monkeypatch.setattr(benchmark_cl, 'configure_environment', lambda: {})
+    assert benchmark_cl.main(['--models', 'ease', '--output', str(tmp_path)]) == 0
+    assert json.loads((tmp_path / 'plan.json').read_text())['experiment_executed'] is False
+    pin.assert_not_called()
+
+
+@pytest.fixture
+def ease_pin_files(tmp_path, monkeypatch):
+    """Small public stand-ins, without accessing the shared weight or dataset cache."""
+    monkeypatch.setattr(benchmark_cl, 'ROOT', tmp_path)
+    for name in ('scripts/benchmark_cl.py', 'scripts/cl_efficiency.py', 'main.py', 'utils/training.py',
+                 'models/ease.py', 'backbone/ease_vit.py', 'models/ease_utils/vit.py',
+                 'models/ease_utils/network.py', 'models/ease_utils/classifier.py',
+                 'datasets/configs/seq-cifar100-224/ease.yaml', 'uv.lock'):
+        source = tmp_path / name
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text('public test source')
+    directory = tmp_path / 'benchmarks/cl_efficiency/ease'
+    directory.mkdir(parents=True)
+    checkpoint = tmp_path / 'pinned.npz'
+    checkpoint.write_bytes(b'public mock checkpoint bytes; never loaded')
+    digest = benchmark_cl.file_hash(checkpoint)
+    official = {'official_reference': {'data_snapshots': {'task1_train': {'n_samples': 5000}, 'task1_test': {'n_samples': 1000}}}}
+    native = {'native_validation': {'status': 'completed', 'acceptance_status': 'pass'},
+              'acceptance': {'status': 'pass'}, 'checkpoint_sha256': digest}
+    (directory / 'official.json').write_text(json.dumps(official))
+    (directory / 'native.json').write_text(json.dumps(native))
+    plan = {'efficiency': {'training_authorized': True},
+            'reference': {'checkpoint_file': str(checkpoint), 'checkpoint_sha256': digest, 'result_summary': 'official.json'},
+            'validation': {'result_summary': 'native.json'}}
+    (directory / 'validation_plan.json').write_text(json.dumps(plan))
+    return SimpleNamespace(directory=directory, checkpoint=checkpoint, plan=plan, native=native)
+
+
+def test_ease_pin_requires_accepted_validation_and_unchanged_local_weights(ease_pin_files):
+    files = ease_pin_files
+    pin = benchmark_cl.ease_execution_pin()
+    assert pin['checkpoint_sha256'] == benchmark_cl.file_hash(files.checkpoint)
+    assert len(pin['execution_source_sha256']) == 11
+    assert pin['reference_data_snapshots']['task1_train']['n_samples'] == 5000
+    files.native['acceptance']['status'] = 'fail'
+    (files.directory / 'native.json').write_text(json.dumps(files.native))
+    with pytest.raises(ValueError, match='accepted native validation'):
+        benchmark_cl.ease_execution_pin()
+    files.native['acceptance']['status'] = 'pass'
+    (files.directory / 'native.json').write_text(json.dumps(files.native))
+    files.checkpoint.write_bytes(b'changed public mock checkpoint')
+    with pytest.raises(ValueError, match='SHA256'):
+        benchmark_cl.ease_execution_pin()
+
+
+def test_ease_pin_rejects_unauthorized_execution(ease_pin_files):
+    files = ease_pin_files
+    files.plan['efficiency']['training_authorized'] = False
+    (files.directory / 'validation_plan.json').write_text(json.dumps(files.plan))
+    with pytest.raises(ValueError, match='not been authorized'):
+        benchmark_cl.ease_execution_pin()
+
+
+@pytest.mark.parametrize('command', [[], ['--code_optimization', '0'], ['--code_optimization=0']])
+def test_ease_pinned_cli_accepts_only_the_explicit_value(command):
+    benchmark_cl._pinned_argument(command, '--code_optimization', '0')
+    assert command in (['--code_optimization', '0'], ['--code_optimization=0'])
+
+
+@pytest.mark.parametrize('command', [['--code_optimization', '1'], ['--code_optimization=2'], ['--code_optimization']])
+def test_ease_pinned_cli_rejects_conflicts(command):
+    with pytest.raises(ValueError, match='requires'):
+        benchmark_cl._pinned_argument(command, '--code_optimization', '0')
+
+
+def test_ease_precision_matches_native_validation_without_initializing_cuda():
+    torch = SimpleNamespace(float32='float32', set_default_dtype=Mock(), set_float32_matmul_precision=Mock(),
+                            get_float32_matmul_precision=lambda: 'highest',
+                            backends=SimpleNamespace(cuda=SimpleNamespace(matmul=SimpleNamespace(allow_tf32=True)),
+                                                     cudnn=SimpleNamespace(allow_tf32=False, deterministic=False, benchmark=True)))
+    result = benchmark_cl._configure_ease_precision(torch)
+    torch.set_default_dtype.assert_called_once_with('float32')
+    torch.set_float32_matmul_precision.assert_called_once_with('highest')
+    assert result['tf32_allowed'] is False
+    assert result['cudnn_tf32_allowed'] is True
+    assert result['cudnn_deterministic'] is True and result['cudnn_benchmark'] is False
+
+
+@pytest.fixture
+def ease_audit(tmp_path):
+    """Static CPU tensors only: no model forward/backward, optimizer, or real data."""
+    import numpy as np
+    import torch
+    from torch.utils.data import SequentialSampler
+    from scripts.ease_reference_utils import dataset_fingerprint
+
+    backbone = torch.nn.Module()
+    backbone.backbone = torch.nn.Module()
+    backbone.backbone.register_parameter('weight', torch.nn.Parameter(torch.ones(2), requires_grad=False))
+    backbone.register_parameter('adapter', torch.nn.Parameter(torch.ones(1)))
+    backbone.pretrained_loaded, backbone.feature_dim, backbone.num_adapters = True, 768, 1
+    backbone.extract_all = Mock(side_effect=lambda inputs: inputs)
+    net = torch.nn.Module()
+    net.backbone = backbone
+    net.classifier = torch.nn.Module()
+    net.classifier.register_parameter('weight', torch.nn.Parameter(torch.zeros(10, 768), requires_grad=False))
+    net.register_buffer('task_finalized', torch.tensor(True))
+    model = FakeModel()
+    model.net = net
+    model.forward = Mock(side_effect=lambda inputs: inputs)
+    train = SimpleNamespace(data=np.zeros((5000, 1, 1, 3), dtype=np.uint8), targets=np.arange(5000) % 10,
+                            indexes=np.arange(5000), transform='static transform')
+    test = SimpleNamespace(data=np.zeros((1000, 1, 1, 3), dtype=np.uint8), targets=np.arange(1000) % 10,
+                           indexes=np.arange(1000), transform='static transform')
+    dataset = SimpleNamespace(train_loader=SimpleNamespace(dataset=train),
+                              test_loaders=[SimpleNamespace(dataset=test, sampler=SequentialSampler(range(1000)), drop_last=False)])
+    args = SimpleNamespace(n_epochs=1, batch_size=64, num_workers=4, seed=1993, vit_size='base', adapter_size=64,
+                           ease_pretrain_type='in21k_ft_in1k', dataset_config='ease', code_optimization=0, drop_last=False,
+                           fitting_mode='epochs', permute_classes=False, joint=False, lr=.025, optim_mom=.9, optim_wd=.0005,
+                           optimizer='sgd', lr_scheduler='cosine', scheduler_mode='epoch', eval_epochs=None,
+                           start_from=None, loadcheck=None, ease_checkpoint=str(tmp_path / 'pinned.npz'))
+    metadata = {'checkpoint_file': args.ease_checkpoint, 'accuracy': {'mean_accuracy_pct': 100.},
+                'reference_data_snapshots': {f'task1_{split}': dataset_fingerprint(source.data, source.targets, source.indexes)
+                                            for split, source in (('train', train), ('test', test))}}
+    recorder = Recorder(tmp_path, gpu='cpu')
+    recorder.data_snapshots['first_task'] = {'train': {}, 'test': {}}
+    audit = benchmark_cl.EaseAudit(model, dataset, args, recorder, metadata, torch)
+    audit.args = args
+    return audit
+
+
+def finalize_static_ease_audit(audit):
+    audit.losses = [1.] * 79
+    audit.end_epoch()
+    audit.model.net.backbone.adapter.requires_grad_(False)
+    audit.prototype_examples = 5000
+    audit.end_task()
+    audit.predictions = [audit.dataset.test_loaders[0].dataset.targets.copy()]
+    audit.recorder.steps, audit.recorder.training_examples = 79, 5000
+    audit.recorder.evaluation_examples, audit.recorder.tasks_completed = 1000, 1
+
+
+def test_ease_audit_saves_predictions_and_proves_the_complete_protocol(ease_audit):
+    import numpy as np
+    audit = ease_audit
+    finalize_static_ease_audit(audit)
+    audit.complete()
+    assert len(audit.checks) == 8 and all(audit.checks.values())
+    assert audit.metadata['initial_frozen_backbone_sha256'] == audit.metadata['final_frozen_backbone_sha256']
+    with np.load(audit.recorder.output / 'task1_predictions.npz') as saved:
+        assert saved['predictions'].shape == (1000, 1)
+        assert np.array_equal(saved['predictions'][:, 0], saved['labels'])
+        assert np.array_equal(saved['global_ids'], np.arange(1000))
+
+
+@pytest.mark.parametrize('field,value', [('steps', 78), ('training_examples', 4992), ('evaluation_examples', 999), ('tasks_completed', 0)])
+def test_ease_audit_cannot_accept_a_partial_native_return(ease_audit, field, value):
+    audit = ease_audit
+    finalize_static_ease_audit(audit)
+    setattr(audit.recorder, field, value)
+    with pytest.raises(RuntimeError, match='complete 79-step'):
+        audit.complete()
+    assert audit.checks['training_protocol_complete'] is False
+
+
+@pytest.mark.parametrize('changed', ['raw_image', 'backbone', 'prototype', 'adapter_count', 'finalized'])
+def test_ease_end_task_rejects_corrupted_evidence(ease_audit, changed):
+    import torch
+    audit = ease_audit
+    audit.model.net.backbone.adapter.requires_grad_(False)
+    if changed == 'raw_image':
+        audit.dataset.train_loader.dataset.data[0, 0, 0, 0] = 1
+    elif changed == 'backbone':
+        audit.ptm.weight.data[0] = 2.
+    elif changed == 'prototype':
+        audit.model.net.classifier.weight.data[0, 0] = float('nan')
+    elif changed == 'adapter_count':
+        audit.model.net.backbone.num_adapters = 2
+    else:
+        audit.model.net.task_finalized.fill_(False)
+    with pytest.raises(RuntimeError):
+        audit.end_task()
+    assert audit.checks['training_protocol_complete'] is False
+
+
+@pytest.mark.parametrize('frozen', [False, True])
+def test_ease_epoch_rejects_nonfinite_adapter_or_any_frozen_gradient(ease_audit, frozen):
+    import torch
+    audit = ease_audit
+    if frozen:
+        audit.ptm.weight.grad = torch.zeros_like(audit.ptm.weight)
+    else:
+        audit.model.net.backbone.adapter.grad = torch.full_like(audit.model.net.backbone.adapter, float('nan'))
+    with pytest.raises(RuntimeError, match='Frozen|Non-finite'):
+        audit.end_epoch()
+
+
+def test_ease_audit_checks_effective_args_after_native_configuration(ease_audit):
+    import torch
+    audit = ease_audit
+    audit.args.n_epochs = 20
+    with pytest.raises(ValueError, match='Effective EASE arguments'):
+        benchmark_cl.EaseAudit(audit.model, audit.dataset, audit.args, audit.recorder, audit.metadata, torch)
+
+
+def test_ease_wrapper_captures_existing_calls_and_restores_them(ease_audit):
+    import torch
+    audit = ease_audit
+    original_forward, original_extract = audit.model.forward, audit.model.net.backbone.extract_all
+    end_epoch, end_task = Mock(), Mock()
+    audit.end_epoch, audit.end_task = end_epoch, end_task
+    with benchmark_cl.instrument_ease(audit):
+        with audit.recorder.phase('train_epoch'):
+            assert audit.model.meta_observe([0, 1]) == 3.25
+        with audit.recorder.phase('end_task'):
+            assert audit.model.net.backbone.extract_all([0, 1, 2]) == [0, 1, 2]
+        logits = torch.tensor([[2., 2.], [0., 1.]])
+        with audit.recorder.phase('evaluation'):
+            returned = audit.model.forward(logits)
+            returned.fill_(float('-inf'))  # native task-IL mask must not corrupt captured predictions
+        audit.model.meta_end_epoch()
+        audit.model.meta_end_task(audit.dataset)
+    assert audit.losses == [3.25] and audit.prototype_examples == 3
+    assert audit.predictions[0].tolist() == [0, 1]
+    assert audit.model.forward is original_forward and audit.model.net.backbone.extract_all is original_extract
+    original_forward.assert_called_once()
+    original_extract.assert_called_once()
+    end_epoch.assert_called_once_with()
+    end_task.assert_called_once_with()
+
+
+@pytest.mark.parametrize('failure', ['upload', 'finish', 'missing_run', None])
+def test_wandb_failure_keeps_successful_computation_and_returns_failure(tmp_path, failure):
+    artifact, uploaded, finish = Mock(), Mock(), Mock()
+    if failure == 'upload':
+        uploaded.wait.side_effect = RuntimeError('mock upload failure')
+    if failure == 'finish':
+        finish.side_effect = RuntimeError('mock SDK shutdown failure')
+    run = None if failure == 'missing_run' else SimpleNamespace(summary={}, log_artifact=Mock(return_value=uploaded))
+    wandb = SimpleNamespace(run=run, log=Mock(), Artifact=Mock(return_value=artifact), finish=Mock())
+    record = {'status': 'completed', 'computation_status': 'completed', 'metrics': {}, 'phases': {},
+              'model_snapshots': {}, 'accuracy': {}}
+    (tmp_path / 'task1_predictions.npz').write_bytes(b'public evidence stand-in')
+    spec = {'suite': 'mock-suite', 'model': 'ease', 'pass': 'measurement', 'wandb_mode': 'online'}
+    code = benchmark_cl.finish_worker_logging(tmp_path, spec, record, wandb, finish, 0)
+    assert code == int(failure is not None)
+    assert record['computation_status'] == 'completed'
+    assert record['status'] == ('logging_failed' if failure else 'completed')
+    assert wandb.finish is finish
+    if failure != 'missing_run':
+        uploaded.wait.assert_called_once_with()
+        finish.assert_called_once_with(exit_code=int(failure == 'upload'))
+        artifact.add_file.assert_called_once_with(str(tmp_path / 'task1_predictions.npz'), name='task1_predictions.npz')
+    else:
+        assert record['wandb_logging_status'] == 'run_not_initialized'
+
+
+def test_offline_artifact_never_waits_for_an_online_upload(tmp_path):
+    saved, finish = Mock(), Mock()
+    wandb = SimpleNamespace(run=SimpleNamespace(summary={}, log_artifact=Mock(return_value=saved)), log=Mock(),
+                            Artifact=Mock(return_value=Mock()), finish=Mock())
+    record = {'status': 'completed', 'computation_status': 'completed', 'metrics': {}, 'phases': {},
+              'model_snapshots': {}, 'accuracy': {}}
+    spec = {'suite': 'mock-suite', 'model': 'ease', 'pass': 'measurement', 'wandb_mode': 'offline'}
+    assert benchmark_cl.finish_worker_logging(tmp_path, spec, record, wandb, finish, 0) == 0
+    assert record['wandb_logging_status'] == 'offline_saved'
+    saved.wait.assert_not_called()

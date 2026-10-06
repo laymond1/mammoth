@@ -210,14 +210,26 @@
     "seed": 1993,
     "num_workers": 4,
     "permute_classes": false,
-    "flops": "paired diagnostic pass kept separate from measurement",
+    "flops": "One separate partial-operator diagnostic run after three measurements",
     "logging": {
       "entity": "laymond1",
       "project": "cl-efficiency",
       "slack": "existing configured webhook"
     },
-    "training_authorized": false,
-    "accuracy_is_paper_reproduction": false
+    "training_authorized": true,
+    "accuracy_is_paper_reproduction": false,
+    "approved_on": "2026-10-07",
+    "approved_by": "user",
+    "runtime_status": "authorized_preparing_base_pilot",
+    "initial_variant": "base_fixed64",
+    "measurement_repeats": 3,
+    "flops_runs": 1,
+    "repeat_policy": "Three fresh-process measurement runs with seed1993, then one separate FLOPs pass with the same seed/config; median and min/max report only measurement observations.",
+    "execution_scope": "EASE Base64 only; first task, one epoch; after successful measurements and logging verification, local merge into codex/cl-foundation; no remote push.",
+    "precision": "FP32, no autocast, CUDA matmul TF32 off; cuDNN deterministic and benchmark disabled, matched native acceptance.",
+    "accuracy_policy": "One-epoch pilot accuracy is recorded; twenty-epoch reference margins are not applied. Non-finite or structurally invalid behavior fails.",
+    "merge_authorized": true,
+    "push_authorized": false
   },
   "efficiency_experiment_executed": false,
   "native_smoke": {
