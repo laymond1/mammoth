@@ -1,6 +1,8 @@
 # EASE 실제 실행 보고서 — 2026-10-07
 
-승인한 단계인 환경 안정화, Base checkpoint 고정, 포팅 코드의 최소 forward/backward 점검, 동일 조건 공식 코드의 첫 2개 태스크 기준선을 완료했습니다. 브랜치는 `codex/ease`입니다. 포팅 코드의 두 태스크 정확도 acceptance 평가는 아직 실행하지 않았습니다.
+이 보고서는 공식 기준선과 두 미니배치 smoke를 측정한 당시의 이력입니다. 이후 완료한 Base64·seed1993 native 두 태스크 검증은 [최신 검증 보고서](native_validation_report.md)와 [JSON 결과](native_validation_results.json)를 참고합니다. 아래 공식 수치와 [기존 JSON](execution_results.json)은 당시 기록으로 보존합니다.
+
+당시 승인한 단계인 환경 안정화, Base checkpoint 고정, 포팅 코드의 최소 forward/backward 점검, 동일 조건 공식 코드의 첫 2개 태스크 기준선을 완료했습니다. 브랜치는 `codex/ease`입니다. 이 보고서의 측정 시점에는 포팅 코드의 두 태스크 정확도 acceptance 평가를 아직 실행하지 않았습니다.
 
 ## 결과
 
@@ -57,8 +59,8 @@ Task 1/2의 학습 시간은 각각 268.41/268.31초, prototype pass는 7.01/14.
 
 ## 검증과 다음 결정
 
-Plain imports로 focused tests **197 passed**, 실제 Base smoke와 공식 기준선 모두 exit0입니다. 실행 명령과 상세 검증은 [checks.md](checks.md)에 기록합니다. Native 두 태스크 학습·효율성 pilot·Tiny/Small 학습·추가 reference seeds·병합·push는 수행하지 않았습니다.
+당시 Plain imports로 focused tests **197 passed**, 실제 Base smoke와 공식 기준선 모두 exit0이었습니다. 실행 명령과 상세 검증은 [checks.md](checks.md)에 기록합니다. 이 보고서의 측정 범위에는 Native 두 태스크 학습·효율성 pilot·Tiny/Small 학습·추가 reference seeds·병합·push가 포함되지 않았습니다.
 
 측정 당시에는 허용 accuracy 차이가 미확정이었으므로 위 reference 결과 JSON에는 margin null과 port acceptance 미평가 상태를 기록했습니다. 이후 2026-10-07 사용자 결정으로 각 지표의 하락 1.5%p 이내는 통과, 1.5%p 초과~3.0%p 이내는 추가 점검, 3.0%p 초과는 실패로 확정했습니다. 현재 기준과 지표별 하한은 [EASE 검증 계획](README.md#확정한-정확도-판정-기준-2026-10-07)과 [validation_plan.json](validation_plan.json)에 기록합니다.
 
-단일 seed1993 결과로 seed 간 변동을 추정할 수 없으므로 이 폭은 운영 기준입니다. Seed 반복 정책과 실행 범위를 정한 뒤 포팅 코드를 평가하고, 기준 미달의 원인을 조사합니다. 추가 점검과 실패 상태에서는 병합·효율성 pilot을 진행하지 않습니다. 이 기준선은 원 논문의 5+5 split/class shuffle과 다른 조건이며 논문 성능 재현이 아닙니다.
+단일 seed1993 결과로 seed 간 변동을 추정할 수 없으므로 이 폭은 운영 기준입니다. 당시에는 이 기준으로 포팅 코드의 두 태스크 평가를 다음 단계로 남겼습니다. 이후 검증은 [최신 Native 보고서](native_validation_report.md)에 기록하며, 추가 점검과 실패 상태에서는 병합·효율성 pilot을 진행하지 않는 정책을 유지합니다. 이 기준선은 원 논문의 5+5 split/class shuffle과 다른 조건이며 논문 성능 재현이 아닙니다.

@@ -1,0 +1,5 @@
+metric,task,status,reference_correct,reference_samples,reference_accuracy_pct,native_correct,native_samples,native_accuracy_pct,drop_pp,drop_pp_exact_numerator,drop_pp_exact_denominator
+task1_seen,1,pass,996,1000,99.6,994,1000,99.4,0.2,1,5
+task2_seen,2,pass,1944,2000,97.2,1946,2000,97.3,-0.1,-1,10
+task2_old,2,pass,966,1000,96.6,966,1000,96.6,0.0,0,1
+task2_new,2,pass,978,1000,97.8,980,1000,98.0,-0.2,-1,5

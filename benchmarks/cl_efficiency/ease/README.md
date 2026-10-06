@@ -1,6 +1,6 @@
 # EASE 구현과 실행 준비
 
-2026-10-07, 독립 브랜치 `codex/ease`에서 실제 실행 경로를 점검하고 동일 조건의 공식 코드 기준선을 측정했습니다. 포팅 코드의 두 미니배치 forward/backward와 공식 코드의 첫 2개 태스크를 실행한 결과는 [실행 보고서](execution_report.md)에 기록합니다. 공통 기반 `codex/cl-foundation`에 병합하지 않았으며, 포팅 코드의 첫 2개 태스크 정확도 검증이 통과해야 병합합니다.
+2026-10-07, 독립 브랜치 `codex/ease`에서 EASE Base64·seed1993의 첫 2개 태스크 구현 검증을 완료했습니다. Native 정확도는 Task 1 99.40%, Task 2 전체 97.30%·과거 96.60%·신규 98.00%이며, 네 정확도 지표와 일곱 구조 검사가 모두 통과했습니다. [Native 검증 보고서](native_validation_report.md)와 [JSON 결과](native_validation_results.json)에 기록합니다. [공식 기준선·smoke 보고서](execution_report.md)는 당시 측정 이력으로 보존합니다. Tiny·Small 학습, 효율성 pilot, FLOPs 측정, 공통 기반 `codex/cl-foundation` 병합과 push는 아직 수행하지 않았습니다.
 
 ## 확정한 조건
 
@@ -12,7 +12,7 @@
 - 효율성 pilot: 첫 1 task, 1 epoch, batch64, workers4, measurement와 FLOPs diagnostic pass 분리.
 - 물리 GPU1, entity/project `laymond1/cl-efficiency`, 기존 공유 데이터·캐시와 비공개 Slack 설정을 재사용합니다.
 
-[validation_plan.json](validation_plan.json)에 단계별 승인 상태, 다섯 설정, 동일 조건 reference 정책을 기록했습니다. 이번 승인은 최소 실행 점검과 공식 기준선에 적용됩니다. 포팅 코드의 두 태스크 acceptance 평가와 효율성 pilot은 아직 실행하지 않았습니다. [Tiny·Small 검토](tiny_small_review.md)에 크기별 예상 adapter 저장량과 비교의 한계를 정리했습니다.
+[validation_plan.json](validation_plan.json)에 단계별 승인 상태, 다섯 설정, 동일 조건 reference 정책을 기록합니다. 승인한 Base64의 두 태스크 acceptance 평가는 통과했으며, 효율성 pilot과 Tiny·Small 실험은 아직 실행하지 않았습니다. [Tiny·Small 검토](tiny_small_review.md)에 크기별 예상 adapter 저장량과 비교의 한계를 정리했습니다.
 
 ## 확정한 정확도 판정 기준 (2026-10-07)
 
@@ -54,14 +54,14 @@ uv run --no-sync python scripts/prepare_ease.py
 
 ## 학습 없는 검증과 제한
 
-검증은 parser/config 우선순위, 세 크기의 가중치 tag, adapter 등록·동결·상태 reload, synthetic feature의 raw mean/semantic completion/reweight, native wrapper 보존 및 dry run의 실행/알림 차단을 대상으로 합니다. 이 학습 없는 검증과 별도로 이번 단계에서 두 미니배치의 실제 image forward/backward·optimizer step을 점검했습니다. 기존 `test_import`, `test_module_register`, `test_model_config`, `test_dynamic_params`의 상당수도 내부에서 실제 학습을 수행하므로 사용자의 보류 요청에 따라 전체 playbook을 실행하지 않았습니다. 같은 계약의 학습 없는 focused tests와 native `--help` smoke를 수행했습니다.
+학습 없는 검증은 parser/config 우선순위, 세 크기의 가중치 tag, adapter 등록·동결·상태 reload, synthetic feature의 raw mean/semantic completion/reweight, native wrapper 보존 및 dry run의 실행/알림 차단을 대상으로 합니다. 별도로 두 미니배치의 실제 image forward/backward·optimizer step을 점검한 뒤 Base64의 첫 2개 태스크를 20 epochs/task로 학습·평가했고 acceptance를 통과했습니다. 기존 `test_import`, `test_module_register`, `test_model_config`, `test_dynamic_params`의 상당수도 내부에서 실제 학습을 수행하므로 준비 단계의 전체 playbook은 사용자의 보류 요청에 따라 실행하지 않았습니다. 같은 계약의 학습 없는 focused tests와 native `--help` smoke를 수행했습니다.
 
-현재 환경은 lock 기반 Python3.12.15, timm0.9.8입니다. 초기 import 충돌은 PyArrow의 vendored jemalloc background thread에서 발생했습니다. `JE_ARROW_MALLOC_CONF=background_thread:false`를 native import 전에 설정해 해결했고, 최종 197개 focused tests와 native help는 선행 PyArrow import나 OpenCLIP mock 없이 통과했습니다. 진단은 [환경 기록](environment/native_import_diagnosis.json)에 보존합니다. 기존 dataset discovery의 cached CLIP 로딩은 남아 있지만 새 가중치를 다운로드하지 않았습니다.
+현재 환경은 lock 기반 Python3.12.15, timm0.9.8입니다. 초기 import 충돌은 PyArrow의 vendored jemalloc background thread에서 발생했습니다. `JE_ARROW_MALLOC_CONF=background_thread:false`를 native import 전에 설정해 해결했고, 환경 안정화 단계의 197개 focused tests와 native help는 선행 PyArrow import나 OpenCLIP mock 없이 통과했습니다. 진단은 [환경 기록](environment/native_import_diagnosis.json)에 보존합니다. 기존 dataset discovery의 cached CLIP 로딩은 남아 있지만 새 가중치를 다운로드하지 않았습니다.
 
 검증 명령과 결과는 [checks.md](checks.md)에 기록합니다. 이번 실제 실행에는 W&B artifact 저장과 Slack 시작·태스크 완료·종료 알림을 사용했습니다. 서버에서 run 종료와 artifact의 COMMITTED 상태를 다시 조회해 확인했습니다. GPU board energy는 Recorder 관측 구간의 GPU 에너지이며, 전체 머신 에너지나 공통 1-epoch 효율성 결과로 해석하지 않습니다.
 
 ## 다음 단계
 
-1. 정확도 기준은 위와 같이 확정됐습니다. Seed 반복 정책과 이번 실행 범위를 정합니다. 이번 단일 seed로 seed 간 변동을 추정할 수 없으며, 추가 reference seeds는 별도 단계입니다.
-2. Base 포팅 코드의 첫 2개 태스크를 동일 checkpoint·데이터·학습 조건으로 평가합니다. 전체/old/new class 정확도와 task별 prototype shape·adapter count를 확인하며, 비정상적으로 낮은 정확도는 구현 실패로 취급하여 병합을 보류합니다.
-3. 통과한 뒤 첫 태스크 효율성 pilot을 실행하고, Tiny·Small 및 비율 정렬 비교를 순차 확대합니다. 논문 재현과 BudgetCL/aL-SAR 예산 비교는 후속 단계입니다.
+1. Base64·seed1993의 검증 통과 근거를 검토하고 공통 기반에 병합할 범위를 정합니다. 병합과 push는 아직 수행하지 않았습니다.
+2. 첫 태스크 효율성 pilot의 실행 범위를 정합니다. 준비한 조건은 1 epoch·batch64이며 measurement와 FLOPs diagnostic pass를 분리합니다. 이번 20-epoch·2-task 검증을 공통 효율성 pilot 결과로 사용하지 않습니다.
+3. Tiny·Small의 checkpoint 파일/hash를 고정한 뒤 공통64와 비율 정렬 비교를 순차 확대합니다. 단일 seed1993로 seed 간 변동을 추정할 수 없으며, 추가 seeds·논문 재현·BudgetCL/aL-SAR 예산 비교는 후속 단계입니다.

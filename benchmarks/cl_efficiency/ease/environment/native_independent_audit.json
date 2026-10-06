@@ -1,0 +1,304 @@
+{
+  "stage": "native_two_task_acceptance",
+  "run": "ease-native-validation-20261006T174313Z",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/n3nlg2ah",
+  "audit_scope": "Read-only CPU saved predictions, raw data, phase/telemetry, and saved state tensors; no model execution.",
+  "computation_status": "completed",
+  "local_wandb_logging_status": "uploaded",
+  "completion": {
+    "exit_code": 0,
+    "status": "completed",
+    "acceptance_status": "pass",
+    "timeout": false,
+    "wall_s": 571.5435444460018,
+    "wandb_logging_status": "uploaded"
+  },
+  "independent_accuracy": {
+    "task1_seen": {
+      "correct": 994,
+      "samples": 1000,
+      "accuracy_pct": 99.4,
+      "reference_correct": 996,
+      "drop_pp_exact": "1/5",
+      "status": "pass"
+    },
+    "task2_seen": {
+      "correct": 1946,
+      "samples": 2000,
+      "accuracy_pct": 97.3,
+      "reference_correct": 1944,
+      "drop_pp_exact": "-1/10",
+      "status": "pass"
+    },
+    "task2_old": {
+      "correct": 966,
+      "samples": 1000,
+      "accuracy_pct": 96.6,
+      "reference_correct": 966,
+      "drop_pp_exact": "0",
+      "status": "pass"
+    },
+    "task2_new": {
+      "correct": 980,
+      "samples": 1000,
+      "accuracy_pct": 98.0,
+      "reference_correct": 978,
+      "drop_pp_exact": "-1/5",
+      "status": "pass"
+    }
+  },
+  "task_archives": [
+    {
+      "task": 1,
+      "samples": 1000,
+      "class_count": 10,
+      "samples_per_class": 100,
+      "unique_sorted_original_ids": true,
+      "top5_shape": [
+        1000,
+        5
+      ],
+      "prototype_shape": [
+        10,
+        768
+      ],
+      "adapters": 1,
+      "ordered_raw_fingerprint_matches_reference": true,
+      "samples_ordered_sha256": "dedd7764906d86ee36dd94582c22fd4360c346c610d2f6af1a8bd9ec30bb4bd5"
+    },
+    {
+      "task": 2,
+      "samples": 2000,
+      "class_count": 20,
+      "samples_per_class": 100,
+      "unique_sorted_original_ids": true,
+      "top5_shape": [
+        2000,
+        5
+      ],
+      "prototype_shape": [
+        20,
+        1536
+      ],
+      "adapters": 2,
+      "ordered_raw_fingerprint_matches_reference": true,
+      "samples_ordered_sha256": "950aa45d74ee15d73b38c09eada71ef822863102d031e7e35d42ef79a60f2fe8"
+    }
+  ],
+  "acceptance_recomputed_identical": true,
+  "structural_checks": {
+    "finite_loss_and_gradients": true,
+    "dataset_matches_reference": true,
+    "frozen_backbone_unchanged": true,
+    "old_adapters_unchanged": true,
+    "prototype_and_adapter_shapes": true,
+    "training_protocol_complete": true,
+    "frozen_backbone_gradients_absent": true
+  },
+  "reference_summary_hash_unchanged": true,
+  "execution_source_hashes_unchanged": true,
+  "shared_cifar_metadata_identical": true,
+  "all_four_train_test_raw_fingerprints_identical": true,
+  "epoch_count": 40,
+  "updates": 4200,
+  "training_presentations": 200000,
+  "evaluation_examples": 3000,
+  "prototype_adapter_image_pairs": 15000,
+  "resource_metrics": {
+    "process_wall_s": 559.1577405380085,
+    "outer_training_stream_examples": 200000,
+    "evaluation_examples": 3000,
+    "outer_observe_steps": 4200,
+    "tasks_completed": 2,
+    "cuda_peak_allocated_mib": 4421.3984375,
+    "cuda_peak_reserved_mib": 4792.0,
+    "peak_process_tree_rss_mib": 15181.5078125,
+    "peak_gpu_device_memory_mib": 5283.0,
+    "peak_gpu_utilization_percent": 100.0,
+    "peak_gpu_power_w": 440.72,
+    "gpu_board_energy_j": 228616.04640097474,
+    "gpu_energy_coverage_s": 559.124523911014,
+    "gpu_energy_coverage_fraction": 0.9999405952478408,
+    "gpu_board_energy_wh": 63.504457333604094,
+    "outer_training_examples_per_s": 383.02424744752966,
+    "evaluation_examples_per_s": 449.2530446411586,
+    "process_tree_cpu_s": 712.6400910000001
+  },
+  "phase_aggregates_checked": true,
+  "phase_resources": {
+    "acceptance_audit": {
+      "wall_s": 1.746857718040701,
+      "calls": 2,
+      "gpu_board_energy_j": 597.9040362472567,
+      "gpu_energy_coverage_s": 1.746857718040701
+    },
+    "begin_epoch": {
+      "wall_s": 0.0011930701148230582,
+      "calls": 40,
+      "gpu_board_energy_j": 0.3317536053421619,
+      "gpu_energy_coverage_s": 0.0011930701148230582
+    },
+    "begin_task": {
+      "wall_s": 0.021266838011797518,
+      "calls": 2,
+      "gpu_board_energy_j": 1.6233490367957968,
+      "gpu_energy_coverage_s": 0.021266838011797518
+    },
+    "data_audit": {
+      "wall_s": 0.05550427999696694,
+      "calls": 2,
+      "gpu_board_energy_j": 4.496444752856771,
+      "gpu_energy_coverage_s": 0.05550427999696694
+    },
+    "data_loading": {
+      "wall_s": 1.576630877010757,
+      "calls": 2,
+      "gpu_board_energy_j": 152.1506572315379,
+      "gpu_energy_coverage_s": 1.576630877010757
+    },
+    "end_epoch": {
+      "wall_s": 0.001811390946386382,
+      "calls": 40,
+      "gpu_board_energy_j": 0.7431700267692816,
+      "gpu_energy_coverage_s": 0.001811390946386382
+    },
+    "end_task": {
+      "wall_s": 18.79969271601294,
+      "calls": 2,
+      "gpu_board_energy_j": 8099.212121274542,
+      "gpu_energy_coverage_s": 18.79969271601294
+    },
+    "epoch_audit": {
+      "wall_s": 0.15435173994046636,
+      "calls": 40,
+      "gpu_board_energy_j": 63.298676980736815,
+      "gpu_energy_coverage_s": 0.15435173994046636
+    },
+    "evaluation": {
+      "wall_s": 6.677751070994418,
+      "calls": 2,
+      "gpu_board_energy_j": 2769.834136453464,
+      "gpu_energy_coverage_s": 6.677751070994418
+    },
+    "initialize": {
+      "wall_s": 0.6032638330070768,
+      "calls": 1,
+      "gpu_board_energy_j": 16.02379088161747,
+      "gpu_energy_coverage_s": 0.6032638330070768
+    },
+    "prototype_completion": {
+      "wall_s": 18.79961604400887,
+      "calls": 2,
+      "gpu_board_energy_j": 8099.17984468619,
+      "gpu_energy_coverage_s": 18.79961604400887
+    },
+    "state_audit": {
+      "wall_s": 0.13668242597486824,
+      "calls": 1,
+      "gpu_board_energy_j": 5.675841402194033,
+      "gpu_energy_coverage_s": 0.13668242597486824
+    },
+    "train_epoch": {
+      "wall_s": 522.1601539140102,
+      "calls": 40,
+      "gpu_board_energy_j": 216777.1249229522,
+      "gpu_energy_coverage_s": 522.1601539140102
+    }
+  },
+  "gpu_energy_reintegrated_j": 228616.04640097474,
+  "gpu_energy_reintegrated_coverage_s": 559.124523911014,
+  "sensor_errors": [],
+  "limitations": [
+    "Single matched seed1993; operational margins are not a statistical tolerance.",
+    "First two tasks only; 3+ task prototype recalculation and full ten-task reproduction remain untested.",
+    "Diagnostic instrumentation/audits and phase definitions differ from official; this is not the one-task efficiency pilot.",
+    "Energy is physical GPU board only, including idle/other processes; CPU/RAM/wall energy and FLOPs were not measured.",
+    "CIFAR100 classes0..19 contain four pre-existing exact train/test image duplicates, all in task1/class1; samples were not deduplicated.",
+    "W&B server readback is audited separately by root; .pt files are local only."
+  ],
+  "saved_state_audit": {
+    "audit_device": "cpu",
+    "state_dicts_loaded_with_weights_only": true,
+    "saved_states": [
+      {
+        "task": 1,
+        "all_model_state_tensors_finite": true,
+        "tensor_count": 204,
+        "tensor_elements": 87003653,
+        "state_tensor_bytes": 348014617,
+        "checkpoint_file_bytes": 348100015,
+        "classifier_weight_shape": [
+          10,
+          768
+        ],
+        "non_tensor_metadata_keys": [
+          "_extra_state",
+          "backbone._extra_state"
+        ],
+        "lifecycle_metadata_verified": true,
+        "non_finite_keys": []
+      },
+      {
+        "task": 2,
+        "all_model_state_tensors_finite": true,
+        "tensor_count": 252,
+        "tensor_elements": 88216327,
+        "state_tensor_bytes": 352865321,
+        "checkpoint_file_bytes": 352968271,
+        "classifier_weight_shape": [
+          20,
+          1536
+        ],
+        "non_tensor_metadata_keys": [
+          "_extra_state",
+          "backbone._extra_state"
+        ],
+        "lifecycle_metadata_verified": true,
+        "non_finite_keys": []
+      }
+    ],
+    "frozen_backbone_all_tensors_exactly_preserved": true,
+    "frozen_backbone_tensor_count": 150,
+    "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+    "frozen_backbone_matches_runtime_initial_hash": true,
+    "old_adapter0_all_tensors_exactly_preserved": true,
+    "old_adapter0_tensor_count": 48,
+    "old_adapter0_parameter_elements": 1189632,
+    "old_adapter0_sha256": "a85b2f4915199836119e8d4769758590572d273c9309f107a43559cce2c2c301",
+    "all_adapter_and_backbone_hashes_match_runtime_audits": true,
+    "task1_prototypes_original_block_preserved": true,
+    "checkpoint_sha256_matches_pinned_reference": true
+  },
+  "audited_at_utc": "2026-10-06T17:56:34.455317+00:00",
+  "independent_audit_status": "pass",
+  "final_registered_model_storage": {
+    "parameters_total": 88185601,
+    "parameters_trainable": 0,
+    "parameters_in_optimizer": 1197313,
+    "parameter_storage_bytes": 352742404,
+    "registered_buffer_storage_bytes": 122917,
+    "optimizer_state_storage_bytes": 4789252,
+    "replay_allocated_tensor_bytes": 0,
+    "replay_buffers": {},
+    "auxiliary_tensor_bytes": 0,
+    "combined_parameter_and_buffer_bytes": 352865321,
+    "matches_saved_state_tensor_bytes": true
+  },
+  "preexisting_raw_train_test_overlap": {
+    "seen_classes": "0..19",
+    "train_samples": 10000,
+    "test_samples": 2000,
+    "exact_duplicate_test_images": 4,
+    "all_duplicate_class_ids": [
+      1
+    ],
+    "test_global_ids": [
+      3499,
+      3932,
+      4716,
+      9524
+    ],
+    "deduplication_applied": false,
+    "origin": "Already present in the shared CIFAR100 files; official and native use the same selected samples."
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "url": "https://wandb.ai/laymond1/cl-efficiency/runs/n3nlg2ah",
+  "state": "finished",
+  "summary": {
+    "native_status": "completed",
+    "acceptance_status": "pass",
+    "paper_reproduction": false,
+    "efficiency_protocol": false,
+    "native_accuracy/seen_accuracy_pct": 97.3,
+    "native_accuracy/old_accuracy_pct": 96.6,
+    "native_accuracy/new_accuracy_pct": 98,
+    "native_resources/tasks_completed": 2,
+    "native_resources/process_wall_s": 559.1577405380085,
+    "native_resources/gpu_board_energy_j": 228616.0464009747
+  },
+  "artifacts": [
+    {
+      "name": "ease-native-validation-20261006T174313Z:v0",
+      "state": "COMMITTED",
+      "type": "cl-native-acceptance"
+    }
+  ],
+  "artifact_metrics_match_local": {
+    "tasks_results": true,
+    "epoch_results": true,
+    "metrics": true,
+    "data_snapshots": true,
+    "state_audits": true,
+    "structural_checks": true,
+    "acceptance": true,
+    "precision": true
+  },
+  "artifact_spec_match_local": true,
+  "artifact_metadata_note": "Artifact was saved before local upload-completion metadata; core metrics and pinned spec are compared.",
+  "verified": true
+}

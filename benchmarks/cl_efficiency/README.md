@@ -1,6 +1,6 @@
 # CL 알고리즘 검토와 효율성 실험 준비
 
-현재 알고리즘의 특징·장단점, 추가 구현 후보, 첫 태스크 효율성 비교를 위한 실행 도구를 준비했습니다. 10월 7일 EASE 포팅 코드의 두 미니배치 smoke와 동일 조건 공식 코드의 첫 2개 태스크 기준선을 실행했습니다. [실행 보고서](ease/execution_report.md)에 정확도·시간·메모리·GPU 에너지를 기록합니다. 전체 알고리즘의 공통 효율성 비교는 아직 실행하지 않았으며, 기본 실행은 준비 파일 생성만 수행합니다.
+EASE Base64·seed1993의 첫 2개 태스크 구현 검증이 통과했습니다. Native 정확도는 Task 1 99.40%, Task 2 전체 97.30%·과거 96.60%·신규 98.00%이며, 네 정확도 지표와 일곱 구조 검사가 모두 통과했습니다. [Native 검증 보고서](ease/native_validation_report.md)와 [JSON 결과](ease/native_validation_results.json)에 결과를 기록합니다. 알고리즘별 특징·장단점, 추가 구현 후보와 첫 태스크 효율성 비교 도구도 준비했습니다. 전체 알고리즘의 공통 효율성 비교는 아직 실행하지 않았으며, 기본 실행은 준비 파일 생성만 수행합니다.
 
 ## 검토 자료
 
@@ -9,6 +9,7 @@
 - [BudgetCL·aL-SAR의 추가 가능성 및 이식 범위](budgeted_cl_review.md)
 - [공통 환경·worktree 사용법과 10월 6일 연결 검증](foundation.md)
 - [EASE 구현 범위·실행 결과·다음 단계](ease/README.md)
+- [EASE Base64 native 검증 결과](ease/native_validation_report.md), [공식 기준선·smoke 측정 이력](ease/execution_report.md)
 - [ViT Base·Small·Tiny 및 adapter 비교 설정](ease/tiny_small_review.md)
 - [표 형태의 전체 목록](inventory.csv)
 - [모델별 데이터셋과 인자 및 외부 요구사항](manifest.json)
@@ -18,9 +19,9 @@
 
 ## 현재 준비 상태 (10월 7일)
 
-독립 worktree `.worktrees/ease`, 브랜치 `codex/ease`에 EASE의 기본 replay-free 경로를 구현했습니다. 첫 2개 태스크의 구현 검증과 첫 1개 태스크의 효율성 측정 설정을 분리했으며, 세 크기 모두 **AugReg IN21K → IN1K fine-tuned**, 공통 adapter 64 및 Tiny16·Small32·Base64의 비율 정렬 비교를 준비했습니다. 실제 두 미니배치 실행은 통과했고, 공식 기준선은 첫 태스크 99.60%·두 번째 태스크 97.20%로 완료됐습니다. 포팅 코드의 두 태스크 정확도와 공통 효율성 pilot은 아직 미검증이며, 공통 기반 브랜치에 합치지 않았습니다.
+독립 worktree `.worktrees/ease`, 브랜치 `codex/ease`에 EASE의 기본 replay-free 경로를 구현했습니다. 첫 2개 태스크의 구현 검증과 첫 1개 태스크의 효율성 측정 설정을 분리했으며, 세 크기 모두 **AugReg IN21K → IN1K fine-tuned**, 공통 adapter 64 및 Tiny16·Small32·Base64의 비율 정렬 비교를 준비했습니다. Base64 native 검증은 동일 조건 공식 기준선 대비 사용자 판정 기준을 통과했습니다. W&B run 종료와 artifact COMMITTED 상태도 서버에서 확인했습니다. Tiny·Small 학습, 공통 효율성 pilot, FLOPs 측정, 병합과 push는 아직 수행하지 않았습니다.
 
-현재 manifest는 71개, 실행 준비 66개·보류 5개입니다. 준비 파일은 측정 결과가 아닙니다. EASE의 실제 forward/backward와 동일 조건 공식 코드 대비 정확도 검증이 통과해야 병합할 수 있습니다. 자세한 결과는 [실행 보고서](ease/execution_report.md), 검증 이력과 남은 단계는 [EASE 문서](ease/README.md)를 참고합니다. 아래 10월 1일·6일 기록은 당시의 상태입니다.
+현재 manifest는 71개, 실행 준비 66개·보류 5개입니다. 준비 파일은 측정 결과가 아닙니다. EASE Base64의 구현 검증 조건은 충족했고, 다음 결정은 병합 범위와 첫 태스크 효율성 pilot의 실행 범위입니다. 자세한 결과는 [Native 검증 보고서](ease/native_validation_report.md), 검증 이력과 남은 단계는 [EASE 문서](ease/README.md)를 참고합니다. 아래 10월 1일·6일 기록은 당시의 상태입니다.
 
 ## 공통 기반 준비 당시 상태 (10월 6일)
 

@@ -1,6 +1,37 @@
 # EASE 검증 기록
 
-최신 실제 실행과 검증은 [실행 보고서](execution_report.md)를 참고합니다. 아래 준비 단계 기록은 실행 승인 전의 이력입니다.
+최신 실제 실행과 검증은 [Native 검증 보고서](native_validation_report.md)를 참고합니다. [기존 실행 보고서](execution_report.md)는 smoke와 공식 기준선의 이력입니다. 아래 이전 단계 기록은 각 단계 당시의 승인 범위와 결과를 보존합니다.
+
+## 2026-10-07 Native 첫 2개 태스크 검증 완료
+
+사용자가 추천안 진행을 승인하여 seed1993의 Base64 첫 2개 태스크만 실행했습니다. 정확도 네 지표와 일곱 구조 검사가 모두 통과했습니다. 추가 seeds, 공통 효율성 pilot, FLOPs pass, Tiny/Small 학습, 병합과 push는 수행하지 않았습니다.
+
+실행 전 focused tests는 **239 passed in 4.89s**입니다. 정확도 경계 판정, 필수 구조 검사, 실행 없는 기본 동작과 scope guard, 기존 EASE·효율성·환경 계약을 확인했습니다. `test_ease_acceptance.py`의 60개는 이 239개에 포함되므로 합산하지 않습니다.
+
+```bash
+CUDA_VISIBLE_DEVICES='' uv run --no-sync python -m pytest tests/test_ease_acceptance.py tests/test_ease_execution.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_cl_efficiency.py tests/test_cl_runtime.py -q --tb=short
+uv run --no-sync python scripts/run_ease_validation.py --execute
+```
+
+실제 native 실행은 exit0, `status=completed`, `acceptance_status=pass`, `wandb_logging_status=uploaded`입니다. 기존 Mammoth trainer와 meta wrappers를 사용하여 40 epochs·4200 updates·200000 학습 presentations·3000 평가 presentations·15000 prototype adapter-image pairs를 완료했습니다. Task1은99.40%, Task2는 전체97.30%·과거96.60%·신규98.00%입니다.
+
+학습 종료 후 예측 NPZ를 재집계하고 네 raw data fingerprints를 공식 결과와 비교했습니다. CPU-only `torch.load(map_location='cpu', weights_only=True)`로 모든 저장 tensor의 유한성, frozen backbone150개 tensor와 이전 adapter48개 tensor의 `torch.equal`, prototype/lifecycle metadata를 확인했습니다. Telemetry를 독립 적분한 GPU 에너지도 Recorder 값과 일치합니다. [독립 감사 기록](environment/native_independent_audit.json).
+
+W&B Public API로 `laymond1/cl-efficiency/n3nlg2ah`의 `finished`, artifact `COMMITTED`를 조회했습니다. `artifact.get_entry(...).download(...)`로 metrics와 실행 spec를 내려받아 로컬과 비교했고 정확도·epoch·자원·데이터·동결 audit·판정·정밀도 및 spec가 모두 일치했습니다. [서버 조회 기록](environment/wandb_native_readback.json). Slack 시작·두 태스크 완료·종료 상태도 모두 `sent`입니다. 이 확인은 추가 학습이나 image inference를 수행하지 않았습니다.
+
+실행 source8개 파일과 공식 기준선 JSON의 SHA256을 다시 확인했습니다. 실행한 runner/helper의 bytes는 변경하지 않았으며 당시 Git HEAD와 별도 SHA256을 [결과 JSON](native_validation_results.json)에 보존했습니다. 아래 이전 단계에 있는 native 미실행·승인 false·정확도 미검증은 당시 상태입니다.
+
+최종 manifest·상태 갱신 후 아래 subset을 다시 실행하여 **44 passed in 1.09s**를 확인했습니다. 기존 239개와 중복되므로 합산하지 않습니다. 준비 명령은 공통71개·EASE5개 variant를 `execution=False`로 재생성했습니다.
+
+```bash
+CUDA_VISIBLE_DEVICES='' uv run --no-sync python -m pytest tests/test_ease_execution.py tests/test_prepare_ease.py tests/test_cl_efficiency.py -q --tb=short
+uv run --no-sync python scripts/benchmark_cl.py
+uv run --no-sync python scripts/prepare_ease.py
+python3 -m py_compile scripts/run_ease_validation.py scripts/ease_acceptance.py tests/test_ease_acceptance.py tests/test_ease_execution.py
+git diff --check
+```
+
+새 JSON·CSV·계획과 manifest의 일관성, Markdown 로컬 링크, 생성한 효율성 계획의 실행 false·1-task/1-epoch 설정도 정적으로 확인했습니다.
 
 ## 2026-10-07 정확도 기준 확정
 
