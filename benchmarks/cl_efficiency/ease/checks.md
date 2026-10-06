@@ -2,6 +2,20 @@
 
 최신 실제 실행과 검증은 [실행 보고서](execution_report.md)를 참고합니다. 아래 준비 단계 기록은 실행 승인 전의 이력입니다.
 
+## 2026-10-07 정확도 기준 확정
+
+사용자가 1.5%p 이내 통과, 1.5%p 초과~3.0%p 이내 추가 점검, 3.0%p 초과 실패로 확정했습니다. `validation_plan.json`에 네 지표별 공식 정답 수·샘플 수와 통과/추가 점검 하한, 판정 우선순위, 구조 실패 조건을 기록했습니다. 기존 실행 결과 파일과 W&B 기록은 당시의 reference 측정 이력이며 변경하지 않았습니다. 새 학습·추론·외부 run·Slack 알림은 수행하지 않았습니다.
+
+```bash
+python3 -m json.tool benchmarks/cl_efficiency/ease/validation_plan.json > /dev/null
+CUDA_VISIBLE_DEVICES='' uv run --no-sync python -m pytest tests/test_prepare_ease.py -q --tb=short
+git diff --check
+```
+
+JSON syntax와 Decimal 기반 네 지표의 1.5/3.0%p 하한 계산, reference 정답 수 일치, 학습 승인 false 보존을 확인했습니다. 기존 dry-run tests는 **2 passed**입니다. 새로운 테스트 파일은 추가하지 않았습니다.
+
+저장소의 Sphinx 빌드 명령 `uv run --no-sync sphinx-build -j auto . ../_build`를 `docs/`에서 실행했으나 기존 환경에 `sphinx-build`가 없어 exit2로 실패했습니다. 변경한 benchmark Markdown의 로컬 링크·표·계획 파일은 정적으로 확인했습니다.
+
 ## 2026-10-07 실제 실행 승인 후 검증
 
 최종 focused tests는 PyArrow 선행 import나 OpenCLIP mock 없이 **197 passed in 5.58s**입니다. CUDA를 비활성화한 테스트이며 여기서 실제 학습을 하는 기존 full suite를 실행하지는 않았습니다.

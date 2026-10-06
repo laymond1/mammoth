@@ -14,6 +14,21 @@
 
 [validation_plan.json](validation_plan.json)에 단계별 승인 상태, 다섯 설정, 동일 조건 reference 정책을 기록했습니다. 이번 승인은 최소 실행 점검과 공식 기준선에 적용됩니다. 포팅 코드의 두 태스크 acceptance 평가와 효율성 pilot은 아직 실행하지 않았습니다. [Tiny·Small 검토](tiny_small_review.md)에 크기별 예상 adapter 저장량과 비교의 한계를 정리했습니다.
 
+## 확정한 정확도 판정 기준 (2026-10-07)
+
+사용자 결정으로 네 지표 각각의 공식 기준선 대비 하락을 판정합니다. **1.5%p 이내는 통과, 1.5%p 초과~3.0%p 이내는 추가 점검, 3.0%p 초과는 실패**입니다. 개선된 정확도는 통과이며, 반올림한 표시값 대신 정답 수/전체 샘플 수로 비교합니다.
+
+| 지표 | 공식 기준선 | 통과 하한 (포함) | 추가 점검 하한 (포함) |
+|---|---:|---:|---:|
+| Task 1 전체 | 99.60% | 98.10% | 96.60% |
+| Task 2 전체 | 97.20% | 95.70% | 94.20% |
+| Task 2 과거 클래스 | 96.60% | 95.10% | 93.60% |
+| Task 2 신규 클래스 | 97.80% | 96.30% | 94.80% |
+
+추가 점검 구간은 해당 추가 점검 하한 이상, 통과 하한 미만입니다. 어느 지표든 실패하면 전체 실패, 실패 없이 추가 점검 지표가 있으면 전체 추가 점검입니다. 네 지표와 구조 검사가 모두 통과해야 전체 통과입니다. 추가 점검 결과는 원인을 조사하고 결론을 기록하기 전까지 acceptance 통과나 병합·효율성 pilot 진행 조건을 충족하지 않습니다.
+
+NaN/비정상 gradient, 데이터 불일치, frozen backbone 또는 이전 adapter 변경, prototype shape·adapter count 오류는 정확도와 별개로 실패입니다. 이 폭은 사용자와 정한 운영 기준이며 단일 reference seed에서 통계적으로 추정한 허용오차가 아닙니다. 기준 확정 자체로 새 학습을 시작하지 않습니다.
+
 ## 구현 범위
 
 [모델](../../../models/ease.py)은 Mammoth의 `meta_begin_task`/`meta_observe`/`meta_end_task`를 그대로 사용합니다. 매 `begin_task`에서 새 adapter와 현재 클래스용 cosine proxy head만 학습하고, 이전 adapter와 pretrained backbone은 고정합니다. `end_task`에서는 현재 태스크의 모든 training sample을 deterministic test transform으로 방문하여 raw feature mean을 구한 뒤, 과거 클래스의 새 feature space를 semantic similarity로 보완합니다. 다음 adapter는 다음 `begin_task`에 생성하여 평가 시 불필요한 미래 adapter를 포함하지 않습니다.
@@ -47,6 +62,6 @@ uv run --no-sync python scripts/prepare_ease.py
 
 ## 다음 단계
 
-1. 공식 기준선 결과를 검토하고 포팅 코드 대비 허용 accuracy 차이를 확정합니다. 이번 단일 seed로 seed 간 변동을 추정할 수 없으며, 추가 reference seeds는 별도 단계입니다.
+1. 정확도 기준은 위와 같이 확정됐습니다. Seed 반복 정책과 이번 실행 범위를 정합니다. 이번 단일 seed로 seed 간 변동을 추정할 수 없으며, 추가 reference seeds는 별도 단계입니다.
 2. Base 포팅 코드의 첫 2개 태스크를 동일 checkpoint·데이터·학습 조건으로 평가합니다. 전체/old/new class 정확도와 task별 prototype shape·adapter count를 확인하며, 비정상적으로 낮은 정확도는 구현 실패로 취급하여 병합을 보류합니다.
 3. 통과한 뒤 첫 태스크 효율성 pilot을 실행하고, Tiny·Small 및 비율 정렬 비교를 순차 확대합니다. 논문 재현과 BudgetCL/aL-SAR 예산 비교는 후속 단계입니다.

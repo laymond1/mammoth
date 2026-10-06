@@ -18,4 +18,4 @@
 
 모델과 parser는 크기별 D·attention head 수를 timm에서 얻습니다. Adapter width, proxy head, prototype concatenation과 checkpoint 검증도 D를 따라가며, Base의 768을 하드코딩하지 않았습니다. 학습 없는 metadata tests에서 세 크기의 선택과 상태 구성을 검증했습니다. 실제 Tiny·Small forward/backward와 학습 정확도는 아직 미검증입니다.
 
-Tiny·Small의 family와 adapter 설정은 확정됐습니다. Base 공식 기준선 뒤 포팅 코드 대비 허용 accuracy 차이를 확정하고, 원칙대로 Base의 두 태스크 acceptance 평가부터 진행합니다. 이 항목은 [실행 계획](validation_plan.json)의 선행 조건으로 남겼습니다.
+Tiny·Small의 family와 adapter 설정은 확정됐습니다. Base 공식 기준선 대비 정확도 하락은 1.5%p 이내 통과·1.5%p 초과~3.0%p 이내 추가 점검·3.0%p 초과 실패로 확정했습니다. Seed 반복 정책과 실행 범위를 정한 뒤 Base의 두 태스크 acceptance 평가부터 진행합니다. 상세 기준은 [실행 계획](validation_plan.json)에 기록했습니다.

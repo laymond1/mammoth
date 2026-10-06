@@ -113,9 +113,76 @@
       "prototype_shapes_and_adapter_count"
     ],
     "repeat_policy": "Start with matched seed 1993; expand to 3 seeds when differences or uncertainty justify it.",
-    "accuracy_margin_pp": null,
-    "margin_policy": "Review the matched official reference before fixing a margin. A single reference seed does not measure seed variability; additional seeds are a separate decision. Fix the margin before native acceptance evaluation. Below-threshold accuracy blocks merging.",
-    "runtime_status": "native_smoke_passed_two_task_accuracy_not_executed"
+    "accuracy_margin_pp": 1.5,
+    "margin_policy": "User-confirmed: each of four accuracy metrics passes at <=1.5pp drop, requires review at >1.5pp and <=3.0pp, and fails at >3.0pp. Any structural failure is a failure. Fail overrides review; review overrides pass. Both review and fail block merging and advancement until resolved.",
+    "runtime_status": "native_smoke_passed_two_task_accuracy_not_executed",
+    "accuracy_review_limit_pp": 3.0,
+    "accuracy_policy": {
+      "confirmed_on": "2026-10-07",
+      "confirmed_by": "user",
+      "unit": "percentage_points",
+      "drop_definition": "matched official reference accuracy minus native accuracy; improvements pass",
+      "pass_max_drop_pp": 1.5,
+      "review_max_drop_pp": 3.0,
+      "boundaries": {
+        "pass": "drop_pp <= 1.5",
+        "review": "1.5 < drop_pp <= 3.0",
+        "fail": "drop_pp > 3.0"
+      },
+      "metrics": [
+        {
+          "metric": "task1_seen",
+          "task": 1,
+          "accuracy_key": "seen_accuracy_pct",
+          "reference_correct": 996,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 99.6,
+          "pass_min_accuracy_pct": 98.1,
+          "review_min_accuracy_pct": 96.6
+        },
+        {
+          "metric": "task2_seen",
+          "task": 2,
+          "accuracy_key": "seen_accuracy_pct",
+          "reference_correct": 1944,
+          "reference_samples": 2000,
+          "reference_accuracy_pct": 97.2,
+          "pass_min_accuracy_pct": 95.7,
+          "review_min_accuracy_pct": 94.2
+        },
+        {
+          "metric": "task2_old",
+          "task": 2,
+          "accuracy_key": "old_accuracy_pct",
+          "reference_correct": 966,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 96.6,
+          "pass_min_accuracy_pct": 95.1,
+          "review_min_accuracy_pct": 93.6
+        },
+        {
+          "metric": "task2_new",
+          "task": 2,
+          "accuracy_key": "new_accuracy_pct",
+          "reference_correct": 978,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 97.8,
+          "pass_min_accuracy_pct": 96.3,
+          "review_min_accuracy_pct": 94.8
+        }
+      ],
+      "overall_rule": "Fail if any metric fails or any structural check fails. Otherwise review if any metric requires review. Pass only if all four metrics and structural checks pass.",
+      "review_action": "Investigate implementation, data and training differences and record the resolution. Review is not acceptance and does not permit merging or advancement to the efficiency pilot.",
+      "structural_failures": [
+        "non_finite_loss_or_gradients",
+        "dataset_mismatch",
+        "frozen_backbone_updated",
+        "previous_adapter_changed",
+        "prototype_shape_or_adapter_count_mismatch"
+      ],
+      "comparison_precision": "Use correct/sample counts or unrounded accuracy; do not classify from display-rounded percentages.",
+      "basis": "User-selected operational margins, not a statistical tolerance inferred from the single reference seed."
+    }
   },
   "efficiency": {
     "dataset": "seq-cifar100-224",
@@ -145,7 +212,7 @@
     "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/s12v4g1o"
   },
   "before_port_acceptance": [
-    "Decide and freeze the accuracy margin; decide whether additional reference seeds are needed.",
+    "Accuracy policy is fixed in validation.accuracy_policy. Decide the seed repetition and execution scope before starting native acceptance.",
     "Authorize the native first-two-task acceptance run as a separate stage.",
     "Use the pinned Base checkpoint and the matched class/sample/transform/loader protocol."
   ],

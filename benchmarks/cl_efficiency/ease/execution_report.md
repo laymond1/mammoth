@@ -59,4 +59,6 @@ Task 1/2의 학습 시간은 각각 268.41/268.31초, prototype pass는 7.01/14.
 
 Plain imports로 focused tests **197 passed**, 실제 Base smoke와 공식 기준선 모두 exit0입니다. 실행 명령과 상세 검증은 [checks.md](checks.md)에 기록합니다. Native 두 태스크 학습·효율성 pilot·Tiny/Small 학습·추가 reference seeds·병합·push는 수행하지 않았습니다.
 
-다음 결정은 공식 기준선 대비 허용 accuracy 차이와 추가 reference seed 필요성입니다. 단일 seed1993 결과로 seed 간 변동이나 안정적인 허용 margin을 추정할 수 없으므로 임의의 pp threshold를 적용하지 않았습니다. 기준을 확정한 뒤 포팅 코드의 두 태스크를 평가하고, 비정상적으로 낮은 성능은 구현 실패로 처리합니다. 이후 통과한 포팅 코드의 공통 효율성 pilot을 진행합니다. 이 기준선은 원 논문의 5+5 split/class shuffle과 다른 조건이며 논문 성능 재현이 아닙니다.
+측정 당시에는 허용 accuracy 차이가 미확정이었으므로 위 reference 결과 JSON에는 margin null과 port acceptance 미평가 상태를 기록했습니다. 이후 2026-10-07 사용자 결정으로 각 지표의 하락 1.5%p 이내는 통과, 1.5%p 초과~3.0%p 이내는 추가 점검, 3.0%p 초과는 실패로 확정했습니다. 현재 기준과 지표별 하한은 [EASE 검증 계획](README.md#확정한-정확도-판정-기준-2026-10-07)과 [validation_plan.json](validation_plan.json)에 기록합니다.
+
+단일 seed1993 결과로 seed 간 변동을 추정할 수 없으므로 이 폭은 운영 기준입니다. Seed 반복 정책과 실행 범위를 정한 뒤 포팅 코드를 평가하고, 기준 미달의 원인을 조사합니다. 추가 점검과 실패 상태에서는 병합·효율성 pilot을 진행하지 않습니다. 이 기준선은 원 논문의 5+5 split/class shuffle과 다른 조건이며 논문 성능 재현이 아닙니다.
