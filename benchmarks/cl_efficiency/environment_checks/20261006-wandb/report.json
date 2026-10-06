@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "check_kind": "environment-and-connectivity",
+  "created_at_utc": "2026-10-06T14:34:11.795287+00:00",
+  "experiment_executed": false,
+  "training_executed": false,
+  "inference_executed": false,
+  "wandb": {
+    "status": "passed",
+    "run_url": "https://wandb.ai/laymond1/cl-efficiency/runs/025b4482e284",
+    "server_summary_verified": true,
+    "artifact_uploaded": true
+  },
+  "slack": {
+    "status": "not_requested"
+  },
+  "profile": {
+    "gpu": "1",
+    "data_root": "/mnt/sdab1/share/data",
+    "cache_root": "/mnt/sdab1/userHome/wslim/.cache",
+    "wandb_entity": "laymond1",
+    "wandb_project": "cl-efficiency"
+  },
+  "environment": {
+    "status": "passed",
+    "python": "3.12.2",
+    "packages": {
+      "open_clip": {
+        "status": "passed",
+        "version": "2.32.0"
+      },
+      "torch": {
+        "status": "passed",
+        "version": "2.13.0+cu126"
+      },
+      "torchvision": {
+        "status": "passed",
+        "version": "0.28.0+cu126"
+      },
+      "timm": {
+        "status": "passed",
+        "version": "0.9.8"
+      },
+      "psutil": {
+        "status": "passed",
+        "version": "7.2.2"
+      },
+      "clip": {
+        "status": "passed",
+        "version": "1.0"
+      },
+      "kornia": {
+        "status": "passed",
+        "version": "0.8.3"
+      },
+      "xitorch": {
+        "status": "passed",
+        "version": "0.5.1"
+      },
+      "sklearn": {
+        "status": "passed",
+        "version": "1.9.0"
+      },
+      "wandb": {
+        "status": "passed",
+        "version": "0.29.0"
+      }
+    },
+    "paths": {
+      "data_root": {
+        "path": "/mnt/sdab1/share/data",
+        "exists": true,
+        "is_directory": true,
+        "readable": true,
+        "writable": true
+      },
+      "cache_root": {
+        "path": "/mnt/sdab1/userHome/wslim/.cache",
+        "exists": true,
+        "is_directory": true,
+        "readable": true,
+        "writable": true
+      },
+      "torch_checkpoints": {
+        "path": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints",
+        "exists": true,
+        "is_directory": true,
+        "readable": true,
+        "writable": true
+      },
+      "huggingface_hub": {
+        "path": "/mnt/sdab1/userHome/wslim/.cache/huggingface/hub",
+        "exists": true,
+        "is_directory": true,
+        "readable": true,
+        "writable": true
+      },
+      "clip_cache": {
+        "path": "/mnt/sdab1/userHome/wslim/.cache/clip",
+        "exists": true,
+        "is_directory": true,
+        "readable": true,
+        "writable": true
+      }
+    },
+    "gpu": {
+      "physical_device": "1",
+      "nvidia": {
+        "gpu_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+        "gpu_name": "NVIDIA GeForce RTX 4090",
+        "gpu_device_memory_mib": 18.0,
+        "gpu_utilization_percent": 0.0,
+        "gpu_power_w": 14.24
+      },
+      "nvidia_status": "passed",
+      "cuda": {
+        "logical_device": 0,
+        "name": "NVIDIA GeForce RTX 4090",
+        "total_memory_bytes": 25262096384,
+        "compute_capability": [
+          8,
+          9
+        ],
+        "multiprocessors": 128,
+        "torch_cuda_version": "12.6"
+      },
+      "cuda_status": "passed",
+      "status": "passed"
+    }
+  },
+  "status": "passed"
+}

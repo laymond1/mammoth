@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "connectivity/test": 1,
+  "training_executed": false,
+  "inference_executed": false,
+  "experiment_executed": false,
+  "check_kind": "environment-and-connectivity"
+}

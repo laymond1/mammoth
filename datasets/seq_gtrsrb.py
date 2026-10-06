@@ -109,7 +109,7 @@ class SequentialGTSRB(ContinualDataset):
 
         # CLIP's official test transform
         _, _, test_transform = open_clip.create_model_and_transforms(
-            'ViT-B-16', pretrained='openai', cache_dir='checkpoints/ViT-B-16/cachedir/open_clip')
+            'ViT-B-16', pretrained='openai')
 
         # Load GTSRB dataset
         train_dataset = MyGTSRB(root=os.path.join(base_path(), 'GTSRB'), split='train', download=True, transform=transform)

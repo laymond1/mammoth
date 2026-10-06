@@ -215,7 +215,7 @@ class SequentialSUN397(ContinualDataset):
 
         # CLIP test transform
         _, _, test_transform = open_clip.create_model_and_transforms(
-            'ViT-B-16', pretrained='openai', cache_dir='checkpoints/ViT-B-16/cachedir/open_clip')
+            'ViT-B-16', pretrained='openai')
 
         sun_root = base_path() + 'SUN397'
 

@@ -1,0 +1,7 @@
+{
+  "gpu": "1",
+  "wandb_entity": "laymond1",
+  "wandb_project": "cl-efficiency",
+  "data_root": "/mnt/sdab1/share/data",
+  "cache_root": "/mnt/sdab1/userHome/wslim/.cache"
+}

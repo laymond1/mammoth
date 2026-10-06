@@ -105,6 +105,8 @@ docs/model_args
 
 cache
 
-uv.lock
+# Keep the environment lock shared across algorithm worktrees.
+wandb.conf
+wandb/
 
 vitb16

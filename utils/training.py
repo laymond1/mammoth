@@ -47,7 +47,7 @@ def initialize_wandb(args: Namespace) -> None:
     name = f'{run_name}_{run_id}'
     mode = 'disabled' if os.getenv('MAMMOTH_TEST', '0') == '1' else os.getenv('WANDB_MODE', 'online')
     wandb.init(project=args.wandb_project, entity=args.wandb_entity, config=vars(args), name=name, mode=mode)
-    args.wandb_url = wandb.run.get_url()
+    args.wandb_url = wandb.run.url
 
 
 def _to_device(name: str, x, device):
@@ -368,7 +368,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         logger.write(vars(args))
         if not args.nowand:
             d = logger.dump()
-            d['wandb_url'] = wandb.run.get_url()
+            d['wandb_url'] = wandb.run.url
             wandb.log(d)
 
     if not args.nowand:

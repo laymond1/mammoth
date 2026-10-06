@@ -1,0 +1,1739 @@
+{
+  "schema_version": 1,
+  "protocol": "one_task_pilot_not_paper_reproduction",
+  "models": [
+    {
+      "model": "agem",
+      "source": "models/agem.py",
+      "line": 20,
+      "category": "그래디언트 제약",
+      "feature": "과거 reference gradient에 대한 평균 제약 투영",
+      "benefit": "GEM보다 저렴한 projection",
+      "drawback": "reference gradient 계산과 buffer 필요",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "agem-r",
+      "source": "models/agem_r.py",
+      "line": 20,
+      "category": "그래디언트 제약",
+      "feature": "A-GEM에 reservoir sampling buffer 적용",
+      "benefit": "스트림에서 일관된 sampling",
+      "drawback": "추가 backward와 projection",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "attriclip",
+      "source": "models/attriclip.py",
+      "line": 17,
+      "category": "Prompt와 CLIP",
+      "feature": "attribute bank에서 선택한 text prompt로 CLIP 적응",
+      "benefit": "클래스 속성 재사용과 적은 학습 파라미터",
+      "drawback": "저장소 자체에 원논문 성능 미재현 경고가 있음",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "bic",
+      "source": "models/bic.py",
+      "line": 23,
+      "category": "리플레이와 증류",
+      "feature": "증류 후 별도 validation 샘플로 bias correction",
+      "benefit": "새 클래스 bias를 직접 보정",
+      "drawback": "검증용 buffer 분할과 추가 보정 학습",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "ccic",
+      "source": "models/ccic.py",
+      "line": 18,
+      "category": "준지도 CL",
+      "feature": "contrastive/interpolation consistency와 replay",
+      "benefit": "부분 라벨 스트림을 지원",
+      "drawback": "augmentation/contrastive 연산; 이번 fully labeled pilot은 CSSL 효능 미평가",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "cssl"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "cgil",
+      "source": "models/cgil.py",
+      "line": 11,
+      "category": "Prompt와 CLIP",
+      "feature": "클래스 feature 분포 생성 모델과 prompt 정렬",
+      "benefit": "원본 이미지를 저장하지 않고 생성 feature replay",
+      "drawback": "생성 모델 및 태스크 말 prompt 정렬 비용",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "clip",
+      "source": "models/clip.py",
+      "line": 94,
+      "category": "정적 추론 기준선",
+      "feature": "학습 없이 CLIP image/text similarity",
+      "benefit": "학습 비용 0; 사전학습 기준점",
+      "drawback": "backbone 메모리와 추론 비용은 남으며 CL 적응은 없음",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "inference",
+      "args": {
+        "lr": 0,
+        "inference_only": 1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "cnll",
+      "source": "models/cnll.py",
+      "line": 86,
+      "category": "노이즈 CL",
+      "feature": "delayed/noisy/clean buffer와 선별 및 재학습",
+      "benefit": "노이즈 라벨의 학습을 제어",
+      "drawback": "여러 buffer와 SSL/fitting 루프; true_labels extra field 필요",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "noisy_clean_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "preact-resnet18",
+        "buffer_size": 500,
+        "noise_type": "sym"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "Shared clean-label pilot; native wrapper supplies true_labels=labels. No noisy-label robustness claim."
+      ],
+      "clean_true_labels": true,
+      "deferred_reason": "Hard augmentation fixes crops at 32 pixels; adapt this code before comparing under the common 224-pixel protocol."
+    },
+    {
+      "model": "coda-prompt",
+      "source": "models/coda_prompt.py",
+      "line": 18,
+      "category": "Prompt",
+      "feature": "attention 가중합으로 prompt 구성요소 결합",
+      "benefit": "differentiable prompt 선택과 지식 결합",
+      "drawback": "pool 구성/직교 초기화와 attention 비용",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001,
+        "dataset_config": "coda_prompt",
+        "optimizer": "adam"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "dap",
+      "source": "models/dap.py",
+      "line": 25,
+      "category": "Prompt",
+      "feature": "instance별 prompt를 생성하는 모듈",
+      "benefit": "입력별 적응과 원본 replay 불필요",
+      "drawback": "prompt generator 연산; 원논문 split/checkpoint와 재현 조건 차이",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001,
+        "dataset_config": "dap",
+        "enable_test_time_majority_voting": 0
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "der",
+      "source": "models/der.py",
+      "line": 13,
+      "category": "리플레이",
+      "feature": "저장된 과거 logits를 distillation",
+      "benefit": "출력 함수 보존과 단순한 구현",
+      "drawback": "샘플 외에 logits도 저장",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "derpp",
+      "source": "models/derpp.py",
+      "line": 13,
+      "category": "리플레이",
+      "feature": "DER logits distillation과 replay label CE",
+      "benefit": "안정적이고 강력한 비교 기준선",
+      "drawback": "추가 replay forward와 두 손실 가중치",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "derpp-casper",
+      "source": "models/derpp_casper.py",
+      "line": 8,
+      "category": "리플레이",
+      "feature": "DER logits distillation과 replay label CE; CaSpeR: buffer feature graph의 spectral 정규화",
+      "benefit": "안정적이고 강력한 비교 기준선; 클래스 feature 구조 보존",
+      "drawback": "추가 replay forward와 두 손실 가중치; kNN graph/eigenvalue 연산 추가",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "derpp-cscct",
+      "source": "models/derpp_cscct.py",
+      "line": 8,
+      "category": "리플레이",
+      "feature": "DER logits distillation과 replay label CE; CSCCT: cross-space clustering와 cross-task consistency",
+      "benefit": "안정적이고 강력한 비교 기준선; 표현 구조와 과거 태스크 일관성",
+      "drawback": "추가 replay forward와 두 손실 가중치; feature/teacher 연산과 손실 추가",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "derpp-lider",
+      "source": "models/derpp_lider.py",
+      "line": 8,
+      "category": "리플레이",
+      "feature": "DER logits distillation과 replay label CE; LiDER: replay buffer에서 Lipschitz regularization",
+      "benefit": "안정적이고 강력한 비교 기준선; 작은 buffer의 과적합을 제어",
+      "drawback": "추가 replay forward와 두 손실 가중치; 중간 feature 및 power iteration 비용; 가중치가 0이면 효과 없음",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5,
+        "alpha_lip_lambda": 0.1,
+        "beta_lip_lambda": 0.1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "derpp-star",
+      "source": "models/derpp_star.py",
+      "line": 15,
+      "category": "리플레이",
+      "feature": "DER logits distillation과 replay label CE; STAR: 가중치 perturbation을 이용한 안정성 정규화",
+      "benefit": "안정적이고 강력한 비교 기준선; 과거 지식의 안정성을 보강",
+      "drawback": "추가 replay forward와 두 손실 가중치; 추가 perturbation/gradient 연산; STARPrompt와 다른 방법",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "dualprompt",
+      "source": "models/dualprompt.py",
+      "line": 20,
+      "category": "Prompt",
+      "feature": "공유 G-prompt와 태스크 특화 E-prompt",
+      "benefit": "공유/특화 지식 분리",
+      "drawback": "prompt 선택 및 frozen feature 추출 비용",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "dataset_config": "l2p",
+        "use_permute_fix": 0,
+        "batchwise_prompt": 0
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er",
+      "source": "models/er.py",
+      "line": 23,
+      "category": "리플레이",
+      "feature": "과거 원본 샘플을 buffer에서 재학습",
+      "benefit": "강력하고 이해하기 쉬운 기준선",
+      "drawback": "원본 데이터 저장과 추가 배치 연산",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er-ace",
+      "source": "models/er_ace.py",
+      "line": 36,
+      "category": "리플레이",
+      "feature": "현재 배치의 unseen/old class 간섭을 비대칭 CE로 제어",
+      "benefit": "클래스 간섭을 줄이는 간단한 확장",
+      "drawback": "buffer가 필요하고 첫 태스크에는 효과가 충분히 드러나지 않음",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er-ace-aer-abs",
+      "source": "models/er_ace_aer_abs.py",
+      "line": 63,
+      "category": "노이즈 CL",
+      "feature": "alternate replay와 asymmetrical buffer sampling",
+      "benefit": "라벨 노이즈의 악영향을 완화",
+      "drawback": "buffer fitting 비용과 태스크별 스케줄 영향",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "noisy_clean_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "noise_type": "sym"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "Shared clean-label pilot; native wrapper supplies true_labels=labels. No noisy-label robustness claim."
+      ],
+      "clean_true_labels": true
+    },
+    {
+      "model": "er-ace-casper",
+      "source": "models/er_ace_casper.py",
+      "line": 7,
+      "category": "리플레이",
+      "feature": "현재 배치의 unseen/old class 간섭을 비대칭 CE로 제어; CaSpeR: buffer feature graph의 spectral 정규화",
+      "benefit": "클래스 간섭을 줄이는 간단한 확장; 클래스 feature 구조 보존",
+      "drawback": "buffer가 필요하고 첫 태스크에는 효과가 충분히 드러나지 않음; kNN graph/eigenvalue 연산 추가",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er-ace-cscct",
+      "source": "models/er_ace_cscct.py",
+      "line": 7,
+      "category": "리플레이",
+      "feature": "현재 배치의 unseen/old class 간섭을 비대칭 CE로 제어; CSCCT: cross-space clustering와 cross-task consistency",
+      "benefit": "클래스 간섭을 줄이는 간단한 확장; 표현 구조와 과거 태스크 일관성",
+      "drawback": "buffer가 필요하고 첫 태스크에는 효과가 충분히 드러나지 않음; feature/teacher 연산과 손실 추가",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er-ace-lider",
+      "source": "models/er_ace_lider.py",
+      "line": 7,
+      "category": "리플레이",
+      "feature": "현재 배치의 unseen/old class 간섭을 비대칭 CE로 제어; LiDER: replay buffer에서 Lipschitz regularization",
+      "benefit": "클래스 간섭을 줄이는 간단한 확장; 작은 buffer의 과적합을 제어",
+      "drawback": "buffer가 필요하고 첫 태스크에는 효과가 충분히 드러나지 않음; 중간 feature 및 power iteration 비용; 가중치가 0이면 효과 없음",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha_lip_lambda": 0.1,
+        "beta_lip_lambda": 0.1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er-ace-star",
+      "source": "models/er_ace_star.py",
+      "line": 14,
+      "category": "리플레이",
+      "feature": "현재 배치의 unseen/old class 간섭을 비대칭 CE로 제어; STAR: 가중치 perturbation을 이용한 안정성 정규화",
+      "benefit": "클래스 간섭을 줄이는 간단한 확장; 과거 지식의 안정성을 보강",
+      "drawback": "buffer가 필요하고 첫 태스크에는 효과가 충분히 드러나지 않음; 추가 perturbation/gradient 연산; STARPrompt와 다른 방법",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er-ace-tricks",
+      "source": "models/er_ace_tricks.py",
+      "line": 30,
+      "category": "리플레이",
+      "feature": "ER-ACE에 bias correction/decay/sampling tricks 추가",
+      "benefit": "ER-ACE 구성요소 비교",
+      "drawback": "추가 튜닝 및 task-end correction 비용",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er-star",
+      "source": "models/er_star.py",
+      "line": 24,
+      "category": "리플레이",
+      "feature": "과거 원본 샘플을 buffer에서 재학습; STAR: 가중치 perturbation을 이용한 안정성 정규화",
+      "benefit": "강력하고 이해하기 쉬운 기준선; 과거 지식의 안정성을 보강",
+      "drawback": "원본 데이터 저장과 추가 배치 연산; 추가 perturbation/gradient 연산; STARPrompt와 다른 방법",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "er-tricks",
+      "source": "models/er_tricks.py",
+      "line": 30,
+      "category": "리플레이",
+      "feature": "ER에 bias correction/learning-rate decay/sampling tricks 추가",
+      "benefit": "작은 구성 변경으로 baseline 개선",
+      "drawback": "여러 tricks의 상호작용과 추가 보정 학습",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "ewc-on",
+      "source": "models/ewc_on.py",
+      "line": 14,
+      "category": "가중치 정규화",
+      "feature": "누적 Fisher로 중요한 파라미터의 변화 억제",
+      "benefit": "원본 replay 샘플을 장기 저장하지 않음",
+      "drawback": "Fisher/이전 가중치 저장과 Fisher 계산",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "e_lambda": 10,
+        "gamma": 1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "fdr",
+      "source": "models/fdr.py",
+      "line": 13,
+      "category": "리플레이",
+      "feature": "저장된 예제의 출력 함수 거리 정규화",
+      "benefit": "함수 변화를 직접 제어",
+      "drawback": "샘플 및 출력 저장과 추가 forward",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "first-stage-starprompt",
+      "source": "models/first_stage_starprompt.py",
+      "line": 18,
+      "category": "Prompt와 CLIP",
+      "feature": "STARPrompt의 CLIP semantic key 단계만 사용",
+      "benefit": "첫 단계 비용과 기여를 분리",
+      "drawback": "전체 STARPrompt의 시각 prompt 적응을 대체하지 못함",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "gdumb",
+      "source": "models/gdumb.py",
+      "line": 59,
+      "category": "buffer 기준선",
+      "feature": "buffer를 채운 후 매 태스크 끝에서 모델을 새로 학습",
+      "benefit": "샘플 선택의 효과를 분리",
+      "drawback": "end_task의 fitting_epochs=256 기본값이 매우 비쌈",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "gdumb-lider",
+      "source": "models/gdumb_lider.py",
+      "line": 75,
+      "category": "buffer 기준선",
+      "feature": "buffer를 채운 후 매 태스크 끝에서 모델을 새로 학습; LiDER: replay buffer에서 Lipschitz regularization",
+      "benefit": "샘플 선택의 효과를 분리; 작은 buffer의 과적합을 제어",
+      "drawback": "end_task의 fitting_epochs=256 기본값이 매우 비쌈; 중간 feature 및 power iteration 비용; 가중치가 0이면 효과 없음",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha_lip_lambda": 0.1,
+        "beta_lip_lambda": 0.1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "gem",
+      "source": "models/gem.py",
+      "line": 76,
+      "category": "그래디언트 제약",
+      "feature": "태스크별 과거 gradient 제약을 QP로 해결",
+      "benefit": "과거 손실 제약을 명시적으로 적용",
+      "drawback": "태스크별 backward와 QP solver 비용",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "gss",
+      "source": "models/gss.py",
+      "line": 13,
+      "category": "샘플 선택",
+      "feature": "gradient 다양성으로 buffer 샘플 선별",
+      "benefit": "작은 buffer의 대표성 개선",
+      "drawback": "샘플 선택 자체의 여러 gradient 계산",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "hal",
+      "source": "models/hal.py",
+      "line": 20,
+      "category": "샘플 선택",
+      "feature": "태스크별 anchor 생성과 replay",
+      "benefit": "망각 제약에 anchor 활용",
+      "drawback": "태스크 말 anchor 최적화와 추가 저장",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "icarl",
+      "source": "models/icarl.py",
+      "line": 45,
+      "category": "리플레이와 증류",
+      "feature": "exemplar herding과 클래스 평균 분류 및 distillation",
+      "benefit": "대표 exemplar와 incremental classifier",
+      "drawback": "태스크 말 herding과 feature 수집 비용",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "icarl-casper",
+      "source": "models/icarl_casper.py",
+      "line": 12,
+      "category": "리플레이와 증류",
+      "feature": "exemplar herding과 클래스 평균 분류 및 distillation; CaSpeR: buffer feature graph의 spectral 정규화",
+      "benefit": "대표 exemplar와 incremental classifier; 클래스 feature 구조 보존",
+      "drawback": "태스크 말 herding과 feature 수집 비용; kNN graph/eigenvalue 연산 추가",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "icarl-cscct",
+      "source": "models/icarl_cscct.py",
+      "line": 12,
+      "category": "리플레이와 증류",
+      "feature": "exemplar herding과 클래스 평균 분류 및 distillation; CSCCT: cross-space clustering와 cross-task consistency",
+      "benefit": "대표 exemplar와 incremental classifier; 표현 구조와 과거 태스크 일관성",
+      "drawback": "태스크 말 herding과 feature 수집 비용; feature/teacher 연산과 손실 추가",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "icarl-lider",
+      "source": "models/icarl_lider.py",
+      "line": 14,
+      "category": "리플레이와 증류",
+      "feature": "exemplar herding과 클래스 평균 분류 및 distillation; LiDER: replay buffer에서 Lipschitz regularization",
+      "benefit": "대표 exemplar와 incremental classifier; 작은 buffer의 과적합을 제어",
+      "drawback": "태스크 말 herding과 feature 수집 비용; 중간 feature 및 power iteration 비용; 가중치가 0이면 효과 없음",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha_lip_lambda": 0.1,
+        "beta_lip_lambda": 0.1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "idefics",
+      "source": "models/idefics.py",
+      "line": 106,
+      "category": "정적 추론 기준선",
+      "feature": "IDEFICS로 이미지 클래스 이름 생성",
+      "benefit": "multimodal zero-shot 비교",
+      "drawback": "큰 모델과 생성 latency; 학습 CL 방법이 아님",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "inference",
+      "args": {
+        "lr": 0,
+        "inference_only": 1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "Large multimodal checkpoint, transformers/accelerate; llava defaults to 4-bit bitsandbytes"
+      ]
+    },
+    {
+      "model": "joint",
+      "source": "models/joint.py",
+      "line": 17,
+      "category": "오프라인 기준선",
+      "feature": "모든 태스크 데이터로 joint training",
+      "benefit": "정확도 상한 비교에 유용",
+      "drawback": "과거 데이터 접근이 필요하고 첫 태스크 제한과 충돌",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [],
+      "deferred_reason": "main.py forbids --stop_after for joint; all-task offline baseline needs a separate protocol."
+    },
+    {
+      "model": "joint-gcl",
+      "source": "models/joint_gcl.py",
+      "line": 15,
+      "category": "오프라인 기준선",
+      "feature": "GCL 스트림 데이터를 모아 joint training",
+      "benefit": "GCL 오프라인 상한 기준선",
+      "drawback": "표준 1개 태스크 개념과 다르며 스트림 전체를 모음",
+      "compatibility": [
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [],
+      "deferred_reason": "General-continual only; joint GCL stream has no comparable single-task protocol."
+    },
+    {
+      "model": "l2p",
+      "source": "models/l2p.py",
+      "line": 19,
+      "category": "Prompt",
+      "feature": "frozen ViT에서 query로 prompt pool top-k 선택",
+      "benefit": "작은 학습 파라미터와 원본 replay 불필요",
+      "drawback": "query용 backbone과 prompt token 연산; selection 오차",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "dataset_config": "l2p",
+        "batchwise_prompt": 0,
+        "pull_constraint_coeff": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "llava",
+      "source": "models/llava.py",
+      "line": 91,
+      "category": "정적 추론 기준선",
+      "feature": "LLaVA로 이미지 클래스 이름 생성",
+      "benefit": "자연어 지식을 활용한 zero-shot 비교",
+      "drawback": "생성 추론 지연과 큰 모델; 학습 CL 방법이 아님",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "inference",
+      "args": {
+        "lr": 0,
+        "inference_only": 1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "Large multimodal checkpoint, transformers/accelerate; llava defaults to 4-bit bitsandbytes"
+      ]
+    },
+    {
+      "model": "lucir",
+      "source": "models/lucir.py",
+      "line": 97,
+      "category": "리플레이와 증류",
+      "feature": "cosine classifier와 feature/순위 distillation",
+      "benefit": "old/new class의 균형 개선",
+      "drawback": "여러 손실과 태스크 말 fine-tuning",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "lwf",
+      "source": "models/lwf.py",
+      "line": 22,
+      "category": "증류",
+      "feature": "이전 모델의 현재 입력에 대한 예측 증류",
+      "benefit": "과거 원본 샘플 없이 동작",
+      "drawback": "teacher 모델과 추가 forward; 큰 domain shift에 취약",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "lwf-mc",
+      "source": "models/lwf_mc.py",
+      "line": 14,
+      "category": "증류",
+      "feature": "iCaRL 방식의 multi-class LwF 변형",
+      "benefit": "incremental class sigmoid distillation",
+      "drawback": "teacher 보관과 calibration 부담",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "lws",
+      "source": "models/lws.py",
+      "line": 19,
+      "category": "편향 CL",
+      "feature": "shortcut와 cluster 지식의 replay 및 weighting",
+      "benefit": "spurious correlation이 있는 biased-class-il에 맞춤",
+      "drawback": "CelebA 준비와 cluster overhead; 일반 CIFAR와 직접 비교 불가",
+      "compatibility": [
+        "biased-class-il"
+      ],
+      "group": "unsupported_biased",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "Original supported benchmark is CelebA with biased splits; kmeans-pytorch dependency"
+      ],
+      "deferred_reason": "Requires biased-class-il and bias/index fields; not compatible with the shared CIFAR100 class-il protocol."
+    },
+    {
+      "model": "mer",
+      "source": "models/mer.py",
+      "line": 14,
+      "category": "메타 학습",
+      "feature": "replay batch의 Reptile식 meta update",
+      "benefit": "태스크 간 gradient 정렬 유도",
+      "drawback": "inner update 반복으로 처리량 저하 가능",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "beta": 0.1,
+        "gamma": 0.1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "moe-adapters",
+      "source": "models/moe_adapters.py",
+      "line": 48,
+      "category": "Adapter와 CLIP",
+      "feature": "CLIP에 전문가 adapter와 routing 모듈 추가",
+      "benefit": "backbone 고정과 전문가 분업",
+      "drawback": "전문가/routing 연산과 task progression 저장 비용",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "pnn",
+      "source": "models/pnn.py",
+      "line": 28,
+      "category": "모델 확장",
+      "feature": "태스크마다 column을 추가하고 이전 column 고정",
+      "benefit": "과거 column의 가중치 망각 방지",
+      "drawback": "태스크별 모델 증가; 이 구현은 task-il 전용",
+      "compatibility": [
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "puridiver",
+      "source": "models/puridiver.py",
+      "line": 114,
+      "category": "노이즈 CL",
+      "feature": "손실과 feature 다양성으로 replay 샘플 정제",
+      "benefit": "노이즈/blurred stream에 맞는 선택",
+      "drawback": "매 batch feature 선택과 buffer fitting; true_labels 필요",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "noisy_clean_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "noise_type": "sym"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "Shared clean-label pilot; native wrapper supplies true_labels=labels. No noisy-label robustness claim."
+      ],
+      "clean_true_labels": true,
+      "deferred_reason": "Constructor only accepts seq-cifar10/seq-cifar100 and uses 32-pixel hard crops; seq-cifar100-224 requires an explicit port."
+    },
+    {
+      "model": "ranpac",
+      "source": "models/ranpac.py",
+      "line": 25,
+      "category": "사전학습과 해석적 분류기",
+      "feature": "첫 태스크 적응 후 frozen feature의 random projection와 ridge",
+      "benefit": "후속 태스크의 backbone backward 제거",
+      "drawback": "첫 태스크는 실제 학습; rp_size=10000의 Gram/solve가 무거움",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.01,
+        "dataset_config": "ranpac"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "rpc",
+      "source": "models/rpc.py",
+      "line": 57,
+      "category": "리플레이",
+      "feature": "Regular Polytope Classifier로 클래스 표현 구조 고정",
+      "benefit": "클래스 간 기하 구조를 제어",
+      "drawback": "buffer 필요 및 기하 가정의 데이터 의존성",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "second-order",
+      "source": "models/second_order.py",
+      "line": 35,
+      "category": "LoRA와 정규화",
+      "feature": "LoRA/IA3/full tuning 및 ITA/IEL second-order 제약",
+      "benefit": "기존 LoRA/IA3 기반과 model composition 비교 가능",
+      "drawback": "pre-tuning, Fisher, 분포 및 정렬 비용을 포함해야 함",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.0003,
+        "dataset_config": "second_order_ta",
+        "tuning_style": "lora",
+        "alpha_ita": 0.02,
+        "req_weight_cls": 0.025,
+        "simple_reg_weight_cls": 0.001
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "second-stage-starprompt",
+      "source": "models/second_stage_starprompt.py",
+      "line": 22,
+      "category": "Prompt와 CLIP",
+      "feature": "STARPrompt의 ViT residual prompt 단계만 사용",
+      "benefit": "시각 prompt 단계의 ablation",
+      "drawback": "키 checkpoint 또는 CLIP template에 성능 의존",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "sgd",
+      "source": "models/sgd.py",
+      "line": 13,
+      "category": "기준선",
+      "feature": "새 데이터에 순차 fine-tuning",
+      "benefit": "가장 단순하고 추가 저장공간이 작음",
+      "drawback": "과거 태스크 망각이 큼",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "si",
+      "source": "models/si.py",
+      "line": 13,
+      "category": "가중치 정규화",
+      "feature": "학습 경로 기반 파라미터 중요도 누적",
+      "benefit": "별도 Fisher 데이터 패스 없이 중요도 계산",
+      "drawback": "모든 학습 파라미터의 중요도와 경로 통계 저장",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "c": 0.1,
+        "xi": 0.1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "slca",
+      "source": "models/slca.py",
+      "line": 20,
+      "category": "사전학습과 분류기 정렬",
+      "feature": "backbone을 낮은 LR로 학습 후 클래스 Gaussian으로 classifier alignment",
+      "benefit": "표현과 classifier bias를 따로 제어",
+      "drawback": "기본은 full backbone 학습으로 PEFT가 아님; 분포/정렬 비용",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.01,
+        "dataset_config": "slca"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "spr",
+      "source": "models/spr.py",
+      "line": 98,
+      "category": "노이즈 CL",
+      "feature": "self-supervised expert로 buffer를 정제 후 재학습",
+      "benefit": "노이즈 스트림에서 replay 품질 개선",
+      "drawback": "expert/base 모델과 3000/4000회 inner 학습 기본값 비용",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "noisy_clean_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "noise_type": "sym"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "Shared clean-label pilot; native wrapper supplies true_labels=labels. No noisy-label robustness claim."
+      ],
+      "clean_true_labels": true
+    },
+    {
+      "model": "starprompt",
+      "source": "models/starprompt.py",
+      "line": 16,
+      "category": "Prompt와 CLIP",
+      "feature": "CLIP semantic key 학습과 ViT residual prompt의 2단계",
+      "benefit": "semantic routing과 시각 적응 결합",
+      "drawback": "CLIP+ViT 상주와 begin/end_task 내부 학습",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "tak",
+      "source": "models/tak.py",
+      "line": 36,
+      "category": "모델 병합과 정규화",
+      "feature": "CLIP task vector를 KFAC/Fisher 제약으로 학습 및 병합",
+      "benefit": "병합 후 단일 backbone 추론 가능; 선택적 LoRA",
+      "drawback": "기본은 광범위 fine-tuning; Fisher/KFAC와 task vector 저장 비용",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.001
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "twf",
+      "source": "models/twf.py",
+      "line": 23,
+      "category": "리플레이와 증류",
+      "feature": "사전학습 teacher의 feature를 attention distillation",
+      "benefit": "중간 표현과 사전학습 지식 보존",
+      "drawback": "teacher와 attention mask 저장; checkpoint 조건 영향",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "der_alpha": 0.3,
+        "der_beta": 0.9,
+        "lambda_fp": 0.0005,
+        "lambda_fp_replay": 0.1,
+        "lambda_diverse_loss": 0.1
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "Pilot uses the initial backbone as teacher; paper checkpoint is not supplied/downloaded by this plan"
+      ]
+    },
+    {
+      "model": "xder",
+      "source": "models/xder.py",
+      "line": 18,
+      "category": "리플레이",
+      "feature": "과거 logits 수정 및 미래/현재 클래스 일관성 제약",
+      "benefit": "클래스 간 균형과 전이 개선",
+      "drawback": "DER++보다 복잡한 손실과 buffer 갱신 비용",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "xder-ce",
+      "source": "models/xder_ce.py",
+      "line": 16,
+      "category": "리플레이",
+      "feature": "X-DER의 CE 기반 변형",
+      "benefit": "X-DER 구성요소 비교에 유용",
+      "drawback": "X-DER와 별개의 신규 알고리즘으로 세면 중복",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "xder-rpc",
+      "source": "models/xder_rpc.py",
+      "line": 58,
+      "category": "리플레이",
+      "feature": "X-DER와 Regular Polytope Classifier",
+      "benefit": "고정된 클래스 기하를 활용",
+      "drawback": "분류기 가정과 replay overhead",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "xder-rpc-casper",
+      "source": "models/xder_rpc_casper.py",
+      "line": 52,
+      "category": "리플레이",
+      "feature": "X-DER와 Regular Polytope Classifier; CaSpeR: buffer feature graph의 spectral 정규화",
+      "benefit": "고정된 클래스 기하를 활용; 클래스 feature 구조 보존",
+      "drawback": "분류기 가정과 replay overhead; kNN graph/eigenvalue 연산 추가",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "xder-rpc-cscct",
+      "source": "models/xder_rpc_cscct.py",
+      "line": 52,
+      "category": "리플레이",
+      "feature": "X-DER와 Regular Polytope Classifier; CSCCT: cross-space clustering와 cross-task consistency",
+      "benefit": "고정된 클래스 기하를 활용; 표현 구조와 과거 태스크 일관성",
+      "drawback": "분류기 가정과 replay overhead; feature/teacher 연산과 손실 추가",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "xder-rpc-star",
+      "source": "models/xder_rpc_star.py",
+      "line": 59,
+      "category": "리플레이",
+      "feature": "X-DER와 Regular Polytope Classifier; STAR: 가중치 perturbation을 이용한 안정성 정규화",
+      "benefit": "고정된 클래스 기하를 활용; 과거 지식의 안정성을 보강",
+      "drawback": "분류기 가정과 replay overhead; 추가 perturbation/gradient 연산; STARPrompt와 다른 방법",
+      "compatibility": [
+        "class-il",
+        "task-il"
+      ],
+      "group": "classic_resnet224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 0.03,
+        "backbone": "resnet18",
+        "buffer_size": 500,
+        "alpha": 0.3,
+        "beta": 0.5
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": []
+    },
+    {
+      "model": "zscl",
+      "source": "models/zscl.py",
+      "line": 22,
+      "category": "CLIP 증류",
+      "feature": "reference image/text 증류와 weight averaging으로 zero-shot 보존",
+      "benefit": "학습 후 zero-shot 능력 유지 목적",
+      "drawback": "CLIP teacher와 Conceptual Captions 외부 데이터 필요; 기본은 full tuning",
+      "compatibility": [
+        "class-il",
+        "domain-il",
+        "task-il",
+        "general-continual"
+      ],
+      "group": "pretrained_224",
+      "dataset": "seq-cifar100-224",
+      "kind": "training",
+      "args": {
+        "lr": 1e-05,
+        "scheduler_mode": "iter",
+        "optimizer": "adamw"
+      },
+      "status": "source_present_runtime_unverified",
+      "requirements": [
+        "data/conceptual_captions must be prepared externally"
+      ]
+    }
+  ]
+}

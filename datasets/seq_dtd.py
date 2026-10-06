@@ -123,7 +123,7 @@ class SequentialDTD(ContinualDataset):
         ])
 
         _, _, test_transform = open_clip.create_model_and_transforms(
-            'ViT-B-16', pretrained='openai', cache_dir='checkpoints/ViT-B-16/cachedir/open_clip')
+            'ViT-B-16', pretrained='openai')
 
         # Load DTD dataset
         train_dataset = MyDTD(root=base_path() + 'DTD', split='train', download=True, transform=transform)

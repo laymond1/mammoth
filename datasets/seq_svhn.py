@@ -88,7 +88,7 @@ class SequentialSVHN(ContinualDataset):
 
         # CLIP's official test transform
         _, _, test_transform = open_clip.create_model_and_transforms(
-            'ViT-B-16', pretrained='openai', cache_dir='checkpoints/ViT-B-16/cachedir/open_clip')
+            'ViT-B-16', pretrained='openai')
 
         train_dataset = MySVHN(root=base_path() + 'SVHN', split='train', download=True, transform=transform)
         test_dataset = MySVHN(root=base_path() + 'SVHN', split='test', download=True, transform=test_transform)
