@@ -1,6 +1,12 @@
 import os
 import pytest
 
+from scripts.cl_runtime import configure_native_environment
+
+# Hyphenated worktree paths may skip the repository package's import bootstrap.
+# Set the native allocator policy before test collection imports PyArrow.
+configure_native_environment()
+
 @pytest.fixture(autouse=True)
 def setup_test_environ(caplog):
     # setting test environment variables
