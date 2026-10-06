@@ -317,11 +317,11 @@ class SequentialMNIST360(GCLDataset):
         return None
 
     @set_default_from_args('batch_size')
-    def get_batch_size(self) -> int:
+    def get_batch_size() -> int:
         return 16
 
     @set_default_from_args('n_epochs')
-    def get_epochs(self):
+    def get_epochs():
         return 1
 
 
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     import os
     import torchvision
     from PIL import Image
-    from tqdm import tqdm
+    from tqdm.auto import tqdm
 
     os.makedirs('../data/results/mnist360images/tmp/train', exist_ok=True)
     for i, (x, y, _) in tqdm(enumerate(train), total=len(train)):

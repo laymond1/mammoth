@@ -4,22 +4,23 @@
 # LICENSE file in the root directory of this source tree.
 import logging
 import sys
+from typing import List, Optional
 
 if __name__ == '__main__':
     import os
     mammoth_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sys.path.append(mammoth_path)
+    sys.path.insert(0, mammoth_path)
 
 from argparse import ArgumentParser, Namespace
 
 from backbone import REGISTERED_BACKBONES
 from datasets import get_dataset_names, get_dataset_config_names
-from models import get_all_models
+from models import get_model_names
 from models.utils.continual_model import ContinualModel
 from utils import binary_to_boolean_type, custom_str_underscore, field_with_aliases
 
 
-def get_single_arg_value(parser: ArgumentParser, arg_name: str):
+def get_single_arg_value(parser: ArgumentParser, arg_name: str, cmd: Optional[List[str]] = None):
     """
     Returns the value of a single argument without explicitly parsing the arguments.
 
@@ -30,6 +31,7 @@ def get_single_arg_value(parser: ArgumentParser, arg_name: str):
     Returns:
         str: the value of the argument
     """
+    cmd = cmd or sys.argv[1:]
     action = [action for action in parser._actions if action.dest == arg_name]
     assert len(action) == 1, f'Argument {arg_name} not found in the parser.'
     action = action[0]
@@ -39,14 +41,23 @@ def get_single_arg_value(parser: ArgumentParser, arg_name: str):
         return action.default
 
     # otherwise, search for the argument in the sys.argv
-    for i, arg in enumerate(sys.argv):
+    for i, arg in enumerate(cmd):
         arg_k = arg.split('=')[0]
         if arg_k in action.option_strings or arg_k == action.dest:
             if len(arg.split('=')) == 2:
                 return arg.split('=')[1]
             else:
-                return sys.argv[i + 1]
+                return cmd[i + 1]
     return None
+
+def set_defaults_args(parser: ArgumentParser, **kwargs) -> None:
+    """
+    Wraps the `set_defaults` method of the parser to avoid setting None values as defaults.
+    """
+
+    for key, value in kwargs.items():
+        if value is not None:
+            parser.set_defaults(**{key: value})
 
 
 def update_cli_defaults(parser: ArgumentParser, cnf: dict) -> None:
@@ -136,7 +147,7 @@ def build_parsable_args(parser: ArgumentParser, spec: dict) -> None:
     for name, arg_spec in spec.items():
         # check if the argument is already defined in the parser
         if any([action.dest == name for action in parser._actions]):
-            logging.warn(f"Argument `{name}` is already defined in the parser. Skipping...")
+            logging.warning(f"Argument `{name}` is already defined in the parser. Skipping...")
             continue
 
         if isinstance(arg_spec, dict):
@@ -212,7 +223,7 @@ def add_configuration_args(parser: ArgumentParser, args: Namespace) -> None:
     config_group.add_argument('--dataset_config', type=str,
                               choices=get_dataset_config_names(args.dataset),
                               help='The configuration used for this dataset (e.g., number of tasks, transforms, backbone architecture, etc.).'
-                              'The available configurations are defined in the `datasets/config/<dataset>` folder.')
+                              'The available configurations are defined in the `datasets/configs/<dataset>` folder.')
 
     config_group.add_argument('--model_config', type=field_with_aliases({'default': ['base', 'default'], 'best': ['best']}), default='default',
                               help='The configuration used for this model. The available configurations are defined in the `models/config/<model>.yaml` file '
@@ -220,15 +231,15 @@ def add_configuration_args(parser: ArgumentParser, args: Namespace) -> None:
                               'If not provided, the `default` configuration is used.')
 
 
-def add_initial_args(parser) -> ArgumentParser:
+def add_initial_args(parser, strict=True) -> ArgumentParser:
     """
     Returns the initial parser for the arguments.
     """
-    parser.add_argument('--dataset', type=custom_str_underscore, required=True,
+    parser.add_argument('--dataset', type=custom_str_underscore, required=strict,
                         choices=get_dataset_names(names_only=True),
                         help='Which dataset to perform experiments on.')
-    parser.add_argument('--model', type=custom_str_underscore, required=True,
-                        help='Model name.', choices=list(get_all_models().keys()))
+    parser.add_argument('--model', type=custom_str_underscore, required=strict,
+                        help='Model name.', choices=list(get_model_names().keys()))
     parser.add_argument('--backbone', type=custom_str_underscore, help='Backbone network name.', choices=list(REGISTERED_BACKBONES.keys()))
     parser.add_argument('--load_best_args', action='store_true',
                         help='(deprecated) Loads the best arguments for each method, dataset and memory buffer. '
@@ -260,6 +271,14 @@ def add_experiment_args(parser: ArgumentParser) -> None:
                            help='Percentage in (0-1] of labeled examples per task.')
     exp_group.add_argument('--joint', type=int, choices=(0, 1), default=0, help='Train model on Joint (single task)?')
     exp_group.add_argument('--eval_future', type=binary_to_boolean_type, default=False, help='Evaluate future tasks?')
+    exp_group.add_argument('--custom_task_order', type=str, default=None,
+                           help='Custom order of the tasks. The tasks are separated by commas or "-". Example: `--custom_task_order=0,1,2,3` or `--custom_task_order=0-3`.\n'
+                           'NOTE: this option is not supported by all datasets. If not provided, the tasks are ordered as in the dataset.\n'
+                           'NOTE: this option disables the `--permute_classes` option and is incompatible with `--custom_class_order`')
+    exp_group.add_argument('--custom_class_order', type=str, default=None,
+                           help='Custom order of the classes. The classes are separated by commas or "-". Example: `--custom_class_order=0,1,2,3` or `--custom_class_order=0-3`.\n'
+                           'NOTE: this option is not supported by all datasets. If not provided, the classes are ordered as in the dataset.\n'
+                           'NOTE: this option disables the `--permute_classes` option and is incompatible with `--custom_task_order`')
 
     validation_group = parser.add_argument_group('Validation and fitting arguments', 'Arguments used to define the validation strategy and the method used to fit the model.')
 
@@ -343,6 +362,8 @@ def add_management_args(parser: ArgumentParser) -> None:
                            help='Permute classes before splitting into tasks? This applies the seed before permuting if the `seed` argument is present.')
     mng_group.add_argument('--base_path', type=str, default="./data/",
                            help='The base path where to save datasets, logs, results.')
+    mng_group.add_argument('--checkpoint_path', type=str, default="./checkpoints/",
+                           help='The path where to save the checkpoints.')
     mng_group.add_argument('--results_path', type=str, default="results/",
                            help='The path where to save the results. NOTE: this path is relative to `base_path`.')
     mng_group.add_argument('--device', type=str,
@@ -375,10 +396,11 @@ def add_management_args(parser: ArgumentParser) -> None:
                            help='Save the model checkpoint with metadata in a single pickle file with the old structure (`old_pickle`) '
                            'or with the new, `safe` structure (default)?. NOTE: the `old_pickle` structure requires `weights_only=False`, which will be '
                            'deprecated by PyTorch.')
-    mng_group.add_argument('--loadcheck', type=str, default=None, help='Path of the checkpoint to load (.pt file for the specific task)')
     mng_group.add_argument('--ckpt_name', type=str, help='(optional) checkpoint save name.')
     mng_group.add_argument('--start_from', type=int, default=None, help="Task to start from")
     mng_group.add_argument('--stop_after', type=int, default=None, help="Task limit")
+    mng_group.add_argument('--save_after_interrupt', type=binary_to_boolean_type, default=1,
+                           help='Whether to save the model checkpoint after an interrupt - SigInt (default: True).')
 
     wandb_group = parser.add_argument_group('Wandb arguments', 'Arguments to manage logging on Wandb.')
 
@@ -423,6 +445,50 @@ def check_multiple_defined_arg_during_string_parse() -> None:
         if arg_name is not None and arg_name in keys:
             raise ValueError(f"Argument `{arg_name}` is defined multiple times.")
         keys.add(arg_name)
+
+
+# =========================== Pretty print log function ===========================
+
+def pretty_format_args(args: Namespace, parser: ArgumentParser) -> str:
+    """
+    Format the args namespace for better readability in logs.
+    """
+
+    args_dict = vars(args)
+    formatted = "╔═══════════════════════ CONFIGURATION ═══════════════════════╗\n"
+
+    # Get argument groups
+    arg_groups = {}
+    for group in parser._action_groups:
+        gname = group.title if group.title != 'options' else 'Basic arguments'
+        group_dict = [a.dest for a in group._group_actions if a.dest != 'help']
+        arg_groups[gname] = group_dict
+
+    # Organize args by their groups
+    for group_name, group_args in arg_groups.items():
+        if not group_args:
+            continue
+
+        formatted += f"║ {group_name}:\n"
+        for key in sorted(group_args):
+            if args_dict[key] is not None:
+                value = args_dict[key]
+                # Format value based on type
+                if isinstance(value, float):
+                    value_str = f"{value:.6f}"
+                elif isinstance(value, (list, tuple)):
+                    value_str = str(value)[:50] + ("..." if len(str(value)) > 50 else "")
+                else:
+                    value_str = str(value)
+
+                formatted += f"║   • {key}: {value_str}\n"
+        formatted += "║\n"
+
+    formatted += "╚════════════════════════════════════════════════════════════╝"
+    return formatted
+
+
+# =========================== Utility functions for documentation generation ===========================
 
 
 class _DocsArgs:
@@ -509,7 +575,7 @@ if __name__ == '__main__':
     add_initial_args(parser)
     parser.add_argument('--dataset_config', type=str,
                         help='The configuration used for this dataset (e.g., number of tasks, transforms, backbone architecture, etc.).'
-                        'The available configurations are defined in the `datasets/config/<dataset>` folder.')
+                        'The available configurations are defined in the `datasets/configs/<dataset>` folder.')
     docs_args = []
     for action in parser._actions:
         if action.dest == 'help':
@@ -590,8 +656,8 @@ if __name__ == '__main__':
             model_args_groups.append(_parse_actions(group._group_actions, group.title, group.description))
         model_filename = model_name.replace("-", "_")
         with open(f'docs/model_args/{model_filename}_args.rst', 'w') as f:
-            f.write(f'Arguments\n')
-            f.write(f'~~~~~~~~~~~\n\n')
+            f.write('Arguments\n')
+            f.write('~~~~~~~~~~~\n\n')
             for arg in model_args_groups:
                 f.write(str(arg) + '\n\n')
         print(f"Saving documentation in docs/model_args/{model_filename}_args.rst")

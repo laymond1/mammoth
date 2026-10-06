@@ -52,7 +52,10 @@ def set_default_from_args(arg_name: str):
         if arg_name in DEFAULT_ARGS[caller_name]:
             raise ValueError(f"Argument `{arg_name}` already has a default value in `{caller_name}`")
         if n_args == 1:  # has self
-            DEFAULT_ARGS[caller_name][arg_name] = func(None)
+            try:
+                DEFAULT_ARGS[caller_name][arg_name] = func(None)
+            except Exception:
+                pass # if the function relies on self, it cannot be called here, so we will call it when the dataset is initialized and self is available
         else:
             DEFAULT_ARGS[caller_name][arg_name] = func()
 
@@ -62,6 +65,9 @@ def set_default_from_args(arg_name: str):
             if is_static_call(*args):
                 # if no arguments are passed, return the function
                 return func(None)
+
+            if len(inspect.signature(func).parameters) == 0:  # functions may have no 'self' parameter
+                return func()
 
             return func(*args)
         return wrapper
@@ -166,7 +172,15 @@ def build_torchvision_transform(transform_specs: List[dict]) -> transforms.Compo
             assert isinstance(spec, dict), f"Invalid transformation specification: {spec}"
             for k, v in spec.items():
                 if isinstance(v, dict):
-                    transform_list.append(getattr(transforms, k)(**v))
+                    tr = getattr(transforms, k)
+                    if k == 'RandomApply':  # will have 'p' and 'transform' keys
+                        trs_inner = []
+                        for tr_inner_name, tr_inner_args in v['transform'].items():
+                            t = getattr(transforms, tr_inner_name)(**tr_inner_args)
+                            trs_inner.append(t)
+                        transform_list.append(tr(trs_inner, v['p']))
+                    else:
+                        transform_list.append(tr(**v))
                 else:
                     transform_list.append(getattr(transforms, k)(v))
 

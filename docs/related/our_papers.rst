@@ -1,6 +1,28 @@
 Our papers included in Mammoth
 ==============================
 
+- `Dataless Weight Disentanglement in Task Arithmetic via Kronecker-Factored Approximate Curvature <https://arxiv.org/abs/2602.17385>`_ (**ICLR 2026**)
+
+  .. code-block:: bibtex
+
+      @inproceedings{porrello2026dataless,
+        title={Dataless Weight Disentanglement in Task Arithmetic via Kronecker-Factored Approximate Curvature},
+        author={Porrello, Angelo and Buzzega, Pietro and Dangel, Felix and Sommariva, Thomas and Salami, Riccardo and Bonicelli, Lorenzo and Calderara, Simone},
+        booktitle={International Conference on Learning Representations (ICLR)},
+        year={2026}
+      }
+
+- `A Second-Order Perspective on Model Compositionality and Incremental Learning <https://openreview.net/forum?id=OZVTqoli2N>`_ (**ICLR 2025 Spotlight**)
+
+  .. code-block:: bibtex
+
+      @inproceedings{porrello2025second,
+        title={A Second-Order Perspective on Model Compositionality and Incremental Learning},
+        author={Angelo Porrello and Lorenzo Bonicelli and Pietro Buzzega and Monica Millunzi and Simone Calderara and Rita Cucchiara},
+        booktitle={The Thirteenth International Conference on Learning Representations},
+        year={2025},
+        url={https://openreview.net/forum?id=OZVTqoli2N}
+      }
 
 - `Towards Unbiased Continual Learning: Avoiding Forgetting in the Presence of Spurious Correlations <https://iris.unimore.it/handle/11380/1362535>`_ (**WACV 2025**)
 

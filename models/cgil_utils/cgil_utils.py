@@ -1,10 +1,11 @@
+import logging
 import os
 from pathlib import Path
 from typing import Optional
 
 import torch
 import torch.nn.functional as F
-from tqdm import tqdm, trange
+from tqdm.auto import tqdm, trange
 
 from datasets import get_dataset
 from datasets.utils.continual_dataset import ContinualDataset
@@ -269,7 +270,7 @@ class Prompter(torch.nn.Module):
 
         if cache_path.exists():
             features_dict = torch.load(cache_path, weights_only=True)
-            print(f'Loaded cached features from {cache_path}')
+            logging.info(f'Loaded cached features from {cache_path}')
         else:
             with tqdm(total=len(dataset.train_loader), desc='Updating statistics for first stage Generative Replay') as pbar:
                 for i, data in enumerate(dataset.train_loader):

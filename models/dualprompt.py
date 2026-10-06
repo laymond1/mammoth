@@ -27,7 +27,7 @@ class DualPrompt(ContinualModel):
         parser.set_defaults(optimizer='adam', batch_size=128)
 
         parser.add_argument('--pretrained', default=1, type=binary_to_boolean_type, help='Load pretrained model or not')
-        parser.add_argument('--use_fix_permute', type=binary_to_boolean_type, default=0, help='Apply fix to reshape issue from original implementation (ref: issue #56)')
+        parser.add_argument('--use_permute_fix', type=binary_to_boolean_type, default=0, help='Apply fix to reshape issue from original implementation (ref: issue #56)')
 
         # Optimizer parameters
         parser.add_argument('--clip_grad', type=float, default=1.0, metavar='NORM', help='Clip gradient norm (default: None, no clipping)')
@@ -63,10 +63,10 @@ class DualPrompt(ContinualModel):
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
         del backbone
-        print("-" * 20)
+        logging.info("-" * 20)
         logging.info(f"DualPrompt USES A CUSTOM BACKBONE: `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz` (vit_base_patch16_224_in21k_fn_in1k_old).")
-        print("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
-        print("-" * 20)
+        logging.info("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
+        logging.info("-" * 20)
 
         args.lr = args.lr * args.batch_size / 256.0
         tmp_dataset = get_dataset(args) if dataset is None else dataset

@@ -9,19 +9,19 @@ Arguments
 	*Help*: Which dataset to perform experiments on.
 
 	- *Default*: ``None``
-	- *Choices*: ``seq-tinyimg, seq-mit67, seq-cars196, seq-cifar100-224-rs, seq-cifar100-224, seq-chestx, seq-celeba, seq-cifar10-224-rs, mnist-360, seq-cropdisease, seq-eurosat-rgb, seq-imagenet-r, seq-cifar100, seq-cifar10-224, perm-mnist, seq-cub200, seq-cifar10, rot-mnist, seq-resisc45, seq-mnist, seq-cub200-rs, seq-isic, seq-tinyimg-r``
+	- *Choices*: ``seq-cifar100, seq-cars196, seq-dtd, seq-eurosat-rgb, seq-gtsrb, seq-mnist-224, seq-resisc45, seq-sun397, seq-svhn, seq-8vision, seq-cub200, seq-cub200-rs, seq-cifar10, perm-mnist, seq-mnist, seq-cifar10-224-rs, seq-cropdisease, seq-isic, seq-tinyimg, seq-tinyimg-r, seq-celeba, seq-imagenet-r, seq-chestx, seq-mit67, rot-mnist, mnist-360, seq-cifar100-224, seq-cifar10-224, seq-cifar100-224-rs``
 
 **\-\-model** : str (with underscores replaced by dashes)
 	*Help*: Model name.
 
 	- *Default*: ``None``
-	- *Choices*: ``joint-gcl, second-stage-starprompt, lwf-mc, puridiver, gdumb-lider, joint, ewc-on, xder, ranpac, hal, idefics, er-ace-tricks, sgd, si, moe-adapters, first-stage-starprompt, er-ace-aer-abs, icarl, lucir, fdr, icarl-lider, derpp, der, derpp-lider, gem, bic, llava, attriclip, starprompt, lws, coda-prompt, er-tricks, clip, pnn, er-ace, xder-ce, dualprompt, twf, mer, er-ace-lider, gdumb, dap, l2p, ccic, slca, agem-r, rpc, xder-rpc, gss, lwf, cgil, er, agem``
+	- *Choices*: ``derpp, xder-rpc, xder-ce, er-ace, ewc-on, er-ace-aer-abs, er-tricks, coda-prompt, xder-rpc-cscct, sgd, icarl-cscct, er, cgil, er-ace-star, er-star, clip, gdumb-lider, joint-gcl, derpp-casper, gss, zscl, derpp-cscct, icarl, lwf-mc, agem, twf, lwf, llava, derpp-lider, dualprompt, xder-rpc-star, lws, moe-adapters, starprompt, mer, bic, lucir, second-stage-starprompt, ranpac, hal, der, slca, icarl-lider, gdumb, er-ace-casper, idefics, rpc, puridiver, dap, xder, spr, attriclip, derpp-star, joint, si, tak-v2, cnll, first-stage-starprompt, gem, tak, icarl-casper, fdr, er-ace-tricks, er-ace-lider, l2p, pnn, agem-r, ccic, er-ace-cscct, second-order, xder-rpc-casper``
 
 **\-\-backbone** : str (with underscores replaced by dashes)
 	*Help*: Backbone network name.
 
 	- *Default*: ``None``
-	- *Choices*: ``resnet18, resnet18-7x7-pt, reduced-resnet18, resnet34, resnet50, resnet50-pt, resnet32, mnistmlp, vit``
+	- *Choices*: ``resnet50, resnet50-pt, resnet32, preact-resnet18, resnet18, resnet18-7x7-pt, reduced-resnet18, resnet34, resnet18-spr, efficientnet, vit, mnistmlp-pnn, mnistmlp, resnet18-pnn``
 
 **\-\-load_best_args** : unknown
 	*Help*: (deprecated) Loads the best arguments for each method, dataset and memory buffer. NOTE: This option is deprecated and not up to date.
@@ -29,7 +29,7 @@ Arguments
 	- *Default*: ``False``
 
 **\-\-dataset_config** : str
-	*Help*: The configuration used for this dataset (e.g., number of tasks, transforms, backbone architecture, etc.).The available configurations are defined in the `datasets/config/<dataset>` folder.
+	*Help*: The configuration used for this dataset (e.g., number of tasks, transforms, backbone architecture, etc.).The available configurations are defined in the `datasets/configs/<dataset>` folder.
 
 	- *Default*: ``None``
 
@@ -64,6 +64,18 @@ Arguments
 	*Help*: Evaluate future tasks?
 
 	- *Default*: ``False``
+**\-\-custom_task_order** : str
+	*Help*: Custom order of the tasks. The tasks are separated by commas or "-". Example: `--custom_task_order=0,1,2,3` or `--custom_task_order=0-3`.
+NOTE: this option is not supported by all datasets. If not provided, the tasks are ordered as in the dataset.
+NOTE: this option disables the `--permute_classes` option and is incompatible with `--custom_class_order`
+
+	- *Default*: ``None``
+**\-\-custom_class_order** : str
+	*Help*: Custom order of the classes. The classes are separated by commas or "-". Example: `--custom_class_order=0,1,2,3` or `--custom_class_order=0-3`.
+NOTE: this option is not supported by all datasets. If not provided, the classes are ordered as in the dataset.
+NOTE: this option disables the `--permute_classes` option and is incompatible with `--custom_task_order`
+
+	- *Default*: ``None``
 
 .. rubric:: Validation and fitting arguments
 
@@ -191,6 +203,10 @@ Arguments
 	*Help*: The base path where to save datasets, logs, results.
 
 	- *Default*: ``./data/``
+**\-\-checkpoint_path** : str
+	*Help*: The path where to save the checkpoints.
+
+	- *Default*: ``./checkpoints/``
 **\-\-results_path** : str
 	*Help*: The path where to save the results. NOTE: this path is relative to `base_path`.
 
@@ -251,10 +267,6 @@ Arguments
 
 	- *Default*: ``safe``
 	- *Choices*: ``old_pickle, safe``
-**\-\-loadcheck** : str
-	*Help*: Path of the checkpoint to load (.pt file for the specific task)
-
-	- *Default*: ``None``
 **\-\-ckpt_name** : str
 	*Help*: (optional) checkpoint save name.
 
@@ -267,6 +279,10 @@ Arguments
 	*Help*: Task limit
 
 	- *Default*: ``None``
+**\-\-save_after_interrupt** : 0|1|True|False -> bool
+	*Help*: Whether to save the model checkpoint after an interrupt - SigInt (default: True).
+
+	- *Default*: ``1``
 
 .. rubric:: Wandb arguments
 

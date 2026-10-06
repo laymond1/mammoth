@@ -37,12 +37,14 @@ jobs:
       - uses: actions/setup-python@v3
         with:
           python-version: "3.10"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
       - name: Install dependencies
         run: |
-          pip install -r docs/requirements.txt -r requirements.txt -r requirements-optional.txt
-      - name: Sphinx build
+          uv sync --extra extra
+      - name: Build docs
         run: |
-          python ./utils/args.py && sphinx-build -j auto docs _build
+          cd docs && uv run ../utils/args.py && uv run sphinx-build -j auto . ../_build && cd ..
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

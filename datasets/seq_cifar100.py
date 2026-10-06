@@ -137,19 +137,19 @@ class SequentialCIFAR100(ContinualDataset):
         return transform
 
     @set_default_from_args('n_epochs')
-    def get_epochs(self):
+    def get_epochs():
         return 50
 
     @set_default_from_args('batch_size')
-    def get_batch_size(self):
+    def get_batch_size():
         return 32
 
     @set_default_from_args('lr_scheduler')
-    def get_scheduler_name(self):
+    def get_scheduler_name():
         return 'multisteplr'
 
     @set_default_from_args('lr_milestones')
-    def get_scheduler_name(self):
+    def get_scheduler_name():
         return [35, 45]
 
     def get_class_names(self):

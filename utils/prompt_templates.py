@@ -135,5 +135,9 @@ templates = {
         'a centered satellite photo of {}.',
         'a centered satellite photo of a {}.',
         'a centered satellite photo of the {}.',
-    ]
+    ],
+    'seq-8vision': [
+        'a photo of a {}.',
+        'a photo of the {}.',
+    ],
 }

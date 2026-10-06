@@ -1,5 +1,6 @@
 import glob
 import io
+import logging
 import os
 import tarfile
 import requests
@@ -100,7 +101,7 @@ class MyMIT67(Dataset):
         self.not_aug_transform = transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()])
 
         if not os.path.exists(self.root) and download:
-            print('Downloading MIT67 dataset...')
+            logging.info('Downloading MIT67 dataset...')
             if not os.path.exists(self.root):
                 os.makedirs(self.root)
             train_images_link = 'http://groups.csail.mit.edu/vision/LabelMe/NewImages/indoorCVPR_09.tar'
@@ -117,9 +118,9 @@ class MyMIT67(Dataset):
             r = requests.get(test_images_link)
             with open(os.path.join(self.root, 'TestImages.txt'), 'wb') as f:
                 f.write(r.content)
-            print('MIT67 dataset downloaded')
+            logging.info('MIT67 dataset downloaded')
         else:
-            print('MIT67 dataset already downloaded')
+            logging.info('MIT67 dataset already downloaded')
 
         folder_targets = {os.path.basename(f[:-1]): i for i, f in enumerate(sorted(glob.glob(os.path.join(self.root, 'Images/*/'))))}
 
@@ -236,9 +237,9 @@ class SequentialMIT67(ContinualDataset):
         return DeNormalize(SequentialMIT67.MEAN, SequentialMIT67.STD)
 
     @set_default_from_args('n_epochs')
-    def get_epochs(self):
+    def get_epochs():
         return 50
 
     @set_default_from_args('batch_size')
-    def get_batch_size(self):
+    def get_batch_size():
         return 32

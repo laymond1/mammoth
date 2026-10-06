@@ -12,6 +12,7 @@ Examples:
 - When using DDP, you might need the `wait_for_master` function.
     - Synchronization before and after training is handled automatically.
 """
+import logging
 import os
 import sys
 
@@ -40,10 +41,10 @@ def setup(rank: int, world_size: int) -> None:
     os.environ['MASTER_PORT'] = str(port)
 
     # initialize the process group
-    print(f"Running basic DDP example on rank {rank}/{world_size} (host {host}, node {os.environ['SLURMD_NODENAME']} port {port}).")
+    logging.info(f"Running basic DDP example on rank {rank}/{world_size} (host {host}, node {os.environ['SLURMD_NODENAME']} port {port}).")
     sys.stdout.flush()
     dist.init_process_group("gloo", rank=rank, world_size=world_size)
-    print("Inited")
+    logging.info("Inited")
     sys.stdout.flush()
 
 
@@ -175,6 +176,18 @@ class CustomDP(DataParallel):
                 setattr(self.module, name, value)
             else:
                 super().__setattr__(name, value)
+
+    def load_state_dict(self, state_dict, strict=True, assign=False):
+        """
+        Override default load_state_dict to avoid using `.module`.
+        """
+        return self.module.load_state_dict(state_dict, strict, assign)
+
+    def state_dict(self, destination=None, prefix='', keep_vars=False):
+        """
+        Override default state_dict to avoid using `.module`.
+        """
+        return self.module.state_dict(destination, prefix, keep_vars)
 
 
 def make_dp(model):

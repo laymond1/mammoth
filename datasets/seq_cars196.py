@@ -1,18 +1,15 @@
+import logging
 import os
-import sys
+import shutil
 import torch
+import pickle
+from typing import List, Dict
+from typing import Tuple, Union
+from tqdm.auto import tqdm
+import json
+from PIL import Image
 import torchvision.transforms as transforms
 import torch.nn.functional as F
-from PIL import Image
-from typing import Tuple, Union
-from tqdm import tqdm
-import json
-
-try:
-    import deeplake
-    assert int(deeplake.__version__.split('.')[0]) < 4, 'Deeplake version must be < 4. Install it with `pip install -U "deeplake<3.9"`.'
-except ImportError:
-    raise NotImplementedError("Deeplake not installed. Please install with `pip install deeplake` to use this dataset.")
 
 from utils.conf import base_path
 from datasets.utils import set_default_from_args
@@ -23,29 +20,23 @@ from torchvision.transforms.functional import InterpolationMode
 from utils.prompt_templates import templates
 
 
-def load_and_preprocess_cars196(train_str='train', names_only=False) -> Union[Tuple[torch.Tensor, torch.Tensor, dict], dict]:
+def load_and_preprocess_cars196(class_names: List[str], dataset: Dict[str, List[torch.Tensor]]) -> Union[Tuple[torch.Tensor, torch.Tensor, dict], dict]:
     """
     Loads data from deeplake and preprocesses it to be stored locally.
 
     Args:
-        train_str (str): 'train' or 'test'.
-        names_only (bool): If True, returns the class names only.
+        class_names: list of class names
+        datasett: dataset to be pre-processed
 
     Returns:
         Tuple[torch.Tensor, torch.Tensor, dict] | dict: If names_only is False, returns a tuple of data, targets, and class_idx_to_name
     """
-    assert train_str in ['train', 'test'], "train_str must be 'train' or 'test'"
-    ds = deeplake.load(f"hub://activeloop/stanford-cars-{train_str}")
-    loader = ds.pytorch()
-    class_names = ds['car_models'].info['class_names']
     class_idx_to_name = {i: class_names[i] for i in range(len(class_names))}
-    if names_only:
-        return class_idx_to_name
 
     # Pre-process dataset
     data = []
     targets = []
-    for x in tqdm(loader, desc=f'Pre-processing {train_str} dataset'):
+    for x in tqdm(dataset, desc=f'Pre-processing dataset'):
         img = x['images'][0].permute(2, 0, 1)  # load one image at a time
         if len(img) < 3:
             img = img.repeat(3, 1, 1)  # fix rgb
@@ -62,6 +53,16 @@ def load_and_preprocess_cars196(train_str='train', names_only=False) -> Union[Tu
 
 class MyCars196(Dataset):
     N_CLASSES = 196
+    HF_REPO_ID = 'aimagelab-ta/cars196'
+    HF_REPO_TYPE = 'dataset'
+    HF_REVISION = 'main'
+    REQUIRED_FILES = (
+        'train_images.pt',
+        'train_labels.pt',
+        'test_images.pt',
+        'test_labels.pt',
+    )
+    CLASS_NAME_FILES = ('class_names.json', 'class_names.pkl')
 
     """
     Overrides the CIFAR100 dataset to change the getitem function.
@@ -81,21 +82,95 @@ class MyCars196(Dataset):
         self.target_transform = target_transform
         self.not_aug_transform = transforms.ToTensor()
 
+        self.ensure_dataset_files(root)
+
         train_str = 'train' if train else 'test'
-        if not os.path.exists(f'{root}/{train_str}_images.pt'):
-            print(f'Preparing {train_str} dataset...', file=sys.stderr)
-            self.load_and_preprocess_dataset(root, train_str)
-        else:
-            print(f"Loading pre-processed {train_str} dataset...", file=sys.stderr)
+        if os.path.exists(f'{root}/{train_str}_images.pt'):
+            logging.info(f"Loading pre-processed {train_str} dataset...")
             self.data = torch.load(f'{root}/{train_str}_images.pt', weights_only=True)
             self.targets = torch.load(f'{root}/{train_str}_labels.pt', weights_only=True)
+            if os.path.exists(f'{root}/class_names.json'):
+                with open(f'{root}/class_names.json', 'rt') as f:
+                    self.class_names = json.load(f)
+            elif os.path.exists(base_path() + f'cars196/class_names.pkl'):
+                with open(base_path() + f'cars196/class_names.pkl', 'rb') as f:
+                    self.class_names = pickle.load(f)
+        else:
+            raise FileNotFoundError(
+                f'Could not find preprocessed split files in `{root}` after attempting download from '
+                f'`{MyCars196.HF_REPO_ID}`.'
+            )
 
         self.class_names = MyCars196.get_class_names()
 
-    def load_and_preprocess_dataset(self, root, train_str='train'):
-        self.data, self.targets, class_idx_to_name = load_and_preprocess_cars196(train_str)
+    @classmethod
+    def _download_file_from_hf(cls, root: str, filename: str) -> None:
+        try:
+            from huggingface_hub import hf_hub_download
+        except ImportError as e:
+            raise ImportError(
+                'huggingface_hub is required to download CARS196 automatically. '
+                'Install it with `pip install huggingface_hub`.'
+            ) from e
 
-        print(f"Saving pre-processed dataset in {root} ({train_str}_images.pt and {train_str}_labels.py)...", file=sys.stderr)
+        downloaded_path = hf_hub_download(
+            repo_id=cls.HF_REPO_ID,
+            filename=filename,
+            repo_type=cls.HF_REPO_TYPE,
+            revision=cls.HF_REVISION,
+        )
+
+        target_path = os.path.join(root, filename)
+        target_dir = os.path.dirname(target_path)
+        if target_dir:
+            os.makedirs(target_dir, exist_ok=True)
+        shutil.copy2(downloaded_path, target_path)
+
+    @classmethod
+    def ensure_dataset_files(cls, root: str) -> None:
+        os.makedirs(root, exist_ok=True)
+
+        missing_required = [
+            filename for filename in cls.REQUIRED_FILES
+            if not os.path.exists(os.path.join(root, filename))
+        ]
+        has_class_names = any(
+            os.path.exists(os.path.join(root, filename))
+            for filename in cls.CLASS_NAME_FILES
+        )
+
+        if not missing_required and has_class_names:
+            return
+
+        if missing_required:
+            logging.info(
+                'Missing CARS196 files in `%s`. Downloading from `hf://%s@%s`.',
+                root,
+                cls.HF_REPO_ID,
+                cls.HF_REVISION,
+            )
+            for filename in missing_required:
+                cls._download_file_from_hf(root, filename)
+
+        if not has_class_names:
+            class_name_error = None
+            for filename in cls.CLASS_NAME_FILES:
+                try:
+                    cls._download_file_from_hf(root, filename)
+                    has_class_names = True
+                    break
+                except Exception as e:
+                    class_name_error = e
+            if not has_class_names:
+                raise FileNotFoundError(
+                    f'Could not find/download class names for CARS196 in `{root}`. '
+                    f'Expected one of: {cls.CLASS_NAME_FILES}.'
+                ) from class_name_error
+
+    def load_and_preprocess_dataset(self, root, train_str='train'):
+        self.data, self.targets, class_idx_to_name = load_and_preprocess_cars196(self.class_names, self.dataset)
+
+        logging.info(f"Saving pre-processed dataset in {root} ({train_str}_images.pt and {train_str}_labels.py)...")
         if not os.path.exists(root):
             os.makedirs(root)
         torch.save(self.data, f'{root}/{train_str}_images.pt')
@@ -103,18 +178,19 @@ class MyCars196(Dataset):
 
         with open(f'{root}/class_names.json', 'wt') as f:
             json.dump(class_idx_to_name, f, indent=4)
-        print('Done', file=sys.stderr)
+        logging.info('Done')
 
     @staticmethod
     def get_class_names():
-        if not os.path.exists(base_path() + f'cars196/class_names.json'):
-            print("Class names not found, performing pre-processing...")
-            class_idx_to_name = load_and_preprocess_cars196(names_only=True)
-            print('Done', file=sys.stderr)
-        else:
+        if os.path.exists(base_path() + f'cars196/class_names.json'):
             with open(base_path() + f'cars196/class_names.json', 'rt') as f:
                 class_idx_to_name = json.load(f)
-        class_names = list(class_idx_to_name.values())
+            class_names = list(class_idx_to_name.values())
+        elif os.path.exists(base_path() + f'cars196/class_names.pkl'):
+            with open(base_path() + f'cars196/class_names.pkl', 'rb') as f:
+                class_names = pickle.load(f)
+        else:
+            raise ValueError("Class names not found")
         return class_names
 
     def __len__(self):
@@ -217,9 +293,9 @@ class SequentialCars196(ContinualDataset):
         return transform
 
     @set_default_from_args('n_epochs')
-    def get_epochs(self):
+    def get_epochs():
         return 50
 
     @set_default_from_args('batch_size')
-    def get_batch_size(self):
+    def get_batch_size():
         return 128

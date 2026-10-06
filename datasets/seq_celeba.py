@@ -86,7 +86,7 @@ class SequentialCelebA(ContinualDataset):
         return train, test
 
     @set_default_from_args('lr_scheduler')
-    def get_scheduler_name(self):
+    def get_scheduler_name():
         return 'cosine'
 
     @staticmethod

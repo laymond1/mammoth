@@ -79,6 +79,35 @@ class BasicBlock(nn.Module):
         return out
 
 
+
+class PreActBlock(nn.Module):
+    """
+    Pre-activation version of the BasicBlock.
+    From: ``CNLL: A Semi-supervised Approach For Continual Noisy Label Learning''
+    """
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1):
+        super(PreActBlock, self).__init__()
+        self.bn1 = nn.BatchNorm2d(in_planes)
+        self.conv1 = conv3x3(in_planes, planes, stride)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv2 = conv3x3(planes, planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion*planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion*planes, kernel_size=1, stride=stride, bias=False)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(x))
+        shortcut = self.shortcut(out)
+        out = self.conv1(out)
+        out = self.conv2(F.relu(self.bn2(out)))
+        out += shortcut
+        return out
+
 class ResNet(MammothBackbone):
     """
     ResNet network architecture. Designed for complex datasets.
@@ -199,6 +228,19 @@ class ResNet(MammothBackbone):
 
         raise NotImplementedError("Unknown return type. Must be in ['out', 'features', 'both', 'full'] but got {}".format(returnt))
 
+@register_backbone("preact-resnet18")
+def preact_resnet18(num_classes: int, num_filters: int = 64) -> ResNet:
+    """
+    Instantiates a ResNet18 network.
+
+    Args:
+        num_classes: number of output classes
+        num_filters: number of filters
+
+    Returns:
+        ResNet network
+    """
+    return ResNet(PreActBlock, [2, 2, 2, 2], num_classes, num_filters)
 
 @register_backbone("resnet18")
 def resnet18(num_classes: int, num_filters: int = 64) -> ResNet:
@@ -216,7 +258,7 @@ def resnet18(num_classes: int, num_filters: int = 64) -> ResNet:
 
 
 @register_backbone("resnet18_7x7_pt")
-def resnet18(num_classes: int) -> ResNet:
+def resnet18_7x7(num_classes: int) -> ResNet:
     """
     Instantiates a ResNet18 network with a 7x7 initial convolution and pretrained weights.
 
@@ -226,7 +268,7 @@ def resnet18(num_classes: int) -> ResNet:
     Returns:
         ResNet network
     """
-    from torchvision.models import ResNet18_Weights
+    from torchvision.models import ResNet18_Weights # type: ignore[import-untyped]
     net = ResNet(BasicBlock, [2, 2, 2, 2], num_classes, 64, initial_conv_k=7)
     pretrain_weights = ResNet18_Weights.DEFAULT
     st = pretrain_weights.get_state_dict(progress=True, check_hash=True)
@@ -242,7 +284,7 @@ def resnet18(num_classes: int) -> ResNet:
 
 
 @register_backbone("reduced-resnet18")
-def resnet18(num_classes: int) -> ResNet:
+def reduced_resnet18(num_classes: int) -> ResNet:
     """
     Instantiates a ResNet18 network with a third of the parameters, as used in `Gradient Episodic Memory for Continual Learning`
 
@@ -269,3 +311,18 @@ def resnet34(num_classes: int, num_filters: int = 64) -> ResNet:
         ResNet network
     """
     return ResNet(BasicBlock, [3, 4, 6, 3], num_classes, num_filters)
+
+
+@register_backbone("resnet18_spr")
+def resnet18_spr(num_classes: int) -> ResNet:
+    """
+    Instantiates a ResNet18 network as used in the original `SPR <https://arxiv.org/abs/2110.07735>`_ paper.
+
+    Args:
+        num_classes: number of output classes
+
+    Returns:
+        ResNet network
+    """
+
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes, 64, initial_conv_k=7)  # spr uses 7x7 conv even for 32x32 images

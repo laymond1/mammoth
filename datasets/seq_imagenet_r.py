@@ -6,7 +6,7 @@ except ImportError as e:
     raise e
 
 import os
-import torchvision.transforms as transforms
+import torchvision.transforms as transforms # type: ignore[import-untyped]
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 import numpy as np
@@ -17,11 +17,10 @@ from typing import Tuple
 import yaml
 
 from datasets.utils import set_default_from_args
-from utils import smart_joint
 from utils.conf import base_path
 from datasets.utils.continual_dataset import ContinualDataset, fix_class_names_order, store_masked_loaders
 from datasets.transforms.denormalization import DeNormalize
-from torchvision.transforms.functional import InterpolationMode
+from torchvision.transforms.functional import InterpolationMode # type: ignore[import-untyped]
 
 
 class MyImagenetR(Dataset):
@@ -43,28 +42,29 @@ class MyImagenetR(Dataset):
 
         if not os.path.exists(self.root):
             if download:
+                os.makedirs(self.root, exist_ok=True)
                 # download from https://people.eecs.berkeley.edu/~hendrycks/imagenet-r.tar
-                print("Downloading imagenet-r dataset...")
+                logging.info("Downloading imagenet-r dataset...")
                 url = 'https://people.eecs.berkeley.edu/~hendrycks/imagenet-r.tar'
                 r = requests.get(url, allow_redirects=True)
                 if not os.path.exists(self.root):
                     os.makedirs(self.root)
-                print("Writing tar on disk...")
+                logging.info("Writing tar on disk...")
                 open(self.root + 'imagenet-r.tar', 'wb').write(r.content)
-                print("Extracting tar...")
+                logging.info("Extracting tar...")
                 os.system('tar -xf ' + self.root + 'imagenet-r.tar -C ' + self.root.rstrip('imagenet-r'))
 
                 # move all files in imagenet-r to root with shutil
                 import shutil
-                print("Moving files...")
+                logging.info("Moving files...")
                 for d in os.listdir(self.root + 'imagenet-r'):
                     shutil.move(self.root + 'imagenet-r/' + d, self.root)
 
-                print("Cleaning up...")
+                logging.info("Cleaning up...")
                 os.remove(self.root + 'imagenet-r.tar')
                 os.rmdir(self.root + 'imagenet-r')
 
-                print("Done!")
+                logging.info("Done!")
             else:
                 raise RuntimeError('Dataset not found.')
 
@@ -179,9 +179,9 @@ class SequentialImagenetR(ContinualDataset):
         return transform
 
     @set_default_from_args('n_epochs')
-    def get_epochs(self):
+    def get_epochs():
         return 50
 
     @set_default_from_args('batch_size')
-    def get_batch_size(self):
+    def get_batch_size():
         return 128

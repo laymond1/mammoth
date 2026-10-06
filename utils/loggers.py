@@ -9,6 +9,7 @@ This module contains the Logger class and related functions for logging accuracy
 
 from argparse import Namespace
 from contextlib import suppress
+import logging
 import os
 import sys
 from typing import Any, Dict, Union
@@ -239,7 +240,7 @@ class Logger:
         create_if_not_exists(smart_joint(target_folder, self.setting, self.dataset, self.model))
 
         path = smart_joint(target_folder, self.setting, self.dataset, self.model, "logs.pyd")
-        print("Logging results and arguments in " + path)
+        logging.info("Logging results and arguments in " + path)
         with open(path, 'a') as f:
             f.write(str(wrargs) + '\n')
 
@@ -272,7 +273,7 @@ def log_bias_accs(args: Namespace, logger: Logger, accs, t: int, setting: str, e
 
     # Log the group statistics separately
     group_log_dict = {f"ACC_{key}": group_statistics[key] for key in group_statistics}
-    print(group_log_dict)
+    logging.info(group_log_dict)
     if not args.nowand:
         wandb.log(group_log_dict)
 
@@ -413,25 +414,35 @@ def print_mean_accuracy(accs: np.ndarray, task_number: int,
         prefix = "Joint Accuracy" if epoch is None else f"Joint Accuracy (epoch {epoch})"
         if setting == 'domain-il' or setting == 'general-continual':
             mean_acc, _ = mean_acc
-            print('{}: \t [Domain-IL]: {} %'.format(prefix, round(mean_acc, 2), file=sys.stderr))
+            out_str = '{}: \t [Domain-IL]: {} %'.format(prefix, round(mean_acc, 2))
+            print(out_str, file=sys.stderr)
+            logging.info(out_str)
             print('\tRaw accuracy values: Domain-IL {}'.format(accs[0]), file=sys.stderr)
+            logging.info('\tRaw accuracy values: Domain-IL {}'.format(accs[0]))
         else:
             mean_acc_class_il, mean_acc_task_il = mean_acc
-            print('{}: \t [Class-IL]: {} % \t [Task-IL]: {} %'.format(prefix, round(
-                mean_acc_class_il, 2), round(mean_acc_task_il, 2)), file=sys.stderr)
+            out_str = '{}: \t [Class-IL]: {} % \t [Task-IL]: {} %'.format(prefix, round(mean_acc_class_il, 2), round(mean_acc_task_il, 2))
+            print(out_str, file=sys.stderr)
+            logging.info(out_str)
             print('\tRaw accuracy values: Class-IL {} | Task-IL {}'.format(accs[0], accs[1]), file=sys.stderr)
+            logging.info('\tRaw accuracy values: Class-IL {} | Task-IL {}'.format(accs[0], accs[1]))
     else:
         prefix = "Accuracy" if epoch is None else f"Accuracy (epoch {epoch})"
         prefix = "Future " + prefix if future else prefix
         if setting == 'domain-il' or setting == 'general-continual':
             mean_acc, _ = mean_acc
-            print('{} for {} task(s): [Domain-IL]: {} %'.format(prefix,
-                                                                task_number, round(mean_acc, 2)), file=sys.stderr)
+            out_str = '{} for {} task(s): [Domain-IL]: {} %'.format(prefix, task_number, round(mean_acc, 2))
+            print(out_str, file=sys.stderr)
+            logging.info(out_str)
             print('\tRaw accuracy values: Domain-IL {}'.format(accs[0]), file=sys.stderr)
+            logging.info('\tRaw accuracy values: Domain-IL {}'.format(accs[0]))
         else:
             mean_acc_class_il, mean_acc_task_il = mean_acc
-            print('{} for {} task(s): \t [Class-IL]: {} % \t [Task-IL]: {} %'.format(prefix, task_number, round(
-                mean_acc_class_il, 2), round(mean_acc_task_il, 2)), file=sys.stderr)
+            out_str = '{} for {} task(s): \t [Class-IL]: {} % \t [Task-IL]: {} %'.format(prefix, task_number, round(
+                mean_acc_class_il, 2), round(mean_acc_task_il, 2))
+            print(out_str, file=sys.stderr)
+            logging.info(out_str)
             print('\tRaw accuracy values: Class-IL {} | Task-IL {}'.format(accs[0], accs[1]), file=sys.stderr)
+            logging.info('\tRaw accuracy values: Class-IL {} | Task-IL {}'.format(accs[0], accs[1]))
     print('\n', file=sys.stderr)
     return mean_acc

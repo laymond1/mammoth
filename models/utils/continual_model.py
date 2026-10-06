@@ -13,7 +13,7 @@ The `get_optimizer` method returns the optimizer to be used for training. Defaul
 
 The `load_buffer` method is called when a buffer is loaded. Default: do nothing.
 
-The `meta_observe`, `meta_begin_task` and `meta_end_task` methods are wrappers for `observe`, `begin_task` and `end_task` methods, respectively. They take care of updating the internal counters and of logging to wandb if installed.
+The `meta_observe`, `meta_begin_task`, `meta_end_task` and `meta_end_eval` methods are wrappers for `observe`, `begin_task`, `end_task` and `end_eval` methods, respectively. They take care of updating the internal counters and of logging to wandb if installed.
 
 The `autolog_wandb` method is used to automatically log to wandb all variables starting with "_wandb_" or "loss" in the observe function. It is called by `meta_observe` if wandb is installed. It can be overridden to add custom logging.
 """
@@ -64,7 +64,7 @@ class ContinualModel(nn.Module):
     net: 'MammothBackbone'  # The backbone of the model (defined by the `dataset`)
     loss: nn.Module  # The loss function to be used (defined by the `dataset`)
     opt: optim.Optimizer  # The optimizer to be used for training
-    scheduler: optim.lr_scheduler._LRScheduler  # (optional) The scheduler for the optimizer. If defined, it will overwrite the one defined in the `dataset`
+    custom_scheduler: optim.lr_scheduler._LRScheduler  # (optional) The scheduler for the optimizer. If defined, it will overwrite the one defined in the `dataset`
     # The transformation to be applied to the input data. The model will try to convert it to a kornia transform to be applicable to a batch of samples at once
     transform: Union[transforms.Compose, kornia.augmentation.AugmentationSequential]
     original_transform: transforms.Compose  # The original transformation to be applied to the input data. This is the one defined by the `dataset`
@@ -183,7 +183,7 @@ class ContinualModel(nn.Module):
     def __init__(self, backbone: 'MammothBackbone', loss: nn.Module,
                  args: Namespace, transform: nn.Module, dataset: 'ContinualDataset' = None) -> None:
         super(ContinualModel, self).__init__()
-        print("Using {} as backbone".format(backbone.__class__.__name__))
+        logging.info("Using {} as backbone".format(backbone.__class__.__name__))
         self.net = backbone
         self.loss = loss
         self.args = args
@@ -203,8 +203,11 @@ class ContinualModel(nn.Module):
         self._current_task = 0
 
         try:
-            self.transform = to_kornia_transform(transform.transforms[-1].transforms)
-            self.normalization_transform = to_kornia_transform(self.dataset.get_normalization_transform())
+            if transform is not None:
+                self.transform = to_kornia_transform(transform.transforms[-1].transforms)
+                self.normalization_transform = to_kornia_transform(self.dataset.get_normalization_transform())
+            else:
+                logging.info("No transform provided.")
         except BaseException:
             logging.error("could not initialize kornia transforms.")
             self.normalization_transform = transforms.Compose([transforms.ToPILImage(), self.dataset.TEST_TRANSFORM]) if hasattr(
@@ -297,7 +300,7 @@ class ContinualModel(nn.Module):
             raise ValueError('Unknown optimizer: {}'.format(self.args.optimizer))
         return opt
 
-    def compute_offsets(self, task: int) -> Tuple[int, int]:
+    def get_offsets(self, task: int) -> Tuple[int, int]:
         """
         Compute the start and end offset given the task.
 
@@ -330,6 +333,21 @@ class ContinualModel(nn.Module):
         """
         pass
 
+    def meta_begin_epoch(self, epoch: int, dataset: 'ContinualDataset') -> None:
+        """
+        Wrapper for `begin_epoch` method.
+
+        Takes care of dropping updating some counters.
+        """
+        self._epoch_iteration = 0
+        self.begin_epoch(epoch, dataset)
+
+    def meta_end_epoch(self, epoch: int, dataset: 'ContinualDataset') -> None:
+        """
+        Wrapper for `end_epoch` method.
+        """
+        self.end_epoch(epoch, dataset)
+
     def begin_epoch(self, epoch: int, dataset: 'ContinualDataset') -> None:
         """
         Prepares the model for the current epoch.
@@ -346,6 +364,12 @@ class ContinualModel(nn.Module):
     def end_epoch(self, epoch: int, dataset: 'ContinualDataset') -> None:
         """
         Prepares the model for the next epoch.
+        """
+        pass
+
+    def end_eval(self, dataset: 'ContinualDataset', accs: Tuple[List, List]) -> None:
+        """
+        Called after task-level evaluation.
         """
         pass
 
@@ -391,9 +415,18 @@ class ContinualModel(nn.Module):
                 args = [arg[labeled_mask] if isinstance(arg, torch.Tensor) and arg.shape[0] == args[0].shape[0] else arg for arg in args]
 
         # remove kwargs that are not needed by the observe method
-        observe_args = inspect.signature(self.observe).parameters.keys()
-        if 'kwargs' not in observe_args:
-            kwargs = {k: v for k, v in kwargs.items() if k in observe_args}
+        observe_args = inspect.signature(self.observe).parameters
+        if 'kwargs' not in observe_args.keys():
+            kwargs = {k: v for k, v in kwargs.items() if k in observe_args.keys()}
+        missing_args = [
+            arg for arg, val in observe_args.items() if arg not in kwargs and
+            arg not in ['inputs', 'labels', 'not_aug_inputs'] and  # ignore args that will always be present
+            val.default is val.empty and  # avoid matching args that have default values
+            val.kind in (val.POSITIONAL_OR_KEYWORD, val.KEYWORD_ONLY)  # avoid matching **kwargs
+        ]
+        assert len(missing_args) == 0, f"Some arguments required by observe are missing: {missing_args}. "
+        "Suggestion: if the missing argument is `true_labels`, you are probably missing "
+        "the `--noise_rate` and `--noise_type` arguments."
 
         if 'wandb' in sys.modules and not self.args.nowand:
             pl = persistent_locals(self.observe)
@@ -427,11 +460,11 @@ class ContinualModel(nn.Module):
         self._epoch_iteration = 0
         self._past_epoch = 0
         self._n_classes_current_task = self._cpt if isinstance(self._cpt, int) else self._cpt[self._current_task]
-        self._n_past_classes, self._n_seen_classes = self.compute_offsets(self._current_task)
+        self._n_past_classes, self._n_seen_classes = self.get_offsets(self._current_task)
         self._n_remaining_classes = self.N_CLASSES - self._n_seen_classes
 
         # reload optimizer if the model has no scheduler
-        if not hasattr(self, 'scheduler') or self.scheduler is None:
+        if not hasattr(self, 'scheduler') or self.custom_scheduler is None:
             if hasattr(self, 'opt') and self.opt is not None:
                 self.opt.zero_grad(set_to_none=True)
             self.opt = self.get_optimizer()
@@ -454,6 +487,17 @@ class ContinualModel(nn.Module):
         self.end_task(dataset)
         self._current_task += 1
 
+    def meta_end_eval(self, dataset, accs):
+        """
+        Wrapper for `end_eval` method.
+        """
+        current_task = self._current_task
+        self._current_task = self._current_task - 1 if self._current_task > 0 else 0
+        try:
+            self.end_eval(dataset, accs)
+        finally:
+            self._current_task = current_task
+
     @abstractmethod
     def observe(self, inputs: torch.Tensor, labels: torch.Tensor,
                 not_aug_inputs: torch.Tensor, epoch: int = None) -> float:
@@ -475,7 +519,7 @@ class ContinualModel(nn.Module):
         All variables starting with "_wandb_" or "loss" in the observe function
         are automatically logged to wandb upon return if wandb is installed.
         """
-        if not self.args.nowand and not self.args.debug_mode:
+        if not self.args.nowand:
             tmp = {k: (v.item() if isinstance(v, torch.Tensor) and v.dim() == 0 else v)
                    for k, v in locals.items() if k.startswith('_wandb_') or 'loss' in k.lower()}
             tmp.update(extra or {})

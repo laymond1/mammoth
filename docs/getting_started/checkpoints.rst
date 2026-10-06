@@ -7,7 +7,7 @@ For example, to save a checkpoint after the end of the last task, simply run the
 
 .. code-block:: python 
     
-        python utils/main.py --savecheck=last --model=sgd --dataset=seq-cifar10 --lr=0.1
+        python main.py --savecheck=last --model=sgd --dataset=seq-cifar10 --lr=0.1
 
 The available options for ``--savecheck`` are:
 
@@ -21,7 +21,7 @@ The available options for ``--savecheck`` are:
 This will save the checkpoint in the ``checkpoints`` folder. To load the checkpoint, simply run the following command:
 .. code-block:: python 
     
-        python utils/main.py --loadcheck=<path to checkpoint>.pt --model=sgd --dataset=seq-cifar10 --lr=0.1
+        python main.py --loadcheck=<path to checkpoint>.pt --model=sgd --dataset=seq-cifar10 --lr=0.1
 
 .. rubric:: Checkpoint save format
 
@@ -57,6 +57,8 @@ Inside the checkpoint file, the following information is saved:
 
 Mammoth supports loading checkpoint both from the local machine **and from a remote machine** using the ``--loadcheck`` argument. To load a checkpoint from a remote machine, simply supply the ``--loadcheck`` with the URL of the checkpoint file. 
 
+The ``--loadcheck`` remote URL supports direct links from providers such as Hugging Face, SharePoint, and Google Drive (see :ref:`module-utils.checkpoints`).
+
 Checkpoints can be loaded either following the mammoth format (defined above) or from a simple ``.pt`` file. In the latter case, the checkpoint file should contain all the parameters of the *backbone* of the model. The other parameters (optimizer, scheduler, etc.) will be initialized from scratch.
 
 The loading functions are available in :ref:`module-utils.checkpoints` and should take care of loading all the parameters regardless of the presence of module parallelism (see :ref:`module-fast-training`).
@@ -70,4 +72,58 @@ These backbones can be loaded using the ``--loadcheck`` argument, by supplying t
 
 .. note:: 
 
-        Mammoth does not support loading the models from the HuggingFaces model hub directly. The user should download the model and load it using the ``--loadcheck`` argument.
+        The recommended way to load remote checkpoints is still ``--loadcheck=<url>``.
+
+
+TAK Fisher cache from local/remote storage
+--------------------------------------------
+
+The ``tak`` model supports loading Fisher cache tensors through ``--load_fisher=1`` and ``--fisher_cache``.
+
+``--fisher_cache`` accepts:
+
+- a local directory (default behavior),
+- an HTTP(S) base URL containing the cache files,
+- a Hugging Face source in the format ``hf://<owner>/<repo>/<optional/subpath>@<optional_revision>``.
+
+Examples:
+
+.. code-block:: bash
+
+        python main.py --model tak --dataset seq-cifar100-224 --load_fisher 1 --fisher_cache /path/to/fisher_cache --lr 1e-3 --n_epochs 1
+
+.. code-block:: bash
+
+        python main.py --model tak --dataset seq-cifar100-224 --load_fisher 1 --fisher_cache https://my-host/path/to/fisher_cache --lr 1e-3 --n_epochs 1
+
+.. code-block:: bash
+
+        python main.py --model tak --dataset seq-cifar100-224 --load_fisher 1 --fisher_cache hf://my-user/my-repo/tak/fisher@main --lr 1e-3 --n_epochs 1
+
+Expected file naming in the cache source:
+
+- ``<dataset>_task_<id>_num_aaT.pt``
+- ``<dataset>_task_<id>_num_ggT.pt``
+- ``<dataset>_task_<id>_aaT.pt``
+- ``<dataset>_task_<id>_ggT.pt``
+- ``<dataset>_task_<id>_ffT.pt``
+
+If a URL serves a Git LFS pointer file instead of the artifact bytes, Mammoth raises an explicit error.
+
+
+Upload artifacts to Hugging Face
+--------------------------------
+
+You can upload any local artifacts (checkpoints, fisher cache files, logs) with the generic uploader script:
+
+.. code-block:: bash
+
+        uv run python scripts/upload_to_hf.py --repo-id my-user/my-repo --local-dir /path/to/artifacts --pattern "**/*"
+
+Useful options:
+
+- ``--remote-dir``: upload under a folder inside the HF repo,
+- ``--repo-type``: choose ``model``, ``dataset``, or ``space``,
+- ``--revision``: target branch/revision,
+- ``--exclude``: skip matching files,
+- ``--dry-run``: preview uploads without pushing.

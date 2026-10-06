@@ -6,7 +6,7 @@ Fast training \& optimizations
 .. important::
     The optimizations described in this section require an NVIDIA GPU with the `Ampere architecture <https://www.nvidia.com/en-gb/data-center/ampere-architecture/>`_ (RTX 30xx series or newer) and the `CUDA Toolkit <https://developer.nvidia.com/cuda-toolkit>`_ installed. If you do not have an Ampere GPU, you can still use Mammoth without these optimizations.
 
-Mammoth provides a number of optimizations to speed up training. These are **disabled** by default (mainly to improve ease of debugging), but can be enabled by passing the `--code_optimization` (or `-O`) flag to ``utils/main.py``. The available optimizations are:
+Mammoth provides a number of optimizations to speed up training. These are **disabled** by default (mainly to improve ease of debugging), but can be enabled by passing the `--code_optimization` (or `-O`) flag to ``main.py``. The available optimizations are:
 
 * **0**: No optimization (default)
 * **1**: Use the ``TF32`` data type for training IF IT IS AVAILABLE (*i.e.*, sets the `torch.set_float32_matmul_precision` to `high`). **This will fall back to FP32 if TF32 is not available**.
@@ -19,7 +19,7 @@ Mammoth provides a number of optimizations to speed up training. These are **dis
 Distributed training
 --------------------
 
-Mammoth supports distributed training via `DataParallel <https://pytorch.org/docs/stable/nn.html#dataparallel-layers-multi-gpu-distributed>`_. To use it, simply pass the `--distributed=dp` argument to ``utils/main.py``. This will automatically use all available GPUs on the machine using the **make_dp** function in :ref:`module-utils.distributed`.
+Mammoth supports distributed training via `DataParallel <https://pytorch.org/docs/stable/nn.html#dataparallel-layers-multi-gpu-distributed>`_. To use it, simply pass the `--distributed=dp` argument to ``main.py``. This will automatically use all available GPUs on the machine using the **make_dp** function in :ref:`module-utils.distributed`.
 
 DataParallel training **splits the batch** across GPUs and performs the forward and backward passes on each GPU. The gradients are then **averaged** across GPUs and the model parameters are updated. This is the simplest form of distributed training supported by PyTorch and is the only one supported by Mammoth as of now.
 

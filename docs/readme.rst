@@ -1,24 +1,26 @@
 Welcome to Mammoth's documentation!
 ===================================
-.. image:: _static/logo.png
+.. image:: _static/mammoth_logo.svg
     :alt: logo
     :align: center
     :height: 230px
     :width: 230px
 
 Mammoth - An benchmark Continual Learning framework for Pytorch
-==========================================================================
+===============================================================
 
-Mammoth is a framework for Continual Learning research. With **more than 50 methods and 20 datasets**, it includes the most complete list competitors and benchmarks for research purposes.
+Mammoth is a framework for Continual Learning research. With **more than 70 methods and 20 datasets**, it includes the most complete list competitors and benchmarks for research purposes.
 
 The core idea of Mammoth is that it is designed to be modular, easy to extend, and - most importantly - *easy to debug*.
 Ideally, all the code necessary to run the experiments is included *in the repository*, without needing to check out other repositories or install additional packages.
 
 With Mammoth, nothing is set in stone. You can easily add new models, datasets, training strategies, or functionalities.
 
-**NEW: BIASED AND NOISY DATASETS** We have introduced datasets with *biased* and *noisy* labels. Noisy labels are generated on the fly and are available for all single-label multi-class datasets (the majority, only `seq_celeba` is currently multi-label). 
+**NEW: IMPORT MAMMOTH** Mammoth can now be imported as a package in your code. This allows you to use the models, datasets, and utilities directly in your code. You can find examples of how to use Mammoth in the `examples/` folder. You can also import Mammoth in your code with `import mammoth` and use the models, datasets, and utilities directly.
 
-**NEW: REPRODUCIBILITY** We are working on making all the configurations to reproduce the results of the models available in the repository. Many models already have their configurations available in the ``models/configs/`` folder and can be loaded with the ``--model_config`` argument set to `best`. You can see all the models with configurations available in the `REPRODUCIBILITY.md` file.
+**BIASED AND NOISY DATASETS** We have introduced datasets with *biased* and *noisy* labels. Noisy labels are generated on the fly and are available for all single-label multi-class datasets (the majority, only `seq_celeba` is currently multi-label). 
+
+**REPRODUCIBILITY** We are working on making all the configurations to reproduce the results of the models available in the repository. Many models already have their configurations available in the ``models/config/`` folder and can be loaded with the ``--model_config`` argument set to `best`. You can see all the models with configurations available in the `REPRODUCIBILITY.md` file.
 
 **DATASET CONFIGURATIONS** We now support *configuration files* for the datasets with the new ``--dataset_config`` argument. This allows for more flexibility in the dataset definition. See more in :ref:`dataset-configurations`.
 
@@ -67,7 +69,7 @@ Setup
 -----
 
 - Install with ``pip install -r requirements.txt``.
-- Use ``./utils/main.py`` to run experiments.
+- Use ``python main.py`` to run experiments.
 - New models can be added to the ``models/`` folder.
 - New datasets can be added to the ``datasets/`` folder.
 
@@ -77,7 +79,7 @@ Setup
 Models
 ------
 
-Mammoth currently supports **more than 50 models**, with new releases covering the main competitors in literature.
+Mammoth currently supports **more than 70 models**, with new releases covering the main competitors in literature.
 
 Datasets
 --------
@@ -86,7 +88,7 @@ Datasets
 - This can be changed by changing the ``base_path`` function in ``utils/conf.py`` or using the ``--base_path`` argument.
 - The ``data/`` folder should not be tracked by git and is craeted automatically if missing.
 
-Mammoth includes **21** datasets, covering *toy classification problems* (different versions of MNIST), *standard domains* (CIFAR, Imagenet-R, TinyImagenet, MIT-67), *fine-grained classification domains* (Cars-196, CUB-200), *aerial domains* (EuroSAT-RGB, Resisc45), *medical domains* (CropDisease, ISIC, ChestX).
+Mammoth includes **23** datasets, covering *toy classification problems* (different versions of MNIST), *standard domains* (CIFAR, Imagenet-R, TinyImagenet, MIT-67), *fine-grained classification domains* (Cars-196, CUB-200), *aerial domains* (EuroSAT-RGB, Resisc45), *medical domains* (CropDisease, ISIC, ChestX).
 
 Work in progress
 ----------------

@@ -93,7 +93,7 @@ class SequentialMNIST(ContinualDataset):
 
     @staticmethod
     def get_transform():
-        return None
+        return SequentialMNIST.TRANSFORM
 
     @staticmethod
     def get_loss():
@@ -108,11 +108,11 @@ class SequentialMNIST(ContinualDataset):
         return None
 
     @set_default_from_args('batch_size')
-    def get_batch_size(self):
+    def get_batch_size():
         return 64
 
     @set_default_from_args('n_epochs')
-    def get_epochs(self):
+    def get_epochs():
         return 1
 
     def get_class_names(self):

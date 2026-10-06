@@ -25,7 +25,7 @@ The best configurations can be found in the tables below by merging the tables o
   
   .. code-block:: bash
 
-    python utils/main.py --model starprompt --dataset seq-cifar100-224 --seed 1993 --permute_classes=1
+    python main.py --model starprompt --dataset seq-cifar100-224 --seed 1993 --permute_classes=1
   
 First stage only
 ~~~~~~~~~~~~~~~~

@@ -5,6 +5,7 @@
 
 
 from argparse import Namespace
+import logging
 
 import torch
 
@@ -70,7 +71,7 @@ def train(args: Namespace):
     model.net.to(model.device)
     torch.cuda.empty_cache()
 
-    with track_system_stats(logger) as system_tracker:
+    with track_system_stats(logger, device=args.device) as system_tracker:
         epoch, i = 0, 0
         model.net.train()
 
@@ -87,7 +88,7 @@ def train(args: Namespace):
             model.end_task(dataset)
 
         acc = evaluate(model, dataset)
-        print('Accuracy:', acc)
+        logging.info(f'Accuracy: {acc}')
 
     if not args.disable_log:
         logger.log(acc)

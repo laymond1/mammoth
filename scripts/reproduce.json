@@ -284,7 +284,66 @@
     "model": "lws",
     "setting": "class-il",
     "notes": "Results are worst-best accuracy on B-CelebA1",
-    "result": [58.84, 71.43],
+    "result": [
+      58.84,
+      71.43
+    ],
     "cmd": "--model lws --dataset seq-celeba --buffer_size 1024 --model_config best"
+  },
+  {
+    "model": "spr",
+    "setting": "class-il",
+    "result": 85.4,
+    "notes": "20% noise symmetric, on a 1080ti takes around 3 days and a half of training",
+    "cmd": "--model=spr --dataset=seq-mnist --buffer_size=300 --model_config=best"
+  },
+  {
+    "model": "cnll",
+    "setting": "class-il",
+    "result": 68.7,
+    "notes": "20% noise symmetric with unlimited buffer",
+    "cmd": "--model cnll --dataset seq-cifar10 --buffer_size 500 --model_config best"
+  },
+  {
+    "model": "second_order",
+    "setting": "class-il",
+    "result": 90.12,
+    "notes": "ITA",
+    "cmd": "--model=second_order --dataset=seq-cifar100-224 --model_config=best"
+  },
+  {
+    "model": "second_order",
+    "setting": "class-il",
+    "result": 89.73,
+    "notes": "IEL",
+    "cmd": "--batch_size=8 --virtual_bs_n=16 --tuning_style=lora --use_iel=1 --model=second_order --dataset=seq-cifar100-224 --beta_iel=20 --lr=0.0003 --num_epochs_pretuning=3 --learning_rate_pretuning=0.01 --req_weight_cls=0.1 --simple_reg_weight_cls=0.001 --dataset_config=second_order_ta"
+  },
+  {
+    "model": "derpp_star",
+    "setting": "class-il",
+    "result": 61.76,
+    "notes": "",
+    "cmd": "--buffer_size=100 --dataset=seq-cifar10 --model=derpp_star --model_config=best"
+  },
+  {
+    "model": "er_ace_star",
+    "setting": "class-il",
+    "result": 60.69,
+    "notes": "",
+    "cmd": "--buffer_size=100 --dataset=seq-cifar10 --model=er_ace_star --model_config=best"
+  },
+  {
+    "model": "er_star",
+    "setting": "class-il",
+    "result": 51.5,
+    "notes": "",
+    "cmd": "--buffer_size=100 --dataset=seq-cifar10 --model=er_star --model_config=best"
+  },
+  {
+    "model": "xder_rpc_star",
+    "setting": "class-il",
+    "result": 58.85,
+    "notes": "",
+    "cmd": "--buffer_size 100 --dataset=seq-cifar10 --model=xder_rpc_star --model_config=best"
   }
 ]

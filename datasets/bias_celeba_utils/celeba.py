@@ -2,15 +2,15 @@
 Modified version of torchvision.datasets.CelebA to include bias labels and preprocessed splits.
 """
 
+import logging
 import os
 from collections import namedtuple
-from typing import Any, Callable, List, Optional, Tuple, Union
-import numpy as np
+from typing import Any, Callable, Optional, Tuple
 import pandas as pd
 from PIL import Image
 import torch
-from torchvision.datasets.utils import check_integrity, download_file_from_google_drive, extract_archive, verify_str_arg
-from torchvision.datasets import VisionDataset
+from torchvision.datasets.utils import check_integrity, download_file_from_google_drive, extract_archive, verify_str_arg # type: ignore[import-untyped]
+from torchvision.datasets import VisionDataset # type: ignore[import-untyped]
 
 CSV = namedtuple("CSV", ["header", "index", "data"])
 
@@ -44,6 +44,7 @@ class BiasCelebA(VisionDataset):
         version: int = 1,
     ) -> None:
         super().__init__(root, transform=transform, target_transform=target_transform)
+        import pandas as pd
 
         self.split = split
         self.target_type = "attr"
@@ -121,10 +122,10 @@ class BiasCelebA(VisionDataset):
 
     def download(self) -> None:
         if self._check_integrity():
-            print("Files already downloaded and verified")
+            logging.info("Files already downloaded and verified")
             return
         try:
-            import gdown
+            import gdown # noqa: F401
         except ImportError:
             raise ImportError("gdown is not installed. Run `pip install gdown`.")
 

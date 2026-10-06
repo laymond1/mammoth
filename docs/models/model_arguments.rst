@@ -66,7 +66,7 @@ The default values of the arguments can be defined in the `get_parser` method by
 Model configurations and best arguments
 ----------------------------------------
 
-In order to facilitate the use and reproducibility of the models, we introduced the concept of *configurations* for the models. The configurations are stored as a separate file named `<model-name>.yaml` in the `models/configs` directory. 
+In order to facilitate the use and reproducibility of the models, we introduced the concept of *configurations* for the models. The configurations are stored as a separate file named `<model-name>.yaml` in the `models/config` directory. 
 
 The configuration file store a **default** configuration (indepenent of the dataset) and a **best** configuration. The best configuration depends on the dataset and, if available, the buffer size:
 
@@ -74,7 +74,7 @@ The configuration file store a **default** configuration (indepenent of the data
 
 - **best**: the best configuration for the model for a particular dataset (and buffer size, if applicable). This configuration is used if the ``--model_config`` argument is set to ``best``.
 
-Each configuration is defined in a file named **<model_name>.yaml** and placed in the **models/configs** folder. The configuration file is a `YAML <https://yaml.org/>`_ file that defines the hyper-parameters of the model. The hyper-parameters are defined as a dictionary with the hyper-parameter name as the key and the hyper-parameter value as the value. All hyper-parameters defined under the key ``default`` are loaded with the ``default`` configuration, while only the hyper-parameters defined at under the dataset name (and buffer size, if applicable) are loaded with the ``best`` configuration. For example, the following configuration file for **my_model** defines a default `optimizer` for the model, a `learning_rate` when trained on the **seq-cifar100** dataset, and a `optim_wd` when the buffer size is **100**:
+Each configuration is defined in a file named **<model_name>.yaml** and placed in the **models/config** folder. The configuration file is a `YAML <https://yaml.org/>`_ file that defines the hyper-parameters of the model. The hyper-parameters are defined as a dictionary with the hyper-parameter name as the key and the hyper-parameter value as the value. All hyper-parameters defined under the key ``default`` are loaded with the ``default`` configuration, while only the hyper-parameters defined at under the dataset name (and buffer size, if applicable) are loaded with the ``best`` configuration. For example, the following configuration file for **my_model** defines a default `optimizer` for the model, a `learning_rate` when trained on the **seq-cifar100** dataset, and a `optim_wd` when the buffer size is **100**:
 
 .. code-block:: yaml
 

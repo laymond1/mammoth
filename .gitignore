@@ -3,6 +3,7 @@
 *.pdf
 data/
 data
+checkpoints
 checkpoints/
 *.png
 *.pt
@@ -103,3 +104,7 @@ scripts/prepare_grid*
 docs/model_args
 
 cache
+
+uv.lock
+
+vitb16

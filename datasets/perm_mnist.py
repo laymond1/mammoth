@@ -105,11 +105,11 @@ class PermutedMNIST(ContinualDataset):
         return F.cross_entropy
 
     @set_default_from_args('batch_size')
-    def get_batch_size(self) -> int:
+    def get_batch_size() -> int:
         return 128
 
     @set_default_from_args('n_epochs')
-    def get_epochs(self):
+    def get_epochs():
         return 1
 
     def get_class_names(self):
