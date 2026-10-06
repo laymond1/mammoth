@@ -28,6 +28,19 @@ git merge --ff-only codex/ease
 XDG_CACHE_HOME=/mnt/sdab1/userHome/wslim/.cache uv sync --locked --offline --python /mnt/sdab1/userHome/wslim/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12 --group dev --extra extra
 ```
 
+결과 커밋 `5debc4e`도 Foundation에 fast-forward했습니다. 최초 Foundation CPU suite와 단독 `test_ease.py`는 import 중 exit139로 종료했습니다. pytest는 package 탐색에서 Python 식별자가 아닌 디렉터리 이름을 제외하므로, `compression-gap-cl`에서는 루트 `__init__.py`의 allocator 초기화가 collection 전에 실행되지 않는 경로가 있었습니다. 두 worktree의 161개 distribution·버전·pytest plugin은 같습니다. `JE_ARROW_MALLOC_CONF=background_thread:false`를 먼저 지정하면 같은 295개 tests가 10.36초에 통과하여 원인을 대조했습니다.
+
+`a2958ab`에서 `tests/conftest.py`의 collection 전에 기존 helper를 호출하는 6줄을 추가했습니다. 모델·trainer·측정 source는 변경하지 않았습니다. 수정 후 Foundation에서 외부 allocator 환경변수를 지정하지 않은 아래 명령으로 **295 passed in9.19s**를 확인했습니다. 실험을 재실행하지 않았고, 위 295개와 중복되므로 개수를 합산하지 않습니다.
+
+```bash
+CUDA_VISIBLE_DEVICES='' uv run --no-sync --offline python -m pytest tests/test_ease_efficiency.py tests/test_ease_acceptance.py tests/test_ease_execution.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_prepare_ease.py tests/test_cl_efficiency.py tests/test_cl_runtime.py -q --tb=short
+uv run --no-sync --offline python scripts/benchmark_cl.py
+uv run --no-sync --offline python scripts/prepare_ease.py
+git diff --check
+```
+
+Foundation에서 공통71개 엔트리(66개 준비/5개 보류)와 EASE5개 variant를 재생성했고, 모든 새 계획의 execution=false를 확인했습니다. 공개 JSON 문법, 로컬 링크168개, 측정 source11개 SHA256 불변, 공개 파일에 credential값 미포함도 정적으로 확인했습니다. [최종 Slack 완료 알림](environment/efficiency_completion_notification.json)은 sent입니다. 결과 문서와 검증 이력도 두 로컬 브랜치에 반영하며, 원시 로그는 EASE worktree에 보존합니다. 원격 push는 수행하지 않습니다.
+
 ## 2026-10-07 Native 첫 2개 태스크 검증 완료
 
 사용자가 추천안 진행을 승인하여 seed1993의 Base64 첫 2개 태스크만 실행했습니다. 정확도 네 지표와 일곱 구조 검사가 모두 통과했습니다. 추가 seeds, 공통 효율성 pilot, FLOPs pass, Tiny/Small 학습, 병합과 push는 수행하지 않았습니다.
