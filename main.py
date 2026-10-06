@@ -15,6 +15,10 @@ To run the script, execute it directly or import it as a module and call the `ma
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+from scripts.cl_runtime import configure_native_environment
+
+configure_native_environment()
+
 # needed (don't change it)
 import numpy  # noqa
 from typing import List, Optional, Tuple, Union, TYPE_CHECKING

@@ -148,6 +148,25 @@ def _public_profile(path):
     return {key: value for key, value in values.items() if key in PUBLIC_DEFAULTS}
 
 
+def configure_native_environment(environ=None):
+    """Disable Arrow's failing jemalloc background thread before native imports.
+
+    PyArrow's vendored allocator reads JE_ARROW_MALLOC_CONF rather than the
+    unprefixed MALLOC_CONF. Its background thread can crash during dlopen even
+    when the default Arrow pool is mimalloc or system. Keep the default pool and
+    unrelated allocator settings unchanged; respect an explicit thread setting.
+    This helper uses no native libraries and does not read private configuration.
+    """
+    environ = os.environ if environ is None else environ
+    key = 'JE_ARROW_MALLOC_CONF'
+    existing = environ.get(key, '')
+    options = [option.strip() for option in existing.split(',') if option.strip()]
+    if not any(option.startswith('background_thread:') for option in options):
+        options.append('background_thread:false')
+        environ[key] = ','.join(options)
+    return {key: environ[key]}
+
+
 def configure_environment(profile_path=None, credentials_path=None, environ=None):
     """Apply shared paths and credentials; return only the effective public profile.
 
@@ -174,6 +193,7 @@ def configure_environment(profile_path=None, credentials_path=None, environ=None
         raise ValueError('Select one physical GPU index, UUID, or cpu')
     if not all(Path(profile[key]).is_absolute() for key in ('data_root', 'cache_root')):
         raise ValueError('Shared data and cache roots must be absolute paths')
+    configure_native_environment(environ)
     for key, name in PUBLIC_ENV.items():
         environ[name] = profile[key]
     cache = Path(profile['cache_root'])

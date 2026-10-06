@@ -68,6 +68,7 @@ extra = [
     "dotenv",
     "gdown",
     "matplotlib",
+    "easydict==1.13",
 ]
 
 [tool.uv]

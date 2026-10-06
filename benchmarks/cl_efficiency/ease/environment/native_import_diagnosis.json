@@ -1,0 +1,65 @@
+{
+  "status": "resolved",
+  "date": "2026-10-07",
+  "scope": "Native dependency imports only; no ViT forward, backward, optimization, or checkpoint downloads were executed by these probes.",
+  "environment": {
+    "python": "3.12.15",
+    "torch": "2.13.0+cu126",
+    "torchvision": "0.28.0+cu126",
+    "timm": "0.9.8",
+    "pyarrow": "25.0.1",
+    "pandas": "3.0.5",
+    "kornia": "0.8.3",
+    "transformers": "5.16.1",
+    "easydict": "1.13"
+  },
+  "reproduction": {
+    "command": ".venv/bin/python -c 'import timm, kornia; from transformers import CLIPTextModel'",
+    "exit_code_before_fix": 139,
+    "native_debugger": "gdb --batch -ex 'set pagination off' -ex 'set print thread-events off' -ex run -ex 'bt 24' --args .venv/bin/python -c 'import timm, kornia; from transformers import CLIPTextModel'",
+    "crashing_thread": "jemalloc_bg_thd",
+    "crashing_function": "background_thread_entry()",
+    "crashing_library": "pyarrow/libarrow.so.2500"
+  },
+  "fix": {
+    "default_environment": {
+      "JE_ARROW_MALLOC_CONF": "background_thread:false"
+    },
+    "provenance": "The installed libarrow.so.2500 contains the JE_ARROW_MALLOC_CONF string. gdb identified its allocator background thread as the faulting thread; the namespaced setting removes that thread's initialization failure.",
+    "helper": "scripts.cl_runtime.configure_native_environment",
+    "entrypoints": [
+      "main.py before NumPy/PyTorch imports",
+      "Repository package __init__.py before framework imports",
+      "scripts.cl_runtime.configure_environment after profile validation"
+    ],
+    "default_arrow_memory_pool_after_fix": "mimalloc",
+    "changes_default_memory_pool": false,
+    "requires_pyarrow_preimport": false,
+    "existing_allocator_settings": "Unrelated options are preserved. An explicitly configured background_thread option is respected; an explicit true value can reproduce the platform fault.",
+    "ineffective_alternatives": [
+      "ARROW_DEFAULT_MEMORY_POOL=system",
+      "MALLOC_CONF=background_thread:false"
+    ],
+    "dependency_changes": [
+      "Added easydict==1.13 to optional extra for the official EASE implementation. Existing package versions remain locked."
+    ],
+    "package_downgrades": []
+  },
+  "verification": {
+    "dependency_sync": "uv sync --locked --group dev --extra extra",
+    "dependency_sync_exit_code": 0,
+    "native_help": ".venv/bin/python main.py --model ease --dataset seq-cifar100-224 --help",
+    "native_help_exit_code": 0,
+    "native_help_note": "Help discovery uses the existing cached legacy CLIP weights; no EASE training or neural forward was run.",
+    "focused_tests": "uv run --no-sync python -m pytest tests/test_cl_runtime.py tests/test_ease_backbone.py tests/test_ease.py -q --tb=short",
+    "focused_tests_passed": 106,
+    "focused_tests_exit_code": 0,
+    "focused_tests_seconds": 4.22,
+    "validation_bootstrap": "None: no pyarrow-first bootstrap or legacy CLIP mock was used for the final native checks.",
+    "diff_check_exit_code": 0
+  },
+  "references": [
+    "https://arrow.apache.org/docs/cpp/threading.html#jemalloc-background-threads",
+    "https://arrow.apache.org/docs/cpp/memory.html#overriding-the-default-memory-pool"
+  ]
+}

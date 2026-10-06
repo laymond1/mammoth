@@ -2,7 +2,10 @@
 
 import importlib.util
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 from unittest.mock import Mock
 
 import pytest
@@ -49,6 +52,42 @@ def test_shared_paths_and_private_whitelist(public_profile, credentials):
     assert 'unrelated_secret' not in env and 'HOME' not in profile
     assert 'synthetic-api-key' not in json.dumps(profile)
     assert 'synthetic-hook' not in json.dumps(profile)
+    assert env['JE_ARROW_MALLOC_CONF'] == 'background_thread:false'
+
+
+@pytest.mark.parametrize('existing', [None, '', 'dirty_decay_ms:0'])
+def test_native_environment_disables_only_unconfigured_arrow_thread(existing):
+    env = {'HOME': '/existing/home', 'CUDA_VISIBLE_DEVICES': '7', 'MALLOC_CONF': 'unrelated-setting'}
+    if existing is not None:
+        env['JE_ARROW_MALLOC_CONF'] = existing
+    result = cl_runtime.configure_native_environment(env)
+    expected = 'dirty_decay_ms:0,background_thread:false' if existing else 'background_thread:false'
+    assert result == {'JE_ARROW_MALLOC_CONF': expected}
+    assert env['JE_ARROW_MALLOC_CONF'] == expected
+    assert env['HOME'] == '/existing/home' and env['CUDA_VISIBLE_DEVICES'] == '7'
+    assert env['MALLOC_CONF'] == 'unrelated-setting'
+
+
+@pytest.mark.parametrize('existing', ['background_thread:false,dirty_decay_ms:0', 'background_thread:true'])
+def test_native_environment_preserves_explicit_allocator_choice(existing):
+    env = {'JE_ARROW_MALLOC_CONF': existing}
+    assert cl_runtime.configure_native_environment(env) == env == {'JE_ARROW_MALLOC_CONF': existing}
+
+
+def test_native_import_regression_in_fresh_process():
+    # No model creation, image inference, downloads, or CUDA initialization.
+    # This ordering reproduced exit139 in Arrow's jemalloc_bg_thd before the fix.
+    env = os.environ.copy()
+    env.pop('JE_ARROW_MALLOC_CONF', None)
+    env['PYTHONDONTWRITEBYTECODE'] = '1'
+    command = ('from scripts.cl_runtime import configure_native_environment; '
+               'configure_native_environment(); import timm, kornia; '
+               'from transformers import CLIPTextModel; import pyarrow; '
+               'print("native imports completed")')
+    result = subprocess.run([sys.executable, '-c', command], cwd=cl_runtime.ROOT,
+                            env=env, capture_output=True, text=True, timeout=30, check=False)
+    assert result.returncode == 0
+    assert 'native imports completed' in result.stdout
 
 
 def test_existing_environment_overrides_profile_and_secrets(public_profile, credentials):
