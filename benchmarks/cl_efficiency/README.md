@@ -14,6 +14,8 @@ EASE Base·adapter64의 HiDe 공통 입력 전체10태스크 실행도 완료했
 
 HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독립 저자 코드·native 첫2태스크 검증에서 네 정확도 차이가 모두0.00%p로 통과했고, 첫 태스크 측정3회·별도 부분 FLOPs1회·W&B 원격 검증·Slack 알림을 완료했습니다. [크기별 보고서](hide_sizes/report/report.md)에 기존 Base pilot과 함께 시간·CUDA/NVML 메모리·RSS·CPU 시간·GPU 보드 에너지를 기록합니다. 단기 pilot 정확도는 Base96.60%·Small95.40%·Tiny89.40%이며, Tiny의 비용 감소와 정확도 하락을 함께 검토해야 합니다. 사용자 결정에 따라 EASE 저자 코드 전체10태스크 실행은 생략했습니다.
 
+2026-10-08 사용자 결정: **EASE·HiDe-Prompt의 Small·Tiny 전체10태스크 실험은 후속 계획에서 제외합니다.** 크기 확장은 완료한 첫2태스크 구현 검증과 첫 태스크 효율성 pilot 범위에서 마무리합니다. 기존 Base 전체10태스크 결과와 Small·Tiny 단기 결과는 각 실행 범위로 구분해 해석합니다.
+
 ## 검토 자료
 
 - [현재 71개 모델의 특징과 장단점](algorithms.md)
