@@ -1,0 +1,30 @@
+{
+  "status": "pass",
+  "stage": "hide_native_full_cl",
+  "training_executed": false,
+  "public_profile": {
+    "gpu": "1",
+    "wandb_entity": "laymond1",
+    "wandb_project": "cl-efficiency",
+    "data_root": "/mnt/sdab1/share/data",
+    "cache_root": "/mnt/sdab1/userHome/wslim/.cache"
+  },
+  "gpu": {
+    "gpu_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+    "gpu_name": "NVIDIA GeForce RTX 4090",
+    "gpu_device_memory_mib": 15.0,
+    "gpu_utilization_percent": 0.0,
+    "gpu_power_w": 13.07
+  },
+  "checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+  "accepted_validation_sha256": "69155174ba5c063111d5c98eeeef7d1e4206a996c312154ec24b2179bdead304",
+  "previous_validation": {
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/iw6ohxji",
+    "run_state": "finished",
+    "accuracy_acceptance": "pass"
+  },
+  "slack_webhook_configured_and_valid": true,
+  "initial_state_sha256": "bdeeaf9e1456edfdb8efb07dea75553fde00f457d324a8a4dc13de01cd49b012",
+  "shared_data_reuse": true,
+  "shared_weight_cache_reuse": true
+}

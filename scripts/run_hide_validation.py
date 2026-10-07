@@ -2,6 +2,7 @@
 
 Full validation requires a completed independent reference. Smoke results are
 labeled separately. Efficiency requires a passing full-validation result.
+Full CL runs the accepted implementation over all ten native task partitions.
 """
 from __future__ import annotations
 
@@ -23,12 +24,13 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from scripts.cl_efficiency import Recorder, flatten, instrument, model_snapshot, notify_slack, write_json
+from scripts.cl_efficiency import Recorder, flatten, instrument, integrate_power, model_snapshot, notify_slack, write_json
 from scripts.cl_runtime import configure_environment
 from scripts.hide_protocol import (CHECKPOINT, CHECKPOINT_SHA256, CANONICAL_PRETRAINED_SHA256,
                                    REFERENCE_COMMIT, configure_epoch_loader, file_hash,
                                    native_command as _native_command, protocol, seed_phase,
                                    source_hashes, validate_efficiency_acceptance,
+                                   validate_full_cl_acceptance, FULL_CL_PROTECTED_FILES, FULL_CL_PRECISION,
                                    forbid_cifar_download, validate_shared_data)
 
 
@@ -37,7 +39,7 @@ def native_command(spec, output):
 
 
 def validate_spec(spec):
-    if (spec.get('mode') not in ('validation', 'smoke', 'efficiency')
+    if (spec.get('mode') not in ('validation', 'smoke', 'efficiency', 'full_cl')
             or spec.get('protocol') != protocol(spec['mode']) or spec.get('gpu') != '1'
             or spec.get('model') != 'hide-prompt'
             or spec.get('checkpoint_sha256') != CHECKPOINT_SHA256
@@ -93,12 +95,16 @@ def build_spec(options, profile):
         reference = reference_record(path)
         validate_reference(reference, spec['initial_state_sha256'])
         spec.update(reference_summary=str(path), reference_summary_sha256=file_hash(path))
-    if mode == 'efficiency':
+    if mode in ('efficiency', 'full_cl'):
         if options.acceptance_summary is None:
-            raise ValueError('HiDe efficiency requires --acceptance-summary')
+            raise ValueError(f'HiDe {mode} requires --acceptance-summary')
         path = Path(options.acceptance_summary).resolve()
-        validate_efficiency_acceptance(path, initial_state=initial)
+        prerequisite = (validate_full_cl_acceptance if mode == 'full_cl' else validate_efficiency_acceptance)(path, initial_state=initial)
         spec.update(acceptance_summary=str(path), acceptance_summary_sha256=file_hash(path))
+        if mode == 'full_cl':
+            spec['protected_prerequisite_sources'] = {source: prerequisite['execution_source_sha256'][source]
+                                                       for source in FULL_CL_PROTECTED_FILES}
+            spec['prefix_validation_tasks'] = [1, 2]
     validate_spec(spec)
     return spec
 
@@ -202,6 +208,97 @@ def audit_finite_learned_state(module):
             raise FloatingPointError('HiDe classifier alignment state or gradient is nonfinite')
 
 
+def compare_prefix_predictions(actual, expected):
+    """Use full saved prediction tensors, IDs and TII routing for the two-task gate."""
+    import numpy as np
+    with np.load(actual, allow_pickle=False) as current, np.load(expected, allow_pickle=False) as accepted:
+        keys = ('predictions', 'labels', 'global_ids', 'tii_predictions', 'evaluation_global_ids')
+        if set(current.files) != set(accepted.files) or any(not np.array_equal(current[key], accepted[key]) for key in keys):
+            raise RuntimeError('HiDe full CL prefix predictions differ from the accepted independent validation')
+    return True
+
+
+class TaskResources:
+    """Per-task intervals with real sensors, preserving the process CUDA high water.
+
+    This observer calls no model forward and consumes no random numbers. Task
+    intervals include data loading, training, end-task work and checkpoint audit.
+    Phase times are inclusive; they must not be added to estimate task wall time.
+    """
+
+    def __init__(self, recorder):
+        self.recorder = recorder
+        self.rows = []
+        self.active = None
+        self.global_cuda = recorder.cuda_memory()
+
+    @staticmethod
+    def cpu_seconds():
+        import resource
+        own = resource.getrusage(resource.RUSAGE_SELF)
+        children = resource.getrusage(resource.RUSAGE_CHILDREN)
+        return own.ru_utime + own.ru_stime + children.ru_utime + children.ru_stime
+
+    def capture_cuda(self):
+        current = self.recorder.cuda_memory()
+        for key, value in current.items():
+            if value is not None:
+                self.global_cuda[key] = max(value, self.global_cuda.get(key) or 0.)
+        return current
+
+    def start(self, task):
+        if self.active is not None or task != len(self.rows) + 1:
+            raise RuntimeError('HiDe task resource intervals must be sequential and nonoverlapping')
+        recorder = self.recorder
+        recorder.synchronize()
+        self.capture_cuda()
+        if recorder.torch is not None and recorder.device is not None and recorder.device.type == 'cuda':
+            recorder.torch.cuda.reset_peak_memory_stats(recorder.device)
+        recorder.sample()
+        self.active = {'task': task, 'start_s': time.perf_counter() - recorder.started,
+                       'phase_offset': len(recorder.phases), 'cpu_s': self.cpu_seconds(),
+                       'steps': recorder.steps, 'train_examples': recorder.training_examples,
+                       'eval_examples': recorder.evaluation_examples}
+
+    def finish(self, task):
+        if self.active is None or self.active['task'] != task:
+            raise RuntimeError('HiDe task resources ended outside the active task')
+        recorder, active = self.recorder, self.active
+        recorder.synchronize()
+        end = time.perf_counter() - recorder.started
+        cuda = self.capture_cuda()
+        recorder.sample()
+        # A boundary sample can finish just before the background monitor's
+        # earlier sample; timestamp order is the integration order.
+        samples = sorted(recorder.samples, key=lambda sample: sample['elapsed_s'])
+        maximum_gap = max(6., recorder.interval * 3)
+        joules, coverage = integrate_power(samples, [(active['start_s'], end)], maximum_gap)
+        metrics = {**cuda, 'gpu_board_energy_j': joules,
+                   'gpu_board_energy_wh': joules / 3600 if joules is not None else None,
+                   'gpu_energy_coverage_s': coverage,
+                   'gpu_energy_coverage_fraction': coverage / (end - active['start_s']),
+                   'process_tree_cpu_s': self.cpu_seconds() - active['cpu_s'],
+                   'outer_observe_steps': recorder.steps - active['steps'],
+                   'outer_training_stream_examples': recorder.training_examples - active['train_examples'],
+                   'evaluation_examples': recorder.evaluation_examples - active['eval_examples']}
+        task_samples = [sample for sample in samples if active['start_s'] <= sample['elapsed_s'] <= end]
+        for key in ('process_tree_rss_mib', 'gpu_device_memory_mib', 'gpu_utilization_percent', 'gpu_power_w'):
+            values = [sample[key] for sample in task_samples if sample.get(key) is not None]
+            metrics['peak_' + key] = max(values) if values else None
+        selected = recorder.phases[active['phase_offset']:]
+        phases = {}
+        for name in sorted({phase['phase'] for phase in selected}):
+            spans = [(phase['start_s'], phase['end_s']) for phase in selected if phase['phase'] == name]
+            energy, covered = integrate_power(samples, spans, maximum_gap)
+            phases[name] = {'wall_s': sum(last - first for first, last in spans), 'calls': len(spans),
+                            'gpu_board_energy_j': energy, 'gpu_energy_coverage_s': covered}
+        row = {'task': task, 'start_s': active['start_s'], 'end_s': end,
+               'wall_s': end - active['start_s'], 'metrics': metrics, 'phases': phases}
+        self.rows.append(row)
+        self.active = None
+        return row
+
+
 def worker(spec_path):
     if os.getenv('CL_HIDE_NATIVE_EXECUTE') != '1':
         raise ValueError('HiDe worker requires explicit --execute')
@@ -217,10 +314,11 @@ def worker(spec_path):
             raise ValueError('HiDe reference summary changed')
         reference = reference_record(spec['reference_summary'])
         validate_reference(reference, spec['initial_state_sha256'])
-    if spec['mode'] == 'efficiency':
+    if spec['mode'] in ('efficiency', 'full_cl'):
         if file_hash(spec['acceptance_summary']) != spec['acceptance_summary_sha256']:
             raise ValueError('HiDe acceptance summary changed')
-        accepted = validate_efficiency_acceptance(spec['acceptance_summary'], initial_state=spec['initial_state'])
+        accepted = (validate_full_cl_acceptance if spec['mode'] == 'full_cl' else validate_efficiency_acceptance)(
+            spec['acceptance_summary'], initial_state=spec['initial_state'])
     output = Path(spec['output'])
     settings = spec['protocol']
     recorder = Recorder(output, spec['gpu'])
@@ -230,7 +328,7 @@ def worker(spec_path):
               'counts': {'tii_training_steps': 0, 'prompt_training_steps': 0,
                          'tii_statistics_examples': 0, 'prompt_statistics_examples': 0,
                          'prompt_training_tii_examples': 0, 'routing_evaluation_examples': 0}}
-    code, wandb, stack = 1, None, ExitStack()
+    code, wandb, stack, task_resources = 1, None, ExitStack(), None
     try:
         import numpy as np
         import torch
@@ -259,7 +357,7 @@ def worker(spec_path):
         sys.argv = ['main.py', *command]
         args = mammoth.parse_args(cmd=command)
         wandb.init(entity=spec['wandb_entity'], project=spec['wandb_project'], name=spec['name'],
-                   group='hide-base-validation' if spec['mode'] != 'efficiency' else 'hide-base-efficiency',
+                   group={'efficiency': 'hide-base-efficiency', 'full_cl': 'hide-base-full-cl'}.get(spec['mode'], 'hide-base-validation'),
                    job_type=f'native-{spec["mode"]}-{spec["pass"]}', config=spec, dir=str(output))
         record['wandb_url'] = wandb.run.url
         with recorder.phase('initialize'):
@@ -284,6 +382,8 @@ def worker(spec_path):
                                           (('tii', model.net.tii), ('prompt', model.net.prompt))}
         if reference is not None and record['initial_learned_sha256'] != reference.get('initial_learned_sha256'):
             raise ValueError('Native learned tensors differ from the independent reference initialization')
+        if spec['mode'] == 'full_cl' and record['initial_learned_sha256'] != accepted.get('initial_learned_sha256'):
+            raise ValueError('Full CL learned tensors differ from the accepted validation initialization')
         record['initial_canonical_pretrained_sha256'] = {name: canonical_pretrained_digest(module) for name, module in
                                                         (('tii', model.net.tii), ('prompt', model.net.prompt))}
         if any(value != CANONICAL_PRETRAINED_SHA256 for value in record['initial_canonical_pretrained_sha256'].values()):
@@ -298,6 +398,12 @@ def worker(spec_path):
         record['precision'] = {'matmul_precision': 'highest', 'tf32_allowed': False, 'cudnn_tf32_allowed': True,
                                'cudnn_deterministic': True, 'cudnn_benchmark': False,
                                'autocast': False, 'parameter_dtype': 'float32', 'torch_cpu_threads': torch.get_num_threads()}
+        if spec['mode'] == 'full_cl':
+            if record['precision'] != FULL_CL_PRECISION:
+                raise ValueError('Full CL effective precision differs from the accepted validation')
+            task_resources = TaskResources(recorder)
+            record['task_resources'] = task_resources.rows
+            record['prefix_validation'] = {'status': 'pending', 'matched_tasks': [], 'prediction_match': False}
         record['protocol_differences'] = ['Shared native dataset wrapper and transforms; independent author model/engines.',
             'Explicit exported learned initialization and phase RNG replace constructor-dependent RNG.',
             'Statistics use stable per-class batches; evaluation keeps separate test-task batch boundaries.',
@@ -312,6 +418,8 @@ def worker(spec_path):
         def loaders(original):
             @functools.wraps(original)
             def wrapped(*arguments, **keywords):
+                if task_resources is not None:
+                    task_resources.start(len(dataset.test_loaders) + 1)
                 result = original(*arguments, **keywords)
                 task = len(dataset.test_loaders)
                 with recorder.phase('data_audit'):
@@ -327,9 +435,9 @@ def worker(spec_path):
                     order = np.argsort(ids, kind='stable')
                     recorder.data_snapshots[f'task{task}_test'] = dataset_fingerprint(images[order], labels[order], ids[order], dataset.TEST_TRANSFORM)
                     matched = reference if reference is not None else accepted
-                    if matched is not None:
+                    if matched is not None and (spec['mode'] != 'full_cl' or task <= 2):
                         keys = ('n_samples', 'class_counts', 'samples_ordered_sha256', 'samples_unordered_sha256', 'global_ids_ordered_sha256', 'transform_repr_sha256')
-                        if accepted is not None:
+                        if spec['mode'] == 'efficiency':
                             keys = keys[:-1]  # Approved efficiency uses the common ease transform.
                         for split in ('train', 'test'):
                             actual = recorder.data_snapshots[f'task{task}_{split}']
@@ -383,12 +491,15 @@ def worker(spec_path):
                                 'labels_sha256': tensor_digest({'labels': labels}),
                                 'clipped_gradient_sha256': tensor_digest(gradients)})
                             write_json(output / 'first_batch_audits.json', record['first_batch_audits'])
-                            if reference is not None:
-                                matching = [row for row in reference.get('first_batch_audits', [])
+                            matched = reference if reference is not None else (accepted if spec['mode'] == 'full_cl' and model.current_task < 2 else None)
+                            if matched is not None:
+                                matching = [row for row in matched.get('first_batch_audits', [])
                                             if row['task'] == model.current_task + 1 and row['phase'] == epoch['phase']]
                                 current = record['first_batch_audits'][-1]
-                                if len(matching) != 1 or any(current[key] != matching[0][key]
-                                                            for key in ('samples', 'seed', 'input_sha256', 'labels_sha256')):
+                                compared_keys = ('samples', 'seed', 'input_sha256', 'labels_sha256')
+                                if spec['mode'] == 'full_cl':
+                                    compared_keys += ('clipped_gradient_sha256',)
+                                if len(matching) != 1 or any(current[key] != matching[0][key] for key in compared_keys):
                                     checks['matched_phase_rng_and_batching'] = False
                                     raise RuntimeError('HiDe actual first-batch images/labels differ from the independent reference')
                     return result
@@ -448,6 +559,9 @@ def worker(spec_path):
             @functools.wraps(original)
             def wrapped(current_dataset, branch):
                 seed_phase(settings['seed'], model.current_task, branch + '_statistics')
+                if spec['mode'] == 'full_cl':
+                    write_json(output / 'progress.json', {'task': model.current_task + 1, 'phase': branch + '_statistics',
+                               'wandb_url': record['wandb_url']})
                 with recorder.phase(branch + '_statistics'):
                     result = original(current_dataset, branch)
                 stats = model.tii_statistics if branch == 'tii' else model.prompt_statistics
@@ -464,6 +578,9 @@ def worker(spec_path):
             @functools.wraps(original)
             def wrapped(branch):
                 seed_phase(settings['seed'], model.current_task, branch + '_alignment')
+                if spec['mode'] == 'full_cl':
+                    write_json(output / 'progress.json', {'task': model.current_task + 1, 'phase': branch + '_alignment',
+                               'epochs': settings['ca_epochs'], 'wandb_url': record['wandb_url']})
                 hooks = []
                 original_sgd = torch.optim.SGD
                 module = model.net.tii if branch == 'tii' else model.net.prompt
@@ -568,6 +685,11 @@ def worker(spec_path):
                     order = np.argsort(ids, kind='stable')
                     np.savez(output / f'task{task}_predictions.npz', predictions=predicted[order], labels=labels[order],
                              global_ids=ids[order], tii_predictions=tii[order], evaluation_global_ids=ids)
+                    if spec['mode'] == 'full_cl' and task <= 2:
+                        compare_prefix_predictions(output / f'task{task}_predictions.npz',
+                                                   Path(spec['acceptance_summary']).parent / f'task{task}_predictions.npz')
+                        record['prefix_validation']['matched_tasks'].append(task)
+                        record['prefix_validation']['prediction_match'] = True
                     with recorder.phase('checkpoint'):
                         state = {name: value.detach().cpu().clone() if torch.is_tensor(value) else value for name, value in model.state_dict().items()}
                         before = tensor_digest(state)
@@ -582,9 +704,24 @@ def worker(spec_path):
                     recorder.snapshots[f'task{task}_after_end_task'] = model_snapshot(model)
                     record['task_results'].append(row)
                     write_json(output / 'task_results.json', record['task_results'])
-                    wandb.log({f'native/{key}': value for key, value in row.items() if isinstance(value, (int, float))})
-                    record.setdefault('task_notifications', []).append({'task': task, 'status': notify_slack(
-                        f'HiDe native {spec["mode"]} task{task}/{settings["tasks"]}: seen={row["seen_accuracy_pct"]:.2f}%, routing={row["tii_task_routing_accuracy_pct"]:.2f}%; W&B {record["wandb_url"]}')})
+                    if spec['mode'] == 'full_cl' and task == 2:
+                        prefix_checks = {**checks, 'training_protocol_complete': True}
+                        prefix = evaluate_acceptance(record['task_results'], reference_policy(accepted['task_results']),
+                                                     structural_checks=prefix_checks)
+                        if prefix['status'] != 'pass':
+                            raise RuntimeError('HiDe full CL first-two-task accuracy failed accepted validation')
+                        record['prefix_validation'].update(status='pass', acceptance=prefix,
+                                                          scope='First two tasks only; no independent ten-task performance reference')
+                    if spec['mode'] == 'full_cl':
+                        write_json(output / 'prefix_validation.json', record['prefix_validation'])
+                if task_resources is not None:
+                    resource_row = task_resources.finish(task)
+                    write_json(output / 'per_task_resources.json', task_resources.rows)
+                    wandb.log({**flatten({f'task{task}_resources': resource_row['metrics']}),
+                               f'task{task}_resources/wall_s': resource_row['wall_s']})
+                wandb.log({f'native/{key}': value for key, value in row.items() if isinstance(value, (int, float))})
+                record.setdefault('task_notifications', []).append({'task': task, 'status': notify_slack(
+                    f'HiDe native {spec["mode"]} task{task}/{settings["tasks"]}: seen={row["seen_accuracy_pct"]:.2f}%, routing={row["tii_task_routing_accuracy_pct"]:.2f}%; W&B {record["wandb_url"]}')})
                 return result
             return wrapped
 
@@ -614,6 +751,11 @@ def worker(spec_path):
         checks['training_protocol_complete'] = bool(complete)
         if not complete:
             raise RuntimeError('Native HiDe returned before every approved task/phase completed')
+        if spec['mode'] == 'full_cl' and (record['prefix_validation']['status'] != 'pass'
+                or len(task_resources.rows) != 10 or sum(row['optimizer_steps'] for row in model.alignment_history) != 27000
+                or any(row['metrics']['outer_observe_steps'] != 5530 or row['metrics']['outer_training_stream_examples'] != 350000
+                       or row['metrics']['evaluation_examples'] != 1000 * row['task'] for row in task_resources.rows)):
+            raise RuntimeError('Native HiDe full CL prefix, task resources or alignment counts are incomplete')
         record['alignment'] = [{**row, 'task': row['task_id'] + 1,
                                 'status': 'not_applicable' if row['skipped'] else 'completed',
                                 'steps': row['optimizer_steps']} for row in model.alignment_history]
@@ -633,7 +775,15 @@ def worker(spec_path):
         stack.close()
         record['tasks_results'] = record['task_results']
         record['computation_status'] = record['status']
+        if task_resources is not None:
+            recorder.stop()
+            recorder.samples.sort(key=lambda sample: sample['elapsed_s'])
         record = recorder.save(record)
+        if task_resources is not None:
+            task_resources.capture_cuda()
+            record['metrics'].update(task_resources.global_cuda)
+            record['measurement_notes']['cuda_memory_scope'] = 'Per-task allocator high water resets at data loading; process maximum preserves initialization and all tasks.'
+            record['measurement_notes']['task_resource_scope'] = 'Data loading through evaluation and checkpoint audit; excludes subsequent W&B and Slack calls. CPU includes own process and reaped descendants.'
         # Keep the uploaded measurement bytes immutable when the final local
         # result subsequently adds upload/finish status and artifact identity.
         write_json(output / 'artifact_metrics.json', record)
@@ -646,7 +796,8 @@ def worker(spec_path):
                 artifact_files = {}
                 for filename in ('spec.json', 'metrics.json', 'acceptance.json', 'effective_args.json', 'epoch_results.json',
                                  'task_results.json', 'shared_data.json', 'telemetry.csv', 'phases.json',
-                                 'flops_ops.json', 'task1_predictions.npz', 'task2_predictions.npz'):
+                                 'per_task_resources.json', 'prefix_validation.json', 'first_batch_audits.json', 'flops_ops.json',
+                                 *(f'task{task}_predictions.npz' for task in range(1, settings['tasks'] + 1))):
                     local_file = output / ('artifact_metrics.json' if filename == 'metrics.json' else filename)
                     if local_file.is_file():
                         artifact.add_file(str(local_file), name=filename)
@@ -678,7 +829,7 @@ def worker(spec_path):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--execute', action='store_true')
-    parser.add_argument('--mode', choices=('validation', 'smoke', 'efficiency'), default='validation')
+    parser.add_argument('--mode', choices=('validation', 'smoke', 'efficiency', 'full_cl'), default='validation')
     parser.add_argument('--pass', dest='pass_kind', choices=('measurement', 'flops'), default='measurement')
     parser.add_argument('--initial-state', type=Path)
     parser.add_argument('--reference-summary', type=Path)

@@ -26,6 +26,14 @@ SOURCE_FILES = ('scripts/run_hide_validation.py', 'scripts/hide_protocol.py',
                 'models/config/hide_prompt.yaml', 'datasets/configs/seq-cifar100-224/hide_prompt.yaml',
                 'datasets/configs/seq-cifar100-224/ease.yaml', 'scripts/cl_efficiency.py',
                 'utils/training.py', 'main.py', 'uv.lock')
+# Full-stream execution changes only these orchestration files. All method,
+# training, dataset, acceptance and measurement sources stay pinned to the
+# independently accepted two-task implementation.
+FULL_CL_INSTRUMENTATION_FILES = ('scripts/run_hide_validation.py', 'scripts/hide_protocol.py')
+FULL_CL_PROTECTED_FILES = tuple(source for source in SOURCE_FILES if source not in FULL_CL_INSTRUMENTATION_FILES)
+FULL_CL_PRECISION = {'matmul_precision': 'highest', 'tf32_allowed': False, 'cudnn_tf32_allowed': True,
+                     'cudnn_deterministic': True, 'cudnn_benchmark': False, 'autocast': False,
+                     'parameter_dtype': 'float32', 'torch_cpu_threads': 2}
 
 
 def file_hash(path):
@@ -37,12 +45,12 @@ def file_hash(path):
 
 
 def protocol(mode='validation'):
-    if mode not in ('validation', 'smoke', 'efficiency'):
-        raise ValueError('HiDe mode must be validation, smoke or efficiency')
-    validation = mode == 'validation'
+    if mode not in ('validation', 'smoke', 'efficiency', 'full_cl'):
+        raise ValueError('HiDe mode must be validation, smoke, efficiency or full_cl')
+    validation = mode in ('validation', 'full_cl')
     return {'schema_version': 1, 'mode': mode, 'model': 'hide-prompt',
             'training_authorized': True, 'approval': 'User: 좋아. 이대로 진행. after the HiDe GPU execution recommendations',
-            'tasks': 1 if mode == 'efficiency' else 2,
+            'tasks': 10 if mode == 'full_cl' else (1 if mode == 'efficiency' else 2),
             'tii_epochs': 20 if validation else 1, 'prompt_epochs': 50 if validation else 1,
             'n_epochs': 70 if validation else 2, 'ca_epochs': 1 if mode == 'smoke' else 30,
             'batch_size': 64, 'seed': 1993, 'num_workers': 4,
@@ -52,7 +60,7 @@ def protocol(mode='validation'):
             'ca_lr': .005, 'head_lr_ratio': .1, 'reg': .1, 'centroids': 10,
             'prefix_permute_fix': False, 'drop_last': False, 'shuffle_training': True,
             'pass_max_drop_pp': 1.5, 'review_max_drop_pp': 3.,
-            'paper_reproduction': False, 'accuracy_acceptance_eligible': validation,
+            'paper_reproduction': False, 'accuracy_acceptance_eligible': mode == 'validation',
             'phase_rng': 'base_seed + 100000*task_id + 1000*phase_index + local_epoch',
             'statistics_batching': 'per-class, stable raw-index order, sequential, no dropped tail',
             'evaluation_batching': 'separate native test-task loaders, stable raw-index order',
@@ -200,4 +208,56 @@ def validate_efficiency_acceptance(path, plan=None, initial_state=None):
     selected = Path(initial_state or record['initial_state'])
     if file_hash(selected) != record.get('initial_state_sha256'):
         raise ValueError('HiDe efficiency requires the same exported learned initialization')
+    return record
+
+
+def validate_full_cl_acceptance(path, initial_state=None):
+    """Require accepted full validation while allowing explicit runner-only edits.
+
+    The historical efficiency gate remains fully source-strict. This separate
+    prerequisite verifies every protected implementation hash and the immutable
+    reference/prediction files used to check the first two full-stream tasks.
+    """
+    import json
+    from scripts.hide_acceptance import REQUIRED_STRUCTURAL_CHECKS, evaluate_acceptance, reference_policy
+    path = Path(path).resolve()
+    record = json.loads(path.read_text())
+    if (record.get('status') != 'completed' or record.get('acceptance_status') != 'pass'
+            or record.get('mode') != 'validation' or record.get('model') != 'hide-prompt'
+            or record.get('protocol') != protocol('validation')
+            or record.get('wandb_logging_status') != 'uploaded'
+            or record.get('wandb_artifact', {}).get('state') != 'COMMITTED'):
+        raise ValueError('HiDe full CL requires completed, uploaded, passing full validation')
+    checks = record.get('structural_checks', {})
+    if any(checks.get(key) is not True for key in REQUIRED_STRUCTURAL_CHECKS) or any(value is not True for value in checks.values()):
+        raise ValueError('HiDe full CL prerequisite structural gates did not all pass')
+    pins = record.get('execution_source_sha256', {})
+    if set(pins) != set(SOURCE_FILES) or any(file_hash(ROOT / source) != pins[source] for source in FULL_CL_PROTECTED_FILES):
+        raise ValueError('HiDe full CL protected implementation sources changed or are missing')
+    if record.get('precision') != FULL_CL_PRECISION:
+        raise ValueError('HiDe full CL prerequisite must use the approved FP32 execution precision')
+    if record.get('checkpoint_sha256') != CHECKPOINT_SHA256 or file_hash(record['checkpoint_file']) != CHECKPOINT_SHA256:
+        raise ValueError('HiDe full CL checkpoint differs from the approved pretrained file')
+    if record.get('canonical_pretrained_sha256') != CANONICAL_PRETRAINED_SHA256:
+        raise ValueError('HiDe full CL canonical pretrained tensors differ')
+    if file_hash(initial_state or record['initial_state']) != record.get('initial_state_sha256'):
+        raise ValueError('HiDe full CL requires the same exported learned initialization')
+    reference_path = Path(record['reference_summary'])
+    if file_hash(reference_path) != record.get('reference_summary_sha256'):
+        raise ValueError('HiDe full CL independent reference summary changed')
+    reference = json.loads(reference_path.read_text())
+    reference = reference.get('official_reference', reference)
+    if (reference.get('status') != 'completed' or reference.get('protocol') != protocol('validation')
+            or reference.get('reference_commit') != REFERENCE_COMMIT
+            or reference.get('checkpoint_sha256') != CHECKPOINT_SHA256
+            or reference.get('initial_state_sha256') != record['initial_state_sha256']):
+        raise ValueError('HiDe full CL independent reference is not the matched full validation')
+    report = evaluate_acceptance(record.get('task_results', []), reference_policy(reference.get('task_results', [])), structural_checks=checks)
+    if report['status'] != 'pass':
+        raise ValueError('HiDe full CL prerequisite accuracy failed recomputation')
+    for name in ('task1_predictions.npz', 'task2_predictions.npz'):
+        pin = record.get('wandb_artifact_files', {}).get(name, {})
+        local_file = path.parent / pin.get('local_file', name)
+        if not pin.get('sha256') or file_hash(local_file) != pin['sha256']:
+            raise ValueError('HiDe full CL accepted prediction artifacts changed or are missing')
     return record

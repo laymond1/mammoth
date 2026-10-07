@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "stage": "hide_native_full_cl",
+  "status": "ready",
+  "approval": "User: 좋아. 이대로 진행하자. — merge validated HiDe locally, then native Base full ten tasks, seed1993, batch64, GPU1; independent full-ten-task reference only if implementation diagnostics require it.",
+  "training_authorized": true,
+  "executed": false,
+  "local_integration": {
+    "foundation_branch": "codex/cl-foundation",
+    "validated_hide_commit": "de6b1fe",
+    "validated_hide_merged": true,
+    "execution_branch": "codex/hide-full-cl",
+    "remote_push_authorized": false
+  },
+  "protocol": {
+    "model": "hide-prompt",
+    "backbone": "ViT-B/16 AugReg IN21K to IN1K fine-tuned",
+    "dataset": "seq-cifar100-224",
+    "dataset_config": "hide_prompt",
+    "tasks": 10,
+    "classes_per_task": 10,
+    "class_order": "0..99",
+    "seed": 1993,
+    "batch_size": 64,
+    "num_workers": 4,
+    "physical_gpu": "1",
+    "precision": "FP32",
+    "tii_epochs_per_task": 20,
+    "prompt_epochs_per_task": 50,
+    "ca_epochs_per_branch_after_task1": 30,
+    "paper_reproduction": false,
+    "prefix_permute_fix": false
+  },
+  "expected_work": {
+    "outer_epochs": 700,
+    "outer_training_steps": 55300,
+    "outer_training_examples": 3500000,
+    "tii_training_steps": 15800,
+    "prompt_training_steps": 39500,
+    "statistics_examples_per_branch": 50000,
+    "cumulative_evaluation_examples": 55000,
+    "alignment_steps_per_branch": 13500,
+    "alignment_steps_total": 27000
+  },
+  "prerequisites": {
+    "native_matched_two_task_validation": "pass",
+    "independent_matched_two_task_reference": "completed",
+    "first_two_task_seen_accuracy_pct": [99.4, 97.95],
+    "protected_algorithm_data_backbone_trainer_sources_unchanged": true,
+    "same_exported_learned_initialization": true,
+    "same_pinned_local_pretrained_weights": true,
+    "existing_shared_data_only": true
+  },
+  "metrics": [
+    "final_class_il_accuracy",
+    "task_accuracy_matrix",
+    "average_incremental_accuracy",
+    "average_old_task_forgetting",
+    "tii_task_routing_accuracy",
+    "per_task_wall_and_phase_time",
+    "per_task_cuda_and_sampled_memory",
+    "per_task_gpu_board_energy_with_coverage",
+    "whole_run_time_memory_energy_and_cpu_time"
+  ],
+  "accuracy_policy": {
+    "matched_first_two_tasks_max_drop_pass_pp": 1.5,
+    "matched_first_two_tasks_max_drop_review_pp": 3.0,
+    "abnormally_low_performance": "Treat as an implementation issue and investigate before extending experiments.",
+    "full_ten_task_paper_accuracy_gate": "not_applicable_without_a_matched_reference"
+  },
+  "persistence": {
+    "local_public_report": "benchmarks/cl_efficiency/hide_prompt/full_cl/",
+    "wandb": "laymond1/cl-efficiency",
+    "slack": "existing private SLACK_WEBHOOK_URL",
+    "checkpoints": "local only; scalar metrics, prediction files, telemetry and report artifacts also uploaded to W&B",
+    "remote_artifact_sha256_readback_required": true
+  },
+  "deferred": [
+    "HiDe Tiny and Small",
+    "independent full-ten-task reference unless diagnostics require it",
+    "BudgetCL and aL-SAR normalized-budget comparisons",
+    "full-run FLOPs profiling; prior one-task partial FLOPs remain separately scoped"
+  ],
+  "estimated_runtime_hours": [3, 4],
+  "execution_timeout_seconds": 43200,
+  "estimate_note": "Based on accepted two-task native run; later alignment, evaluation and transient memory costs grow with seen classes."
+}
