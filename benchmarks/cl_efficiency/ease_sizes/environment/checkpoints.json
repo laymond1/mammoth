@@ -1,0 +1,92 @@
+{
+  "status": "verified_cpu_checkpoint_metadata",
+  "no_image_computation": true,
+  "weights": [
+    {
+      "vit_size": "small",
+      "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+      "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+      "checkpoint_bytes": 88267574,
+      "download_url": "https://storage.googleapis.com/vit_models/augreg/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "cache_reused": false,
+      "timm_pretrained_cfg": {
+        "url": "https://storage.googleapis.com/vit_models/augreg/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "hf_hub_id": "timm/vit_small_patch16_224.augreg_in21k_ft_in1k",
+        "architecture": "vit_small_patch16_224",
+        "tag": "augreg_in21k_ft_in1k",
+        "custom_load": true,
+        "input_size": [
+          3,
+          224,
+          224
+        ],
+        "fixed_input_size": true,
+        "interpolation": "bicubic",
+        "crop_pct": 0.9,
+        "crop_mode": "center",
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "num_classes": 1000,
+        "pool_size": null,
+        "first_conv": "patch_embed.proj",
+        "classifier": "head"
+      },
+      "canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+      "canonical_pretrained_tensor_count": 150,
+      "feature_dim": 384,
+      "num_heads": 6
+    },
+    {
+      "vit_size": "tiny",
+      "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+      "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+      "checkpoint_bytes": 22934582,
+      "download_url": "https://storage.googleapis.com/vit_models/augreg/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "cache_reused": false,
+      "timm_pretrained_cfg": {
+        "url": "https://storage.googleapis.com/vit_models/augreg/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "hf_hub_id": "timm/vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+        "architecture": "vit_tiny_patch16_224",
+        "tag": "augreg_in21k_ft_in1k",
+        "custom_load": true,
+        "input_size": [
+          3,
+          224,
+          224
+        ],
+        "fixed_input_size": true,
+        "interpolation": "bicubic",
+        "crop_pct": 0.9,
+        "crop_mode": "center",
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "num_classes": 1000,
+        "pool_size": null,
+        "first_conv": "patch_embed.proj",
+        "classifier": "head"
+      },
+      "canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+      "canonical_pretrained_tensor_count": 150,
+      "feature_dim": 192,
+      "num_heads": 3
+    }
+  ]
+}

@@ -108,3 +108,34 @@ def test_scope_requires_user_authorization_and_native_acceptance():
     invalid['validation']['acceptance_status'] = 'review'
     with pytest.raises(ValueError, match='two-task acceptance'):
         pilot.require_approved_scope(invalid)
+
+
+def test_size_aggregation_keeps_variant_identity_and_its_canonical_pretraining():
+    variant = dict(name='tiny_relative16', vit_size='tiny', feature_dim=192, num_heads=3,
+                   adapter_size=16, checkpoint_sha256='a' * 64, canonical_pretrained_sha256='b' * 64)
+    measurements = [record() for _ in range(3)]
+    diagnostic = record('flops')
+    for saved in [*measurements, diagnostic]:
+        saved.update({key: variant[key] for key in ('vit_size', 'feature_dim', 'num_heads', 'adapter_size',
+                                                    'checkpoint_sha256', 'canonical_pretrained_sha256')},
+                     ease_variant=variant['name'], initial_canonical_pretrained_sha256='b' * 64)
+        saved['structural_checks']['canonical_pretrained_matches_checkpoint'] = True
+    summary = pilot.summarize(measurements, diagnostic, variant=variant)
+    assert summary['status'] == 'pass'
+    assert 'twenty-epoch' in summary['accuracy_scope']
+    diagnostic['ease_variant'] = 'small_relative32'
+    with pytest.raises(ValueError, match='selected accepted size variant'):
+        pilot.summarize(measurements, diagnostic, variant=variant)
+
+
+def test_size_aggregation_cannot_omit_the_canonical_checkpoint_check():
+    variant = dict(name='small_fixed64', vit_size='small', feature_dim=384, num_heads=6,
+                   adapter_size=64, checkpoint_sha256='a' * 64, canonical_pretrained_sha256='b' * 64)
+    saved = record()
+    saved.update({key: variant[key] for key in ('vit_size', 'feature_dim', 'num_heads', 'adapter_size',
+                                              'checkpoint_sha256', 'canonical_pretrained_sha256')},
+                 ease_variant=variant['name'], initial_canonical_pretrained_sha256='b' * 64)
+    diagnostic = copy.deepcopy(saved)
+    diagnostic['pass'] = 'flops'
+    with pytest.raises(ValueError, match='selected accepted size variant'):
+        pilot.summarize([copy.deepcopy(saved) for _ in range(3)], diagnostic, variant=variant)

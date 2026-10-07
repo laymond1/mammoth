@@ -293,3 +293,45 @@ def test_raw_shared_cifar_metadata_records_file_hashes_counts_and_class_names(tm
     for name in ('train', 'test', 'meta'):
         assert record['files'][name]['sha256'] == helpers.file_sha256(root / name)
     assert 'original index' in record['global_id_policy']
+
+
+@pytest.mark.parametrize('size,dimension,heads,width', [('small', 384, 6, 64), ('tiny', 192, 3, 64),
+                                                      ('small', 384, 6, 32), ('tiny', 192, 3, 16)])
+def test_explicit_size_patch_wires_the_local_tag_and_restores_both_author_constructors(fake_reference, monkeypatch, size, dimension, heads, width):
+    fixture = fake_reference
+    original_factory, original_get_backbone = Mock(), Mock()
+    factory, get_backbone = Mock(), Mock()
+    fixture.stack['vit'].vit_base_patch16_224_ease = original_factory
+    fixture.stack['inc_net'] = SimpleNamespace(get_backbone=original_get_backbone)
+    specialize = Mock(side_effect=[(factory, {'feature_dim_constants': 9}), (get_backbone, {'feature_dim_constants': 5})])
+    monkeypatch.setattr(helpers, '_size_constructor', specialize)
+    variant = {'name': f'{size}_{width}', 'vit_size': size, 'feature_dim': dimension, 'num_heads': heads,
+               'adapter_size': width, 'checkpoint_file': str(fixture.checkpoint),
+               'checkpoint_sha256': helpers.file_sha256(fixture.checkpoint),
+               'checkpoint_tag': f'vit_{size}_patch16_224.augreg_in21k_ft_in1k', 'canonical_pretrained_sha256': '0' * 64}
+    records = {}
+    with helpers.install_reference_patches(fixture.stack, fixture.checkpoint, fixture.data_root, records, variant=variant):
+        assert fixture.stack['vit'].vit_base_patch16_224_ease is factory
+        assert fixture.stack['inc_net'].get_backbone is get_backbone
+        fixture.stack['timm'].create_model('vit_base_patch16_224', pretrained=True, num_classes=0)
+        fixture.create.assert_called_once_with(variant['checkpoint_tag'], pretrained=False, num_classes=0)
+        assert records['reference_kind'] == 'author-code-size-variant'
+        assert records['variant']['adapter_size'] == width
+        assert records['checkpoint']['tag'] == variant['checkpoint_tag']
+        with pytest.raises(ValueError, match=f'selected {size.title()}'):
+            fixture.stack['timm'].create_model('vit_base_patch16_224_in21k', pretrained=True)
+    assert fixture.stack['vit'].vit_base_patch16_224_ease is original_factory
+    assert fixture.stack['inc_net'].get_backbone is original_get_backbone
+    assert specialize.call_args_list[0].args == (original_factory, dimension, heads)
+    assert specialize.call_args_list[1].args == (original_get_backbone, dimension)
+
+
+def test_explicit_reference_size_rejects_mismatched_checkpoint_before_patching(fake_reference):
+    fixture = fake_reference
+    variant = {'name': 'tiny_relative16', 'vit_size': 'tiny', 'feature_dim': 192, 'num_heads': 3, 'adapter_size': 16,
+               'checkpoint_file': str(fixture.checkpoint), 'checkpoint_sha256': '0' * 64,
+               'checkpoint_tag': 'vit_tiny_patch16_224.augreg_in21k_ft_in1k'}
+    original = fixture.stack['timm'].create_model
+    with pytest.raises(ValueError, match='differs from its pin'):
+        helpers.install_reference_patches(fixture.stack, fixture.checkpoint, fixture.data_root, {}, variant=variant)
+    assert fixture.stack['timm'].create_model is original

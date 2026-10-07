@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "approved_on": "2026-10-07",
+  "approved_by": "user",
+  "training_authorized": true,
+  "gpu": "1",
+  "data_root": "/mnt/sdab1/share/data",
+  "cache_root": "/mnt/sdab1/userHome/wslim/.cache",
+  "reference_commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+  "reference_source": "/tmp/cl-ease-official-20261007",
+  "reference_label": "Independent author-code size variants; not published official Small/Tiny paper reproduction.",
+  "variants": [
+    {
+      "name": "small_fixed64",
+      "vit_size": "small",
+      "feature_dim": 384,
+      "num_heads": 6,
+      "adapter_size": 64,
+      "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+      "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+      "canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_parameters_per_task_estimate": 595200
+    },
+    {
+      "name": "tiny_fixed64",
+      "vit_size": "tiny",
+      "feature_dim": 192,
+      "num_heads": 3,
+      "adapter_size": 64,
+      "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+      "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+      "canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_parameters_per_task_estimate": 297984
+    },
+    {
+      "name": "small_relative32",
+      "vit_size": "small",
+      "feature_dim": 384,
+      "num_heads": 6,
+      "adapter_size": 32,
+      "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+      "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+      "canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_parameters_per_task_estimate": 299904
+    },
+    {
+      "name": "tiny_relative16",
+      "vit_size": "tiny",
+      "feature_dim": 192,
+      "num_heads": 3,
+      "adapter_size": 16,
+      "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+      "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+      "canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+      "depth": 12,
+      "patch_size": 16,
+      "adapter_parameters_per_task_estimate": 76224
+    }
+  ],
+  "dataset": "seq-cifar100-224",
+  "dataset_config": "ease",
+  "classes_per_task": 10,
+  "permute_classes": false,
+  "validation": {
+    "tasks": 2,
+    "n_epochs_per_task": 20,
+    "batch_size": 48,
+    "seed": 1993,
+    "num_workers": 4,
+    "training_authorized": true,
+    "optimizer": "sgd",
+    "lr": 0.025,
+    "momentum": 0.9,
+    "weight_decay": 0.0005,
+    "scheduler": "cosine",
+    "accuracy_policy": {
+      "confirmed_by": "user",
+      "pass_max_drop_pp": 1.5,
+      "review_max_drop_pp": 3.0,
+      "comparison": "Same variant author-code reference correct/sample counts minus native; structural failures always fail; review blocks cost measurements until resolved."
+    }
+  },
+  "efficiency": {
+    "tasks": 1,
+    "n_epochs": 1,
+    "batch_size": 64,
+    "seed": 1993,
+    "num_workers": 4,
+    "training_authorized": true,
+    "measurement_repeats": 3,
+    "flops_runs": 1,
+    "accuracy_is_paper_reproduction": false,
+    "measurement_policy": "Aggregate only three measurements; separately profiled time/memory/energy excluded."
+  },
+  "logging": {
+    "entity": "laymond1",
+    "project": "cl-efficiency",
+    "slack": "existing configured webhook"
+  },
+  "precision": "FP32 parameters, no autocast, CUDA matmul TF32 off, cuDNN TF32 allowed, deterministic=True, benchmark=False.",
+  "base_reference": {
+    "reuse_completed_measurements": true,
+    "file": "benchmarks/cl_efficiency/ease/efficiency_pilot_results.json",
+    "sha256": "dc84f34f585ebd93e2add569acecd379170cd4a48c9c5779808201c401f41aa9"
+  },
+  "planned_runs": {
+    "reference": 4,
+    "native_validation": 4,
+    "measurement": 12,
+    "flops": 4,
+    "total": 24
+  },
+  "merge_authorized": true,
+  "push_authorized": false,
+  "scope_exclusions": [
+    "additional seeds",
+    "whole CL sequence",
+    "HiDe-Prompt",
+    "BudgetCL/aL-SAR",
+    "remote push"
+  ]
+}

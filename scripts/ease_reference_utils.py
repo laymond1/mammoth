@@ -4,6 +4,7 @@ These helpers do not run a model, download data, or send external messages.
 The orchestration script owns the authorized task loop and device selection.
 """
 
+import ast
 from contextlib import ExitStack
 from functools import partial
 import hashlib
@@ -12,6 +13,7 @@ from pathlib import Path
 import pickle
 import random
 import struct
+import textwrap
 from unittest.mock import patch
 
 import numpy as np
@@ -138,12 +140,53 @@ def _native_worker_seed(worker_id, num_workers, seed):
     random.seed(worker_seed)
 
 
-def install_reference_patches(stack, checkpoint, data_root, records, seed=1993):
+def _size_constructor(original, feature_dim, num_heads=None):
+    """Specialize the author's constructor without replacing learning code.
+
+    The upstream factory has fixed 768-wide QKV conversion slices as well as
+    architecture arguments. Specializing those same dimension constants keeps
+    its original conversion, initialization and freezing behavior intact.
+    """
+    source = textwrap.dedent(inspect.getsource(original))
+    tree = ast.parse(source)
+    changes = {'feature_dim_constants': 0, 'attention_head_arguments': 0}
+
+    class SizeConstants(ast.NodeTransformer):
+        def visit_Constant(self, node):
+            if type(node.value) is int and node.value == 768:
+                changes['feature_dim_constants'] += 1
+                return ast.copy_location(ast.Constant(feature_dim), node)
+            return node
+
+        def visit_Call(self, node):
+            node = self.generic_visit(node)
+            if isinstance(node.func, ast.Name) and node.func.id == 'VisionTransformer' and num_heads is not None:
+                for keyword in node.keywords:
+                    if keyword.arg == 'num_heads' and isinstance(keyword.value, ast.Constant) and keyword.value.value == 12:
+                        changes['attention_head_arguments'] += 1
+                        keyword.value = ast.copy_location(ast.Constant(num_heads), keyword.value)
+            return node
+
+    tree = ast.fix_missing_locations(SizeConstants().visit(tree))
+    if not changes['feature_dim_constants'] or (num_heads is not None and changes['attention_head_arguments'] != 1):
+        raise RuntimeError('Reviewed upstream size constructor no longer has the expected dimension constants')
+    namespace = dict(original.__globals__)
+    exec(compile(tree, inspect.getsourcefile(original) or '<reference-constructor>', 'exec'), namespace)
+    specialized = namespace[original.__name__]
+    specialized.__module__, specialized.__qualname__ = original.__module__, original.__qualname__
+    changes['source_sha256'] = hashlib.sha256(source.encode()).hexdigest()
+    changes['specialized_ast_sha256'] = hashlib.sha256(ast.dump(tree).encode()).hexdigest()
+    return specialized, changes
+
+
+def install_reference_patches(stack, checkpoint, data_root, records, seed=1993, variant=None):
     """Install protocol adapters; return an ExitStack that restores each patch.
 
     ``stack`` provides the official ``data``, ``data_manager``, ``ease`` and
     ``vit`` modules plus installed ``timm``. ``records`` is a public mutable dict.
     All learning/prototype code remains the pinned upstream implementation.
+    An explicit size variant specializes only the two upstream constructors;
+    the absent-variant Base reference keeps its original constructors.
     """
     if type(seed) is not int or seed < 0:
         raise ValueError('The reference loader seed must be a nonnegative integer')
@@ -163,10 +206,20 @@ def install_reference_patches(stack, checkpoint, data_root, records, seed=1993):
     original_load = vit.VisionTransformer.load_state_dict
     original_loader = ease.DataLoader
     loader_signature = inspect.signature(original_loader)
+    tag = BASE_TAG if variant is None else variant['checkpoint_tag']
+    size = 'Base' if variant is None else variant['vit_size'].title()
     records['checkpoint'] = {'path': str(checkpoint), 'sha256': file_sha256(checkpoint),
-                             'bytes': checkpoint.stat().st_size, 'tag': BASE_TAG}
+                             'bytes': checkpoint.stat().st_size, 'tag': tag}
+    if variant is not None:
+        architecture = {'base': (768, 12), 'small': (384, 6), 'tiny': (192, 3)}
+        if (architecture.get(variant['vit_size']) != (variant['feature_dim'], variant['num_heads'])
+                or Path(variant['checkpoint_file']).resolve() != checkpoint
+                or records['checkpoint']['sha256'] != variant['checkpoint_sha256']):
+            raise ValueError('Reference variant architecture or local checkpoint differs from its pin')
+        records['variant'] = dict(variant)
+        records['reference_kind'] = 'author-code-size-variant'
     records['patches'] = [
-        'exact tagged Base checkpoint loaded locally; pretrained downloads disabled',
+        f'exact tagged {size} checkpoint loaded locally; pretrained downloads disabled',
         'shared CIFAR100 root with download=False',
         'plain CIFAR samples reordered by original split-global IDs',
         'strict reference pretrained key audit; only cur_adapter.* may be missing',
@@ -182,15 +235,17 @@ def install_reference_patches(stack, checkpoint, data_root, records, seed=1993):
     }
 
     def pinned_create(model_name, *args, **kwargs):
-        if model_name not in ('vit_base_patch16_224', BASE_TAG):
-            raise ValueError('Reference may construct only the selected Base checkpoint family')
+        # The author's original factory retains its Base alias; the selected
+        # constructor dimension and tagged local checkpoint are both explicit.
+        if model_name not in ('vit_base_patch16_224', tag, tag.split('.', 1)[0]):
+            raise ValueError(f'Reference may construct only the selected {size} checkpoint family')
         if kwargs.get('num_classes', 0) != 0 or kwargs.get('checkpoint_path'):
             raise ValueError('Reference checkpoint factory requires a classifier-free frozen backbone')
         kwargs['pretrained'] = False
         kwargs['num_classes'] = 0
-        model = original_create(BASE_TAG, *args, **kwargs)
+        model = original_create(tag, *args, **kwargs)
         _load_pinned_weights(model, checkpoint)
-        records.setdefault('checkpoint_loads', []).append({'requested_alias': model_name, 'resolved_tag': BASE_TAG})
+        records.setdefault('checkpoint_loads', []).append({'requested_alias': model_name, 'resolved_tag': tag})
         return model
 
     def shared_download(subject):
@@ -271,6 +326,14 @@ def install_reference_patches(stack, checkpoint, data_root, records, seed=1993):
 
     restoration = ExitStack()
     try:
+        if variant is not None:
+            inc_net = _module(stack, 'inc_net')
+            factory, factory_audit = _size_constructor(vit.vit_base_patch16_224_ease, variant['feature_dim'], variant['num_heads'])
+            get_backbone, backbone_audit = _size_constructor(inc_net.get_backbone, variant['feature_dim'])
+            restoration.enter_context(patch.object(vit, 'vit_base_patch16_224_ease', factory))
+            restoration.enter_context(patch.object(inc_net, 'get_backbone', get_backbone))
+            records['constructor_specialization'] = {'vit_factory': factory_audit, 'get_backbone': backbone_audit}
+            records['patches'].append('author constructors specialized only for feature dimension, attention heads and configured adapter width')
         restoration.enter_context(patch.object(timm, 'create_model', pinned_create))
         restoration.enter_context(patch.object(data.iCIFAR224, 'download_data', shared_download))
         restoration.enter_context(patch.object(manager_module.DataManager, 'get_dataset', aligned_get_dataset))

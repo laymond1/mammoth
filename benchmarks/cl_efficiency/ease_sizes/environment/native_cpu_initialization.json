@@ -1,0 +1,60 @@
+{
+  "status": "pass",
+  "variants": [
+    {
+      "variant": "small_fixed64",
+      "status": "pass",
+      "image_forwards": 0,
+      "gpu_used": false,
+      "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+      "initial_canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+      "canonical_tensor_count": 150,
+      "feature_dim": 384,
+      "num_heads": 6,
+      "adapter_size": 64,
+      "adapter_parameters": 595200
+    },
+    {
+      "variant": "tiny_fixed64",
+      "status": "pass",
+      "image_forwards": 0,
+      "gpu_used": false,
+      "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+      "initial_canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+      "canonical_tensor_count": 150,
+      "feature_dim": 192,
+      "num_heads": 3,
+      "adapter_size": 64,
+      "adapter_parameters": 297984
+    },
+    {
+      "variant": "small_relative32",
+      "status": "pass",
+      "image_forwards": 0,
+      "gpu_used": false,
+      "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+      "initial_canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+      "canonical_tensor_count": 150,
+      "feature_dim": 384,
+      "num_heads": 6,
+      "adapter_size": 32,
+      "adapter_parameters": 299904
+    },
+    {
+      "variant": "tiny_relative16",
+      "status": "pass",
+      "image_forwards": 0,
+      "gpu_used": false,
+      "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+      "initial_canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+      "canonical_tensor_count": 150,
+      "feature_dim": 192,
+      "num_heads": 3,
+      "adapter_size": 16,
+      "adapter_parameters": 76224
+    }
+  ],
+  "audit_script_sha256": "12af04242259e280b4997f5bc52e3672eb41058e0aeb083a03ec666ee04ce205",
+  "audit_script_source": "import gc\nimport json\nfrom pathlib import Path\nimport sys\n\nroot = Path('/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes')\nsys.path.insert(0, str(root))\nfrom scripts.cl_runtime import configure_native_environment\nconfigure_native_environment()\nimport torch\nfrom backbone.ease_vit import EaseViT\nfrom scripts.ease_size_protocol import VARIANTS, load_variant, canonical_pretrained_digest\n\ntorch.set_num_threads(2)\nrecords = []\nfor name in VARIANTS:\n    variant = load_variant(name)\n    model = EaseViT(100, vit_size=variant['vit_size'], pretrained=False,\n                    ease_checkpoint=variant['checkpoint_file'], adapter_size=variant['adapter_size'])\n    digest = canonical_pretrained_digest(model.backbone)\n    assert digest == variant['canonical_pretrained_sha256']\n    assert model.feature_dim == variant['feature_dim']\n    assert len(model.backbone.blocks) == 12\n    assert all(block.attn.num_heads == variant['num_heads'] for block in model.backbone.blocks)\n    assert not any(parameter.requires_grad for parameter in model.backbone.parameters())\n    model.start_task()\n    adapter_count = sum(parameter.numel() for parameter in model.adapters[0].parameters())\n    assert adapter_count == variant['adapter_parameters_per_task_estimate']\n    assert all(tuple(adapter.down_proj.weight.shape) == (variant['adapter_size'], variant['feature_dim'])\n               and tuple(adapter.up_proj.weight.shape) == (variant['feature_dim'], variant['adapter_size'])\n               for adapter in model.adapters[0])\n    records.append({'variant': name, 'status': 'pass', 'image_forwards': 0, 'gpu_used': False,\n                    'checkpoint_sha256': variant['checkpoint_sha256'],\n                    'initial_canonical_pretrained_sha256': digest, 'canonical_tensor_count': 150,\n                    'feature_dim': model.feature_dim, 'num_heads': variant['num_heads'],\n                    'adapter_size': variant['adapter_size'], 'adapter_parameters': adapter_count})\n    print(name + ': actual native CPU construction passed', flush=True)\n    del model\n    gc.collect()\ntarget = root / 'benchmarks/cl_efficiency/ease_sizes/environment/native_cpu_initialization.json'\ntarget.write_text(json.dumps({'status': 'pass', 'variants': records}, indent=2) + '\\n')\n",
+  "command": "CUDA_VISIBLE_DEVICES='' UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv uv run --no-sync --offline python /tmp/audit-ease-size-native-cpu.py"
+}

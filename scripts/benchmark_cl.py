@@ -31,8 +31,68 @@ from scripts.cl_runtime import configure_environment
 from scripts.check_ease_runtime import file_hash
 
 
-def ease_execution_pin():
-    """Verify the local approved Base weights only inside an executing worker."""
+def read_ease_size_acceptance(path, variant):
+    """Require completed, matched reference/native evidence for one size variant."""
+    path = Path(path).expanduser().resolve()
+    saved = json.loads(path.read_text())
+    expected = variant['name']
+    if (saved.get('variant') != expected
+            or saved.get('checkpoint_sha256') != variant['checkpoint_sha256']
+            or saved.get('acceptance', {}).get('status') != 'pass'):
+        raise ValueError('EASE size pilot requires accepted evidence for the same variant and checkpoint')
+    for key in ('official_reference', 'native_validation'):
+        evidence = saved.get(key, {})
+        if (evidence.get('status') != 'completed'
+                or evidence.get('variant') != expected
+                or evidence.get('checkpoint_sha256') != variant['checkpoint_sha256']):
+            raise ValueError('EASE size pilot requires completed matched reference/native evidence')
+    if saved['native_validation'].get('acceptance_status') != 'pass':
+        raise ValueError('Native two-task acceptance must pass before the size pilot')
+    if (saved['official_reference'].get('initial_canonical_pretrained_sha256')
+            != variant['canonical_pretrained_sha256']):
+        raise ValueError('EASE size reference canonical pretrained tensors differ from the pinned variant')
+    snapshots = saved['official_reference'].get('data_snapshots', {})
+    if (snapshots.get('task1_train', {}).get('n_samples') != 5000
+            or snapshots.get('task1_test', {}).get('n_samples') != 1000):
+        raise ValueError('EASE size acceptance requires complete first-task reference samples')
+    return saved
+
+
+def ease_execution_pin(spec=None, acceptance_summary=None):
+    """Verify approved local weights; the existing Base path remains the default."""
+    if isinstance(spec, str):
+        spec = {'ease_variant': spec, 'ease_acceptance_summary': acceptance_summary}
+    spec = spec or {}
+    variant_name = spec.get('ease_variant')
+    if variant_name is not None:
+        from scripts.ease_size_protocol import load_plan, load_variant
+        variant = load_variant(variant_name, verify_checkpoint=True)
+        plan = load_plan()
+        if plan['efficiency'].get('training_authorized') is not True:
+            raise ValueError('The EASE size efficiency protocol has not been authorized')
+        summary_path = spec.get('ease_acceptance_summary')
+        if not summary_path:
+            raise ValueError('EASE size efficiency requires an acceptance summary')
+        saved = read_ease_size_acceptance(summary_path, variant)
+        summary_hash = file_hash(summary_path)
+        if spec.get('ease_acceptance_summary_sha256', summary_hash) != summary_hash:
+            raise ValueError('EASE size acceptance summary changed after preparation')
+        plan_path = ROOT / 'benchmarks/cl_efficiency/ease_sizes/validation_plan.json'
+        files = ('scripts/benchmark_cl.py', 'scripts/cl_efficiency.py', 'main.py', 'utils/training.py',
+                 'models/ease.py', 'backbone/ease_vit.py', 'models/ease_utils/vit.py',
+                 'models/ease_utils/network.py', 'models/ease_utils/classifier.py',
+                 'datasets/configs/seq-cifar100-224/ease.yaml', 'models/config/ease.yaml',
+                 'uv.lock', 'scripts/ease_size_protocol.py')
+        return {'variant': variant, 'ease_variant': variant['name'],
+                **{key: variant[key] for key in ('vit_size', 'feature_dim', 'num_heads', 'adapter_size',
+                                                'checkpoint_file', 'checkpoint_sha256', 'checkpoint_tag',
+                                                'canonical_pretrained_sha256')},
+                'acceptance_summary_file': str(Path(summary_path).expanduser().resolve()),
+                'acceptance_summary_sha256': summary_hash,
+                'validation_plan_sha256': file_hash(plan_path),
+                'execution_source_sha256': {name: file_hash(ROOT / name) for name in files},
+                'reference_data_snapshots': {key: saved['official_reference']['data_snapshots'][key]
+                                            for key in ('task1_train', 'task1_test')}}
     plan_path = ROOT / 'benchmarks/cl_efficiency/ease/validation_plan.json'
     plan = json.loads(plan_path.read_text())
     reference = plan['reference']
@@ -101,22 +161,31 @@ class EaseAudit:
     """Observe the approved one-task pilot without additional image forwards."""
 
     def __init__(self, model, dataset, args, recorder, metadata, torch):
+        self.feature_dim = metadata.get('feature_dim', 768)
+        self.adapter_size = metadata.get('adapter_size', 64)
+        self.variant_name = metadata.get('ease_variant')
         expected = {'n_epochs': 1, 'batch_size': 64, 'num_workers': 4, 'seed': 1993,
-                    'vit_size': 'base', 'adapter_size': 64, 'ease_pretrain_type': 'in21k_ft_in1k',
+                    'vit_size': metadata.get('vit_size', 'base'), 'adapter_size': self.adapter_size,
+                    'ease_pretrain_type': 'in21k_ft_in1k',
                     'dataset_config': 'ease', 'code_optimization': 0, 'drop_last': False,
                     'fitting_mode': 'epochs', 'permute_classes': False, 'joint': False,
                     'lr': 0.025, 'optim_mom': 0.9, 'optim_wd': 0.0005,
                     'optimizer': 'sgd', 'lr_scheduler': 'cosine', 'scheduler_mode': 'epoch'}
         if (any(getattr(args, key, None) != value for key, value in expected.items())
                 or args.eval_epochs is not None or args.start_from is not None or args.loadcheck is not None):
-            raise ValueError('Effective EASE arguments violate the approved one-epoch Base64 protocol')
+            raise ValueError('Effective EASE arguments violate the approved one-epoch variant protocol')
         if str(Path(args.ease_checkpoint).resolve()) != metadata['checkpoint_file']:
             raise ValueError('Effective EASE checkpoint differs from the pinned local file')
         self.model, self.dataset, self.recorder, self.metadata, self.torch = model, dataset, recorder, metadata, torch
         self.ptm = model.net.backbone.backbone
-        if (not model.net.backbone.pretrained_loaded or model.net.backbone.feature_dim != 768
+        if (not model.net.backbone.pretrained_loaded or model.net.backbone.feature_dim != self.feature_dim
                 or any(p.requires_grad or p.dtype != torch.float32 for p in self.ptm.parameters())):
-            raise ValueError('EASE pilot requires a frozen FP32 pretrained Base backbone')
+            raise ValueError('EASE pilot requires the selected frozen FP32 pretrained backbone')
+        if self.variant_name is not None:
+            if (model.net.backbone.adapter_size != self.adapter_size
+                    or self.ptm.num_features != self.feature_dim or len(self.ptm.blocks) != 12
+                    or any(block.attn.num_heads != metadata['num_heads'] for block in self.ptm.blocks)):
+                raise ValueError('EASE pretrained dimensions or adapter width differ from the selected variant')
         self.losses, self.predictions, self.epochs, self.prototype_examples = [], [], 0, 0
         self.checks = metadata['structural_checks'] = {
             'finite_loss_and_gradients': False, 'frozen_backbone_gradients_absent': False,
@@ -125,6 +194,14 @@ class EaseAudit:
             'dataset_matches_reference': False, 'training_protocol_complete': False}
         with recorder.phase('state_audit'):
             self.initial_hash = self.digest(self.ptm)
+            if self.variant_name is not None:
+                from scripts.ease_size_protocol import canonical_pretrained_digest
+                canonical = canonical_pretrained_digest(self.ptm)
+                if canonical != metadata['canonical_pretrained_sha256']:
+                    raise ValueError('EASE size pilot canonical pretrained tensors differ from the pinned checkpoint')
+                metadata['initial_canonical_pretrained_sha256'] = canonical
+                metadata['canonical_pretrained_tensor_count'] = 150
+                self.checks['canonical_pretrained_matches_checkpoint'] = True
         metadata['initial_frozen_backbone_sha256'] = self.initial_hash
 
     def digest(self, module):
@@ -153,9 +230,17 @@ class EaseAudit:
     def end_task(self):
         with self.recorder.phase('state_audit'):
             net = self.model.net
-            if (net.backbone.num_adapters != 1 or tuple(net.classifier.weight.shape) != (10, 768)
+            if (net.backbone.num_adapters != 1 or tuple(net.classifier.weight.shape) != (10, self.feature_dim)
                     or not net.task_finalized.item() or any(p.requires_grad for p in net.backbone.parameters())):
                 raise RuntimeError('EASE pilot adapter/prototype finalization is incomplete')
+            if self.variant_name is not None:
+                adapters = net.backbone.adapters[0]
+                if (len(adapters) != 12 or any(
+                        (adapter.down_proj.in_features, adapter.down_proj.out_features,
+                         adapter.up_proj.in_features, adapter.up_proj.out_features)
+                        != (self.feature_dim, self.adapter_size, self.adapter_size, self.feature_dim)
+                        for adapter in adapters)):
+                    raise RuntimeError('EASE pilot adapter shapes differ from the selected size variant')
             if not self.torch.isfinite(net.classifier.weight).all().item():
                 raise RuntimeError('EASE prototype table contains non-finite values')
             current_hash = self.digest(self.ptm)
@@ -556,7 +641,7 @@ def worker(spec_path):
     baseline_audit = None
     code = 1
     try:
-        ease_pin = ease_execution_pin() if spec['model'] == 'ease' else None
+        ease_pin = ease_execution_pin(spec) if spec['model'] == 'ease' else None
         baseline_pin = None
         if spec.get('baseline_pilot'):
             from scripts.baseline_audit import execution_pin, BaselineAudit, instrument_baseline, require_initialization_args
@@ -588,6 +673,9 @@ def worker(spec_path):
         if ease_pin is not None:
             _pinned_argument(command, '--ease_checkpoint', ease_pin['checkpoint_file'])
             _pinned_argument(command, '--code_optimization', '0')
+            if ease_pin.get('ease_variant') is not None:
+                _pinned_argument(command, '--vit_size', ease_pin['vit_size'])
+                _pinned_argument(command, '--adapter_size', str(ease_pin['adapter_size']))
         if baseline_pin is not None:
             _pinned_argument(command, '--pretrained_checkpoint', baseline_pin['checkpoint_file'])
             _pinned_argument(command, '--code_optimization', '0')

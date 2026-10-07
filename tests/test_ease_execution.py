@@ -69,6 +69,15 @@ def test_native_validation_worker_requires_execute(monkeypatch, tmp_path):
         run_ease_validation.worker(tmp_path / 'absent.json')
 
 
+def test_size_validation_preparation_cannot_read_plan_credentials_or_start_compute(monkeypatch, capsys):
+    from scripts import run_ease_validation
+    monkeypatch.setattr(run_ease_validation, 'load_size_variant', lambda *args, **kwargs: pytest.fail('Dry run must not read size plan'))
+    monkeypatch.setattr(run_ease_validation, 'configure_environment', lambda: pytest.fail('No credentials during preparation'))
+    monkeypatch.setattr(run_ease_validation, 'execute', lambda *args: pytest.fail('No worker during preparation'))
+    assert run_ease_validation.main(['--variant', 'small_fixed64', '--reference-summary', 'absent.json']) == 0
+    assert 'small_fixed64' in capsys.readouterr().out
+
+
 @pytest.mark.parametrize('field,value', [('tasks', 3), ('seed', 42), ('n_epochs_per_task', 1),
                                         ('batch_size', 64), ('training_authorized', False)])
 def test_native_validation_rejects_unapproved_protocol(field, value):

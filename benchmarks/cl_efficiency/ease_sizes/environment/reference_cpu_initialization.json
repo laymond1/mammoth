@@ -1,0 +1,1102 @@
+{
+  "schema_version": 1,
+  "completed_at_utc": "2026-10-07T02:37:12.604032+00:00",
+  "status": "pass",
+  "scope": "Actual CPU construction of all four independent author-code size variants; no image forward, backward, optimizer, GPU execution, network or downloads.",
+  "fresh_worker_per_variant": true,
+  "shared_environment": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv",
+  "command_template": "CUDA_VISIBLE_DEVICES='' UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv uv run --no-sync --offline python /tmp/audit_ease_reference_sizes_cpu.py VARIANT /tmp/reference_cpu_VARIANT.json",
+  "audit_script_sha256": "ef4b6780fc3f0991374ae0177fbfdb73efe9eb8457825693cb8d841bbbf3827d",
+  "audit_script_source": "\"\"\"Independent reference construction audit: CPU only, no image inference.\"\"\"\nimport contextlib\nimport importlib.metadata\nimport json\nimport os\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nROOT = Path('/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes')\nSOURCE = Path('/tmp/cl-ease-official-20261007')\nsys.path.insert(0, str(ROOT))\nfrom scripts.cl_runtime import configure_environment\nconfigure_environment()\nos.environ['CUDA_VISIBLE_DEVICES'] = ''\nos.environ['HF_HUB_OFFLINE'] = '1'\nfrom scripts.ease_size_protocol import load_variant, canonical_pretrained_state, canonical_pretrained_digest, file_hash\nfrom scripts.ease_reference_utils import install_reference_patches\nfrom scripts.run_ease_reference import isolate_reference_imports, audit_variant_initialization, REFERENCE_COMMIT\n\nimport torch\nimport timm\ntorch.set_num_threads(2)\ntorch.set_default_dtype(torch.float32)\nname, output = sys.argv[1], Path(sys.argv[2])\nvariant = load_variant(name)\ncommit = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=SOURCE, capture_output=True, text=True, check=True).stdout.strip()\nif commit != REFERENCE_COMMIT:\n    raise RuntimeError('Read-only reference commit changed')\nif subprocess.run(['git', 'status', '--porcelain'], cwd=SOURCE, capture_output=True, text=True, check=True).stdout.strip():\n    raise RuntimeError('Read-only reference source changed')\n\nisolate_reference_imports(SOURCE)\nfrom utils import data, data_manager, inc_net\nfrom backbone import vit_ease\nfrom models import ease\nmodules = {'timm': timm, 'data': data, 'data_manager': data_manager, 'inc_net': inc_net, 'vit': vit_ease, 'ease': ease}\nrecords = {}\nconfig = json.loads((SOURCE / 'exps/ease_cifar.json').read_text())\nconfig.update(device=[torch.device('cpu')], ffn_num=variant['adapter_size'])\nwith install_reference_patches(modules, variant['checkpoint_file'], '/mnt/sdab1/share/data', records, variant=variant):\n    backbone = inc_net.get_backbone(config, pretrained=True)\n    digest = audit_variant_initialization(backbone, variant)\n    state = canonical_pretrained_state(backbone)\n    checks = {'cpu_only': all(parameter.device.type == 'cpu' for parameter in backbone.parameters()),\n              'canonical_tensor_count_150': len(state) == 150,\n              'canonical_pretrained_matches_pin': digest == variant['canonical_pretrained_sha256'],\n              'checkpoint_sha256_matches_pin': file_hash(variant['checkpoint_file']) == variant['checkpoint_sha256'],\n              'canonical_fp32_finite': all(tensor.dtype == torch.float32 and torch.isfinite(tensor).all().item() for tensor in state.values()),\n              'strict_pretrained_keys': bool(records.get('converted_checkpoint_audits')) and all(not audit['unexpected_keys']\n                    and all(key.startswith('cur_adapter.') for key in audit['missing_adapter_keys'])\n                    for audit in records['converted_checkpoint_audits']),\n              'source_namespace_isolated': all(Path(module.__file__).resolve().is_relative_to(SOURCE)\n                    for module in (data, data_manager, inc_net, vit_ease, ease)),\n              'cuda_not_initialized': not torch.cuda.is_initialized()}\n    report = {'variant': name, 'status': 'pass' if all(checks.values()) else 'fail', 'checks': checks,\n              'reference_kind': 'author-code-size-variant', 'reference_commit': commit, 'variant_config': variant,\n              'initial_canonical_pretrained_sha256': digest, 'blocks': len(backbone.blocks),\n              'feature_dim': backbone.out_dim, 'num_heads': [block.attn.num_heads for block in backbone.blocks],\n              'adapter_down_shapes': [list(layer.down_proj.weight.shape) for layer in backbone.cur_adapter],\n              'adapter_up_shapes': [list(layer.up_proj.weight.shape) for layer in backbone.cur_adapter],\n              'registered_parameters': sum(parameter.numel() for parameter in backbone.parameters()),\n              'trainable_parameters': sum(parameter.numel() for parameter in backbone.parameters() if parameter.requires_grad),\n              'versions': {package: importlib.metadata.version(package) for package in ('torch', 'timm', 'numpy')},\n              'runtime_patches': records, 'image_forward_calls': 0, 'gpu_execution': False, 'downloads': False}\n    output.write_text(json.dumps(report, indent=2, allow_nan=False) + '\\n')\n    if report['status'] != 'pass':\n        raise RuntimeError('CPU reference construction audit failed')\nprint(json.dumps({'variant': name, 'status': report['status'], 'feature_dim': backbone.out_dim,\n                  'adapter_size': variant['adapter_size'], 'canonical_sha256': digest}))\n",
+  "execution_source_sha256": {
+    "scripts/run_ease_reference.py": "553999976f60618e6af38159ca354e284a14e96d9992f985df4fe18b135a4b8d",
+    "scripts/ease_reference_utils.py": "6288993883e591b26855e40d5fce389a9aabffbbdfa60737e16d76b3eb23d761",
+    "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576"
+  },
+  "variants": [
+    {
+      "variant": "small_fixed64",
+      "status": "pass",
+      "checks": {
+        "cpu_only": true,
+        "canonical_tensor_count_150": true,
+        "canonical_pretrained_matches_pin": true,
+        "checkpoint_sha256_matches_pin": true,
+        "canonical_fp32_finite": true,
+        "strict_pretrained_keys": true,
+        "source_namespace_isolated": true,
+        "cuda_not_initialized": true
+      },
+      "reference_kind": "author-code-size-variant",
+      "reference_commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+      "variant_config": {
+        "name": "small_fixed64",
+        "vit_size": "small",
+        "feature_dim": 384,
+        "num_heads": 6,
+        "adapter_size": 64,
+        "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+        "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+        "canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+        "depth": 12,
+        "patch_size": 16,
+        "adapter_parameters_per_task_estimate": 595200
+      },
+      "initial_canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+      "blocks": 12,
+      "feature_dim": 384,
+      "num_heads": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ],
+      "adapter_down_shapes": [
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ],
+        [
+          64,
+          384
+        ]
+      ],
+      "adapter_up_shapes": [
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ],
+        [
+          384,
+          64
+        ]
+      ],
+      "registered_parameters": 22260864,
+      "trainable_parameters": 595200,
+      "versions": {
+        "torch": "2.13.0+cu126",
+        "timm": "0.9.8",
+        "numpy": "2.5.2"
+      },
+      "runtime_patches": {
+        "checkpoint": {
+          "path": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+          "sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+          "bytes": 88267574,
+          "tag": "vit_small_patch16_224.augreg_in21k_ft_in1k"
+        },
+        "variant": {
+          "name": "small_fixed64",
+          "vit_size": "small",
+          "feature_dim": 384,
+          "num_heads": 6,
+          "adapter_size": 64,
+          "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+          "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+          "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+          "canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+          "depth": 12,
+          "patch_size": 16,
+          "adapter_parameters_per_task_estimate": 595200
+        },
+        "reference_kind": "author-code-size-variant",
+        "patches": [
+          "exact tagged Small checkpoint loaded locally; pretrained downloads disabled",
+          "shared CIFAR100 root with download=False",
+          "plain CIFAR samples reordered by original split-global IDs",
+          "strict reference pretrained key audit; only cur_adapter.* may be missing",
+          "reference data-loader num_workers=4",
+          "native-matched loader generator and Python/NumPy worker seeding",
+          "author constructors specialized only for feature dimension, attention heads and configured adapter width"
+        ],
+        "loader_seed_policy": {
+          "seed": 1993,
+          "generator": "independent torch.Generator.manual_seed(seed) for each loader",
+          "worker_python_numpy_seed": "num_workers + worker_id + seed",
+          "worker_torch_seed": "standard PyTorch initialization; callback does not modify it",
+          "prototype_order_difference": "reference prototype loader keeps shuffle=True; native prototype loader uses shuffle=False"
+        },
+        "constructor_specialization": {
+          "vit_factory": {
+            "feature_dim_constants": 9,
+            "attention_head_arguments": 1,
+            "source_sha256": "a62b6e5871e317979e804c880ea2fcd7226022f6109dffa2fdc06072912d9d75",
+            "specialized_ast_sha256": "809f10cf1f1a46beb3104cd9314789aafc2e5b05d5c35eaa64c5389a2b8724c3"
+          },
+          "get_backbone": {
+            "feature_dim_constants": 5,
+            "attention_head_arguments": 0,
+            "source_sha256": "9fbfc56547a4c8de55ddf078782cd54f90834e60cb07328e3ce0eaaa66830940",
+            "specialized_ast_sha256": "882a400341d2c00610efb26c18aba71a77d3bb4ac28487aad8883ae01b1ffd68"
+          }
+        },
+        "checkpoint_loads": [
+          {
+            "requested_alias": "vit_base_patch16_224",
+            "resolved_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k"
+          }
+        ],
+        "converted_checkpoint_audits": [
+          {
+            "missing_adapter_keys": [
+              "cur_adapter.0.down_proj.weight",
+              "cur_adapter.0.down_proj.bias",
+              "cur_adapter.0.up_proj.weight",
+              "cur_adapter.0.up_proj.bias",
+              "cur_adapter.1.down_proj.weight",
+              "cur_adapter.1.down_proj.bias",
+              "cur_adapter.1.up_proj.weight",
+              "cur_adapter.1.up_proj.bias",
+              "cur_adapter.2.down_proj.weight",
+              "cur_adapter.2.down_proj.bias",
+              "cur_adapter.2.up_proj.weight",
+              "cur_adapter.2.up_proj.bias",
+              "cur_adapter.3.down_proj.weight",
+              "cur_adapter.3.down_proj.bias",
+              "cur_adapter.3.up_proj.weight",
+              "cur_adapter.3.up_proj.bias",
+              "cur_adapter.4.down_proj.weight",
+              "cur_adapter.4.down_proj.bias",
+              "cur_adapter.4.up_proj.weight",
+              "cur_adapter.4.up_proj.bias",
+              "cur_adapter.5.down_proj.weight",
+              "cur_adapter.5.down_proj.bias",
+              "cur_adapter.5.up_proj.weight",
+              "cur_adapter.5.up_proj.bias",
+              "cur_adapter.6.down_proj.weight",
+              "cur_adapter.6.down_proj.bias",
+              "cur_adapter.6.up_proj.weight",
+              "cur_adapter.6.up_proj.bias",
+              "cur_adapter.7.down_proj.weight",
+              "cur_adapter.7.down_proj.bias",
+              "cur_adapter.7.up_proj.weight",
+              "cur_adapter.7.up_proj.bias",
+              "cur_adapter.8.down_proj.weight",
+              "cur_adapter.8.down_proj.bias",
+              "cur_adapter.8.up_proj.weight",
+              "cur_adapter.8.up_proj.bias",
+              "cur_adapter.9.down_proj.weight",
+              "cur_adapter.9.down_proj.bias",
+              "cur_adapter.9.up_proj.weight",
+              "cur_adapter.9.up_proj.bias",
+              "cur_adapter.10.down_proj.weight",
+              "cur_adapter.10.down_proj.bias",
+              "cur_adapter.10.up_proj.weight",
+              "cur_adapter.10.up_proj.bias",
+              "cur_adapter.11.down_proj.weight",
+              "cur_adapter.11.down_proj.bias",
+              "cur_adapter.11.up_proj.weight",
+              "cur_adapter.11.up_proj.bias"
+            ],
+            "unexpected_keys": []
+          }
+        ]
+      },
+      "image_forward_calls": 0,
+      "gpu_execution": false,
+      "downloads": false
+    },
+    {
+      "variant": "tiny_fixed64",
+      "status": "pass",
+      "checks": {
+        "cpu_only": true,
+        "canonical_tensor_count_150": true,
+        "canonical_pretrained_matches_pin": true,
+        "checkpoint_sha256_matches_pin": true,
+        "canonical_fp32_finite": true,
+        "strict_pretrained_keys": true,
+        "source_namespace_isolated": true,
+        "cuda_not_initialized": true
+      },
+      "reference_kind": "author-code-size-variant",
+      "reference_commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+      "variant_config": {
+        "name": "tiny_fixed64",
+        "vit_size": "tiny",
+        "feature_dim": 192,
+        "num_heads": 3,
+        "adapter_size": 64,
+        "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+        "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+        "canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+        "depth": 12,
+        "patch_size": 16,
+        "adapter_parameters_per_task_estimate": 297984
+      },
+      "initial_canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+      "blocks": 12,
+      "feature_dim": 192,
+      "num_heads": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "adapter_down_shapes": [
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ],
+        [
+          64,
+          192
+        ]
+      ],
+      "adapter_up_shapes": [
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ],
+        [
+          192,
+          64
+        ]
+      ],
+      "registered_parameters": 5822400,
+      "trainable_parameters": 297984,
+      "versions": {
+        "torch": "2.13.0+cu126",
+        "timm": "0.9.8",
+        "numpy": "2.5.2"
+      },
+      "runtime_patches": {
+        "checkpoint": {
+          "path": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+          "sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+          "bytes": 22934582,
+          "tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k"
+        },
+        "variant": {
+          "name": "tiny_fixed64",
+          "vit_size": "tiny",
+          "feature_dim": 192,
+          "num_heads": 3,
+          "adapter_size": 64,
+          "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+          "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+          "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+          "canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+          "depth": 12,
+          "patch_size": 16,
+          "adapter_parameters_per_task_estimate": 297984
+        },
+        "reference_kind": "author-code-size-variant",
+        "patches": [
+          "exact tagged Tiny checkpoint loaded locally; pretrained downloads disabled",
+          "shared CIFAR100 root with download=False",
+          "plain CIFAR samples reordered by original split-global IDs",
+          "strict reference pretrained key audit; only cur_adapter.* may be missing",
+          "reference data-loader num_workers=4",
+          "native-matched loader generator and Python/NumPy worker seeding",
+          "author constructors specialized only for feature dimension, attention heads and configured adapter width"
+        ],
+        "loader_seed_policy": {
+          "seed": 1993,
+          "generator": "independent torch.Generator.manual_seed(seed) for each loader",
+          "worker_python_numpy_seed": "num_workers + worker_id + seed",
+          "worker_torch_seed": "standard PyTorch initialization; callback does not modify it",
+          "prototype_order_difference": "reference prototype loader keeps shuffle=True; native prototype loader uses shuffle=False"
+        },
+        "constructor_specialization": {
+          "vit_factory": {
+            "feature_dim_constants": 9,
+            "attention_head_arguments": 1,
+            "source_sha256": "a62b6e5871e317979e804c880ea2fcd7226022f6109dffa2fdc06072912d9d75",
+            "specialized_ast_sha256": "3b0f11d7c586c9562e2b8f107dc47ec14d5d6b69f479044adb78e9111b8bd002"
+          },
+          "get_backbone": {
+            "feature_dim_constants": 5,
+            "attention_head_arguments": 0,
+            "source_sha256": "9fbfc56547a4c8de55ddf078782cd54f90834e60cb07328e3ce0eaaa66830940",
+            "specialized_ast_sha256": "0312a7699d56b364aed49a5523472e21b1410a86c577479989514f0db9e6ffba"
+          }
+        },
+        "checkpoint_loads": [
+          {
+            "requested_alias": "vit_base_patch16_224",
+            "resolved_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k"
+          }
+        ],
+        "converted_checkpoint_audits": [
+          {
+            "missing_adapter_keys": [
+              "cur_adapter.0.down_proj.weight",
+              "cur_adapter.0.down_proj.bias",
+              "cur_adapter.0.up_proj.weight",
+              "cur_adapter.0.up_proj.bias",
+              "cur_adapter.1.down_proj.weight",
+              "cur_adapter.1.down_proj.bias",
+              "cur_adapter.1.up_proj.weight",
+              "cur_adapter.1.up_proj.bias",
+              "cur_adapter.2.down_proj.weight",
+              "cur_adapter.2.down_proj.bias",
+              "cur_adapter.2.up_proj.weight",
+              "cur_adapter.2.up_proj.bias",
+              "cur_adapter.3.down_proj.weight",
+              "cur_adapter.3.down_proj.bias",
+              "cur_adapter.3.up_proj.weight",
+              "cur_adapter.3.up_proj.bias",
+              "cur_adapter.4.down_proj.weight",
+              "cur_adapter.4.down_proj.bias",
+              "cur_adapter.4.up_proj.weight",
+              "cur_adapter.4.up_proj.bias",
+              "cur_adapter.5.down_proj.weight",
+              "cur_adapter.5.down_proj.bias",
+              "cur_adapter.5.up_proj.weight",
+              "cur_adapter.5.up_proj.bias",
+              "cur_adapter.6.down_proj.weight",
+              "cur_adapter.6.down_proj.bias",
+              "cur_adapter.6.up_proj.weight",
+              "cur_adapter.6.up_proj.bias",
+              "cur_adapter.7.down_proj.weight",
+              "cur_adapter.7.down_proj.bias",
+              "cur_adapter.7.up_proj.weight",
+              "cur_adapter.7.up_proj.bias",
+              "cur_adapter.8.down_proj.weight",
+              "cur_adapter.8.down_proj.bias",
+              "cur_adapter.8.up_proj.weight",
+              "cur_adapter.8.up_proj.bias",
+              "cur_adapter.9.down_proj.weight",
+              "cur_adapter.9.down_proj.bias",
+              "cur_adapter.9.up_proj.weight",
+              "cur_adapter.9.up_proj.bias",
+              "cur_adapter.10.down_proj.weight",
+              "cur_adapter.10.down_proj.bias",
+              "cur_adapter.10.up_proj.weight",
+              "cur_adapter.10.up_proj.bias",
+              "cur_adapter.11.down_proj.weight",
+              "cur_adapter.11.down_proj.bias",
+              "cur_adapter.11.up_proj.weight",
+              "cur_adapter.11.up_proj.bias"
+            ],
+            "unexpected_keys": []
+          }
+        ]
+      },
+      "image_forward_calls": 0,
+      "gpu_execution": false,
+      "downloads": false
+    },
+    {
+      "variant": "small_relative32",
+      "status": "pass",
+      "checks": {
+        "cpu_only": true,
+        "canonical_tensor_count_150": true,
+        "canonical_pretrained_matches_pin": true,
+        "checkpoint_sha256_matches_pin": true,
+        "canonical_fp32_finite": true,
+        "strict_pretrained_keys": true,
+        "source_namespace_isolated": true,
+        "cuda_not_initialized": true
+      },
+      "reference_kind": "author-code-size-variant",
+      "reference_commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+      "variant_config": {
+        "name": "small_relative32",
+        "vit_size": "small",
+        "feature_dim": 384,
+        "num_heads": 6,
+        "adapter_size": 32,
+        "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+        "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+        "canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+        "depth": 12,
+        "patch_size": 16,
+        "adapter_parameters_per_task_estimate": 299904
+      },
+      "initial_canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+      "blocks": 12,
+      "feature_dim": 384,
+      "num_heads": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ],
+      "adapter_down_shapes": [
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ],
+        [
+          32,
+          384
+        ]
+      ],
+      "adapter_up_shapes": [
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ],
+        [
+          384,
+          32
+        ]
+      ],
+      "registered_parameters": 21965568,
+      "trainable_parameters": 299904,
+      "versions": {
+        "torch": "2.13.0+cu126",
+        "timm": "0.9.8",
+        "numpy": "2.5.2"
+      },
+      "runtime_patches": {
+        "checkpoint": {
+          "path": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+          "sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+          "bytes": 88267574,
+          "tag": "vit_small_patch16_224.augreg_in21k_ft_in1k"
+        },
+        "variant": {
+          "name": "small_relative32",
+          "vit_size": "small",
+          "feature_dim": 384,
+          "num_heads": 6,
+          "adapter_size": 32,
+          "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+          "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+          "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+          "canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+          "depth": 12,
+          "patch_size": 16,
+          "adapter_parameters_per_task_estimate": 299904
+        },
+        "reference_kind": "author-code-size-variant",
+        "patches": [
+          "exact tagged Small checkpoint loaded locally; pretrained downloads disabled",
+          "shared CIFAR100 root with download=False",
+          "plain CIFAR samples reordered by original split-global IDs",
+          "strict reference pretrained key audit; only cur_adapter.* may be missing",
+          "reference data-loader num_workers=4",
+          "native-matched loader generator and Python/NumPy worker seeding",
+          "author constructors specialized only for feature dimension, attention heads and configured adapter width"
+        ],
+        "loader_seed_policy": {
+          "seed": 1993,
+          "generator": "independent torch.Generator.manual_seed(seed) for each loader",
+          "worker_python_numpy_seed": "num_workers + worker_id + seed",
+          "worker_torch_seed": "standard PyTorch initialization; callback does not modify it",
+          "prototype_order_difference": "reference prototype loader keeps shuffle=True; native prototype loader uses shuffle=False"
+        },
+        "constructor_specialization": {
+          "vit_factory": {
+            "feature_dim_constants": 9,
+            "attention_head_arguments": 1,
+            "source_sha256": "a62b6e5871e317979e804c880ea2fcd7226022f6109dffa2fdc06072912d9d75",
+            "specialized_ast_sha256": "809f10cf1f1a46beb3104cd9314789aafc2e5b05d5c35eaa64c5389a2b8724c3"
+          },
+          "get_backbone": {
+            "feature_dim_constants": 5,
+            "attention_head_arguments": 0,
+            "source_sha256": "9fbfc56547a4c8de55ddf078782cd54f90834e60cb07328e3ce0eaaa66830940",
+            "specialized_ast_sha256": "882a400341d2c00610efb26c18aba71a77d3bb4ac28487aad8883ae01b1ffd68"
+          }
+        },
+        "checkpoint_loads": [
+          {
+            "requested_alias": "vit_base_patch16_224",
+            "resolved_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k"
+          }
+        ],
+        "converted_checkpoint_audits": [
+          {
+            "missing_adapter_keys": [
+              "cur_adapter.0.down_proj.weight",
+              "cur_adapter.0.down_proj.bias",
+              "cur_adapter.0.up_proj.weight",
+              "cur_adapter.0.up_proj.bias",
+              "cur_adapter.1.down_proj.weight",
+              "cur_adapter.1.down_proj.bias",
+              "cur_adapter.1.up_proj.weight",
+              "cur_adapter.1.up_proj.bias",
+              "cur_adapter.2.down_proj.weight",
+              "cur_adapter.2.down_proj.bias",
+              "cur_adapter.2.up_proj.weight",
+              "cur_adapter.2.up_proj.bias",
+              "cur_adapter.3.down_proj.weight",
+              "cur_adapter.3.down_proj.bias",
+              "cur_adapter.3.up_proj.weight",
+              "cur_adapter.3.up_proj.bias",
+              "cur_adapter.4.down_proj.weight",
+              "cur_adapter.4.down_proj.bias",
+              "cur_adapter.4.up_proj.weight",
+              "cur_adapter.4.up_proj.bias",
+              "cur_adapter.5.down_proj.weight",
+              "cur_adapter.5.down_proj.bias",
+              "cur_adapter.5.up_proj.weight",
+              "cur_adapter.5.up_proj.bias",
+              "cur_adapter.6.down_proj.weight",
+              "cur_adapter.6.down_proj.bias",
+              "cur_adapter.6.up_proj.weight",
+              "cur_adapter.6.up_proj.bias",
+              "cur_adapter.7.down_proj.weight",
+              "cur_adapter.7.down_proj.bias",
+              "cur_adapter.7.up_proj.weight",
+              "cur_adapter.7.up_proj.bias",
+              "cur_adapter.8.down_proj.weight",
+              "cur_adapter.8.down_proj.bias",
+              "cur_adapter.8.up_proj.weight",
+              "cur_adapter.8.up_proj.bias",
+              "cur_adapter.9.down_proj.weight",
+              "cur_adapter.9.down_proj.bias",
+              "cur_adapter.9.up_proj.weight",
+              "cur_adapter.9.up_proj.bias",
+              "cur_adapter.10.down_proj.weight",
+              "cur_adapter.10.down_proj.bias",
+              "cur_adapter.10.up_proj.weight",
+              "cur_adapter.10.up_proj.bias",
+              "cur_adapter.11.down_proj.weight",
+              "cur_adapter.11.down_proj.bias",
+              "cur_adapter.11.up_proj.weight",
+              "cur_adapter.11.up_proj.bias"
+            ],
+            "unexpected_keys": []
+          }
+        ]
+      },
+      "image_forward_calls": 0,
+      "gpu_execution": false,
+      "downloads": false
+    },
+    {
+      "variant": "tiny_relative16",
+      "status": "pass",
+      "checks": {
+        "cpu_only": true,
+        "canonical_tensor_count_150": true,
+        "canonical_pretrained_matches_pin": true,
+        "checkpoint_sha256_matches_pin": true,
+        "canonical_fp32_finite": true,
+        "strict_pretrained_keys": true,
+        "source_namespace_isolated": true,
+        "cuda_not_initialized": true
+      },
+      "reference_kind": "author-code-size-variant",
+      "reference_commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+      "variant_config": {
+        "name": "tiny_relative16",
+        "vit_size": "tiny",
+        "feature_dim": 192,
+        "num_heads": 3,
+        "adapter_size": 16,
+        "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+        "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+        "canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+        "depth": 12,
+        "patch_size": 16,
+        "adapter_parameters_per_task_estimate": 76224
+      },
+      "initial_canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+      "blocks": 12,
+      "feature_dim": 192,
+      "num_heads": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "adapter_down_shapes": [
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          16,
+          192
+        ]
+      ],
+      "adapter_up_shapes": [
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ],
+        [
+          192,
+          16
+        ]
+      ],
+      "registered_parameters": 5600640,
+      "trainable_parameters": 76224,
+      "versions": {
+        "torch": "2.13.0+cu126",
+        "timm": "0.9.8",
+        "numpy": "2.5.2"
+      },
+      "runtime_patches": {
+        "checkpoint": {
+          "path": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+          "sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+          "bytes": 22934582,
+          "tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k"
+        },
+        "variant": {
+          "name": "tiny_relative16",
+          "vit_size": "tiny",
+          "feature_dim": 192,
+          "num_heads": 3,
+          "adapter_size": 16,
+          "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+          "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+          "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+          "canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+          "depth": 12,
+          "patch_size": 16,
+          "adapter_parameters_per_task_estimate": 76224
+        },
+        "reference_kind": "author-code-size-variant",
+        "patches": [
+          "exact tagged Tiny checkpoint loaded locally; pretrained downloads disabled",
+          "shared CIFAR100 root with download=False",
+          "plain CIFAR samples reordered by original split-global IDs",
+          "strict reference pretrained key audit; only cur_adapter.* may be missing",
+          "reference data-loader num_workers=4",
+          "native-matched loader generator and Python/NumPy worker seeding",
+          "author constructors specialized only for feature dimension, attention heads and configured adapter width"
+        ],
+        "loader_seed_policy": {
+          "seed": 1993,
+          "generator": "independent torch.Generator.manual_seed(seed) for each loader",
+          "worker_python_numpy_seed": "num_workers + worker_id + seed",
+          "worker_torch_seed": "standard PyTorch initialization; callback does not modify it",
+          "prototype_order_difference": "reference prototype loader keeps shuffle=True; native prototype loader uses shuffle=False"
+        },
+        "constructor_specialization": {
+          "vit_factory": {
+            "feature_dim_constants": 9,
+            "attention_head_arguments": 1,
+            "source_sha256": "a62b6e5871e317979e804c880ea2fcd7226022f6109dffa2fdc06072912d9d75",
+            "specialized_ast_sha256": "3b0f11d7c586c9562e2b8f107dc47ec14d5d6b69f479044adb78e9111b8bd002"
+          },
+          "get_backbone": {
+            "feature_dim_constants": 5,
+            "attention_head_arguments": 0,
+            "source_sha256": "9fbfc56547a4c8de55ddf078782cd54f90834e60cb07328e3ce0eaaa66830940",
+            "specialized_ast_sha256": "0312a7699d56b364aed49a5523472e21b1410a86c577479989514f0db9e6ffba"
+          }
+        },
+        "checkpoint_loads": [
+          {
+            "requested_alias": "vit_base_patch16_224",
+            "resolved_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k"
+          }
+        ],
+        "converted_checkpoint_audits": [
+          {
+            "missing_adapter_keys": [
+              "cur_adapter.0.down_proj.weight",
+              "cur_adapter.0.down_proj.bias",
+              "cur_adapter.0.up_proj.weight",
+              "cur_adapter.0.up_proj.bias",
+              "cur_adapter.1.down_proj.weight",
+              "cur_adapter.1.down_proj.bias",
+              "cur_adapter.1.up_proj.weight",
+              "cur_adapter.1.up_proj.bias",
+              "cur_adapter.2.down_proj.weight",
+              "cur_adapter.2.down_proj.bias",
+              "cur_adapter.2.up_proj.weight",
+              "cur_adapter.2.up_proj.bias",
+              "cur_adapter.3.down_proj.weight",
+              "cur_adapter.3.down_proj.bias",
+              "cur_adapter.3.up_proj.weight",
+              "cur_adapter.3.up_proj.bias",
+              "cur_adapter.4.down_proj.weight",
+              "cur_adapter.4.down_proj.bias",
+              "cur_adapter.4.up_proj.weight",
+              "cur_adapter.4.up_proj.bias",
+              "cur_adapter.5.down_proj.weight",
+              "cur_adapter.5.down_proj.bias",
+              "cur_adapter.5.up_proj.weight",
+              "cur_adapter.5.up_proj.bias",
+              "cur_adapter.6.down_proj.weight",
+              "cur_adapter.6.down_proj.bias",
+              "cur_adapter.6.up_proj.weight",
+              "cur_adapter.6.up_proj.bias",
+              "cur_adapter.7.down_proj.weight",
+              "cur_adapter.7.down_proj.bias",
+              "cur_adapter.7.up_proj.weight",
+              "cur_adapter.7.up_proj.bias",
+              "cur_adapter.8.down_proj.weight",
+              "cur_adapter.8.down_proj.bias",
+              "cur_adapter.8.up_proj.weight",
+              "cur_adapter.8.up_proj.bias",
+              "cur_adapter.9.down_proj.weight",
+              "cur_adapter.9.down_proj.bias",
+              "cur_adapter.9.up_proj.weight",
+              "cur_adapter.9.up_proj.bias",
+              "cur_adapter.10.down_proj.weight",
+              "cur_adapter.10.down_proj.bias",
+              "cur_adapter.10.up_proj.weight",
+              "cur_adapter.10.up_proj.bias",
+              "cur_adapter.11.down_proj.weight",
+              "cur_adapter.11.down_proj.bias",
+              "cur_adapter.11.up_proj.weight",
+              "cur_adapter.11.up_proj.bias"
+            ],
+            "unexpected_keys": []
+          }
+        ]
+      },
+      "image_forward_calls": 0,
+      "gpu_execution": false,
+      "downloads": false
+    }
+  ]
+}

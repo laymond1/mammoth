@@ -1,7 +1,8 @@
 """Opt-in matched two-task official EASE reference, with local/W&B/Slack logs.
 
 The reference algorithm is loaded from an immutable commit in a separate worker.
-Only dataset location/order, workers and the exact pretrained file are adapted.
+Dataset location/order, workers and the exact pretrained file are adapted.
+Explicit Small/Tiny variants also specialize the author's size constructors.
 This calibration run is separate from the one-task efficiency protocol.
 """
 
@@ -31,6 +32,74 @@ from scripts.check_ease_runtime import CHECKPOINT_NAME, CHECKPOINT_SHA256, file_
 REFERENCE_COMMIT = '6d67508ed8b7c4d23350ed4eb28c123914b40ae3'
 
 
+def reference_selection(options, profile):
+    """Choose Base by default, or an explicitly authorized size/checkpoint pin."""
+    name = getattr(options, 'variant', None)
+    if name is not None:
+        from scripts.ease_size_protocol import load_variant
+        variant = load_variant(name)
+        return variant, Path(variant['checkpoint_file']), variant['checkpoint_sha256']
+    checkpoint = Path(profile['cache_root']) / 'torch/hub/checkpoints' / CHECKPOINT_NAME
+    if file_hash(checkpoint) != CHECKPOINT_SHA256:
+        raise ValueError('Selected Base checkpoint does not match the pinned hash')
+    return None, checkpoint, CHECKPOINT_SHA256
+
+
+def validate_reference_spec(spec):
+    """Revalidate variant pins in the fresh worker before importing ML libraries."""
+    if spec['tasks'] != 2 or spec['config']['seed'] != 1993:
+        raise ValueError('Reference protocol must remain the approved two-task seed1993 run')
+    if not spec.get('variant'):
+        return None
+    from scripts.ease_size_protocol import load_variant
+    variant = load_variant(spec['variant'])
+    expected = {'init_epochs': 20, 'later_epochs': 20, 'batch_size': 48,
+                'ffn_num': variant['adapter_size'], 'shuffle': False, 'init_cls': 10, 'increment': 10,
+                'backbone_type': 'vit_base_patch16_224_ease', 'model_name': 'ease',
+                'use_init_ptm': False, 'use_reweight': True, 'recalc_sim': True, 'alpha': 0.1,
+                'use_diagonal': False, 'use_old_data': False, 'moni_adam': False, 'adapter_num': -1,
+                'memory_size': 0, 'init_lr': .025, 'later_lr': .025, 'weight_decay': .0005,
+                'min_lr': 0, 'optimizer': 'sgd', 'scheduler': 'cosine', 'beta': 0}
+    if (any(spec['config'].get(key) != value for key, value in expected.items())
+            or spec['gpu'] != '1' or spec['num_workers'] != 4
+            or spec.get('variant_config') != variant
+            or spec['checkpoint'] != variant['checkpoint_file']
+            or spec['checkpoint_sha256'] != variant['checkpoint_sha256']
+            or spec['checkpoint_tag'] != variant['checkpoint_tag']
+            or spec['reference_commit'] != REFERENCE_COMMIT):
+        raise ValueError('Reference size worker differs from the approved architecture/protocol/checkpoint')
+    return variant
+
+
+def audit_variant_initialization(backbone, variant):
+    """Inspect architecture and canonical PTM tensors without an image forward."""
+    from scripts.ease_size_protocol import canonical_pretrained_digest
+    dimension, adapter_size = variant['feature_dim'], variant['adapter_size']
+    if (backbone.out_dim != dimension or backbone.embed_dim != dimension or len(backbone.blocks) != 12
+            or any(block.attn.num_heads != variant['num_heads'] for block in backbone.blocks)
+            or len(backbone.cur_adapter) != 12
+            or any(tuple(adapter.down_proj.weight.shape) != (adapter_size, dimension)
+                   or tuple(adapter.up_proj.weight.shape) != (dimension, adapter_size)
+                   for adapter in backbone.cur_adapter)
+            or any(parameter.requires_grad for name, parameter in backbone.named_parameters()
+                   if not name.startswith('cur_adapter.'))):
+        raise RuntimeError('Author-code size reference initialized the wrong architecture or frozen parameter set')
+    actual = canonical_pretrained_digest(backbone)
+    if actual != variant['canonical_pretrained_sha256']:
+        raise RuntimeError('Author-code size reference pretrained tensors differ from the canonical pin')
+    return actual
+
+
+def audit_variant_completion(record, recorder):
+    for task in (1, 2):
+        rows = [row for row in record['epoch_results'] if row['task'] == task]
+        if [row['epoch'] for row in rows] != list(range(1, 21)) or any(row['epochs'] != 20 for row in rows):
+            raise RuntimeError('Author-code size reference returned without 20 epochs per task')
+    if (recorder.tasks_completed != 2 or recorder.steps != 4200
+            or recorder.training_examples != 200000 or recorder.evaluation_examples != 3000):
+        raise RuntimeError('Author-code size reference returned without the full matched two-task protocol')
+
+
 def isolate_reference_imports(source):
     """Select upstream namespace packages without native package collisions."""
     if any(name in sys.modules for name in ('utils', 'models', 'backbone')):
@@ -56,27 +125,33 @@ def execute(options, profile):
     if subprocess.run(['git', 'status', '--porcelain'], cwd=source, capture_output=True,
                       text=True, check=True).stdout.strip():
         raise ValueError('Official reference source must be clean')
-    checkpoint = Path(profile['cache_root']) / 'torch/hub/checkpoints' / CHECKPOINT_NAME
-    if file_hash(checkpoint) != CHECKPOINT_SHA256:
-        raise ValueError('Selected Base checkpoint does not match the pinned hash')
-    name = 'ease-official-reference-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    variant, checkpoint, checkpoint_sha256 = reference_selection(options, profile)
+    prefix = 'ease-official-reference-' if variant is None else f'ease-author-code-{variant["name"]}-reference-'
+    label = 'official reference' if variant is None else 'author-code-size-variant reference'
+    architecture = 'Base/adapter64' if variant is None else f'{variant["vit_size"]}/adapter{variant["adapter_size"]}'
+    name = prefix + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     output = options.output.resolve() / name
     output.mkdir(parents=True, exist_ok=False)
     copied = output / 'source'
     shutil.copytree(source, copied, ignore=shutil.ignore_patterns('.git', 'logs', '__pycache__'))
     config = json.loads((source / 'exps/ease_cifar.json').read_text())
     config.update(shuffle=False, init_cls=10, increment=10, device=['0'], seed=1993,
-                  init_epochs=20, later_epochs=20, batch_size=48, ffn_num=64)
+                  init_epochs=20, later_epochs=20, batch_size=48,
+                  ffn_num=64 if variant is None else variant['adapter_size'])
     spec = {'name': name, 'stage': 'official_matched_reference', 'source': str(copied),
             'reference_commit': commit, 'source_repository': 'https://github.com/sun-hailong/CVPR24-Ease',
             'output': str(output), 'gpu': profile['gpu'], 'data_root': profile['data_root'],
-            'checkpoint': str(checkpoint), 'checkpoint_sha256': CHECKPOINT_SHA256,
-            'checkpoint_tag': 'vit_base_patch16_224.augreg_in21k_ft_in1k',
+            'checkpoint': str(checkpoint), 'checkpoint_sha256': checkpoint_sha256,
+            'checkpoint_tag': 'vit_base_patch16_224.augreg_in21k_ft_in1k' if variant is None else variant['checkpoint_tag'],
             'tasks': 2, 'num_workers': 4, 'config': config, 'paper_reproduction': False,
             'port_acceptance_evaluated': False, 'accuracy_margin_pp': None,
             'wandb_entity': profile['wandb_entity'], 'wandb_project': profile['wandb_project'],
             'allocator_environment': os.getenv('JE_ARROW_MALLOC_CONF'),
             'efficiency_protocol': False, 'flops_measured': False}
+    if variant is not None:
+        spec.update(stage='author_code_size_variant_reference', reference_kind='author-code-size-variant',
+                    variant=variant['name'], variant_config=variant, feature_dim=variant['feature_dim'],
+                    adapter_size=variant['adapter_size'], canonical_pretrained_sha256=variant['canonical_pretrained_sha256'])
     write_json(output / 'spec.json', spec)
     notifications = []
 
@@ -87,7 +162,7 @@ def execute(options, profile):
     environment = os.environ.copy()
     environment.update(CUDA_VISIBLE_DEVICES=profile['gpu'], CL_EASE_REFERENCE_EXECUTE='1',
                        HF_HUB_OFFLINE='1', WANDB_MODE='online', WANDB_DIR=str(output))
-    notify(f'EASE official reference started: Base/adapter64; first 2 tasks; 20 epochs/task; GPU {profile["gpu"]}')
+    notify(f'EASE {label} started: {architecture}; first 2 tasks; 20 epochs/task; GPU {profile["gpu"]}')
     started, last_notification = time.monotonic(), time.monotonic()
     timed_out = False
     with (output / 'console.log').open('w') as console:
@@ -99,7 +174,7 @@ def execute(options, profile):
                 if time.monotonic() - started >= options.timeout:
                     timed_out = True
                     stop(process)
-                    notify('EASE official reference timed out; partial local results preserved')
+                    notify(f'EASE {label} timed out; partial local results preserved')
                     break
                 if time.monotonic() - last_notification >= 600:
                     progress_file = output / 'progress.json'
@@ -109,7 +184,7 @@ def execute(options, profile):
                 time.sleep(1)
         except BaseException:
             stop(process)
-            notify('EASE official reference interrupted; partial local results preserved')
+            notify(f'EASE {label} interrupted; partial local results preserved')
             raise
     metrics = json.loads((output / 'metrics.json').read_text()) if (output / 'metrics.json').exists() else {'status': 'failed'}
     if timed_out:
@@ -117,7 +192,7 @@ def execute(options, profile):
     elif process.returncode != 0 and metrics['status'] == 'completed':
         metrics['status'] = 'failed'
     write_json(output / 'metrics.json', metrics)
-    notify(f'EASE official reference {metrics["status"]}; logging={metrics.get("wandb_logging_status", "unavailable")}; W&B {metrics.get("wandb_url") or "unavailable"}; local results preserved')
+    notify(f'EASE {label} {metrics["status"]}; logging={metrics.get("wandb_logging_status", "unavailable")}; W&B {metrics.get("wandb_url") or "unavailable"}; local results preserved')
     write_json(output / 'completion.json', {'exit_code': process.returncode, 'status': metrics['status'],
                                            'timeout': timed_out, 'wandb_logging_status': metrics.get('wandb_logging_status'),
                                            'wall_s': time.monotonic() - started})
@@ -129,8 +204,9 @@ def worker(spec_file):
     if os.getenv('CL_EASE_REFERENCE_EXECUTE') != '1':
         raise ValueError('Reference worker requires explicit --execute')
     spec = json.loads(spec_file.read_text())
-    if spec['tasks'] != 2 or spec['config']['seed'] != 1993:
-        raise ValueError('Reference protocol must remain the approved two-task seed1993 run')
+    variant = validate_reference_spec(spec)
+    dimension = 768 if variant is None else variant['feature_dim']
+    label = 'official reference' if variant is None else f'author-code-size-variant {variant["name"]} reference'
     output = Path(spec['output'])
     recorder = Recorder(output, spec['gpu'])
     recorder.start()
@@ -145,34 +221,48 @@ def worker(spec_file):
         # The two frameworks share top-level package names. This fresh worker
         # has imported no native models/backbone/utils before selecting source.
         isolate_reference_imports(spec['source'])
-        from utils import data, data_manager
+        from utils import data, data_manager, inc_net
         from backbone import vit_ease
         from models import ease
         from trainer import _set_random, _set_device
-        modules = {'timm': timm, 'data': data, 'data_manager': data_manager, 'ease': ease, 'vit': vit_ease}
+        modules = {'timm': timm, 'data': data, 'data_manager': data_manager, 'ease': ease, 'vit': vit_ease,
+                   'inc_net': inc_net}
         patch_records = {}
-        stack = install_reference_patches(modules, spec['checkpoint'], spec['data_root'], patch_records)
+        stack = install_reference_patches(modules, spec['checkpoint'], spec['data_root'], patch_records, variant=variant)
         recorder.torch, recorder.device = torch, torch.device('cuda:0')
         torch.set_num_threads(2)
         config = spec['config'].copy()
+        if variant is not None:
+            torch.set_default_dtype(torch.float32)
+            torch.set_float32_matmul_precision('highest')
+            torch.backends.cuda.matmul.allow_tf32 = False
+            torch.backends.cudnn.allow_tf32 = True
         _set_random(config['seed'])
         _set_device(config)
         record['versions'] = {name: importlib.metadata.version(name) for name in
                               ('torch', 'torchvision', 'timm', 'numpy', 'pyarrow', 'easydict', 'wandb')}
         record['precision'] = {'matmul_precision': torch.get_float32_matmul_precision(),
                                'tf32_allowed': torch.backends.cuda.matmul.allow_tf32,
+                               'cudnn_tf32_allowed': torch.backends.cudnn.allow_tf32,
+                               'cudnn_deterministic': torch.backends.cudnn.deterministic,
+                               'cudnn_benchmark': torch.backends.cudnn.benchmark,
                                'autocast': False, 'parameter_dtype': 'float32'}
         wandb.init(entity=spec['wandb_entity'], project=spec['wandb_project'], name=spec['name'],
-                   group='ease-base-validation', job_type='official-reference', config=spec, dir=str(output))
+                   group='ease-base-validation' if variant is None else f'ease-size-{variant["name"]}-validation',
+                   job_type='official-reference' if variant is None else 'author-code-size-variant-reference', config=spec, dir=str(output))
         record['wandb_url'] = wandb.run.url
-        write_json(output / 'progress.json', {'message': 'loading official matched reference', 'wandb_url': record['wandb_url']})
+        write_json(output / 'progress.json', {'message': f'loading matched {label}', 'wandb_url': record['wandb_url']})
         with recorder.phase('data_loading'):
             manager = data_manager.DataManager('cifar224', False, 1993, 10, 10, config)
         config['nb_classes'], config['nb_tasks'] = manager.nb_classes, manager.nb_tasks
         write_json(output / 'shared_data.json', shared_cifar_metadata(spec['data_root']))
         with recorder.phase('initialize'):
             learner = ease.Learner(config)
-        assert learner._network.backbone.out_dim == 768
+        if learner._network.backbone.out_dim != dimension:
+            raise RuntimeError('Reference initialized an incorrect feature dimension')
+        if variant is not None:
+            with recorder.phase('state_audit'):
+                record['initial_canonical_pretrained_sha256'] = audit_variant_initialization(learner._network.backbone, variant)
         record['runtime_patches'] = patch_records
         write_json(output / 'runtime_patches.json', patch_records)
 
@@ -257,7 +347,7 @@ def worker(spec_file):
                    'official_accuracy': accuracy, 'prototype_shape': list(learner._network.fc.weight.shape),
                    'observed_adapters': len(learner._network.backbone.adapter_list) + 1}
             assert row['observed_adapters'] == task + 1
-            assert row['prototype_shape'] == [(task + 1) * 10, (task + 1) * 768]
+            assert row['prototype_shape'] == [(task + 1) * 10, (task + 1) * dimension]
             record['tasks_results'].append(row)
             record['accuracy'] = row
             recorder.tasks_completed += 1
@@ -275,17 +365,21 @@ def worker(spec_file):
                        output / f'task{task+1}_state.pt')
             write_json(output / 'task_results.json', record['tasks_results'])
             wandb.log({f'reference/{key}': value for key, value in row.items() if isinstance(value, (float, int))})
-            status = notify_slack(f'EASE official reference task {task+1}/2 complete: seen accuracy {row["seen_accuracy_pct"]:.2f}%; W&B {record["wandb_url"]}')
+            status = notify_slack(f'EASE {label} task {task+1}/2 complete: seen accuracy {row["seen_accuracy_pct"]:.2f}%; W&B {record["wandb_url"]}')
             record.setdefault('task_notifications', []).append({'task': task + 1, 'status': status})
             if task == 0:
                 with recorder.phase('after_task'):
                     learner.after_task()
         handle.remove()
+        if variant is not None:
+            audit_variant_completion(record, recorder)
+            record['structural_checks'] = {'canonical_pretrained_matches_pin': True,
+                                            'dynamic_task_shapes': True, 'reference_training_protocol_complete': True}
         record.update(status='completed', acceptance_status='awaiting_accuracy_margin_decision',
                       accuracy_margin_pp=None, paper_reproduction=False)
         code = 0
     except BaseException as error:
-        logging.exception('Official EASE reference failed')
+        logging.exception('EASE reference failed')
         record['error_type'] = type(error).__name__
     finally:
         if stack is not None:
@@ -326,6 +420,8 @@ def main(argv=None):
     profile = configure_environment()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--execute', action='store_true')
+    parser.add_argument('--variant', choices=('small_fixed64', 'tiny_fixed64', 'small_relative32', 'tiny_relative16'),
+                        help='Explicit author-code size variant; absent keeps the matched Base reference')
     parser.add_argument('--reference-source', type=Path, default=Path('/tmp/cl-ease-official-20261007'))
     parser.add_argument('--output', type=Path, default=ROOT / 'benchmarks/cl_efficiency/ease/runs')
     parser.add_argument('--timeout', type=float, default=7200.)
@@ -335,7 +431,7 @@ def main(argv=None):
     if options.worker:
         return worker(options.worker)
     if not options.execute:
-        print('Prepared official EASE Base two-task reference; execution=False')
+        print(f'Prepared EASE {options.variant or "Base"} two-task reference; execution=False')
         return 0
     return execute(options, profile)
 
