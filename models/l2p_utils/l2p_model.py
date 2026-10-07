@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,11 +10,21 @@ from models.l2p_utils.vit_prompt import vit_base_patch16_224_l2p
 class L2PModel(nn.Module):
     def __init__(self, args):
         super().__init__()
+        checkpoint = getattr(args, 'pretrained_checkpoint', None)
+        if checkpoint is not None:
+            if args.use_original_ckpt:
+                raise ValueError('L2P pretrained_checkpoint cannot be combined with use_original_ckpt')
+            checkpoint = Path(checkpoint).expanduser()
+            if not checkpoint.is_file():
+                raise FileNotFoundError(f'L2P checkpoint does not exist: {checkpoint}')
+            if checkpoint.suffix != '.npz':
+                raise ValueError('L2P pretrained_checkpoint must be a local NPZ file')
+        self.pretrained_checkpoint = str(checkpoint) if checkpoint is not None else None
         dataset = get_dataset(args)
         n_classes = dataset.N_CLASSES
 
         self.original_model = vit_base_patch16_224_l2p(
-            pretrained=True,
+            pretrained=checkpoint is None,
             num_classes=n_classes,
             drop_rate=0.0,
             drop_path_rate=0.0,
@@ -21,7 +32,7 @@ class L2PModel(nn.Module):
         self.original_model.eval()
 
         self.model = vit_base_patch16_224_l2p(
-            pretrained=True,
+            pretrained=checkpoint is None,
             num_classes=n_classes,
             prompt_length=args.length,
             embedding_key=args.embedding_key,
@@ -35,6 +46,11 @@ class L2PModel(nn.Module):
             head_type=args.head_type,
             use_prompt_mask=args.use_prompt_mask,
         )
+
+        if checkpoint is not None:
+            # Retain the custom loader's class/prompt-prefix position expansion.
+            self.original_model.load_pretrained(str(checkpoint))
+            self.model.load_pretrained(str(checkpoint))
 
         if args.use_original_ckpt:
             # download ckpt from https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz

@@ -47,6 +47,8 @@ class L2P(ContinualModel):
         parser.add_argument('--clip_grad', type=float, default=1, help='Clip gradient norm')
 
         parser.add_argument('--use_original_ckpt', type=binary_to_boolean_type, default=0, help='Use original checkpoint from `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz`')
+        parser.add_argument('--pretrained_checkpoint', type=str, default=None,
+                            help='Local ViT-B/16 NPZ checkpoint for both query and prompt backbones; disables pretrained downloads.')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -59,8 +61,11 @@ class L2P(ContinualModel):
 
         del backbone
         logging.warning("-" * 20)
-        logging.warning(f"L2P USES A CUSTOM BACKBONE: `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz` (vit_base_patch16_224_in21k_fn_in1k_old).")
-        logging.warning("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
+        if getattr(args, 'pretrained_checkpoint', None):
+            logging.warning("L2P uses a local ViT-B/16 checkpoint for both backbones: %s", args.pretrained_checkpoint)
+        else:
+            logging.warning("L2P USES A CUSTOM BACKBONE: `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz` (vit_base_patch16_224_in21k_fn_in1k_old).")
+            logging.warning("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         logging.warning("-" * 20)
 
         args.lr = args.lr * args.batch_size / 256.0  # scale learning rate by batch size
