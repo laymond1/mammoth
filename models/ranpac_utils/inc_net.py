@@ -71,6 +71,13 @@ class RanPACNet(MammothBackbone):
 
         self.convnet.eval()
 
+    def _apply(self, fn, recurse=True):
+        result = super()._apply(fn, recurse=recurse)
+        # Module.to() recurses through _apply, rather than calling a child's to().
+        # Keep the device used to create task heads and RP tensors in sync.
+        self.device = next(self.convnet.parameters()).device
+        return result
+
     def update_fc(self, nb_classes):
         fc = CosineLinear(self.convnet.embed_dim, nb_classes).to(self.device)
         if self.fc is not None:
@@ -95,6 +102,7 @@ class CosineLinear(nn.Module):
         self.out_features = out_features * nb_proxy
         self.nb_proxy = nb_proxy
         self.weight = nn.Parameter(torch.Tensor(self.out_features, in_features))
+        self.register_buffer('W_rand', None)
         if sigma:
             self.sigma = nn.Parameter(torch.Tensor(1))
         else:

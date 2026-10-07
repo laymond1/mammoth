@@ -12,24 +12,14 @@ import sys
 from models.ranpac_utils.toolkit import target2onehot
 
 
-class RanPAC_Model(object):
+class RanPAC_Model(torch.nn.Module):
     def __init__(self, backbone, args):
         super().__init__()
         self.args = args
         self._network = RanPACNet(backbone)
 
-    @property
-    def training(self):
-        return self._network.training
-
-    def to(self, device):
-        self._network.to(device)
-
-    def train(self, *args):
-        self._network.train(*args)
-
-    def eval(self):
-        self._network.eval()
+    def forward(self, *args, **kwargs):
+        return self._network(*args, **kwargs)
 
     def replace_fc(self, trainloader):
         self._network = self._network.eval()

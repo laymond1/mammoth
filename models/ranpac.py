@@ -1,14 +1,16 @@
 """
-Slow Learner with Classifier Alignment.
+Random Projections and Pre-trained Models for Continual Learning.
 
 Note:
-    SLCA USES A CUSTOM BACKBONE (see `feature_extractor_type` argument)
+    RanPAC adapts the supplied ViT-B/16 backbone with bottleneck-64 adapters.
 
 Arguments:
-    --feature_extractor_type: the type of convnet to use. `vit-b-p16` is the default: ViT-B/16 pretrained on Imagenet 21k (**NO** finetuning on ImageNet 1k)
+    --pretrain_type: defaults to ImageNet-21k without ImageNet-1k finetuning.
+    --pretrained_checkpoint: optional local NPZ loaded before conversion.
 """
 
 import copy
+from pathlib import Path
 
 import numpy as np
 from models.ranpac_utils.toolkit import target2onehot
@@ -33,6 +35,8 @@ class RanPAC(ContinualModel):
         parser.set_defaults(pretrain_type='in21k')
         parser.set_defaults(optim_mom=0.9, optim_wd=0.0005, batch_size=48)
         parser.add_argument('--rp_size', type=int, default=10000, help='size of the random projection layer (L in the paper)')
+        parser.add_argument('--pretrained_checkpoint', type=str, default=None,
+                            help='Optional local ViT NPZ checkpoint, loaded before the RanPAC backbone conversion')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -40,9 +44,19 @@ class RanPAC(ContinualModel):
         logging.warning("-" * 20)
         logging.warning(f"RanPAC USES `in21k` AS DEFAULT PRETRAIN. CHANGE IT WITH `--pretrain_type` IF NEEDED.")
         logging.warning("-" * 20)
+        checkpoint = getattr(args, 'pretrained_checkpoint', None)
+        if checkpoint is not None:
+            checkpoint_path = Path(checkpoint).expanduser()
+            if not checkpoint_path.is_file():
+                raise FileNotFoundError(f'RanPAC pretrained checkpoint does not exist: {checkpoint_path}')
+            if not callable(getattr(backbone, 'load_pretrained', None)):
+                raise TypeError('RanPAC local checkpoints require a ViT backbone with load_pretrained()')
+            backbone.load_pretrained(str(checkpoint_path))
         backbone = RanPAC_Model(backbone, args)
 
         super().__init__(backbone, loss, args, transform, dataset=dataset)
+        # Retain the projection when the per-task cosine head is replaced.
+        self.register_buffer('W_rand', None)
 
     def get_parameters(self):
         return self.net._network.parameters()
