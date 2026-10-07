@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "source_commit": "0ed433334ff2cfb206c5e2899651c3044ec85f92",
+  "cpu_synthetic_only": true,
+  "dataset_training": false,
+  "cases": [
+    {
+      "method": "multi-centroid",
+      "branch": "tii",
+      "statistics_max_error": 0.0,
+      "aligned_parameter_max_error": 0.0,
+      "orth_loss_error": null,
+      "optimizer_steps": 4,
+      "passed": true
+    },
+    {
+      "method": "multi-centroid",
+      "branch": "prompt",
+      "statistics_max_error": 0.0,
+      "aligned_parameter_max_error": 0.0,
+      "orth_loss_error": 0.0,
+      "optimizer_steps": 4,
+      "passed": true
+    },
+    {
+      "method": "variance",
+      "branch": "tii",
+      "statistics_max_error": 0.0,
+      "aligned_parameter_max_error": 0.0,
+      "orth_loss_error": null,
+      "optimizer_steps": 4,
+      "passed": true
+    },
+    {
+      "method": "variance",
+      "branch": "prompt",
+      "statistics_max_error": 0.0,
+      "aligned_parameter_max_error": 0.0,
+      "orth_loss_error": 0.0,
+      "optimizer_steps": 4,
+      "passed": true
+    },
+    {
+      "method": "covariance",
+      "branch": "tii",
+      "statistics_max_error": 0.0,
+      "aligned_parameter_max_error": 0.0,
+      "orth_loss_error": null,
+      "optimizer_steps": 4,
+      "passed": true
+    },
+    {
+      "method": "covariance",
+      "branch": "prompt",
+      "statistics_max_error": 0.0,
+      "aligned_parameter_max_error": 0.0,
+      "orth_loss_error": 0.0,
+      "optimizer_steps": 4,
+      "passed": true
+    }
+  ],
+  "adaptations": [
+    "explicit identical KMeans policy",
+    "world_size1 gather copy",
+    "CPU only no CUDA synchronize",
+    "no-op logging and accuracy"
+  ]
+}

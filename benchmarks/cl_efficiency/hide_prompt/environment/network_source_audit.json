@@ -1,0 +1,75 @@
+{
+  "status": "pass",
+  "cpu_only": true,
+  "datasets_read": false,
+  "training_run": false,
+  "pretrained_images_evaluated": false,
+  "source_commit": "0ed433334ff2cfb206c5e2899651c3044ec85f92",
+  "synthetic_author_ast_comparisons": [
+    {
+      "branch": "tii",
+      "batch": 1,
+      "train": false,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "branch": "tii",
+      "batch": 2,
+      "train": false,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "branch": "tii",
+      "batch": 5,
+      "train": false,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "branch": "prompt",
+      "batch": 1,
+      "train": false,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "branch": "prompt",
+      "batch": 1,
+      "train": true,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "branch": "prompt",
+      "batch": 2,
+      "train": false,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "branch": "prompt",
+      "batch": 2,
+      "train": true,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "branch": "prompt",
+      "batch": 5,
+      "train": false,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    },
+    {
+      "branch": "prompt",
+      "batch": 5,
+      "train": true,
+      "logits_max_abs_error": 0.0,
+      "gradient_max_abs_error": 0.0
+    }
+  ],
+  "prefix_layout": "author_reshape_default",
+  "tii_mapping_layer_norm_epsilon": 1e-05
+}

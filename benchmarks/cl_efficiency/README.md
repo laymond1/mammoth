@@ -8,6 +8,8 @@ RanPAC·L2P·DualPrompt의 첫 태스크 효율성 pilot도 측정9회·별도 �
 
 EASE Small64·Tiny64·Small32·Tiny16도 동일 CIFAR100-224에서 독립 기준선4회·native 검증4회·측정12회·부분 FLOPs4회를 완료했습니다. 네 설정 모두 같은 설정의 기준선 대비1.5%p 통과 기준을 만족했습니다. Base64 기존 결과를 포함한 [크기별 비교 보고서](ease_sizes/report.md), [JSON](ease_sizes/results.json), [측정 CSV](ease_sizes/measurements.csv)에 정확도·시간·메모리·CPU 시간·GPU 보드 에너지·부분 연산량을 정리했습니다. 최초 Small64 기준선의 classifier 폭 기본값 오류는 수정했고 실패 시도는 비교에서 제외하여 보존했습니다.
 
+독립 `codex/hide-prompt` 브랜치에 HiDe-Prompt Base 구현과 학습 없는 검증·실행 계획을 추가했습니다. TII·prompt·클래스 통계·alignment·실제 routing을 연결했고, [구현 및 준비 기록](hide_prompt/README.md)과 [검증 명령](hide_prompt/checks.md)에 결과를 보존합니다. 실제 CL 학습·정확도 검증·효율성 측정은 후속 범위입니다. 기존 inventory/manifest의71개는 병합된 기반의 실험 준비 snapshot이며, 새 HiDe-Prompt는 별도 [계획](hide_prompt/validation_plan.json)으로 관리합니다.
+
 ## 검토 자료
 
 - [현재 71개 모델의 특징과 장단점](algorithms.md)
@@ -20,6 +22,7 @@ EASE Small64·Tiny64·Small32·Tiny16도 동일 CIFAR100-224에서 독립 기준
 - [EASE 첫 태스크 효율성 pilot 결과](ease/efficiency_pilot_report.md), [측정 3회 JSON/부분 FLOPs](ease/efficiency_pilot_results.json)
 - [ViT Base·Small·Tiny 및 adapter 비교 설정](ease/tiny_small_review.md)
 - [EASE Small/Tiny 네 설정 검증·효율성 결과](ease_sizes/report.md)
+- [HiDe-Prompt Base 구현·CPU 검증·후속 실행 계획](hide_prompt/README.md)
 - [표 형태의 전체 목록](inventory.csv)
 - [모델별 데이터셋과 인자 및 외부 요구사항](manifest.json)
 - [생성된 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)

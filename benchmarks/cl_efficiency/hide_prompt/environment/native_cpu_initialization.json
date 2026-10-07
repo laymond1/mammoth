@@ -1,0 +1,78 @@
+{
+  "status": "pass",
+  "cpu_only": true,
+  "training_run": false,
+  "image_forwards": 0,
+  "optimizer_steps": 0,
+  "datasets_read": false,
+  "new_downloads": false,
+  "source_commit": "0ed433334ff2cfb206c5e2899651c3044ec85f92",
+  "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+  "checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+  "checkpoint_tag": "vit_base_patch16_224.augreg_in21k_ft_in1k",
+  "branches": [
+    {
+      "role": "tii",
+      "canonical_pretrained_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+      "canonical_tensor_count": 150,
+      "depth": 12,
+      "feature_dim": 768,
+      "num_heads": 12,
+      "patch_size": [
+        16,
+        16
+      ],
+      "parameter_count": 88238692
+    },
+    {
+      "role": "prompt",
+      "canonical_pretrained_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+      "canonical_tensor_count": 150,
+      "depth": 12,
+      "feature_dim": 768,
+      "num_heads": 12,
+      "patch_size": [
+        16,
+        16
+      ],
+      "parameter_count": 86259556
+    }
+  ],
+  "tii_mapping_hidden_ratios": [
+    2
+  ],
+  "tii_mapping_layernorm_eps": 1e-05,
+  "prompt_mapping": "identity",
+  "prompt_pool_size": 10,
+  "prompt_length": 5,
+  "prompt_layers": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "prompt_shape": [
+    5,
+    2,
+    10,
+    5,
+    12,
+    64
+  ],
+  "use_permute_fix": false,
+  "prompt_momentum": 0.01,
+  "parameter_count_total": 174498248,
+  "phase_parameter_count": {
+    "tii": 2440036,
+    "prompt": 460900,
+    "tii_alignment": 2440036,
+    "prompt_alignment": 76900,
+    "eval": 0
+  },
+  "initial_phase": "eval",
+  "initial_trainable_parameter_count": 0,
+  "active_task": -1,
+  "future_classes_unmapped": true,
+  "source_synthetic_audit": "network_source_audit.json"
+}

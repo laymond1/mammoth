@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-07",
+  "repository": "https://github.com/thu-ml/HiDe-Prompt",
+  "commit": "0ed433334ff2cfb206c5e2899651c3044ec85f92",
+  "source_directory": "/tmp/cl-hide-official-20261007",
+  "source_files_sha256": {
+    "README.md": "6082e6f05b51adfa9edc515e0af698d333fd1ede2699c789830d32e84e20a499",
+    "LICENSE": "1908e0040d8902ad1cc8e82a19de162be93aed99d38e6a8645ad8d7e71cf90ba",
+    "training_scripts/train_cifar100_vit.sh": "4f501271ecffee2b928ee3c97631abea29b9ba2df1f95fe1aefa7ec7d45a531a",
+    "configs/cifar100_hideprompt_5e.py": "90aaaea0603f1381bd7a444c03672a3219db2ddb36c63d9f26d760fe7a89726d",
+    "main.py": "0bd697c9016ae483e9c3ed29b6ba84c63305bed4600948b778e80e2605401bed",
+    "datasets.py": "bc4b2d48df4b6a9f0524f48cfc045d20c98582daaeb48659a05d8c87561ce122",
+    "trainers/tii_trainer.py": "8b19305192e8dbd1279ee70f6ea5d43246a032e1a6ade2a7be583e1cfa2737a0",
+    "trainers/hideprompt_trainer.py": "46f78a7fcca1aff2313017b7787a876c42703949105313619eafc9ab42d04820",
+    "engines/hide_tii_engine.py": "9d47034c8c1cf5190eb37b0840cceb15078a20432669e4c36be0eb40f7bebe8c",
+    "engines/hide_promtp_wtp_and_tap_engine.py": "05a2713ca3ee4a73661dabedb7023d86e6bfe13f8104efd81d0f278cca596195",
+    "peft/prompt/hide_prompt.py": "c756c514ac8917abd25a0b6192fd25913af7e0b19efb58876cd1f8454241f900",
+    "vits/hide_prompt_vision_transformer.py": "d6ee1a72a5c3d7e376ae3e3d4033d0198b252b471ec4b0aed46535a6509fb7db",
+    "attention.py": "5fdb9fb4c3c38ac9064c9a8fe6c89b67415342581458cd4d2c45ec4da49b3611",
+    "requirements.txt": "d47f2f292808212714a09c9d916c82e728b6435b1ebe1a15792411c7f1dafce4"
+  },
+  "source_mutated": false,
+  "training_executed": false,
+  "paper": {
+    "url": "https://proceedings.neurips.cc/paper_files/paper/2023/file/d9f8b5abc8e0926539ecbb492af7b2f1-Paper-Conference.pdf",
+    "venue": "NeurIPS 2023",
+    "code_scope": "Repository describes both HiDe-Prompt and a generalized successor; this port targets the pinned CIFAR supervised HiDe-Prompt launcher."
+  },
+  "launcher_over_config": {
+    "tii_epochs": 20,
+    "prompt_epochs": 50,
+    "ca_epochs_effective_argument": "crct_epochs=30 (ca_epochs exists but neither engine reads it)",
+    "prefix_length": 5,
+    "prompt_momentum": 0.01,
+    "reg": 0.1,
+    "Adam_wd_actual": 0.0,
+    "actual_argparse_verification": "Loaded config only with stdlib argparse/importlib: duplicate --weight-decay(default0.0) and --weight_decay(default0.0005) share a destination; the first default is the actual resolved value.",
+    "larger_prompt_lr": "Enabled; classifier LR is 0.1 of prompt LR starting on task 1",
+    "lr_scaling": "unscale_lr=True still multiplies nominal training LR by batch_size/256. TII also scales ca_lr; prompted trainer leaves ca_lr unscaled."
+  },
+  "module_mapping": [
+    {
+      "source": "peft/prompt/hide_prompt.py::EPrompt",
+      "target": "models/hide_prompt_utils/prompt.py",
+      "behavior": "task-indexed prefix pool, copy previous slot, inherited prompt mixture, source-compatible layout"
+    },
+    {
+      "source": "vits/hide_prompt_vision_transformer.py and attention.py",
+      "target": "models/hide_prompt_utils/vit.py",
+      "behavior": "frozen ViT with explicit prefix K/V; original residual MLP [2], prompted branch identity MLP, fc_only classifiers"
+    },
+    {
+      "source": "engines/hide_tii_engine.py::_compute_mean and prompted counterpart",
+      "target": "models/hide_prompt_utils/statistics.py",
+      "behavior": "both uninstructed/instructed current-class centroid means and population variances"
+    },
+    {
+      "source": "engines/*::train_task_adaptive_prediction and orth_loss",
+      "target": "models/hide_prompt_utils/statistics.py",
+      "behavior": "sampled Gaussian classifier alignment and unnormalized dot-product CE regularizer"
+    },
+    {
+      "source": "trainers/* and engines/* task orchestration",
+      "target": "models/hide_prompt.py",
+      "behavior": "Mammoth meta_begin_task/meta_observe/meta_end_task with explicit TII/prompt phases and task-end statistics/CA"
+    }
+  ],
+  "required_runtime_adaptations": [
+    {
+      "issue": "Unconditional dist.barrier/all_gather in statistics",
+      "disposition": "Use local feature tensors when no distributed process group is initialized; future matched reference needs the same one-process adaptation."
+    },
+    {
+      "issue": "Unconditional model.module in task-end prefix momentum",
+      "disposition": "Use the unwrapped model in a single-GPU port; preserve the source arithmetic."
+    },
+    {
+      "issue": "Deprecated timm 0.6 API and torch.range",
+      "disposition": "Port model APIs to existing timm0.9.8; torch.arange gives the identical inclusive 0..N-1 targets."
+    },
+    {
+      "issue": "Implicit pretrained aliases and dataset download=True",
+      "disposition": "Reuse the pinned local AugReg NPZ and existing shared CIFAR data; future runner must fail rather than fetch unexpectedly."
+    },
+    {
+      "issue": "DataLoader/class partition depends on num_tasks",
+      "disposition": "Keep 10 dataset tasks/10 classes per task and stop after two; never set author num_tasks=2 for this check."
+    }
+  ],
+  "preserved_source_quirks": [
+    {
+      "issue": "Prefix reshape without permuting dual/batch dimensions",
+      "default": "source-compatible reshape",
+      "alternative": "optional use_permute_fix correction is a separate ablation, not silently substituted"
+    },
+    {
+      "issue": "Multi-centroid KMeans uses no explicit n_init or random_state",
+      "disposition": "Native explicitly pins init=k-means++, algorithm=lloyd, n_init=10 and random_state=(seed+class_id)%2**32. These are reproducibility adaptations to implicit/version-dependent source choices; the independent reference must match them."
+    },
+    {
+      "issue": "CA epoch draws all seen class/centroid distributions but optimizes only old_class_count minibatches",
+      "disposition": "Preserve sampled counts and iteration cap in a source-compatible check, expose both counts for cost accounting"
+    },
+    {
+      "issue": "CA has no work on the first task",
+      "disposition": "Mark task-1 alignment not_applicable, record full current-class statistics cost; measure task2 separately if alignment efficiency is a goal"
+    }
+  ],
+  "preprocessing": {
+    "source_train": "RandomResizedCrop224 bicubic defaultscale(.08,1), ratio(.75,4/3), HFlip, brightness ColorJitter63/255, ToTensor, CIFAR mean/std",
+    "source_eval_and_statistics": "Resize256 bicubic, CenterCrop224, ToTensor, same CIFAR mean/std",
+    "source_unused_values": "Local scale(.05,1) and ratio variables are never passed to RandomResizedCrop",
+    "native_validation_config": "datasets/configs/seq-cifar100-224/hide_prompt.yaml",
+    "efficiency_override": "Existing ease config with its identity normalization and different crop/jitter; compare same raw dataset and mark the separate preprocessing track."
+  },
+  "orchestration": {
+    "source": "All TII tasks are trained first in a separate launch; prompted stage reloads the corresponding per-task TII checkpoint",
+    "native": "Interleave per-task TII, statistics/CA, prompt, statistics/CA inside Mammoth task lifecycle",
+    "future_reference_requirement": "Verify no future-data consumption and explicitly align phase RNG/checkpoint schedules; a global seed alone does not make the two launch orders equivalent.",
+    "statistics_order": "Both branches use per-class DataLoaderSubset BEFORE forward. Native uses stable current-task index order, shuffle=False/drop_last=False; future reference must mirror raw-index ordering and class batch boundaries rather than author RandomSampler. Legacy prefix layout makes mixed-class-forward-then-grouping incorrect."
+  },
+  "paper_script_differences": [
+    "Paper Appendix C reports alpha0.1, batch128 and CIFAR20 prompt epochs; pinned supervised CIFAR launcher uses momentum0.01, per-devicebatch24, prompt50. This port follows the pinned launcher rather than silently combining both recipes.",
+    "Paper Sup-21K experiment and README checkpoint selection differ from user-selected AugReg IN21K->IN1K local Base checkpoint. Native/reference both use the latter; no paper-number reproduction claim.",
+    "Paper reports random task splits; accepted implementation check uses fixed 0..99 class order/seed1993."
+  ],
+  "dependency_versions": {
+    "source_timm": "0.6.7",
+    "source_torch": "1.13.1",
+    "source_torchvision": "0.14.1",
+    "source_sklearn": "1.0.2",
+    "native_timm": "0.9.8",
+    "native_policy": "Use the installed shared environment and explicitly record all resolved versions in future runs; preparation does not install or sync dependencies."
+  },
+  "source_acquisition": {
+    "kind": "Public source-code git clone for read-only audit",
+    "data_downloaded": false,
+    "pretrained_weights_downloaded": false
+  },
+  "native_integration_review": {
+    "reviewed_files": [
+      "models/hide_prompt.py",
+      "backbone/hide_vit.py",
+      "models/hide_prompt_utils/network.py"
+    ],
+    "review_type": "Read-only independent source/lifecycle audit; no CL experiment",
+    "verified": [
+      "TII pre_logits are raw CLS features before its residual MLP",
+      "Prompt statistics use finalized prompt with train=True and prompt_momentum=0, matching source collection",
+      "Each native task completes TII statistics/alignment before entering prompt epochs",
+      "TII alignment LR scales batch/256, prompt alignment LR remains nominal",
+      "Task routing masks unseen TII classes and maps inferred class to task without evaluation task oracle",
+      "Checkpoint state preserves the next Mammoth current_task counter and last network active_task separately",
+      "Dataset defaults allow explicit common-pilot ease preprocessing override"
+    ],
+    "corrected_findings": [
+      {
+        "finding": "Prompt StepLR source steps after epoch training",
+        "policy": "First decay is USED at zero-based local epoch31 (32nd prompt epoch), not local epoch30; native schedule preserves this ordering."
+      },
+      {
+        "finding": "Legacy prefix reshaping makes prompted feature extraction depend on batch layout",
+        "policy": "Form class-specific subsets before forward for both statistics branches; stable class sample index order and drop_last=False must be matched by future reference."
+      }
+    ],
+    "pending_empirical_validation": "Matched first-two-task accuracy/structure and runtime logging are not executed in this stage."
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "status": "pass_for_authorized_cpu_scope",
+  "recorded_utc": "2026-10-07T04:10:47.590809+00:00",
+  "branch": "codex/hide-prompt",
+  "base_commit": "97229e504642df76e4f055bc54f6fe8111be1c4b",
+  "source_reference_commit": "0ed433334ff2cfb206c5e2899651c3044ec85f92",
+  "source_files_sha256": {
+    "backbone/hide_vit.py": "3bc3b83461d5bc4dbf4545d229a4bbf3229465204ba0c00ffb68318acdfd992c",
+    "models/hide_prompt.py": "c1586e5d4d63209302f2047809a554a3a23a1365beef2d9298d03c0f90aa1ad3",
+    "models/config/hide_prompt.yaml": "b4b1631f00719e05eed67ff9eee2cfcb329cdc5203d961c52e7c8b0e93b45625",
+    "datasets/configs/seq-cifar100-224/hide_prompt.yaml": "20c833176ed7fe3ecbbe48649a5ba8c18f548422f07040b92e79a7080d12bcb7",
+    "scripts/prepare_hide_prompt.py": "427e5c1d09068a4826ed758466788fcaefd566d2ba39fc0daaf2f3190673f24a",
+    "models/hide_prompt_utils/__init__.py": "e14b801d17554526377240bedb1beec08183f897c30f39737c5cf02612ff0ed1",
+    "models/hide_prompt_utils/network.py": "85fb4e9ae1a451ffba66ee523d402c8fd2ac17802a4915f2464967f464ca0a37",
+    "models/hide_prompt_utils/prompt.py": "52ae82790d00ea66c531bffbe4f68db6753d6c88f3e96f364496d84a38a68607",
+    "models/hide_prompt_utils/statistics.py": "cdac9819d9128f9ddce3d68b6c38b510508b4f7d73a259c57980cccbddf9f1d9",
+    "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+    "tests/test_hide_network.py": "756d6e15ba40ca43364af78fa871eb8c579bb34e9bdfe6a128328407525eee7e",
+    "tests/test_hide_prompt.py": "5afcfcd3080ef9467edb32f14418c65ef3fc70db7f352ad5429f959f4adf6732",
+    "tests/test_hide_statistics.py": "e860563e4fc35c5d3c0a99a14ac362e5de5840d5fa12fa06eab134668006678b",
+    "tests/test_prepare_hide_prompt.py": "6011297057540dc71c2896f8e9057668eaaca20c65a0dd64e2a9d3dadaeaf824"
+  },
+  "focused_tests": {
+    "command": "CUDA_VISIBLE_DEVICES='' MAMMOTH_DEVICE=cpu HF_HUB_OFFLINE=1 UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv uv run --no-sync --offline pytest tests/test_hide_prompt.py tests/test_hide_network.py tests/test_hide_statistics.py tests/test_prepare_hide_prompt.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_cl_runtime.py tests/test_baseline_pretrained_args.py -q --tb=short",
+    "passed": 229,
+    "failed": 0,
+    "duration_s": 8.13
+  },
+  "registration_and_preparation_tests": {
+    "command": "CUDA_VISIBLE_DEVICES='' MAMMOTH_DEVICE=cpu HF_HUB_OFFLINE=1 UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv uv run --no-sync --offline pytest tests/test_module_register.py::test_args_with_choices tests/test_module_register.py::test_register_backbone tests/test_module_register.py::test_register_dataset tests/test_prepare_hide_prompt.py -q --tb=short",
+    "passed": 9,
+    "failed": 0,
+    "duration_s": 3.88,
+    "registration_only_unique_tests": 3
+  },
+  "pcl_wiring_check": {
+    "command": "CUDA_VISIBLE_DEVICES='' MAMMOTH_DEVICE=cpu HF_HUB_OFFLINE=1 JE_ARROW_MALLOC_CONF=background_thread:false UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv uv run --no-sync --offline python /mnt/sdab1/userHome/wslim/.codex/skills/implement-pcl-method/scripts/check_pcl_method.py hide-prompt",
+    "exit_code": 0
+  },
+  "native_help_smoke": {
+    "command": "CUDA_VISIBLE_DEVICES='' MAMMOTH_DEVICE=cpu HF_HUB_OFFLINE=1 JE_ARROW_MALLOC_CONF=background_thread:false UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv uv run --no-sync --offline python main.py --model hide-prompt --dataset seq-cifar100-224 --model_config default --help > /tmp/hide-prompt-help-20261007.txt",
+    "exit_code": 0,
+    "actual_training": false
+  },
+  "preparer": {
+    "command": "python3 -S scripts/prepare_hide_prompt.py --check-local",
+    "exit_code": 0,
+    "local_checkpoint": {
+      "checked": true,
+      "download_attempted": false,
+      "file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+      "sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124"
+    },
+    "executed": false
+  },
+  "native_cpu_construction": "native_cpu_initialization.json",
+  "source_network_comparison": "network_source_audit.json",
+  "source_statistics_comparison": "statistics_source_audit.json",
+  "lint": {
+    "command": "CUDA_VISIBLE_DEVICES='' UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv uv run --no-sync --offline ruff check backbone/hide_vit.py models/hide_prompt.py models/hide_prompt_utils tests/test_hide_prompt.py tests/test_hide_network.py tests/test_hide_statistics.py tests/test_prepare_hide_prompt.py scripts/prepare_hide_prompt.py",
+    "exit_code": 2,
+    "status": "unavailable_in_shared_environment",
+    "dependency_install_attempted": false
+  },
+  "actual_cl_training": false,
+  "gpu_computation": false,
+  "pretrained_image_forwards": 0,
+  "data_or_weight_downloads": false,
+  "wandb_runs_created": 0,
+  "slack_messages_sent": 0,
+  "performance_acceptance": "pending matched two-task reference/native execution",
+  "reference_runner_implemented": false,
+  "merged_to_foundation": false,
+  "scope_note": "Synthetic tensor, loss, gradient and fake-classifier optimizer contracts are tested. They are not CIFAR or pretrained ViT training runs. Training smoke and training-containing broad suites are deferred per approved scope."
+}

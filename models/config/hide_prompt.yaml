@@ -1,0 +1,24 @@
+default:
+  backbone: hide-vit
+  hide_vit_size: base
+  hide_pool_size: 10
+  hide_prompt_length: 5
+  hide_prompt_layers: [0, 1, 2, 3, 4]
+  hide_mlp_structure: [2]
+  hide_prompt_momentum: 0.01
+  hide_use_permute_fix: false
+  hide_tii_epochs: 20
+  hide_prompt_epochs: 50
+  hide_ca_epochs: 30
+  hide_tii_lr: 0.0005
+  hide_ca_lr: 0.005
+  hide_head_lr_ratio: 0.1
+  hide_reg: 0.1
+  hide_n_centroids: 10
+  optimizer: adam
+  lr: 0.03
+  optim_wd: 0.0
+  n_epochs: 70
+  batch_size: 48
+  lr_scheduler: null
+  enable_other_metrics: false
