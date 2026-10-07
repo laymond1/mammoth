@@ -1,0 +1,281 @@
+{
+  "status": "pass",
+  "audit_implementation": "Independent Python standard-library parser/integrator; no framework/numpy/torch imports.",
+  "expected_worker_count": 12,
+  "verified_worker_count": 12,
+  "run": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z",
+  "pending_workers": [],
+  "runs": [
+    {
+      "model": "dualprompt",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/dualprompt/repeat1/cl-efficiency-20261007T013614Z-227694/dualprompt/measurement",
+      "status": "pass",
+      "npz_correct": 954,
+      "npz_accuracy_pct": 95.4,
+      "npz_sha256": "975d38c8f340b9df5918d5f41279c570f454270ec53aa537be188edd99624684",
+      "telemetry_sha256": "3ada59389e2b325a46e9bd09350129889b7114f1e732bedbd1f9fc0f75d84f6d",
+      "canonical_pretrained_sha256": {
+        "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+        "prompted": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.9980646115363124,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    },
+    {
+      "model": "dualprompt",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/dualprompt/repeat2/cl-efficiency-20261007T013655Z-227694/dualprompt/measurement",
+      "status": "pass",
+      "npz_correct": 954,
+      "npz_accuracy_pct": 95.4,
+      "npz_sha256": "975d38c8f340b9df5918d5f41279c570f454270ec53aa537be188edd99624684",
+      "telemetry_sha256": "bb9d18482519f8d34485773ab424841549e748e77d8a52924f6c988328f6877f",
+      "canonical_pretrained_sha256": {
+        "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+        "prompted": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.9985368126222018,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    },
+    {
+      "model": "dualprompt",
+      "pass": "flops",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/dualprompt/repeat3/cl-efficiency-20261007T013736Z-227694/dualprompt/flops",
+      "status": "pass",
+      "npz_correct": 954,
+      "npz_accuracy_pct": 95.4,
+      "npz_sha256": "975d38c8f340b9df5918d5f41279c570f454270ec53aa537be188edd99624684",
+      "telemetry_sha256": "80ae56089cd2cb03a3ad54ea837bd772fc4fdbef69f41669b77510cd2271d081",
+      "canonical_pretrained_sha256": {
+        "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+        "prompted": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.6630537890384072,
+      "included_in_efficiency_statistics": false,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": 591147172494944
+    },
+    {
+      "model": "dualprompt",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/dualprompt/repeat3/cl-efficiency-20261007T013736Z-227694/dualprompt/measurement",
+      "status": "pass",
+      "npz_correct": 954,
+      "npz_accuracy_pct": 95.4,
+      "npz_sha256": "975d38c8f340b9df5918d5f41279c570f454270ec53aa537be188edd99624684",
+      "telemetry_sha256": "1c2e8e4868377781eb7f3b020f4998f243cbf37f70a2dea890523965e1ece23a",
+      "canonical_pretrained_sha256": {
+        "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+        "prompted": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.999008142202304,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    },
+    {
+      "model": "l2p",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/l2p/repeat1/cl-efficiency-20261007T013316Z-227694/l2p/measurement",
+      "status": "pass",
+      "npz_correct": 960,
+      "npz_accuracy_pct": 96.0,
+      "npz_sha256": "1f55f557173d750f2086c4176565d91de63f61b0108347c031fea74a20528ed3",
+      "telemetry_sha256": "f8c18ee46eb66320ab9474fbda01b21d33b44902aaa23eb9fa4dc2fb1ee09f01",
+      "canonical_pretrained_sha256": {
+        "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+        "prompted": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.998587316605475,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    },
+    {
+      "model": "l2p",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/l2p/repeat2/cl-efficiency-20261007T013357Z-227694/l2p/measurement",
+      "status": "pass",
+      "npz_correct": 960,
+      "npz_accuracy_pct": 96.0,
+      "npz_sha256": "1f55f557173d750f2086c4176565d91de63f61b0108347c031fea74a20528ed3",
+      "telemetry_sha256": "458fcb060be85646b84c13f9e5e9f5afe97883709ee7377ab59500e64583ef48",
+      "canonical_pretrained_sha256": {
+        "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+        "prompted": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.9984878624395561,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    },
+    {
+      "model": "l2p",
+      "pass": "flops",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/l2p/repeat3/cl-efficiency-20261007T013438Z-227694/l2p/flops",
+      "status": "pass",
+      "npz_correct": 960,
+      "npz_accuracy_pct": 96.0,
+      "npz_sha256": "1f55f557173d750f2086c4176565d91de63f61b0108347c031fea74a20528ed3",
+      "telemetry_sha256": "f01b3322f1dd965c4d193f88ea7ce982d609226058cf668778c5b3818925aed1",
+      "canonical_pretrained_sha256": {
+        "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+        "prompted": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.8311667672135373,
+      "included_in_efficiency_statistics": false,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": 618442940094608
+    },
+    {
+      "model": "l2p",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/l2p/repeat3/cl-efficiency-20261007T013438Z-227694/l2p/measurement",
+      "status": "pass",
+      "npz_correct": 960,
+      "npz_accuracy_pct": 96.0,
+      "npz_sha256": "1f55f557173d750f2086c4176565d91de63f61b0108347c031fea74a20528ed3",
+      "telemetry_sha256": "432b877a3c931deb445f2c0f8642bb25a297fa56cac100ded7aa630e59bfd165",
+      "canonical_pretrained_sha256": {
+        "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+        "prompted": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.9985847922218393,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    },
+    {
+      "model": "ranpac",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/ranpac/repeat1/cl-efficiency-20261007T012700Z-227694/ranpac/measurement",
+      "status": "pass",
+      "npz_correct": 981,
+      "npz_accuracy_pct": 98.1,
+      "npz_sha256": "79e14305bc4e402e5891e14adca2ac28caf844657b161eea2436a265219e7e10",
+      "telemetry_sha256": "4741c262dff0bc0059c6a153dc824ac7a3e11969bbc10dcd14c4cb1fe416f2a7",
+      "canonical_pretrained_sha256": {
+        "adapter_backbone": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.9992966045469824,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    },
+    {
+      "model": "ranpac",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/ranpac/repeat2/cl-efficiency-20261007T012828Z-227694/ranpac/measurement",
+      "status": "pass",
+      "npz_correct": 981,
+      "npz_accuracy_pct": 98.1,
+      "npz_sha256": "79e14305bc4e402e5891e14adca2ac28caf844657b161eea2436a265219e7e10",
+      "telemetry_sha256": "7559444d4b49c3ebdcead4858412337402b8c44daf06c6f3a50118ac37b49d28",
+      "canonical_pretrained_sha256": {
+        "adapter_backbone": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.999463629336977,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    },
+    {
+      "model": "ranpac",
+      "pass": "flops",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/ranpac/repeat3/cl-efficiency-20261007T012959Z-227694/ranpac/flops",
+      "status": "pass",
+      "npz_correct": 981,
+      "npz_accuracy_pct": 98.1,
+      "npz_sha256": "79e14305bc4e402e5891e14adca2ac28caf844657b161eea2436a265219e7e10",
+      "telemetry_sha256": "27f531d9af198dcb4e0fe69b46c0ce9836e0bdbbbc8b9487c3af90bcf8bd28b8",
+      "canonical_pretrained_sha256": {
+        "adapter_backbone": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.8117590903556063,
+      "included_in_efficiency_statistics": false,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": 564711450768527
+    },
+    {
+      "model": "ranpac",
+      "pass": "measurement",
+      "run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z/ranpac/repeat3/cl-efficiency-20261007T012959Z-227694/ranpac/measurement",
+      "status": "pass",
+      "npz_correct": 981,
+      "npz_accuracy_pct": 98.1,
+      "npz_sha256": "79e14305bc4e402e5891e14adca2ac28caf844657b161eea2436a265219e7e10",
+      "telemetry_sha256": "e3a82238e6db8fdc9b32210af431a9bc411622baf6d3d4901f32eb1af07c833e",
+      "canonical_pretrained_sha256": {
+        "adapter_backbone": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+      },
+      "frozen_ptm_unchanged": true,
+      "whole_and_all_phase_energy_recomputed": true,
+      "gpu_energy_coverage_fraction": 0.9994544274847456,
+      "included_in_efficiency_statistics": true,
+      "source_files_verified": 27,
+      "effective_pretrained_false": true,
+      "additional_default_hf_pretrained_loading": false,
+      "partial_flops_recomputed": null
+    }
+  ],
+  "limitations": [
+    "PTM tensors and finite gradients were verified during native workers and exact checkpoint-to-RanPAC CPU mapping was separately checked before execution; no extra neural computation or full .pt checkpoint replay was performed.",
+    "Ridge count 18 is the unchanged source protocol (17 candidate solves + one final solve), not independently instrumented per-call execution events.",
+    "GPU energy is board-only; CPU solve power is excluded. Registered/auxiliary tensor categories overlap and must not be summed.",
+    "Separate profiler diagnostics have incomplete energy coverage due to long sample gaps; their time, memory, CPU time and energy are excluded from measurement statistics."
+  ],
+  "measurement_count": 9,
+  "diagnostic_count": 3,
+  "all_three_model_median_min_max_recomputed": true,
+  "profiler_cost_excluded_from_measurement_statistics": true,
+  "ease_original_results_unchanged": true
+}

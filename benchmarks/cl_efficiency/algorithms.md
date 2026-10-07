@@ -1,8 +1,8 @@
 # 현재 CL 알고리즘과 특성
 
-2026년 10월 1일 확인한 70개 모델에 10월 7일 EASE를 추가하여, 현재 `models/*.py`의 NAME과 COMPATIBILITY 기준으로 71개 엔트리입니다. 전체 모델의 import 성공이나 실험 재현을 뜻하지 않습니다. 정적 추론 3개와 joint 기준선 2개를 제외하면 학습 방법 및 변형 66개입니다. `models/lora_prototype_utils/`는 `second_order`의 내부 구성요소이며 독립 모델 엔트리가 아닙니다. EASE Base64·seed1993의 첫 2개 태스크는 동일 조건 공식 기준선 대비 네 정확도 지표와 일곱 구조 검사를 모두 통과했습니다. [Native 검증 보고서](ease/native_validation_report.md)와 [JSON 결과](ease/native_validation_results.json)를 참고합니다. Base64의 첫 태스크 효율성 측정 3회·부분 FLOPs 진단 1회도 완료하고 실행 source를 로컬 공통 기반에 병합했습니다. Tiny·Small 학습, 다른 알고리즘의 공통 효율성 실험과 원격 push는 수행하지 않았습니다.
+2026년 10월 1일 확인한 70개 모델에 10월 7일 EASE를 추가하여, 현재 `models/*.py`의 NAME과 COMPATIBILITY 기준으로 71개 엔트리입니다. 전체 모델의 import 성공이나 실험 재현을 뜻하지 않습니다. 정적 추론 3개와 joint 기준선 2개를 제외하면 학습 방법 및 변형 66개입니다. `models/lora_prototype_utils/`는 `second_order`의 내부 구성요소이며 독립 모델 엔트리가 아닙니다. EASE Base64·seed1993의 첫 2개 태스크는 동일 조건 공식 기준선 대비 네 정확도 지표와 일곱 구조 검사를 모두 통과했습니다. [Native 검증 보고서](ease/native_validation_report.md)와 [JSON 결과](ease/native_validation_results.json)를 참고합니다. Base64의 첫 태스크 효율성 측정 3회·부분 FLOPs 진단 1회도 완료하고 실행 source를 로컬 공통 기반에 병합했습니다. 후속 RanPAC·L2P·DualPrompt의 공통 첫 태스크 pilot도 완료했습니다. Tiny·Small 학습과 원격 push는 수행하지 않았습니다.
 
-표의 장단점과 효율성 영향은 현재 코드 구조에 근거한 분석입니다. 대부분 방법의 정확도·시간·메모리·에너지는 아직 측정하지 않았으며, EASE Base의 공통 1-epoch 측정은 [효율성 pilot 보고서](ease/efficiency_pilot_report.md)에 기록합니다. 세 측정의 정확도는 모두 96.50%, 전체 시간 중앙값 29.7629초, CUDA peak allocated 5760.5054 MiB, GPU 보드 에너지 중앙값 2.4432 Wh입니다. 같은 seed의 반복이며 20-epoch 구현 검증 정확도와 판정 조건이 다릅니다. Native 보고서와 [공식 기준선 측정 이력](ease/execution_report.md)은 별도 검증 이력입니다. 전체 방법 간 효율성 비교는 아직 실행하지 않았습니다. 기본 실행 조건, 필요한 외부 데이터, 상세 args는 `manifest.json`에 기록했습니다.
+표의 장단점과 효율성 영향은 현재 코드 구조에 근거한 분석입니다. 대부분 방법의 정확도·시간·메모리·에너지는 아직 측정하지 않았으며, EASE Base의 공통 1-epoch 측정은 [효율성 pilot 보고서](ease/efficiency_pilot_report.md)에 기록합니다. 세 측정의 정확도는 모두 96.50%, 전체 시간 중앙값 29.7629초, CUDA peak allocated 5760.5054 MiB, GPU 보드 에너지 중앙값 2.4432 Wh입니다. 같은 seed의 반복이며 20-epoch 구현 검증 정확도와 판정 조건이 다릅니다. Native 보고서와 [공식 기준선 측정 이력](ease/execution_report.md)은 별도 검증 이력입니다. EASE·RanPAC·L2P·DualPrompt의4개 설정을 비교한 [공통 pilot 결과](baselines/efficiency_pilot_report.md)도 완료했습니다. 전체71개 방법의 비교는 완료하지 않았으며, 이 결과는 각 방법의 원래 기본 checkpoint나 전체 CL 검증으로 확대하지 않습니다. 기본 실행 조건, 필요한 외부 데이터, 상세 args는 `manifest.json`에 기록했습니다.
 
 ## 알고리즘별 비교
 
@@ -100,7 +100,7 @@
 | `derpp-cscct` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `derpp-lider` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `derpp-star` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
-| `dualprompt` | class-il, task-il | pretrained_224 | seq-cifar100-224 | 첫 태스크 pilot |
+| `dualprompt` | class-il, task-il | pretrained_224 | seq-cifar100-224 | 동일 NPZ·전처리 첫 태스크 측정3회·별도 부분 FLOPs1회 완료; 전체 CL 미검증 |
 | `ease` | class-il, task-il | pretrained_224 | seq-cifar100-224 | Base64·seed1993 첫 2태스크 검증 통과; 효율성 측정 3회·별도 부분 FLOPs 1회 완료; Tiny/Small 미실행 |
 | `er` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `er-ace` | class-il, task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
@@ -127,7 +127,7 @@
 | `idefics` | class-il, domain-il, task-il, general-continual | pretrained_224 | seq-cifar100-224 | Large multimodal checkpoint, transformers/accelerate; llava defaults to 4-bit bitsandbytes |
 | `joint` | class-il, domain-il, task-il | classic_resnet224 | seq-cifar100-224 | main.py forbids --stop_after for joint; all-task offline baseline needs a separate protocol. |
 | `joint-gcl` | general-continual | classic_resnet224 | seq-cifar100-224 | General-continual only; joint GCL stream has no comparable single-task protocol. |
-| `l2p` | class-il, domain-il, task-il, general-continual | pretrained_224 | seq-cifar100-224 | 첫 태스크 pilot |
+| `l2p` | class-il, domain-il, task-il, general-continual | pretrained_224 | seq-cifar100-224 | 동일 NPZ·전처리 첫 태스크 측정3회·별도 부분 FLOPs1회 완료; 전체 CL 미검증 |
 | `llava` | class-il, domain-il, task-il, general-continual | pretrained_224 | seq-cifar100-224 | Large multimodal checkpoint, transformers/accelerate; llava defaults to 4-bit bitsandbytes |
 | `lucir` | class-il, task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `lwf` | class-il, task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
@@ -137,7 +137,7 @@
 | `moe-adapters` | class-il, domain-il, task-il, general-continual | pretrained_224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `pnn` | task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `puridiver` | class-il, task-il | noisy_clean_224 | seq-cifar100-224 | Constructor only accepts seq-cifar10/seq-cifar100 and uses 32-pixel hard crops; seq-cifar100-224 requires an explicit port. |
-| `ranpac` | class-il, domain-il, task-il | pretrained_224 | seq-cifar100-224 | 첫 태스크 pilot |
+| `ranpac` | class-il, domain-il, task-il | pretrained_224 | seq-cifar100-224 | 동일 NPZ·전처리 첫 태스크 측정3회·별도 부분 FLOPs1회 완료; 전체 CL 미검증 |
 | `rpc` | class-il, task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `second-order` | class-il, domain-il, task-il, general-continual | pretrained_224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `second-stage-starprompt` | class-il, domain-il, task-il, general-continual | pretrained_224 | seq-cifar100-224 | 첫 태스크 pilot |

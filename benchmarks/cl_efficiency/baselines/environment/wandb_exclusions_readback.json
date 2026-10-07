@@ -1,0 +1,39 @@
+{
+  "status": "pass",
+  "old_runs_deleted": false,
+  "runs": [
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/ert9of0q",
+      "state": "finished",
+      "comparison_valid": false,
+      "exclusion_reason": "pretrained0 parsed True; extra default checkpoint initialization; excluded from corrected comparison",
+      "tags": [
+        "excluded-from-comparison",
+        "initialization-protocol-mismatch"
+      ],
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/r53irvne",
+      "state": "finished",
+      "comparison_valid": false,
+      "exclusion_reason": "pretrained0 parsed True; extra default checkpoint initialization; excluded from corrected comparison",
+      "tags": [
+        "excluded-from-comparison",
+        "initialization-protocol-mismatch"
+      ],
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/xqvoe00j",
+      "state": "crashed",
+      "comparison_valid": false,
+      "exclusion_reason": "pretrained0 parsed True; extra default checkpoint initialization; excluded from corrected comparison",
+      "tags": [
+        "excluded-from-comparison",
+        "initialization-protocol-mismatch"
+      ],
+      "verified": true
+    }
+  ]
+}

@@ -29,3 +29,24 @@ CUDA_VISIBLE_DEVICES='' uv run --no-sync --offline python -m pytest tests/test_l
 ```bash
 CUDA_VISIBLE_DEVICES='' uv run --no-sync --offline python -m pytest tests/test_baseline_pretrained_args.py tests/test_l2p_checkpoint.py tests/test_dualprompt_checkpoint.py tests/test_ranpac_checkpoint.py tests/test_baseline_audit.py tests/test_baseline_efficiency.py tests/test_ease_efficiency.py tests/test_ease_acceptance.py tests/test_ease_execution.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_prepare_ease.py tests/test_cl_efficiency.py tests/test_cl_runtime.py tests/test_import.py::test_import_after_register tests/test_module_register.py::test_args_with_choices -q --tb=short
 ```
+
+수정 source `20ec323`을 고정하여 승인한 native 실행12개를 완료했습니다. 실제 첫 태스크의 observe/begin/end/evaluation flow도 모두 통과했고, 추가 debug 학습 없이 이 실행을 runtime smoke로 사용했습니다. [독립 감사](environment/independent_pilot_audit.json)에서 source·가중치·raw 데이터·NPZ·완료 카운터·전력 적분·측정만의 집계를 재계산했습니다. [원격 확인](environment/wandb_pilot_readback.json)에서12run이 `finished`, artifact가 `COMMITTED`, 핵심 metrics와 spec/NPZ/telemetry/phase 파일이 로컬과 일치함을 확인했습니다. 각 suite Slack 요청은 모두 `sent`입니다.
+
+```bash
+uv run --no-sync python scripts/run_baseline_efficiency.py --execute
+python3 /tmp/audit-baseline-pilot-20261007.py benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z --source-commit 20ec3237699ccfd12a3fb07e74f70a53e1fba79f --output benchmarks/cl_efficiency/baselines/environment/independent_pilot_audit.json
+uv run --no-sync python /tmp/verify-baseline-pilot-20261007.py benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T012659Z
+uv run --no-sync python /tmp/mark-excluded-baselines-20261007.py
+```
+
+독립 감사는 framework/numpy/torch를 import하지 않는 별도 stdlib NPZ parser·전력 적분기입니다. CPU ridge18solve 표기는 수정하지 않은 source의17후보+최종1회 protocol이며 호출별 runtime 추적이라고 주장하지 않습니다. 측정9개의 최소 전력 coverage는99.806%이고 별도 FLOPs 실행은66.31~83.12%입니다. 진단의 시간·메모리·CPU 시간·에너지는 측정 집계에서 제외했습니다. 임시 검증 script와 공개 JSON에 검증 근거를 남겼으며, raw 실행은 ignored run폴더에 보존됩니다.
+
+검증된 코드 `20ec323`을 `b8fba75`에서 `codex/cl-foundation`에 fast-forward 병합한 뒤 동일 focused suite를 Foundation에서 다시 실행하여 **490 passed in11.21s**를 확인했습니다. `main.py --model sgd --dataset seq-cifar10 --help`도 정상 종료했습니다. 후속 결과 문서는 별도 커밋으로 같은 브랜치에 fast-forward 병합합니다. 원격 push/PR은 수행하지 않습니다.
+
+[W&B 4방법 집계](https://wandb.ai/laymond1/cl-efficiency/runs/pfg5ytbp)는 추가 학습이 없는 report-only run입니다. [서버 확인](environment/wandb_summary_readback.json)에서 `finished`·`COMMITTED`, 모든 집계값의 일치와7개 artifact 파일의 SHA256 일치를 확인했습니다. JSON↔서버 float 직렬화 차이에는 상대/절대1e-12 허용값을 사용했습니다. 결과 JSON의 `local_merge`는 이 집계 업로드 직전의 코드 병합 snapshot이며 `additional_report_commit_pending`도 해당 시점의 상태입니다. 최종 문서 병합 여부는 현재 Git 기록을 따릅니다.
+
+```bash
+git merge --ff-only 20ec3237699ccfd12a3fb07e74f70a53e1fba79f
+uv run --no-sync --offline python main.py --model sgd --dataset seq-cifar10 --help
+uv run --no-sync python /tmp/upload-baseline-summary-20261007.py
+```

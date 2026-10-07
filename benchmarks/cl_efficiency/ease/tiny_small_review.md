@@ -18,4 +18,4 @@
 
 모델과 parser는 크기별 D·attention head 수를 timm에서 얻습니다. Adapter width, proxy head, prototype concatenation과 checkpoint 검증도 D를 따라가며, Base의 768을 하드코딩하지 않았습니다. 학습 없는 metadata tests에서 세 크기의 선택과 상태 구성을 검증했습니다. 실제 Tiny·Small forward/backward와 학습 정확도는 아직 미검증입니다.
 
-Tiny·Small의 family와 adapter 설정은 확정됐습니다. Base64·seed1993의 두 태스크 acceptance 평가는 공식 기준선 대비 정확도 하락 1.5%p 이내 조건을 통과했습니다. 다음 크기 실험은 checkpoint 파일/hash와 실행 범위를 정한 뒤 진행합니다. Tiny·Small 학습, 공통 효율성 pilot, FLOPs 측정, 병합과 push는 아직 수행하지 않았습니다. 상세 기준은 [실행 계획](validation_plan.json)에 기록했습니다.
+Tiny·Small의 family와 adapter 설정은 확정됐습니다. Base64·seed1993의 두 태스크 acceptance 평가는 공식 기준선 대비 정확도 하락 1.5%p 이내 조건을 통과했습니다. 다음 크기 실험은 checkpoint 파일/hash와 실행 범위를 정한 뒤 진행합니다. Base64의 공통 효율성 측정3회·별도 부분 FLOPs1회와 로컬 병합은 완료했습니다. 후속 [네 방법 첫 태스크 비교](../baselines/efficiency_pilot_report.md)도 완료했습니다. Tiny·Small 학습·효율성 측정과 원격 push는 수행하지 않았습니다. 상세 기준은 [실행 계획](validation_plan.json)에 기록했습니다.

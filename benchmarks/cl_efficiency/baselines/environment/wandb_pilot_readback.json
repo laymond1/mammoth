@@ -1,0 +1,525 @@
+{
+  "pilot": "baseline-efficiency-pilot-20261007T012659Z",
+  "experiment_count": 12,
+  "run_readbacks": [
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/1mgxgcav",
+      "model": "ranpac",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T012700Z-227694-ranpac-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "method_state_storage": true,
+        "task_end_training_image_presentations": true,
+        "ridge_candidate_count": true,
+        "ridge_solve_count": true,
+        "rp_size": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/qwtxt9zi",
+      "model": "ranpac",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T012828Z-227694-ranpac-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "method_state_storage": true,
+        "task_end_training_image_presentations": true,
+        "ridge_candidate_count": true,
+        "ridge_solve_count": true,
+        "rp_size": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/lc7ypbcl",
+      "model": "ranpac",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T012959Z-227694-ranpac-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "method_state_storage": true,
+        "task_end_training_image_presentations": true,
+        "ridge_candidate_count": true,
+        "ridge_solve_count": true,
+        "rp_size": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/7jm9mkdt",
+      "model": "ranpac",
+      "pass": "flops",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T012959Z-227694-ranpac-flops:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "method_state_storage": true,
+        "task_end_training_image_presentations": true,
+        "ridge_candidate_count": true,
+        "ridge_solve_count": true,
+        "rp_size": true,
+        "training_loss": true,
+        "torch_cpu_threads": true,
+        "flops": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true,
+        "flops_ops.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/6mrhex87",
+      "model": "l2p",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T013316Z-227694-l2p-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/e3zw7v1l",
+      "model": "l2p",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T013357Z-227694-l2p-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/e0l8cncz",
+      "model": "l2p",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T013438Z-227694-l2p-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/1bmon0eh",
+      "model": "l2p",
+      "pass": "flops",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T013438Z-227694-l2p-flops:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "training_loss": true,
+        "torch_cpu_threads": true,
+        "flops": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true,
+        "flops_ops.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/cejvk8hh",
+      "model": "dualprompt",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T013614Z-227694-dualprompt-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/ftkmmfzv",
+      "model": "dualprompt",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T013655Z-227694-dualprompt-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/6xdwgmqh",
+      "model": "dualprompt",
+      "pass": "measurement",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T013736Z-227694-dualprompt-measurement:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "training_loss": true,
+        "torch_cpu_threads": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    },
+    {
+      "url": "https://wandb.ai/laymond1/cl-efficiency/runs/5ft4jzyn",
+      "model": "dualprompt",
+      "pass": "flops",
+      "state": "finished",
+      "benchmark_status": "completed",
+      "artifacts": [
+        {
+          "name": "cl-efficiency-20261007T013736Z-227694-dualprompt-flops:v0",
+          "state": "COMMITTED",
+          "type": "cl-efficiency"
+        }
+      ],
+      "artifact_metrics_match_local": {
+        "model": true,
+        "pass": true,
+        "accuracy": true,
+        "metrics": true,
+        "phases": true,
+        "model_snapshots": true,
+        "data_snapshots": true,
+        "precision": true,
+        "checkpoint_file": true,
+        "checkpoint_sha256": true,
+        "execution_source_sha256": true,
+        "structural_checks": true,
+        "initial_frozen_backbone_sha256": true,
+        "final_frozen_backbone_sha256": true,
+        "canonical_pretrained_sha256": true,
+        "training_loss": true,
+        "torch_cpu_threads": true,
+        "flops": true
+      },
+      "artifact_file_hash_match_local": {
+        "spec.json": true,
+        "task1_predictions.npz": true,
+        "telemetry.csv": true,
+        "phases.json": true,
+        "flops_ops.json": true
+      },
+      "suite_slack_all_sent": true,
+      "verified": true
+    }
+  ],
+  "all_verified": true
+}

@@ -427,8 +427,11 @@
         "use_permute_fix": 0,
         "batchwise_prompt": 0
       },
-      "status": "source_present_runtime_unverified",
-      "requirements": []
+      "status": "standardized_first_task_efficiency_passed",
+      "requirements": [
+        "Standardized first-task pilot passed: shared AugReg IN21K -> IN1K local NPZ and EASE preprocessing; seed1993, 1 epoch, batch64, workers4; three measurements and one separate partial FLOPs diagnostic.",
+        "This completion applies to explicit pilot overrides, not unchanged generic manifest defaults, native paper reproduction or a full CL sequence. See baselines/efficiency_pilot_report.md."
+      ]
     },
     {
       "model": "ease",
@@ -1090,8 +1093,11 @@
         "batchwise_prompt": 0,
         "pull_constraint_coeff": 0.5
       },
-      "status": "source_present_runtime_unverified",
-      "requirements": []
+      "status": "standardized_first_task_efficiency_passed",
+      "requirements": [
+        "Standardized first-task pilot passed: shared AugReg IN21K -> IN1K local NPZ and EASE preprocessing; seed1993, 1 epoch, batch64, workers4; three measurements and one separate partial FLOPs diagnostic.",
+        "This completion applies to explicit pilot overrides, not unchanged generic manifest defaults, native paper reproduction or a full CL sequence. See baselines/efficiency_pilot_report.md."
+      ]
     },
     {
       "model": "llava",
@@ -1330,8 +1336,11 @@
         "lr": 0.01,
         "dataset_config": "ranpac"
       },
-      "status": "source_present_runtime_unverified",
-      "requirements": []
+      "status": "standardized_first_task_efficiency_passed",
+      "requirements": [
+        "Standardized first-task pilot passed: shared AugReg IN21K -> IN1K local NPZ and EASE preprocessing; seed1993, 1 epoch, batch64, workers4; three measurements and one separate partial FLOPs diagnostic.",
+        "This completion applies to explicit pilot overrides, not unchanged generic manifest defaults, native paper reproduction or a full CL sequence. See baselines/efficiency_pilot_report.md."
+      ]
     },
     {
       "model": "rpc",

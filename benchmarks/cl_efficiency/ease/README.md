@@ -66,6 +66,6 @@ uv run --no-sync python scripts/prepare_ease.py
 
 ## 다음 단계
 
-1. Tiny·Small 비교를 진행할지, 기존·추가 CL 방법의 공통 효율성 pilot을 우선할지 후속 실행 범위를 정합니다. 이번에는 Base64만 완료했습니다.
+1. 후속 승인한 RanPAC·L2P·DualPrompt와의 [첫 태스크 효율성 비교](../baselines/efficiency_pilot_report.md)를 완료했습니다. Tiny·Small 또는 추가 CL 방법의 다음 실행 범위는 후속 단계에서 정합니다.
 2. Tiny·Small을 실행한다면 checkpoint 파일/hash를 고정하고 구현 검증과 공통64·비율 정렬 비교의 순서를 정합니다. 현재 계획 생성은 자동으로 새 학습을 시작하지 않습니다.
 3. 추가 seeds·전체 CL 논문 성능 재현·BudgetCL/aL-SAR 예산 비교는 별도 후속 단계입니다. 단일 seed1993의 반복 측정으로 seed 간 변동이나 전체 CL 성능을 추정하지 않습니다. 원격 push는 승인하거나 수행하지 않았습니다.
