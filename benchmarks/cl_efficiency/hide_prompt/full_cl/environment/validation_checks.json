@@ -1,0 +1,78 @@
+{
+  "status": "pass",
+  "gpu_execution": "completed",
+  "commands": [
+    {
+      "command": "uv run --no-sync --offline pytest tests/test_import.py tests/test_hide_prompt.py tests/test_hide_network.py tests/test_hide_statistics.py -q --tb=short",
+      "result": "78 passed; import smoke failed because default local data path attempted a download; corrected below"
+    },
+    {
+      "command": "uv run --no-sync --offline python import-smoke harness: inject shared base_path, temporary result paths, and prohibit CIFAR10 download; pytest tests/test_import.py::test_import_mammoth -q --tb=short",
+      "result": "1 passed, real training unchanged"
+    },
+    {
+      "command": "uv run --no-sync --offline pytest tests/test_hide_fullcl_execution.py tests/test_hide_execution.py tests/test_hide_efficiency.py -q --tb=short",
+      "result": "141 passed"
+    },
+    {
+      "command": "uv run --no-sync --offline pytest tests/test_hide_fullcl_report.py tests/test_report_hide_results.py tests/test_publish_hide_report.py -q --tb=short",
+      "result": "61 passed"
+    },
+    {
+      "command": "uv run --no-sync --offline pytest tests/test_hide_fullcl_report.py -q --tb=short",
+      "result": "26 passed after observed alignment work counts; 27 passed after additional TII encoder pass counter"
+    },
+    {
+      "command": "uv run --no-sync --offline pytest tests/test_hide_fullcl_report.py -q --tb=short",
+      "result": "28 passed after displaying actual allocated/reserved/device footprint and a zero-based memory axis; 5.41 seconds"
+    },
+    {
+      "command": "run_hide_validation.py --mode full_cl (dry); actual accepted-record prerequisite/build_spec; py_compile; git diff --check; report/publisher --help",
+      "result": "pass"
+    },
+    {
+      "command": "uv run --no-sync --offline python scripts/report_hide_fullcl.py --native <completed-full10> --reference <accepted-author-full2> --accepted-native <accepted-native-full2> --output benchmarks/cl_efficiency/hide_prompt/full_cl",
+      "result": "completed; strict source/protocol/count/prediction gates passed; actual PNG/PDF inspected"
+    }
+  ],
+  "environment": {
+    "UV_PROJECT_ENVIRONMENT": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv",
+    "UV_CACHE_DIR": "/tmp/hide-fullcl-uvcache",
+    "CUDA_VISIBLE_DEVICES": "",
+    "MAMMOTH_DEVICE": "cpu",
+    "HF_HUB_OFFLINE": "1",
+    "JE_ARROW_MALLOC_CONF": "background_thread:false"
+  },
+  "protected_model_dataset_backbone_trainer_changes": false,
+  "no_package_installation": true,
+  "full_ten_task_structural_checks": {
+    "finite_loss_and_gradients": true,
+    "dataset_matches_reference": true,
+    "frozen_backbones_unchanged": true,
+    "frozen_backbone_gradients_absent": true,
+    "old_prompt_slots_unchanged": true,
+    "no_future_or_replay_samples": true,
+    "statistics_shapes_and_seen_classes": true,
+    "alignment_schedule_complete": true,
+    "routing_without_task_oracle": true,
+    "checkpoint_round_trip": true,
+    "matched_learned_initialization": true,
+    "matched_phase_rng_and_batching": true,
+    "training_protocol_complete": true
+  },
+  "first_two_task_prefix_validation": "pass",
+  "native_wandb_readback": {
+    "status": "pass",
+    "files_verified": 21
+  },
+  "report_wandb_readback": {
+    "status": "pass",
+    "files_verified": 8
+  },
+  "slack_completion": "sent",
+  "gpu_process_released": true,
+  "independent_full_ten_task_audit": {
+    "status": "pass",
+    "receipt": "environment/final_audit.json"
+  }
+}

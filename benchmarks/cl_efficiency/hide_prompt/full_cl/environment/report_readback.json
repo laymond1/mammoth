@@ -1,0 +1,89 @@
+{
+  "status": "pass",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/shz1r5i1",
+  "run_state": "finished",
+  "artifact": "laymond1/cl-efficiency/hide-fullcl-report-20261007T101907Z:v0",
+  "artifact_state": "COMMITTED",
+  "result_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/full-cl-report-20261007/result.json",
+  "result_sha256": "545ce6065e8f20518f159ae0ff5046f5064b7bd7ac858a148930a15d8c9f049f",
+  "artifact_files": {
+    "results.json": {
+      "sha256": "30bc8cd365b53cc2655683707e5eef6d41cf5e553949b6c84809dcce510faf79",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "results.csv": {
+      "sha256": "58794ef38293f8ef7db39f09f5b08aa021600aaaaf3e190255a48d31f04dc0f8",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "report.md": {
+      "sha256": "afad31add4f43d91aade2fb8522f1580c97519c8939e000ffd3c8559a9067b7e",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "accuracy_matrix.png": {
+      "sha256": "d011c70e08cbbe8dd953a6605c6b85c022ab00bd9c33cfee222ebf74ab54af7a",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "accuracy_matrix.pdf": {
+      "sha256": "30e4e15c1123f596721896f8cb8d47db48cdc29ed400bf03c20db087d20b8c2b",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task_resources.png": {
+      "sha256": "dfddd91ca975fcfe95e2f43dada82a4d5f90ad1badc7853a144f8cc85baa03f1",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task_resources.pdf": {
+      "sha256": "690761f228547ebc983dcb39c9ce86bbb41b9969a3b5586999602fcd26eb50d1",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "artifact_metadata.json": {
+      "sha256": "1e8ccf7acae191cd5b236914152960a5810a6a83e9905dc1026cd5fc13f81486",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    }
+  },
+  "summary": {
+    "equal_compute_budget": false,
+    "full_cl/average_incremental_accuracy_pct": 95.89185714285716,
+    "full_cl/final_accuracy_pct": 94.27,
+    "full_cl/forgetting_pp": 1.899999999999996,
+    "full_ten_task_accuracy_acceptance": "not_assessed_by_matched_ten_task_reference",
+    "implementation_prefix_gate": "pass",
+    "new_gpu_computation": false,
+    "new_training": false,
+    "paper_reproduction": false,
+    "report_only": true,
+    "resources/cuda_peak_allocated_mib": 6486.240234375,
+    "resources/cuda_peak_reserved_mib": 23224,
+    "resources/evaluation_examples": 55000,
+    "resources/evaluation_examples_per_s": 375.27706758771615,
+    "resources/gpu_board_energy_j": 4794526.636208187,
+    "resources/gpu_board_energy_wh": 1331.812954502274,
+    "resources/gpu_energy_coverage_fraction": 0.999996146865458,
+    "resources/gpu_energy_coverage_s": 11734.504012498017,
+    "resources/outer_observe_steps": 55300,
+    "resources/outer_training_examples_per_s": 315.8652891195218,
+    "resources/outer_training_stream_examples": 3500000,
+    "resources/peak_gpu_device_memory_mib": 23751,
+    "resources/peak_gpu_power_w": 434.35,
+    "resources/peak_gpu_utilization_percent": 100,
+    "resources/peak_process_tree_rss_mib": 31936.74609375,
+    "resources/process_tree_cpu_s": 15158.248896,
+    "resources/process_wall_s": 11734.549227294978,
+    "resources/tasks_completed": 10,
+    "seed_variation_estimated": false,
+    "work/alignment_optimizer_steps": 27000,
+    "work/evaluation_image_examples": 55000,
+    "work/outer_image_training_examples": 3500000,
+    "work/outer_optimizer_steps": 55300,
+    "work/prompt_training_additional_tii_forward_image_examples": 2500000,
+    "work/synthetic_feature_examples_generated": 62198400,
+    "work/total_optimizer_steps": 82300
+  }
+}

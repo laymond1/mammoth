@@ -1,5 +1,7 @@
 # HiDe-Prompt 구현 검증 및 효율성 결과
 
+Base 전체10태스크 후속 실험도 완료했습니다. 최종 정확도 **94.27%**, 평균 증분 정확도 **95.89%**, 평균 망각 **1.90%p**이며, [전체10태스크 보고서](full_cl/report.md)와 [W&B](https://wandb.ai/laymond1/cl-efficiency/runs/shz1r5i1)에서 확인할 수 있습니다. 아래에는 첫2태스크 구현 검증과 첫태스크 효율성 pilot 기록을 보존합니다.
+
 ViT-B/16의 독립 저자 기준선과 Mammoth native를 GPU1·batch64로 실제 학습해 **구현 acceptance PASS**를 확인했습니다. 첫 태스크와 태스크2 전체/과거/신규 정확도 네 항목이 각각 **99.40 / 97.95 / 98.90 / 97.00%**로 같고, 정확도 차이는 모두 **0.00%p**입니다. 13개 구조 검사가 통과했고 저장된 평가 예측 3,000개가 모두 일치했습니다. 세부 결과는 [보고서](report.md), [JSON](results.json), [CSV](results.csv), [그림 PNG](efficiency_comparison.png)·[PDF](efficiency_comparison.pdf)에 정리합니다.
 
 현재 승인 조건은 [execution_plan.json](execution_plan.json), 이전 CPU 준비 단계의 기록은 [validation_plan.json](validation_plan.json)에 보존합니다. 기존 공유 CIFAR100·NPZ만 사용하며 파일이 없거나 손상되면 다운로드 없이 실패합니다. [독립 기준선 W&B](https://wandb.ai/laymond1/cl-efficiency/runs/eiil7wjc)와 [native W&B](https://wandb.ai/laymond1/cl-efficiency/runs/iw6ohxji)는 finished/COMMITTED artifact의 다운로드 SHA readback까지 통과했습니다. Slack 진행 알림도 실행 기록에 남습니다.
@@ -49,7 +51,7 @@ Prompt StepLR은 저자 엔진의 `scheduler.step(epoch)`가 epoch 학습 뒤에
 
 검증 정확도는 동일 기준선 대비 하락이 **1.5%p 이내 통과, 1.5~3.0%p 추가 점검, 3.0%p 초과 실패**입니다. 표시 반올림 값 대신 정답수/표본수로 판정합니다. 비정상적으로 낮은 성능, 비유한 값, frozen backbone 또는 old prompt 변경, 데이터·checkpoint 불일치, oracle task routing은 구현 문제로 조사합니다. 추가 점검·실패는 효율성 측정과 구현 수치 승인으로 넘어가지 않습니다.
 
-효율성 pilot은 TII1 + prompt1, 즉 **두 학습 단계와 두 통계 pass**입니다. 각 계측은 TII79 + prompt79 optimizer step, 학습10,000표본·통계 각5,000표본·평가1,000표본입니다. Prompt 학습 중 실제 TII forward5,000표본과 평가 routing1,000표본 비용도 포함합니다. 기존 방법의1epoch와 동일 계산 예산을 뜻하지 않습니다. 첫태스크 CA는 **N/A**이며 hook overhead만 전체 실행 비용에 포함합니다. 정렬의 비용·망각·추가 seed·Tiny/Small·전체10태스크와 BudgetCL/aL-SAR 예산 비교는 후속 범위입니다.
+효율성 pilot은 TII1 + prompt1, 즉 **두 학습 단계와 두 통계 pass**입니다. 각 계측은 TII79 + prompt79 optimizer step, 학습10,000표본·통계 각5,000표본·평가1,000표본입니다. Prompt 학습 중 실제 TII forward5,000표본과 평가 routing1,000표본 비용도 포함합니다. 기존 방법의1epoch와 동일 계산 예산을 뜻하지 않습니다. 첫태스크 CA는 **N/A**이며 hook overhead만 전체 실행 비용에 포함합니다. 정렬의 비용·망각·추가 seed·Tiny/Small 및 BudgetCL/aL-SAR 예산 비교는 후속 범위입니다. 전체10태스크 결과는 [별도 보고서](full_cl/report.md)에 추가했습니다.
 
 계측 시간·에너지는 데이터/모델 준비, 학습, 두 통계 pass, routing 평가, checkpoint와 audit 비용을 포함하고 마지막 W&B artifact upload/finish는 제외합니다. 업로드까지 포함한 launcher wall time은 별도 기록합니다. 에너지는 선택된 GPU 보드의 sampled power 적분이며 CPU/RAM/전체 머신 전력을 뜻하지 않습니다. CUDA peak는 PyTorch allocator 최대값, RSS는 프로세스와 자식의 샘플 합계입니다. 중첩 phase 시간은 inclusive라서 서로 더해 전체 시간으로 해석하지 않습니다. 세 반복의 표준편차는 동일 seed 실행의 시스템 변동이며 seed 간 성능 불확실성이 아닙니다. FLOPs는 supported operator의 부분 합을 별도 profiler 실행에서 측정하며, 그 시간·메모리·에너지는 3회 평균에서 제외합니다.
 

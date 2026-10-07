@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "stage": "hide_native_full_cl",
-  "status": "ready",
+  "status": "completed",
   "approval": "User: 좋아. 이대로 진행하자. — merge validated HiDe locally, then native Base full ten tasks, seed1993, batch64, GPU1; independent full-ten-task reference only if implementation diagnostics require it.",
   "training_authorized": true,
-  "executed": false,
+  "executed": true,
   "local_integration": {
     "foundation_branch": "codex/cl-foundation",
     "validated_hide_commit": "de6b1fe",
@@ -45,7 +45,10 @@
   "prerequisites": {
     "native_matched_two_task_validation": "pass",
     "independent_matched_two_task_reference": "completed",
-    "first_two_task_seen_accuracy_pct": [99.4, 97.95],
+    "first_two_task_seen_accuracy_pct": [
+      99.4,
+      97.95
+    ],
     "protected_algorithm_data_backbone_trainer_sources_unchanged": true,
     "same_exported_learned_initialization": true,
     "same_pinned_local_pretrained_weights": true,
@@ -81,7 +84,75 @@
     "BudgetCL and aL-SAR normalized-budget comparisons",
     "full-run FLOPs profiling; prior one-task partial FLOPs remain separately scoped"
   ],
-  "estimated_runtime_hours": [3, 4],
+  "estimated_runtime_hours": [
+    3,
+    4
+  ],
   "execution_timeout_seconds": 43200,
-  "estimate_note": "Based on accepted two-task native run; later alignment, evaluation and transient memory costs grow with seen classes."
+  "estimate_note": "Based on accepted two-task native run; later alignment, evaluation and transient memory costs grow with seen classes.",
+  "execution": {
+    "source_commit": "dc5b03bd41e114d0416c2608cc09b6f5e76ac65e",
+    "native_run_directory": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007",
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ba00j7ud",
+    "name": "hide-native-full_cl-20261007T065824Z",
+    "source_pins": {
+      "scripts/run_hide_validation.py": "639f87967f1fb97f362ed5cb6ec34beeb3dc0b3b6b51723b0597f60932ca4b63",
+      "scripts/hide_protocol.py": "3e6c4eb37a07385799537bfc717b40119e40e1f46416a98503b33ce48041a7a2",
+      "scripts/hide_acceptance.py": "bc62516e85ba99e3ea020b4bfb16eaa27078eb6db0590903b5295f481ae19cc9",
+      "scripts/hide_reference_utils.py": "f6e7c103a321e34beaf94ab74705d91b90c9e7132a584bd7c8e84dae557ccc63",
+      "models/hide_prompt.py": "c1586e5d4d63209302f2047809a554a3a23a1365beef2d9298d03c0f90aa1ad3",
+      "backbone/hide_vit.py": "3bc3b83461d5bc4dbf4545d229a4bbf3229465204ba0c00ffb68318acdfd992c",
+      "models/hide_prompt_utils/network.py": "85fb4e9ae1a451ffba66ee523d402c8fd2ac17802a4915f2464967f464ca0a37",
+      "models/hide_prompt_utils/prompt.py": "52ae82790d00ea66c531bffbe4f68db6753d6c88f3e96f364496d84a38a68607",
+      "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+      "models/hide_prompt_utils/statistics.py": "cdac9819d9128f9ddce3d68b6c38b510508b4f7d73a259c57980cccbddf9f1d9",
+      "models/config/hide_prompt.yaml": "b4b1631f00719e05eed67ff9eee2cfcb329cdc5203d961c52e7c8b0e93b45625",
+      "datasets/configs/seq-cifar100-224/hide_prompt.yaml": "20c833176ed7fe3ecbbe48649a5ba8c18f548422f07040b92e79a7080d12bcb7",
+      "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+      "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+      "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+      "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+      "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+    },
+    "status": "completed",
+    "wandb_artifact": {
+      "name": "laymond1/cl-efficiency/hide-native-full_cl-20261007T065824Z:v0",
+      "state": "COMMITTED"
+    },
+    "artifact_readback": "pass",
+    "artifact_files_verified": 21,
+    "structural_checks": {
+      "finite_loss_and_gradients": true,
+      "dataset_matches_reference": true,
+      "frozen_backbones_unchanged": true,
+      "frozen_backbone_gradients_absent": true,
+      "old_prompt_slots_unchanged": true,
+      "no_future_or_replay_samples": true,
+      "statistics_shapes_and_seen_classes": true,
+      "alignment_schedule_complete": true,
+      "routing_without_task_oracle": true,
+      "checkpoint_round_trip": true,
+      "matched_learned_initialization": true,
+      "matched_phase_rng_and_batching": true,
+      "training_protocol_complete": true
+    },
+    "prefix_validation_status": "pass"
+  },
+  "observed_work": {
+    "outer_epochs": 700,
+    "outer_training_steps": 55300,
+    "outer_training_examples": 3500000,
+    "cumulative_evaluation_examples": 55000
+  },
+  "report_publication": {
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/shz1r5i1",
+    "artifact": {
+      "name": "laymond1/cl-efficiency/hide-fullcl-report-20261007T101907Z:v0",
+      "state": "COMMITTED"
+    },
+    "readback_status": "pass",
+    "artifact_files_verified": 8,
+    "slack_completion_status": "sent",
+    "report_directory": "benchmarks/cl_efficiency/hide_prompt/full_cl"
+  }
 }

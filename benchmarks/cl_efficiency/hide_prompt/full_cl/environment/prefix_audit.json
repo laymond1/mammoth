@@ -1,0 +1,462 @@
+{
+  "status": "pass",
+  "scope": "Current full-ten-task run first two tasks only; no matched independent ten-task performance judgment.",
+  "checked_at_utc": "2026-10-07T07:37:41.675982+00:00",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ba00j7ud",
+  "accepted_result_sha256": "69155174ba5c063111d5c98eeeef7d1e4206a996c312154ec24b2179bdead304",
+  "prefix_validation": {
+    "status": "pass",
+    "matched_tasks": [
+      1,
+      2
+    ],
+    "prediction_match": true,
+    "acceptance": {
+      "status": "pass",
+      "pass_max_drop_pp": 1.5,
+      "pass_max_drop_pp_exact": {
+        "numerator": 3,
+        "denominator": 2
+      },
+      "review_max_drop_pp": 3.0,
+      "review_max_drop_pp_exact": {
+        "numerator": 3,
+        "denominator": 1
+      },
+      "metrics": {
+        "task1_seen": {
+          "task": 1,
+          "status": "pass",
+          "reference_correct": 994,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 99.4,
+          "native_correct": 994,
+          "native_samples": 1000,
+          "native_accuracy_pct": 99.4,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        "task2_seen": {
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 1959,
+          "reference_samples": 2000,
+          "reference_accuracy_pct": 97.95,
+          "native_correct": 1959,
+          "native_samples": 2000,
+          "native_accuracy_pct": 97.95,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        "task2_old": {
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 989,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 98.9,
+          "native_correct": 989,
+          "native_samples": 1000,
+          "native_accuracy_pct": 98.9,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        "task2_new": {
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 970,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 97.0,
+          "native_correct": 970,
+          "native_samples": 1000,
+          "native_accuracy_pct": 97.0,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        }
+      },
+      "structural_checks": {
+        "finite_loss_and_gradients": true,
+        "dataset_matches_reference": true,
+        "frozen_backbones_unchanged": true,
+        "frozen_backbone_gradients_absent": true,
+        "old_prompt_slots_unchanged": true,
+        "no_future_or_replay_samples": true,
+        "statistics_shapes_and_seen_classes": true,
+        "alignment_schedule_complete": true,
+        "routing_without_task_oracle": true,
+        "checkpoint_round_trip": true,
+        "matched_learned_initialization": true,
+        "matched_phase_rng_and_batching": true,
+        "training_protocol_complete": true
+      },
+      "structural_failures": [],
+      "validation_errors": [],
+      "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+      "statistical_tolerance_estimated": false,
+      "method": "hide-prompt"
+    },
+    "scope": "First two tasks only; no independent ten-task performance reference"
+  },
+  "prediction_checks": {
+    "1": {
+      "arrays": {
+        "predictions": true,
+        "labels": true,
+        "global_ids": true,
+        "tii_predictions": true,
+        "evaluation_global_ids": true
+      },
+      "whole_file_sha256_matches": true,
+      "sha256": "b19f01b324247f8c04bcd4d0c08104fd07d89540306ba3fcc84eacd8ca4cf7fd"
+    },
+    "2": {
+      "arrays": {
+        "predictions": true,
+        "labels": true,
+        "global_ids": true,
+        "tii_predictions": true,
+        "evaluation_global_ids": true
+      },
+      "whole_file_sha256_matches": true,
+      "sha256": "21cb7969ffde4bfb8bda9af15e2013d42f63f74fa7c730517511ac5759cde3e0"
+    }
+  },
+  "exact_epoch_rows": 140,
+  "exact_first_batch_rows": 4,
+  "execution_sources_unchanged": {
+    "scripts/run_hide_validation.py": true,
+    "scripts/hide_protocol.py": true,
+    "scripts/hide_acceptance.py": true,
+    "scripts/hide_reference_utils.py": true,
+    "models/hide_prompt.py": true,
+    "backbone/hide_vit.py": true,
+    "models/hide_prompt_utils/network.py": true,
+    "models/hide_prompt_utils/prompt.py": true,
+    "models/hide_prompt_utils/vit.py": true,
+    "models/hide_prompt_utils/statistics.py": true,
+    "models/config/hide_prompt.yaml": true,
+    "datasets/configs/seq-cifar100-224/hide_prompt.yaml": true,
+    "datasets/configs/seq-cifar100-224/ease.yaml": true,
+    "scripts/cl_efficiency.py": true,
+    "utils/training.py": true,
+    "main.py": true,
+    "uv.lock": true
+  },
+  "resource_rows": [
+    {
+      "task": 1,
+      "start_s": 8.507004588987911,
+      "end_s": 1127.4617957769951,
+      "wall_s": 1118.9547911880072,
+      "metrics": {
+        "cuda_peak_allocated_mib": 6486.240234375,
+        "cuda_peak_reserved_mib": 7014.0,
+        "gpu_board_energy_j": 470106.27330543986,
+        "gpu_board_energy_wh": 130.58507591817775,
+        "gpu_energy_coverage_s": 1118.9547911880072,
+        "gpu_energy_coverage_fraction": 1.0,
+        "process_tree_cpu_s": 1444.751321,
+        "outer_observe_steps": 5530,
+        "outer_training_stream_examples": 350000,
+        "evaluation_examples": 1000,
+        "peak_process_tree_rss_mib": 15784.68359375,
+        "peak_gpu_device_memory_mib": 7505.0,
+        "peak_gpu_utilization_percent": 100.0,
+        "peak_gpu_power_w": 433.22
+      },
+      "phases": {
+        "acceptance_audit": {
+          "wall_s": 1.9646390179987065,
+          "calls": 1,
+          "gpu_board_energy_j": 499.60675780551634,
+          "gpu_energy_coverage_s": 1.9646390179987065
+        },
+        "begin_epoch": {
+          "wall_s": 0.0031555039749946445,
+          "calls": 70,
+          "gpu_board_energy_j": 1.1440104193673315,
+          "gpu_energy_coverage_s": 0.0031555039749946445
+        },
+        "begin_task": {
+          "wall_s": 0.0120415780111216,
+          "calls": 1,
+          "gpu_board_energy_j": 0.805018504499175,
+          "gpu_energy_coverage_s": 0.0120415780111216
+        },
+        "checkpoint": {
+          "wall_s": 1.5519331420073286,
+          "calls": 1,
+          "gpu_board_energy_j": 324.8849707064183,
+          "gpu_energy_coverage_s": 1.5519331420073286
+        },
+        "data_audit": {
+          "wall_s": 0.026181619003182277,
+          "calls": 1,
+          "gpu_board_energy_j": 1.7464839092316804,
+          "gpu_energy_coverage_s": 0.026181619003182277
+        },
+        "data_loading": {
+          "wall_s": 0.8060376420035027,
+          "calls": 1,
+          "gpu_board_energy_j": 51.19539267511783,
+          "gpu_energy_coverage_s": 0.8060376420035027
+        },
+        "end_epoch": {
+          "wall_s": 8.473685326986015,
+          "calls": 70,
+          "gpu_board_energy_j": 3043.638068571154,
+          "gpu_energy_coverage_s": 8.473685326986015
+        },
+        "end_task": {
+          "wall_s": 8.496099482988939,
+          "calls": 1,
+          "gpu_board_energy_j": 3099.5898283433226,
+          "gpu_energy_coverage_s": 8.496099482988939
+        },
+        "epoch_audit": {
+          "wall_s": 0.14404565611039288,
+          "calls": 70,
+          "gpu_board_energy_j": 59.145190525341924,
+          "gpu_energy_coverage_s": 0.14404565611039288
+        },
+        "evaluation": {
+          "wall_s": 2.641559411014896,
+          "calls": 1,
+          "gpu_board_energy_j": 908.6451880282386,
+          "gpu_energy_coverage_s": 2.641559411014896
+        },
+        "first_batch_audit": {
+          "wall_s": 0.07897885900456458,
+          "calls": 2,
+          "gpu_board_energy_j": 13.285149949042463,
+          "gpu_energy_coverage_s": 0.07897885900456458
+        },
+        "prompt_alignment": {
+          "wall_s": 0.001060996000887826,
+          "calls": 1,
+          "gpu_board_energy_j": 0.36288328471999654,
+          "gpu_energy_coverage_s": 0.001060996000887826
+        },
+        "prompt_alignment_audit": {
+          "wall_s": 0.0003639310016296804,
+          "calls": 1,
+          "gpu_board_energy_j": 0.12443427569474179,
+          "gpu_energy_coverage_s": 0.0003639310016296804
+        },
+        "prompt_finalize": {
+          "wall_s": 0.0009571340051479638,
+          "calls": 1,
+          "gpu_board_energy_j": 0.4029881488721912,
+          "gpu_energy_coverage_s": 0.0009571340051479638
+        },
+        "prompt_statistics": {
+          "wall_s": 8.491542900010245,
+          "calls": 1,
+          "gpu_board_energy_j": 3097.9174252624484,
+          "gpu_energy_coverage_s": 8.491542900010245
+        },
+        "prompt_train": {
+          "wall_s": 959.1593531559629,
+          "calls": 50,
+          "gpu_board_energy_j": 407870.09073706047,
+          "gpu_energy_coverage_s": 959.1593531559629
+        },
+        "tii_alignment": {
+          "wall_s": 0.0010806639911606908,
+          "calls": 1,
+          "gpu_board_energy_j": 0.3292778971299852,
+          "gpu_energy_coverage_s": 0.0010806639911606908
+        },
+        "tii_alignment_audit": {
+          "wall_s": 0.0007303699967451394,
+          "calls": 1,
+          "gpu_board_energy_j": 0.22245059991485058,
+          "gpu_energy_coverage_s": 0.0007303699967451394
+        },
+        "tii_statistics": {
+          "wall_s": 8.465924914984498,
+          "calls": 1,
+          "gpu_board_energy_j": 3040.832010698924,
+          "gpu_energy_coverage_s": 8.465924914984498
+        },
+        "tii_train": {
+          "wall_s": 136.99252910603536,
+          "calls": 20,
+          "gpu_board_energy_j": 54501.14021803419,
+          "gpu_energy_coverage_s": 136.99252910603536
+        },
+        "train_epoch": {
+          "wall_s": 1096.1479929469642,
+          "calls": 70,
+          "gpu_board_energy_j": 462369.643223039,
+          "gpu_energy_coverage_s": 1096.1479929469642
+        }
+      }
+    },
+    {
+      "task": 2,
+      "start_s": 1127.8946231269802,
+      "end_s": 2264.1401134229964,
+      "wall_s": 1136.2454902960162,
+      "metrics": {
+        "cuda_peak_allocated_mib": 6485.2509765625,
+        "cuda_peak_reserved_mib": 7780.0,
+        "gpu_board_energy_j": 472500.57980754826,
+        "gpu_board_energy_wh": 131.2501610576523,
+        "gpu_energy_coverage_s": 1136.2454902960162,
+        "gpu_energy_coverage_fraction": 1.0,
+        "process_tree_cpu_s": 1467.1105510000002,
+        "outer_observe_steps": 5530,
+        "outer_training_stream_examples": 350000,
+        "evaluation_examples": 2000,
+        "peak_process_tree_rss_mib": 30534.8046875,
+        "peak_gpu_device_memory_mib": 8307.0,
+        "peak_gpu_utilization_percent": 100.0,
+        "peak_gpu_power_w": 432.29
+      },
+      "phases": {
+        "acceptance_audit": {
+          "wall_s": 2.0496133799897507,
+          "calls": 1,
+          "gpu_board_energy_j": 454.34631685517144,
+          "gpu_energy_coverage_s": 2.0496133799897507
+        },
+        "begin_epoch": {
+          "wall_s": 0.0030989270890131593,
+          "calls": 70,
+          "gpu_board_energy_j": 0.9629319828775874,
+          "gpu_energy_coverage_s": 0.0030989270890131593
+        },
+        "begin_task": {
+          "wall_s": 0.001343625015579164,
+          "calls": 1,
+          "gpu_board_energy_j": 0.10384254051420448,
+          "gpu_energy_coverage_s": 0.001343625015579164
+        },
+        "checkpoint": {
+          "wall_s": 1.6482616849825718,
+          "calls": 1,
+          "gpu_board_energy_j": 309.92019201091045,
+          "gpu_energy_coverage_s": 1.6482616849825718
+        },
+        "data_audit": {
+          "wall_s": 0.02998083899728954,
+          "calls": 1,
+          "gpu_board_energy_j": 2.3175737562101966,
+          "gpu_energy_coverage_s": 0.02998083899728954
+        },
+        "data_loading": {
+          "wall_s": 0.7107498680124991,
+          "calls": 1,
+          "gpu_board_energy_j": 55.21884368521321,
+          "gpu_energy_coverage_s": 0.7107498680124991
+        },
+        "end_epoch": {
+          "wall_s": 13.392579182924237,
+          "calls": 70,
+          "gpu_board_energy_j": 3611.1206634878836,
+          "gpu_energy_coverage_s": 13.392579182924237
+        },
+        "end_task": {
+          "wall_s": 13.17936719499994,
+          "calls": 1,
+          "gpu_board_energy_j": 3734.873146561524,
+          "gpu_energy_coverage_s": 13.17936719499994
+        },
+        "epoch_audit": {
+          "wall_s": 0.15973733295686543,
+          "calls": 70,
+          "gpu_board_energy_j": 65.45379005760442,
+          "gpu_energy_coverage_s": 0.15973733295686543
+        },
+        "evaluation": {
+          "wall_s": 5.332022051996319,
+          "calls": 1,
+          "gpu_board_energy_j": 1934.6424065125018,
+          "gpu_energy_coverage_s": 5.332022051996319
+        },
+        "first_batch_audit": {
+          "wall_s": 0.07779974001459777,
+          "calls": 2,
+          "gpu_board_energy_j": 8.952531227509493,
+          "gpu_energy_coverage_s": 0.07779974001459777
+        },
+        "prompt_alignment": {
+          "wall_s": 4.190299629000947,
+          "calls": 1,
+          "gpu_board_energy_j": 614.6537743955287,
+          "gpu_energy_coverage_s": 4.190299629000947
+        },
+        "prompt_alignment_audit": {
+          "wall_s": 0.1819583067263011,
+          "calls": 601,
+          "gpu_board_energy_j": 26.077974152365027,
+          "gpu_energy_coverage_s": 0.1819583067263011
+        },
+        "prompt_finalize": {
+          "wall_s": 0.001042457006406039,
+          "calls": 1,
+          "gpu_board_energy_j": 0.43461176083300374,
+          "gpu_energy_coverage_s": 0.001042457006406039
+        },
+        "prompt_statistics": {
+          "wall_s": 8.985594397992827,
+          "calls": 1,
+          "gpu_board_energy_j": 3119.174546251518,
+          "gpu_energy_coverage_s": 8.985594397992827
+        },
+        "prompt_train": {
+          "wall_s": 963.0992609309906,
+          "calls": 50,
+          "gpu_board_energy_j": 407605.84285238246,
+          "gpu_energy_coverage_s": 963.0992609309906
+        },
+        "tii_alignment": {
+          "wall_s": 4.4171407720132265,
+          "calls": 1,
+          "gpu_board_energy_j": 577.7457969531104,
+          "gpu_energy_coverage_s": 4.4171407720132265
+        },
+        "tii_alignment_audit": {
+          "wall_s": 0.3886070719745476,
+          "calls": 601,
+          "gpu_board_energy_j": 49.57945056654027,
+          "gpu_energy_coverage_s": 0.3886070719745476
+        },
+        "tii_statistics": {
+          "wall_s": 8.96925887998077,
+          "calls": 1,
+          "gpu_board_energy_j": 3031.3845221103784,
+          "gpu_energy_coverage_s": 8.96925887998077
+        },
+        "tii_train": {
+          "wall_s": 137.96233356095036,
+          "calls": 20,
+          "gpu_board_energy_j": 54943.648985121145,
+          "gpu_energy_coverage_s": 137.96233356095036
+        },
+        "train_epoch": {
+          "wall_s": 1101.057164725993,
+          "calls": 70,
+          "gpu_board_energy_j": 462547.6759260627,
+          "gpu_energy_coverage_s": 1101.057164725993
+        }
+      }
+    }
+  ]
+}

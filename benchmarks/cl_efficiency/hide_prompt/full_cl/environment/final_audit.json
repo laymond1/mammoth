@@ -1,0 +1,757 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "reviewed_at_utc": "2026-10-07T10:25:22.968752+00:00",
+  "reviewer": "independent hide_fullcl_audit agent",
+  "review_scope": "Post-execution CPU readback of saved observations and parent-verified remote receipts; no new training or GPU work.",
+  "source_mutated": false,
+  "large_checkpoints_loaded": false,
+  "gpu_or_training_executed": false,
+  "credentials_read": false,
+  "network_called_by_reviewer": false,
+  "only_new_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/full_cl/environment/final_audit.json",
+  "full_ten_task_matched_accuracy_acceptance": "not_assessed; independent author comparison covers only first two tasks",
+  "checks": {
+    "accuracy": {
+      "all_saved_predictions_verified": true,
+      "final_accuracy_matches_report": true,
+      "incremental_accuracy_matches_report": true,
+      "forgetting_matches_report": true,
+      "report_full_lower_triangle_and_null_future": true
+    },
+    "outer_epochs": {
+      "all700_unique_epochs": true,
+      "55300_outer_steps": true,
+      "3500000_outer_images": true,
+      "each_epoch79steps5000images": true,
+      "phase_rng_matches": true,
+      "all_losses_finite": true,
+      "prompt_decay_at_human_epoch32": true
+    },
+    "resources": {
+      "10_complete_task_intervals": true,
+      "nonoverlapping_intervals": true,
+      "all_task_values_finite": true,
+      "task_sample_counts": true,
+      "all_task_energy_coverage100pct": true,
+      "task_and_process_energy_recompute": true,
+      "all_aggregate_phase_energy_recompute": true,
+      "chronological_sensors_and_valid_segments": true,
+      "all_sampled_global_peaks_match": true,
+      "global_cuda_peaks_preserve_task_maxima": true,
+      "process_cpu_at_least_task_cpu_sum": true,
+      "report_process_and_task_metrics_match": true
+    },
+    "source_and_completion": {
+      "all17_execution_sources_unchanged": true,
+      "report_four_source_pins_match": true,
+      "completed_worker_exit0": true,
+      "recorded_structure_and_prefix_checks_pass": true,
+      "seven_final_report_file_pins_match": true,
+      "copied_report_publication_matches_verified_result": true,
+      "slack_completion_receipt_matches_verified_report": true
+    },
+    "native_wandb_21_files": {
+      "finished_committed_project_and_artifact": true,
+      "result_sha_matches": true,
+      "expected_file_count": true,
+      "immutable_local_and_readback_pins_match": true
+    },
+    "report_wandb_8_files": {
+      "finished_committed_project_and_artifact": true,
+      "result_sha_matches": true,
+      "expected_file_count": true,
+      "immutable_local_and_readback_pins_match": true
+    },
+    "work_counts": {
+      "source_work_counters": true,
+      "20_alignment_coordinates": true,
+      "all_alignment_schedules_population_and_lrs": true,
+      "27000_alignment_steps": true,
+      "report_generated_features_and_steps_match": true
+    }
+  },
+  "accuracy": {
+    "final_correct": 9427,
+    "final_samples": 10000,
+    "final_accuracy_pct": 94.27,
+    "final_accuracy_pct_exact": {
+      "numerator": 9427,
+      "denominator": 100
+    },
+    "average_incremental_accuracy_pct": 95.89185714285715,
+    "average_incremental_accuracy_pct_exact": {
+      "numerator": 671243,
+      "denominator": 7000
+    },
+    "mean_forgetting_pp": 1.9,
+    "mean_forgetting_pp_exact": {
+      "numerator": 19,
+      "denominator": 10
+    },
+    "forgetting_definition": "Tasks1..9: max accuracy after acquisition through task9, excluding final row, minus accuracy after task10; mean over9 old tasks.",
+    "forgetting_by_task_pp": [
+      3.2,
+      3.4,
+      2.0,
+      2.7,
+      2.6,
+      0.5,
+      1.6,
+      0.7,
+      0.4
+    ],
+    "class_il_accuracy_matrix_pct": [
+      [
+        99.4,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        98.9,
+        97.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        97.9,
+        96.5,
+        96.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        97.4,
+        95.4,
+        95.6,
+        96.6,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        96.9,
+        95.0,
+        94.7,
+        95.6,
+        95.4,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        96.6,
+        95.6,
+        94.4,
+        95.5,
+        93.8,
+        93.7,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        96.6,
+        94.3,
+        94.7,
+        94.6,
+        93.3,
+        94.3,
+        95.3,
+        null,
+        null,
+        null
+      ],
+      [
+        96.7,
+        94.1,
+        94.1,
+        94.7,
+        93.1,
+        94.0,
+        94.3,
+        94.2,
+        null,
+        null
+      ],
+      [
+        96.4,
+        93.7,
+        94.2,
+        94.4,
+        93.2,
+        94.5,
+        94.2,
+        94.7,
+        96.7,
+        null
+      ],
+      [
+        96.2,
+        93.6,
+        94.0,
+        93.9,
+        92.8,
+        94.0,
+        93.7,
+        94.0,
+        96.3,
+        94.2
+      ]
+    ],
+    "trajectory_seen_accuracy_pct": [
+      99.4,
+      97.95,
+      96.8,
+      96.25,
+      95.52,
+      94.93333333333334,
+      94.72857142857143,
+      94.4,
+      94.66666666666667,
+      94.27
+    ],
+    "final_tii_task_routing_pct": 84.47,
+    "cumulative_evaluation_examples": 55000,
+    "prediction_checks": [
+      {
+        "task": 1,
+        "test_examples": 1000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 2,
+        "test_examples": 2000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 3,
+        "test_examples": 3000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 4,
+        "test_examples": 4000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 5,
+        "test_examples": 5000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 6,
+        "test_examples": 6000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 7,
+        "test_examples": 7000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 8,
+        "test_examples": 8000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 9,
+        "test_examples": 9000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      },
+      {
+        "task": 10,
+        "test_examples": 10000,
+        "checks": {
+          "raw_indices_and_labels_exact": true,
+          "100_examples_per_seen_class": true,
+          "no_future_or_invalid_predictions": true,
+          "separate_test_task_order": true,
+          "seen_old_new_correct_counts": true,
+          "native_matrix_matches_predictions": true,
+          "tii_and_routing_metrics": true
+        },
+        "status": "pass"
+      }
+    ]
+  },
+  "work_counts": {
+    "tii_training_steps": 15800,
+    "prompt_training_steps": 39500,
+    "tii_statistics_examples": 50000,
+    "prompt_statistics_examples": 50000,
+    "prompt_training_tii_examples": 2500000,
+    "routing_evaluation_examples": 55000,
+    "outer_epochs": 700,
+    "outer_optimizer_steps": 55300,
+    "outer_training_images": 3500000,
+    "alignment_optimizer_steps": 27000,
+    "total_optimizer_steps": 82300,
+    "generated_synthetic_features_by_branch": {
+      "tii": 10368000,
+      "prompt": 51830400
+    },
+    "generated_synthetic_features_total": 62198400,
+    "consumed_synthetic_features_by_branch": {
+      "tii": 864000,
+      "prompt": 4320000
+    },
+    "consumed_synthetic_features_total": 5184000,
+    "note": "Task10 prompted CA generated319680 feature rows/epoch, corresponding to999 nondegenerate centroids; the protected source skips zero-variance centroids before jitter. Optimizer steps remain2700. Generated features are not raw images or all consumed classifier examples.",
+    "alignment_checks": [
+      {
+        "task": 1,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": []
+      },
+      {
+        "task": 1,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": []
+      },
+      {
+        "task": 2,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          12800
+        ]
+      },
+      {
+        "task": 2,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          64000
+        ]
+      },
+      {
+        "task": 3,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          19200
+        ]
+      },
+      {
+        "task": 3,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          96000
+        ]
+      },
+      {
+        "task": 4,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          25600
+        ]
+      },
+      {
+        "task": 4,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          128000
+        ]
+      },
+      {
+        "task": 5,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          32000
+        ]
+      },
+      {
+        "task": 5,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          160000
+        ]
+      },
+      {
+        "task": 6,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          38400
+        ]
+      },
+      {
+        "task": 6,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          192000
+        ]
+      },
+      {
+        "task": 7,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          44800
+        ]
+      },
+      {
+        "task": 7,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          224000
+        ]
+      },
+      {
+        "task": 8,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          51200
+        ]
+      },
+      {
+        "task": 8,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          256000
+        ]
+      },
+      {
+        "task": 9,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          57600
+        ]
+      },
+      {
+        "task": 9,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          288000
+        ]
+      },
+      {
+        "task": 10,
+        "branch": "tii",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          64000
+        ]
+      },
+      {
+        "task": 10,
+        "branch": "prompt",
+        "checks": {
+          "epochs_steps_skip": true,
+          "old_seen_classes_and_multiplier": true,
+          "complete_epoch_observations": true,
+          "finite_losses_and_cosine_lr": true,
+          "source_population_bounds": true
+        },
+        "generated_examples_per_epoch_unique": [
+          319680
+        ]
+      }
+    ]
+  },
+  "resources": {
+    "process_wall_s": 11734.549227294978,
+    "launcher_wall_s_including_upload": 11795.991375490004,
+    "sum_task_interval_wall_s": 11688.60625304404,
+    "gpu_board_energy_wh": 1331.8129545022741,
+    "independently_integrated_gpu_board_energy_j": 4794526.636208187,
+    "gpu_energy_coverage_fraction": 0.999996146865458,
+    "telemetry_rows": 11270,
+    "energy_method": "Independent cumulative analytic integral of piecewise-linear sampled power; finite nonnegative endpoints, strictly positive gaps<=6s, no boundary extrapolation.",
+    "process_energy_abs_gap_j": 0.0,
+    "task_energy_max_abs_gap_j": 5.704350769519806e-09,
+    "aggregate_phase_energy_discrepancies": [],
+    "cuda_peak_allocated_mib": 6486.240234375,
+    "cuda_peak_reserved_mib": 23224.0,
+    "peak_device_mib": 23751.0,
+    "peak_summed_process_tree_rss_mib": 31936.74609375,
+    "process_tree_cpu_s": 15158.248896000001,
+    "memory_interpretation": "Allocator allocated peak6.334GiB differs from reserved22.680GiB and sampled device23.194GiB. Full-run footprint approaches24GB capacity; RSS includes shared-page duplication.",
+    "energy_scope": "Selected GPU board only; excludes CPU/RAM and total machine wall energy."
+  },
+  "provenance": {
+    "native_result_sha256": "1e28015049fed130e04bedd654bd4746b785ca79280fce114b4ca3c11c8163a7",
+    "native_artifact_manifest_sha256": "e2f8235b06565e0748b31b4525901763923635f990e7b82ecde362b49a5ea46b",
+    "native_readback_receipt_sha256": "c2e95601e825990d872924366ee5e1d4ee4ca909ebd49ec86a57e8ae659c711c",
+    "report_results_sha256": "30bc8cd365b53cc2655683707e5eef6d41cf5e553949b6c84809dcce510faf79",
+    "report_readback_receipt_sha256": "0bb7a43f6afcef59e80d82470ad011624440a0cbe5d9f00e5b38ed67fc62893a",
+    "raw_cifar100_test_sha256": "4b67687d9933c4db8f0831104447f15b93774f4f464bd0516f0f0f2ac83b7864",
+    "telemetry_sha256": "94cc83fa22edff2bc3f6c70aff68d7beb1db414e7bd62658abd8643eee5e0568",
+    "phases_sha256": "6e1540e3941ee4f9f299ff9739032369a8f1c8e63c3e24094fca7155c30afaa2",
+    "execution_source_sha256": {
+      "scripts/run_hide_validation.py": "639f87967f1fb97f362ed5cb6ec34beeb3dc0b3b6b51723b0597f60932ca4b63",
+      "scripts/hide_protocol.py": "3e6c4eb37a07385799537bfc717b40119e40e1f46416a98503b33ce48041a7a2",
+      "scripts/hide_acceptance.py": "bc62516e85ba99e3ea020b4bfb16eaa27078eb6db0590903b5295f481ae19cc9",
+      "scripts/hide_reference_utils.py": "f6e7c103a321e34beaf94ab74705d91b90c9e7132a584bd7c8e84dae557ccc63",
+      "models/hide_prompt.py": "c1586e5d4d63209302f2047809a554a3a23a1365beef2d9298d03c0f90aa1ad3",
+      "backbone/hide_vit.py": "3bc3b83461d5bc4dbf4545d229a4bbf3229465204ba0c00ffb68318acdfd992c",
+      "models/hide_prompt_utils/network.py": "85fb4e9ae1a451ffba66ee523d402c8fd2ac17802a4915f2464967f464ca0a37",
+      "models/hide_prompt_utils/prompt.py": "52ae82790d00ea66c531bffbe4f68db6753d6c88f3e96f364496d84a38a68607",
+      "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+      "models/hide_prompt_utils/statistics.py": "cdac9819d9128f9ddce3d68b6c38b510508b4f7d73a259c57980cccbddf9f1d9",
+      "models/config/hide_prompt.yaml": "b4b1631f00719e05eed67ff9eee2cfcb329cdc5203d961c52e7c8b0e93b45625",
+      "datasets/configs/seq-cifar100-224/hide_prompt.yaml": "20c833176ed7fe3ecbbe48649a5ba8c18f548422f07040b92e79a7080d12bcb7",
+      "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+      "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+      "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+      "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+      "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+    },
+    "prediction_files_sha256": {
+      "task1_predictions.npz": "b19f01b324247f8c04bcd4d0c08104fd07d89540306ba3fcc84eacd8ca4cf7fd",
+      "task2_predictions.npz": "21cb7969ffde4bfb8bda9af15e2013d42f63f74fa7c730517511ac5759cde3e0",
+      "task3_predictions.npz": "ba3ff0fcc66605f656d4f7800724a5147c7e577d19a6d6f4451cad88b7328c31",
+      "task4_predictions.npz": "fcc5cc80db08eac3438eca7842d4ba60d25d79620b052f0bed00c91beca8640e",
+      "task5_predictions.npz": "537afb7630c749992202d7edd41aa63b247137c7d5150296b63e0162bc3cbe5f",
+      "task6_predictions.npz": "d59f948c23e7bb38b102ac74186fdb02633d7664d59d65218d42d4394d229345",
+      "task7_predictions.npz": "ebc45dbbca79cd6838c8f2ef62a0a6c309a023da7bc4ea4b19244eedcfa65dfc",
+      "task8_predictions.npz": "13432d1c56c62bbbc672095195046759b4a692bb48dd4f008e4f049b35116963",
+      "task9_predictions.npz": "a1d5c32c21c6ae61073d5ce18f80f6d5941895f2347f165a97d2161340c2e7f3",
+      "task10_predictions.npz": "16e1bbedd001e9d5260ffd3b94c4e9056f434f8b3542955b550f738574132cb0"
+    },
+    "seven_final_report_files_sha256": {
+      "results.json": "30bc8cd365b53cc2655683707e5eef6d41cf5e553949b6c84809dcce510faf79",
+      "results.csv": "58794ef38293f8ef7db39f09f5b08aa021600aaaaf3e190255a48d31f04dc0f8",
+      "report.md": "afad31add4f43d91aade2fb8522f1580c97519c8939e000ffd3c8559a9067b7e",
+      "accuracy_matrix.png": "d011c70e08cbbe8dd953a6605c6b85c022ab00bd9c33cfee222ebf74ab54af7a",
+      "accuracy_matrix.pdf": "30e4e15c1123f596721896f8cb8d47db48cdc29ed400bf03c20db087d20b8c2b",
+      "task_resources.png": "dfddd91ca975fcfe95e2f43dada82a4d5f90ad1badc7853a144f8cc85baa03f1",
+      "task_resources.pdf": "690761f228547ebc983dcb39c9ce86bbb41b9969a3b5586999602fcd26eb50d1"
+    },
+    "native_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ba00j7ud",
+    "report_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/shz1r5i1"
+  }
+}

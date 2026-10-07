@@ -1,6 +1,10 @@
 # HiDe-Prompt Base 전체 10태스크
 
-승인된 다음 단계는 기존 독립 저자 기준선/native 첫2태스크 구현 검증을 통과한 HiDe-Prompt의 **Base 전체10태스크, seed1993 한 실행**입니다. GPU1·batch64, CIFAR100 고정 순서 10클래스/태스크, ViT-B/16 AugReg IN21K → IN1K 공유 NPZ를 사용합니다. 각 태스크에서 TII20 + prompt50epoch를 실행하며, 태스크2부터 두 branch의 분류기에 CA30epoch를 적용합니다. 상세 조건과 실행 상태는 [실행 계획](execution_plan.json)에 기록합니다.
+HiDe-Prompt의 **Base 전체10태스크, seed1993 한 실행**을 완료했습니다. 최종 class-IL 정확도는 **94.27%**, 평균 증분 정확도 **95.89%**, 평균 망각 **1.90%p**입니다. 전체 계측 시간은 **3시간15분35초**, GPU 보드 에너지는 **1.332kWh**입니다. GPU 메모리 최대값은 CUDA allocated **6.33GiB**, reserved **22.68GiB**, NVML device **23.19GiB**로 구분합니다. 태스크별 평가·시간·메모리·에너지는 [보고서](report.md), [JSON](results.json), [CSV](results.csv), [자원 그래프](task_resources.png), [정확도 행렬](accuracy_matrix.png)에 저장했습니다.
+
+[최종 W&B 보고서](https://wandb.ai/laymond1/cl-efficiency/runs/shz1r5i1)와 [native 실행](https://wandb.ai/laymond1/cl-efficiency/runs/ba00j7ud)은 파일별 SHA readback까지 통과했고, Slack 완료 알림을 전송했습니다.
+
+GPU1·batch64, CIFAR100 고정 순서 10클래스/태스크, ViT-B/16 AugReg IN21K → IN1K 공유 NPZ를 사용했습니다. 각 태스크에서 TII20 + prompt50epoch를 실행했으며, 태스크2부터 두 branch의 분류기에 CA30epoch를 적용했습니다. 상세 조건과 실행·업로드 검증 상태는 [실행 계획](execution_plan.json)에 기록합니다.
 
 기존 공유 데이터·캐시·저자 learnable 초기값을 재사용합니다. 첫2태스크의 예측 배열은 이전에 저자 기준선과 일치한 native 기록과 정확히 대조하며, 관련 모델·backbone·데이터·학습 source hash가 바뀌면 실행을 차단합니다. 전체10태스크에 대한 독립 기준선은 이번 기본 실행에 포함하지 않습니다. 비정상적으로 낮은 성능은 구현 문제로 조사하며, 서로 다른 recipe의 논문 수치에 1.5/3.0%p 기준을 직접 적용하지 않습니다.
 

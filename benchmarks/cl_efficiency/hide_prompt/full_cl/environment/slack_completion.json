@@ -1,0 +1,6 @@
+{
+  "status": "sent",
+  "message": "HiDe-Prompt Base 전체10태스크 결과 저장·검증 완료 (GPU1, batch64, seed1993).\n최종 정확도 94.27%, 평균 증분 정확도 95.89%, 과거9태스크 망각 1.90%p.\nW&B https://wandb.ai/laymond1/cl-efficiency/runs/shz1r5i1",
+  "result_sha256": "545ce6065e8f20518f159ae0ff5046f5064b7bd7ac858a148930a15d8c9f049f",
+  "readback_sha256": "0bb7a43f6afcef59e80d82470ad011624440a0cbe5d9f00e5b38ed67fc62893a"
+}

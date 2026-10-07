@@ -247,6 +247,7 @@ def render_markdown(report):
              '| Recorder 실행 시간(s) | ' + formatted(process.get('process_wall_s')) + ' |',
              '| GPU 보드 에너지(Wh) | ' + formatted(process.get('gpu_board_energy_wh')) + ' |',
              '| CUDA allocated peak(MiB) | ' + formatted(process.get('cuda_peak_allocated_mib')) + ' |',
+             '| CUDA reserved peak(MiB) | ' + formatted(process.get('cuda_peak_reserved_mib')) + ' |',
              '| GPU device memory peak(MiB) | ' + formatted(process.get('peak_gpu_device_memory_mib')) + ' |',
              '| 프로세스·자식 RSS peak(MiB) | ' + formatted(process.get('peak_process_tree_rss_mib')) + ' |',
              '| GPU 에너지 sampling coverage(%) | ' + formatted(process['gpu_energy_coverage_fraction'] * 100
@@ -300,8 +301,14 @@ def render_plots(report, directory):
         axes[0, 0].plot(x, [row['phase_groups'][name]['wall_s'] for row in tasks], marker='o', label=name)
     axes[0, 0].plot(x, [row['wall_s'] for row in tasks], color='black', linestyle='--', label='Task interval')
     axes[0, 0].set(ylabel='Wall time (s)', title='Task and method phase costs'); axes[0, 0].legend()
+    for key, label in (('cuda_peak_allocated_mib', 'CUDA allocated'),
+                       ('cuda_peak_reserved_mib', 'CUDA reserved'),
+                       ('peak_gpu_device_memory_mib', 'NVML device')):
+        values = [row['metrics'][key] / 1024 if row['metrics'][key] is not None else None for row in tasks]
+        axes[1, 0].plot(x, values, marker='o', label=label)
+    axes[1, 0].set(ylabel='Memory peak (GiB)', title='GPU memory footprint', ylim=(0, None))
+    axes[1, 0].legend()
     for axis, key, label in ((axes[0, 1], 'gpu_board_energy_wh', 'GPU board energy (Wh)'),
-                            (axes[1, 0], 'cuda_peak_allocated_mib', 'CUDA allocated peak (GiB)'),
                             (axes[1, 1], 'peak_process_tree_rss_mib', 'Process-tree RSS peak (GiB)')):
         values = [row['metrics'][key] for row in tasks]
         if key.endswith('_mib'):

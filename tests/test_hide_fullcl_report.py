@@ -255,6 +255,31 @@ def test_local_report_writes_scientific_png_pdf_and_newline_csv(reports, tmp_pat
     assert len((output / 'results.csv').read_text().splitlines()) == 11
 
 
+def test_memory_figure_shows_reserved_and_device_footprint_above_allocated(records, tmp_path, monkeypatch):
+    from matplotlib.figure import Figure
+    native = records[0]
+    native['metrics']['cuda_peak_reserved_mib'] = 23224.75
+    for task, row in enumerate(native['task_resources'], 1):
+        row['metrics'].update(cuda_peak_allocated_mib=6 * 1024 + task,
+                              cuda_peak_reserved_mib=20 * 1024 + task,
+                              peak_gpu_device_memory_mib=23 * 1024 + task)
+    report = reporter.build_report(*records)
+    captured = {}
+    def capture(figure, path, **kwargs):
+        if Path(path).stem == 'task_resources':
+            axis = figure.axes[2]
+            captured['series'] = {line.get_label(): list(line.get_ydata()) for line in axis.lines}
+            captured['minimum'] = axis.get_ylim()[0]
+    monkeypatch.setattr(Figure, 'savefig', capture)
+    reporter.render_plots(report, tmp_path)
+    assert captured['series'] == {
+        'CUDA allocated': [6 + task / 1024 for task in range(1, 11)],
+        'CUDA reserved': [20 + task / 1024 for task in range(1, 11)],
+        'NVML device': [23 + task / 1024 for task in range(1, 11)]}
+    assert captured['minimum'] == 0
+    assert '| CUDA reserved peak(MiB) | 23224.75 |' in reporter.render_markdown(report)
+
+
 def test_completion_notification_requires_finished_hash_readback_before_webhook(reports, monkeypatch):
     output = reports[1]
     output.mkdir()

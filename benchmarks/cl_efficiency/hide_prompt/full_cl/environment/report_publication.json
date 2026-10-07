@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "name": "hide-fullcl-report-20261007T101907Z",
+  "model": "hide-prompt",
+  "mode": "full_cl",
+  "report_only": true,
+  "new_training": false,
+  "new_gpu_computation": false,
+  "report_dir": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/full_cl",
+  "report_files_sha256": {
+    "results.json": "30bc8cd365b53cc2655683707e5eef6d41cf5e553949b6c84809dcce510faf79",
+    "results.csv": "58794ef38293f8ef7db39f09f5b08aa021600aaaaf3e190255a48d31f04dc0f8",
+    "report.md": "afad31add4f43d91aade2fb8522f1580c97519c8939e000ffd3c8559a9067b7e",
+    "accuracy_matrix.png": "d011c70e08cbbe8dd953a6605c6b85c022ab00bd9c33cfee222ebf74ab54af7a",
+    "accuracy_matrix.pdf": "30e4e15c1123f596721896f8cb8d47db48cdc29ed400bf03c20db087d20b8c2b",
+    "task_resources.png": "dfddd91ca975fcfe95e2f43dada82a4d5f90ad1badc7853a144f8cc85baa03f1",
+    "task_resources.pdf": "690761f228547ebc983dcb39c9ce86bbb41b9969a3b5586999602fcd26eb50d1"
+  },
+  "sources": {
+    "native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007/result.json",
+      "sha256": "1e28015049fed130e04bedd654bd4746b785ca79280fce114b4ca3c11c8163a7"
+    },
+    "reference": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/hide-author-validation-20261007T045302Z/result.json",
+      "sha256": "61ec3b413d721fe544531a1ef839bfdeddae4141b208e74d9d49d85ed036faf2"
+    },
+    "accepted_native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-validation-b64-20261007/result.json",
+      "sha256": "69155174ba5c063111d5c98eeeef7d1e4206a996c312154ec24b2179bdead304"
+    },
+    "native_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "e2f8235b06565e0748b31b4525901763923635f990e7b82ecde362b49a5ea46b"
+    }
+  },
+  "summary": {
+    "report_only": true,
+    "new_training": false,
+    "new_gpu_computation": false,
+    "paper_reproduction": false,
+    "seed_variation_estimated": false,
+    "equal_compute_budget": false,
+    "implementation_prefix_gate": "pass",
+    "full_ten_task_accuracy_acceptance": "not_assessed_by_matched_ten_task_reference",
+    "full_cl/final_accuracy_pct": 94.27,
+    "full_cl/average_incremental_accuracy_pct": 95.89185714285715,
+    "full_cl/forgetting_pp": 1.8999999999999961,
+    "resources/process_wall_s": 11734.549227294978,
+    "resources/outer_training_stream_examples": 3500000,
+    "resources/evaluation_examples": 55000,
+    "resources/outer_observe_steps": 55300,
+    "resources/tasks_completed": 10,
+    "resources/cuda_peak_allocated_mib": 6486.240234375,
+    "resources/cuda_peak_reserved_mib": 23224.0,
+    "resources/peak_process_tree_rss_mib": 31936.74609375,
+    "resources/peak_gpu_device_memory_mib": 23751.0,
+    "resources/peak_gpu_utilization_percent": 100.0,
+    "resources/peak_gpu_power_w": 434.35,
+    "resources/gpu_board_energy_j": 4794526.636208187,
+    "resources/gpu_energy_coverage_s": 11734.504012498015,
+    "resources/gpu_energy_coverage_fraction": 0.999996146865458,
+    "resources/gpu_board_energy_wh": 1331.8129545022741,
+    "resources/outer_training_examples_per_s": 315.8652891195218,
+    "resources/evaluation_examples_per_s": 375.27706758771615,
+    "resources/process_tree_cpu_s": 15158.248896000001,
+    "work/outer_image_training_examples": 3500000,
+    "work/evaluation_image_examples": 55000,
+    "work/prompt_training_additional_tii_forward_image_examples": 2500000,
+    "work/outer_optimizer_steps": 55300,
+    "work/alignment_optimizer_steps": 27000,
+    "work/total_optimizer_steps": 82300,
+    "work/synthetic_feature_examples_generated": 62198400
+  },
+  "status": "completed",
+  "wandb_logging_status": "uploaded",
+  "readback_status": "pending",
+  "slack_completion_status": "deferred_until_readback",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/shz1r5i1",
+  "wandb_artifact": {
+    "name": "laymond1/cl-efficiency/hide-fullcl-report-20261007T101907Z:v0",
+    "state": "COMMITTED"
+  }
+}
