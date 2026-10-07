@@ -124,8 +124,8 @@ def build_spec(options, profile):
 
 def execute(options, profile):
     spec = build_spec(options, profile)
-    if not os.getenv('WANDB_API_KEY') or not valid_slack_webhook():
-        raise ValueError('Online W&B and Slack credentials are required for low-rank validation')
+    if not valid_slack_webhook():
+        raise ValueError('Slack credentials are required for low-rank validation')
     output = Path(spec['output'])
     output.mkdir(parents=True, exist_ok=False)
     write_json(output / 'spec.json', spec)
