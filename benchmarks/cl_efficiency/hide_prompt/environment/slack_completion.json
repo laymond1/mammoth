@@ -1,0 +1,6 @@
+{
+  "status": "sent",
+  "message": "HiDe-Prompt 결과 저장·검증 완료: 정확도 pass, 구현 pass.\n태스크2 정확도 97.95%, 최대 저자−구현 차이 0.00%p.\n효율성 3회 평균: 57.1초, GPU 보드 4.992Wh, CUDA peak 6.33GiB.\nW&B https://wandb.ai/laymond1/cl-efficiency/runs/o3qej29b",
+  "result_sha256": "4aba94a3a662fe031f15aa017d152883978cae8f1fcbd41616b5cbec8089ae8e",
+  "readback_sha256": "5086c06bd1026a178d5fa2d374da702b9fa5443a0b6fb5035f8421d6a809ecad"
+}

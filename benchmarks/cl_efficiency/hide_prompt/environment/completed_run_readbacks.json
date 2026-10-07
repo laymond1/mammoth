@@ -1,0 +1,65 @@
+{
+  "status": "pass",
+  "runs": {
+    "author": {
+      "status": "pass",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/eiil7wjc",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/hide-author-validation-20261007T045302Z:v0",
+      "verified_files": 13,
+      "receipt_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/prepared/readbacks/author-validation/readback.json",
+      "result_sha256": "61ec3b413d721fe544531a1ef839bfdeddae4141b208e74d9d49d85ed036faf2"
+    },
+    "native": {
+      "status": "pass",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/iw6ohxji",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/hide-native-validation-20261007T053216Z:v0",
+      "verified_files": 11,
+      "receipt_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/prepared/readbacks/native-validation/readback.json",
+      "result_sha256": "69155174ba5c063111d5c98eeeef7d1e4206a996c312154ec24b2179bdead304"
+    },
+    "measurement1": {
+      "status": "pass",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ne0nyvqg",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/hide-native-efficiency-20261007T061131Z:v0",
+      "verified_files": 9,
+      "receipt_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/prepared/readbacks/measurement1/readback.json",
+      "result_sha256": "da41b59fb5f1e20f55eca7d324c110471730375d3f964b037764771edc3da49b"
+    },
+    "measurement2": {
+      "status": "pass",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/odcfe4ze",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/hide-native-efficiency-20261007T061240Z:v0",
+      "verified_files": 9,
+      "receipt_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/prepared/readbacks/measurement2/readback.json",
+      "result_sha256": "56663a462c9a9c43c4bfcc4e0917c48c5e0ba132de5326c420352705aad85300"
+    },
+    "measurement3": {
+      "status": "pass",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/osbkx1m0",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/hide-native-efficiency-20261007T061346Z:v0",
+      "verified_files": 9,
+      "receipt_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/prepared/readbacks/measurement3/readback.json",
+      "result_sha256": "433b66697ef79cc187a203a457ee0ae5606f50adfe43b0ee83999e12e91978a3"
+    },
+    "flops": {
+      "status": "pass",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/eq6s491r",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/hide-native-efficiency-20261007T061454Z:v0",
+      "verified_files": 10,
+      "receipt_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/prepared/readbacks/flops/readback.json",
+      "result_sha256": "32c7f56debf3a0a38c42141c501605ce1ede5c48c4c648f038310981af8804a1"
+    }
+  }
+}

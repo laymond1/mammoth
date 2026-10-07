@@ -35,6 +35,9 @@ PHASE_METRICS = ('wall_s', 'gpu_board_energy_j', 'gpu_energy_coverage_s')
 RAW_KEYS = ('n_samples', 'class_counts', 'samples_ordered_sha256',
             'samples_unordered_sha256', 'global_ids_ordered_sha256',
             'transform_repr_sha256')
+PRECISION_FIELDS = ('parameter_dtype', 'autocast', 'matmul_precision',
+                    'tf32_allowed', 'cudnn_tf32_allowed', 'cudnn_deterministic',
+                    'cudnn_benchmark')
 LABELS = {'ease': 'EASE', 'ranpac': 'RanPAC', 'l2p': 'L2P',
           'dualprompt': 'DualPrompt', 'hide-prompt': 'HiDe-Prompt'}
 
@@ -153,6 +156,20 @@ def first_task_snapshot(record, split):
     return snapshots.get(f'task1_{split}', snapshots.get('first_task', {}).get(split, {}))
 
 
+def cpu_thread_metadata(record):
+    """Preserve missing observations; accept either serialized field location."""
+    precision = record.get('precision') or {}
+    values = {name: value for name, value in (
+        ('record', record.get('torch_cpu_threads')),
+        ('precision', precision.get('torch_cpu_threads')),
+    ) if value is not None}
+    invalid = any(type(value) is not int or value < 1 for value in values.values())
+    conflict = bool(values) and any(value != next(iter(values.values())) for value in values.values())
+    return {'value': next(iter(values.values())) if values and not invalid and not conflict else None,
+            'sources': values, 'status': 'invalid' if invalid or conflict else
+            'recorded' if values else 'not_recorded'}
+
+
 def compatible_history(document, records, target):
     reasons = []
     if document.get('status') != 'completed' or document.get('pilot_status') != 'pass':
@@ -172,18 +189,40 @@ def compatible_history(document, records, target):
             reasons.append(f'historical {key} differs')
     if len(records) != 3 or any(record.get('pass') != 'measurement' or record.get('status') != 'completed' for record in records):
         reasons.append('three completed measurement observations are required')
+    target_precision = target.get('precision') or {}
+    target_threads = cpu_thread_metadata(target)
+    historical_threads = []
     for record in records:
         if record.get('metrics', {}).get('evaluation_examples') != 1000:
             reasons.append('historical evaluation sample count differs')
         for split in ('train', 'test'):
             left, right = first_task_snapshot(record, split), first_task_snapshot(target, split)
-            if not left or not right or any(left.get(key) is None or left.get(key) != right.get(key) for key in RAW_KEYS):
-                reasons.append(f'historical {split} samples or preprocessing differ or lack evidence')
-        if record.get('precision') != target.get('precision'):
-            reasons.append('precision or deterministic runtime policy differs')
+            for key in RAW_KEYS:
+                if left.get(key) is None or right.get(key) is None or left.get(key) != right.get(key):
+                    reasons.append(f'historical {split} {key} differs or lacks evidence')
+        historical_precision = record.get('precision') or {}
+        for key in PRECISION_FIELDS:
+            left, right = historical_precision.get(key), target_precision.get(key)
+            if left is None or right is None or type(left) is not type(right) or left != right:
+                reasons.append(f'precision policy {key} differs or lacks required evidence')
+        threads = cpu_thread_metadata(record)
+        historical_threads.append(threads)
+        if threads['status'] == 'invalid' or target_threads['status'] == 'invalid':
+            reasons.append('CPU thread metadata is invalid or conflicting within a record')
+        elif threads['value'] is not None and target_threads['value'] is not None and threads['value'] != target_threads['value']:
+            reasons.append('recorded CPU thread count differs')
+    threads_available = (target_threads['status'] == 'recorded'
+                         and all(entry['status'] == 'recorded' for entry in historical_threads))
+    threads_match = threads_available and all(entry['value'] == target_threads['value'] for entry in historical_threads)
     return {'status': 'compatible' if not reasons else 'excluded', 'reasons': sorted(set(reasons)),
+            'required_precision_fields': list(PRECISION_FIELDS),
+            'cpu_thread_evidence': {'status': 'matched' if threads_match else
+                                    'metadata_missing' if target_threads['status'] == 'not_recorded' or
+                                    any(entry['status'] == 'not_recorded' for entry in historical_threads) else 'mismatch_or_invalid',
+                                    'historical': historical_threads, 'target': target_threads,
+                                    'scope': 'Only serialized CPU thread metadata is used. Missing values remain unknown; source defaults are not substituted.'},
             'physical_gpu_evidence': 'matched' if historical_gpu is not None and target_gpu is not None and str(historical_gpu) == str(target_gpu) else 'not_available_in_both_serialized_records',
-            'scope': 'Matched raw first-task data, transforms, Base checkpoint, batch64, seed1993, workers and precision. Different phase budgets, source snapshots and execution dates remain.'}
+            'scope': 'Requires matched raw first-task data, transforms, Base checkpoint, batch64, seed1993, workers and seven explicit precision policies. Known CPU thread counts must match; missing metadata is disclosed. Different phase budgets, source snapshots and execution dates remain.'}
 
 
 def method_summary(name, measurements, flops, *, protocol=None, historical=False):
@@ -363,8 +402,30 @@ def markdown(report):
             cells = ['—' if values[key]['mean'] is None else f'{values[key]["mean"]:,.0f}'
                      for key in ('parameters_total', 'parameters_trainable', 'parameters_in_optimizer')]
             lines.append('| ' + phase + ' | ' + ' | '.join(cells) + ' |')
+        historical_methods = [method for method in methods if method['historical_reuse']]
+        reused = ', '.join(method['label'] for method in historical_methods) or '없음'
         lines.extend(['', '![효율성 비교](efficiency_comparison.png)', '', '[PDF 그림](efficiency_comparison.pdf)', '',
-                      '기존 EASE/RanPAC/L2P/DualPrompt는 원본 측정을 재사용합니다. 데이터·전처리·가중치·batch·seed·precision 증거가 일치할 때만 비교에 포함하며, 실행 시각·소스 차이와 방법별 학습/태스크 종료 작업 차이는 유지됩니다.', '',
+                      f'기존 측정 재사용: **{reused}**. 데이터·전처리·가중치·batch·seed·precision 7개 필드가 일치할 때만 비교에 포함하며, 실행 시각·소스 차이와 방법별 학습/태스크 종료 작업 차이는 유지됩니다. CPU thread 수는 top-level 또는 precision 필드에 저장된 실제 메타데이터를 읽고, 양쪽에 있으면 일치를 요구합니다.', '',
+                      '| 기존 방법 | CPU thread 기록 |', '|---|---|'])
+        for method in historical_methods:
+            evidence = method['compatibility']['cpu_thread_evidence']
+            if evidence['status'] == 'matched':
+                note = f'양쪽 {evidence["target"]["value"]}개 일치'
+            else:
+                unknown = []
+                if any(entry['status'] == 'not_recorded' for entry in evidence['historical']):
+                    unknown.append('기존 측정 미기록')
+                if evidence['target']['status'] == 'not_recorded':
+                    unknown.append('HiDe 측정 미기록')
+                note = ' · '.join(unknown) + '; 일치 여부 미확인, 값 추정 없음'
+            lines.append(f'| {method["label"]} | {note} |')
+        exclusions = report['efficiency'].get('historical_exclusions', [])
+        if exclusions:
+            lines.extend(['', '다음 기존 측정은 조건 차이 또는 필수 증거 부족으로 표·그림의 동일 입력 비교에서 제외했습니다.', '',
+                          '| 제외한 방법 | 제외 이유 |', '|---|---|'])
+            for entry in exclusions:
+                lines.append(f'| {LABELS.get(entry["model"], entry["model"])} | {"; ".join(entry["reasons"])} |')
+        lines.extend(['',
                       '| 방법 | 측정 W&B | 별도 FLOPs W&B |', '|---|---|---|'])
         for method in methods:
             links = ' · '.join(f'[run{i}]({url})' for i, url in enumerate(method['wandb_urls'], 1) if url)
@@ -442,7 +503,18 @@ def plot_report(report, output):
             if key == 'accuracy':
                 axis.set_ylim(0, 105)
         figure.suptitle('First-task efficiency: mean ± sample SD of 3 same-seed executions\nHiDe uses two training phases; historical methods use one outer epoch', fontsize=11)
-        figure.supxlabel('GPU-board energy excludes CPU/RAM/whole-machine power. FLOPs come from a separate partial-operator pass.', fontsize=8)
+        notes = ['GPU-board energy excludes CPU/RAM/whole-machine power. FLOPs come from a separate partial-operator pass.']
+        missing_threads = [method['label'] for method in methods if method['historical_reuse']
+                           and method.get('compatibility', {}).get('cpu_thread_evidence', {}).get('status') == 'metadata_missing']
+        exclusions = report['efficiency'].get('historical_exclusions', [])
+        metadata_notes = []
+        if missing_threads:
+            metadata_notes.append('Historical CPU-thread metadata missing: ' + ', '.join(missing_threads))
+        if exclusions:
+            metadata_notes.append('Excluded from matched inputs: ' + ', '.join(LABELS.get(entry['model'], entry['model']) for entry in exclusions))
+        if metadata_notes:
+            notes.append('. '.join(metadata_notes) + '.')
+        figure.supxlabel('\n'.join(notes), fontsize=8)
     figure.savefig(output / 'efficiency_comparison.png', dpi=240)
     figure.savefig(output / 'efficiency_comparison.pdf')
     plt.close(figure)

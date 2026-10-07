@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-07",
+  "review_type": "Independent read-only final protocol audit while the approved GPU runs are active",
+  "read_only": true,
+  "source_mutated": false,
+  "gpu_executed_by_reviewer": false,
+  "credentials_read_by_reviewer": false,
+  "new_report_written": true,
+  "native_commit": "92d34e69f89bc7988f4d026b0597c5fcc48780b4",
+  "author_commit": "0ed433334ff2cfb206c5e2899651c3044ec85f92",
+  "native_source_sha256": {
+    "scripts/run_hide_reference.py": "cc601b5967d9c3bfe89398bd69a1f31aed725a93ccd1d7bd0ce0cd2d6c2d49f2",
+    "scripts/hide_reference_utils.py": "f6e7c103a321e34beaf94ab74705d91b90c9e7132a584bd7c8e84dae557ccc63",
+    "scripts/run_hide_validation.py": "d840323e00c39774ea8a7f9e23d7f87413478ca96e66d9be66eab002f6daec38",
+    "scripts/hide_protocol.py": "d06a3efc2975c97c679a9a0228499f153ababc11b4f464a69b5368783ee97562",
+    "models/hide_prompt.py": "c1586e5d4d63209302f2047809a554a3a23a1365beef2d9298d03c0f90aa1ad3",
+    "models/hide_prompt_utils/network.py": "85fb4e9ae1a451ffba66ee523d402c8fd2ac17802a4915f2464967f464ca0a37",
+    "models/hide_prompt_utils/prompt.py": "52ae82790d00ea66c531bffbe4f68db6753d6c88f3e96f364496d84a38a68607",
+    "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+    "models/hide_prompt_utils/statistics.py": "cdac9819d9128f9ddce3d68b6c38b510508b4f7d73a259c57980cccbddf9f1d9",
+    "models/config/hide_prompt.yaml": "b4b1631f00719e05eed67ff9eee2cfcb329cdc5203d961c52e7c8b0e93b45625",
+    "datasets/configs/seq-cifar100-224/hide_prompt.yaml": "20c833176ed7fe3ecbbe48649a5ba8c18f548422f07040b92e79a7080d12bcb7"
+  },
+  "author_source_sha256": {
+    "configs/cifar100_hideprompt_5e.py": "90aaaea0603f1381bd7a444c03672a3219db2ddb36c63d9f26d760fe7a89726d",
+    "trainers/tii_trainer.py": "8b19305192e8dbd1279ee70f6ea5d43246a032e1a6ade2a7be583e1cfa2737a0",
+    "trainers/hideprompt_trainer.py": "46f78a7fcca1aff2313017b7787a876c42703949105313619eafc9ab42d04820",
+    "engines/hide_tii_engine.py": "9d47034c8c1cf5190eb37b0840cceb15078a20432669e4c36be0eb40f7bebe8c",
+    "engines/hide_promtp_wtp_and_tap_engine.py": "05a2713ca3ee4a73661dabedb7023d86e6bfe13f8104efd81d0f278cca596195",
+    "peft/prompt/hide_prompt.py": "c756c514ac8917abd25a0b6192fd25913af7e0b19efb58876cd1f8454241f900",
+    "vits/hide_prompt_vision_transformer.py": "d6ee1a72a5c3d7e376ae3e3d4033d0198b252b471ec4b0aed46535a6509fb7db"
+  },
+  "common_config": {
+    "backbone": "ViT-B/16, two independent frozen transformer branches",
+    "pretraining": "Same pinned AugReg IN21K -> IN1K Base NPZ and matched exported learned initialization",
+    "checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+    "tasks_executed": 2,
+    "dataset_total_tasks": 10,
+    "classes_per_task": 10,
+    "class_order": "0..99 fixed",
+    "seed": 1993,
+    "batch_size": 64,
+    "workers": 4,
+    "tii_epochs_per_task": 20,
+    "prompt_epochs_per_task": 50,
+    "alignment_epochs_per_branch_on_task2": 30,
+    "optimizer": "Adam, betas=(0.9,0.999), eps=1e-8, WD=0",
+    "effective_tii_lr": 0.000125,
+    "effective_prompt_lr": 0.0075,
+    "effective_prompt_head_lr": 0.00075,
+    "effective_tii_alignment_lr": 0.00125,
+    "effective_prompt_alignment_lr": 0.005,
+    "prompt_first_reduced_lr_used_at_zero_based_epoch": 31,
+    "prompt_first_reduced_lr_used_at_one_based_epoch": 32,
+    "statistics": "10 multi-centroids per class, NumPy population variance ddof=0, float64 stored mean/variance",
+    "kmeans": "k-means++, Lloyd, n_init10, random_state=(1993+class_id)%2**32",
+    "prefix_layout": "Preserved author dual/batch reshape; permute correction disabled",
+    "precision": "FP32 model; no autocast; CUDA matmul TF32 disabled; cuDNN TF32 enabled; deterministic cuDNN",
+    "outer_steps_expected": 11060,
+    "auxiliary_alignment_optimizer_steps_expected": 600,
+    "evaluated_samples_expected": 3000,
+    "paper_number_reproduction": false
+  },
+  "correctness_findings": [
+    {
+      "area": "TII Adam parameter selection",
+      "status": "update_equivalent",
+      "finding": "At effective WD0, timm0.9.8 create_optimizer may retain frozen parameters in its group. Its Adam step skips grad=None tensors. Reference filters to the TII residual MLP/head, matching native parameter order and active updates. Adam betas, eps, LR, WD and foreach defaults match.",
+      "limit": "The number of parameters merely referenced by the optimizer group differs from the literal factory output; allocated optimizer state and algorithm updates remain the same for frozen grad=None tensors."
+    },
+    {
+      "area": "Prompt training optimizer and LR schedule",
+      "status": "matched",
+      "finding": "Both paths create fresh Adam at every task/phase, with prompt LR0.0075 and head LR0.00075. Reference timm StepLRScheduler.step(local_epoch) runs after training. Native max(local_epoch-1,0)//30 matches it: first decay is used at zero-based epoch31 / human epoch32. Warmup is zero."
+    },
+    {
+      "area": "Classifier alignment",
+      "status": "matched",
+      "finding": "Task1 skips CA. Task2 runs 30 epochs x10 old-class minibatches =300 SGD steps per branch. Momentum0.9, cosine T_max30 and effective WD0 match. Author group WD0 overrides the SGD constructor default5e-4. TII draws64 and prompted CA draws320 Gaussian samples per nondegenerate centroid, and both shuffle with CPU randperm."
+    },
+    {
+      "area": "Feature statistics and orthogonality loss",
+      "status": "matched_for_selected_multi_centroid_protocol",
+      "finding": "TII statistics use raw CLS before its residual MLP. Prompt statistics use the finalized prefix, current-task forced selection and momentum0. Means/variances preserve source float64 promotion; orthogonality uses old prompt centroids plus current features, unnormalized Gram matrix, temperature0.8 and weight0.1. Diagonal Gaussian covariance uses the source1e-4 jitter.",
+      "limit": "Full covariance and variance alternative modes are outside the approved run. Their CPU synthetic parity does not establish 768-dimensional CUDA bitwise equivalence."
+    },
+    {
+      "area": "Legacy prefix and batch boundaries",
+      "status": "matched",
+      "finding": "Both retain the source reshape without dual/batch permutation. Training shares shuffled sample order and worker augmentation seeds. Statistics form stable per-class subsets before forward with batch64 and no dropped tail. Evaluation forwards separate native test-task loaders; sorting saved predictions by raw IDs happens after forward and therefore does not change prefix batch layout."
+    },
+    {
+      "area": "Loss column masking",
+      "status": "mathematically_equivalent_with_numerical_limit",
+      "finding": "Author training masks noncurrent columns to -inf in a100-column tensor. Native masks old columns and slices unseen columns away. They define the same current-class CE objective.",
+      "limit": "Different CUDA reduction widths and MVN matrix-vector versus native diagonal-noise matrix-multiply implementations need not be bitwise identical. Input/label/seed equality is the strict first-batch gate; loss/gradient diagnostics and the accepted accuracy margins provide empirical checks."
+    }
+  ],
+  "acknowledged_runtime_adaptations": [
+    "User-selected batch64, seed1993, fixed class order and AugReg IN21K->IN1K checkpoint replace launcher defaults.",
+    "Interleaved per-task TII/statistics/CA/prompt/statistics/CA replaces separate all-TII and prompt launches, with explicit phase RNG to remove cross-stage global-RNG dependence.",
+    "Explicit matched learned initialization, KMeans policy and stable per-class statistics batching replace implicit constructor/sklearn/random-sampler behavior.",
+    "Reference seen-only prompt-logit evaluation matches Mammoth class-IL. The pinned author default evaluate function leaves all100 prompt columns unless task_inc is used. This is a declared evaluation adaptation; no oracle task is used.",
+    "Single-process gather copies and unwrapped prompt updates replace distributed barriers/all_gather/model.module references.",
+    "Shared existing CIFAR data, shared local NPZ and fail-closed CIFAR download guards replace download-enabled dataset construction.",
+    "Native fixed registered statistics buffers allocate all100 classes and temporarily collect current-class features on CPU; source dictionaries allocate only seen statistics and source extraction holds current-class features on GPU. These change resource overhead but not selected statistics mathematics.",
+    "Native transfers non_augmented inputs and runs framework wrappers/checkpoint diagnostics; reference uses pair-adapted native batches. Validation resource figures include each runner overhead and are not an equal compute budget result."
+  ],
+  "conclusion": {
+    "blocking_correctness_discrepancy_found": false,
+    "requires_empirical_acceptance": true,
+    "interpretation": "The active run validates the native port against an independent source-derived reference under the explicitly matched protocol. It is not an untouched author launcher or paper-number reproduction.",
+    "core_edit_requested_during_run": false
+  }
+}

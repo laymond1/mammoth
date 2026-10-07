@@ -2,7 +2,7 @@
   "schema_version": 1,
   "stage": "approved_reference_and_native_gpu_validation_then_conditional_efficiency",
   "training_authorized": true,
-  "executed": false,
+  "executed": true,
   "approval": "User approved recommended scope; subsequent steering sets correctness batch64 for both implementations. Historical validation_plan.json records the previous CPU-only stage.",
   "common": {
     "model": "hide-prompt",
@@ -281,5 +281,20 @@
     "local": "JSON/CSV, predictions, state checkpoints, phase sensor metrics, initial/source/data/weight hashes",
     "wandb": "online individual runs and artifacts; verify finished/COMMITTED with file hashes",
     "slack": "existing private configured webhook: start, periodic progress, task finish, completion/failure"
+  },
+  "runtime_status": "completed",
+  "completed_at_utc": "2026-10-07T06:27:14.198691+00:00",
+  "results": {
+    "report": "report.md",
+    "json": "results.json",
+    "csv": "results.csv",
+    "figure_png": "efficiency_comparison.png",
+    "figure_pdf": "efficiency_comparison.pdf",
+    "finalization": "environment/finalization.json",
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/o3qej29b",
+    "validation_acceptance": "pass",
+    "measurement_runs": 3,
+    "flops_runs": 1,
+    "slack_completion_status": "sent"
   }
 }
