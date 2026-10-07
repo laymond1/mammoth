@@ -44,6 +44,7 @@ def records():
                   prefix_validation={'status': 'pass', 'prediction_match': True},
                   metrics={'outer_observe_steps': 55300, 'outer_training_stream_examples': 3500000,
                            'evaluation_examples': 55000, 'tasks_completed': 10},
+                  counts={'prompt_training_tii_examples': 2500000},
                   alignment_history=[{'task': task, 'branch': branch, 'optimizer_steps': 300 * (task - 1),
                                       'skipped': task == 1, 'old_classes': 10 * (task - 1),
                                       'samples_per_centroid': 64 if branch == 'tii' else 320,
@@ -91,6 +92,19 @@ def test_work_counts_separate_observed_synthetic_populations_from_raw_images(rec
     assert altered['work_counts']['total_optimizer_steps'] == 82300
     assert '82,300' in reporter.render_markdown(report)
     assert publisher.scalar_summary(report)['work/alignment_optimizer_steps'] == 27000
+
+
+def test_extra_tii_forward_uses_observed_counter_and_preserves_missing_values(records):
+    records[0]['counts']['prompt_training_tii_examples'] = 12345
+    report = reporter.build_report(*records)
+    assert report['work_counts']['prompt_training_additional_tii_forward_image_examples'] == 12345
+    assert report['work_counts']['outer_image_training_examples'] == 3500000
+    assert publisher.scalar_summary(report)['work/prompt_training_additional_tii_forward_image_examples'] == 12345
+    assert '12,345개' in reporter.render_markdown(report)
+    del records[0]['counts']['prompt_training_tii_examples']
+    report = reporter.build_report(*records)
+    assert report['work_counts']['prompt_training_additional_tii_forward_image_examples'] is None
+    assert '**미기록**' in reporter.render_markdown(report)
 
 
 @pytest.mark.parametrize('field', ['seen_correct', 'new_correct', 'old_correct', 'seen_samples'])

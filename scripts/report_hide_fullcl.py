@@ -151,8 +151,12 @@ def work_observations(record):
                            'skipped': row['skipped']})
     outer_steps = record['metrics']['outer_observe_steps']
     alignment_steps = sum(row['optimizer_steps'] for row in alignments)
+    extra_tii = record.get('counts', {}).get('prompt_training_tii_examples')
+    if extra_tii is not None and (type(extra_tii) is not int or extra_tii < 0):
+        raise ValueError('Observed additional TII forward image count is invalid')
     return {'outer_image_training_examples': record['metrics']['outer_training_stream_examples'],
             'evaluation_image_examples': record['metrics']['evaluation_examples'],
+            'prompt_training_additional_tii_forward_image_examples': extra_tii,
             'outer_optimizer_steps': outer_steps,
             'alignment_optimizer_steps': alignment_steps,
             'total_optimizer_steps': outer_steps + alignment_steps,
@@ -161,7 +165,7 @@ def work_observations(record):
                 branch: sum(row['synthetic_feature_examples_generated'] for row in alignments if row['branch'] == branch)
                 for branch in ('tii', 'prompt')},
             'alignment_observations': alignments,
-            'scope': 'Counts come from saved outer-loop metrics and alignment history. Generated synthetic features are a sampled population, not raw images or classifier-consumed training examples. Optimizer steps cover heterogeneous operations and do not estimate FLOPs or equal compute budgets.'}
+            'scope': 'Counts come from saved outer-loop metrics, counts.prompt_training_tii_examples and alignment history. Additional TII forward image examples reuse the prompt-stage images in a second frozen encoder; they are neither additional outer-loop images nor unique images. A missing counter remains null. Generated synthetic features are a sampled population, not raw images or classifier-consumed training examples. Optimizer steps cover heterogeneous operations and do not estimate FLOPs or equal compute budgets.'}
 
 
 def build_report(native, reference, accepted_native):
@@ -251,6 +255,10 @@ def render_markdown(report):
              f'외부 학습 이미지 노출은 **{work["outer_image_training_examples"]:,}개**, 누적 평가 이미지 노출은 **{work["evaluation_image_examples"]:,}개**입니다. '
              f'Alignment가 생성한 synthetic feature는 저장된 매 epoch population의 합 **{work["synthetic_feature_examples_generated"]:,}개**이며 raw image 수와 별개입니다. 생성 population 전체를 classifier가 학습에 소비한 것은 아닙니다. '
              '각 optimizer step의 연산은 다르며 이 횟수를 FLOPs나 동일 계산 예산으로 해석하지 않습니다.', '',
+             'Prompt 학습 중 별도로 수행한 고정 TII encoder forward의 이미지 노출은 **'
+             + (f'{work["prompt_training_additional_tii_forward_image_examples"]:,}개'
+                if work['prompt_training_additional_tii_forward_image_examples'] is not None else '미기록')
+             + '**입니다. 이는 prompt 단계의 같은 이미지를 두 번째 encoder에도 통과시킨 관측 횟수이며 외부 학습 이미지·synthetic feature 수와 구분합니다. 학습 가능한 파라미터 수만으로는 이 추가 backbone 연산을 설명하지 못합니다.', '',
              '| 학습 완료 태스크 | 관측 클래스 정확도(%) | 과거 클래스(%) | 신규 클래스(%) | 시간(s) | GPU 보드(Wh) | CUDA peak(MiB) | RSS peak(MiB) |',
              '|---:|---:|---:|---:|---:|---:|---:|---:|']
     for row, cost in zip(accuracy['trajectory'], resources['tasks']):
