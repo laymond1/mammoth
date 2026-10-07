@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "approved_on": "2026-10-07",
+  "approved_by": "user",
+  "training_authorized": true,
+  "models": ["ranpac", "l2p", "dualprompt"],
+  "checkpoint": {
+    "file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+    "sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+    "tag": "vit_base_patch16_224.augreg_in21k_ft_in1k"
+  },
+  "efficiency": {
+    "tasks": 1,
+    "n_epochs": 1,
+    "batch_size": 64,
+    "num_workers": 4,
+    "seed": 1993,
+    "measurement_repeats": 3,
+    "flops_runs": 1
+  },
+  "dataset": "seq-cifar100-224",
+  "dataset_config": "ease",
+  "classes_per_task": 10,
+  "permute_classes": false,
+  "gpu": "1",
+  "ease_reference": {
+    "file": "benchmarks/cl_efficiency/ease/efficiency_pilot_results.json",
+    "sha256": "dc84f34f585ebd93e2add569acecd379170cd4a48c9c5779808201c401f41aa9",
+    "reuse_completed_measurements": true
+  },
+  "precision": "Reuse _configure_ease_precision: FP32 parameters, no autocast, CUDA matmul TF32 off, cuDNN TF32 on, deterministic=True, benchmark=False.",
+  "algorithm_hyperparameters": "Retain existing manifest learning rates and method-specific settings; L2P/DualPrompt batchwise_prompt=0. Record effective args including each method's native learning-rate scaling.",
+  "accuracy_policy": {
+    "minimum_pct": 20.0,
+    "scope": "Accuracy must be strictly greater than 20% as an abnormal-collapse guard for a ten-class, one-epoch pilot; predictions must match reported accuracy. This is not paper reproduction and does not apply EASE's twenty-epoch 1.5/3.0pp margins."
+  },
+  "logging": {"entity": "laymond1", "project": "cl-efficiency", "slack": "existing configured webhook"},
+  "runtime_status": "authorized_preparing_baselines",
+  "experiment_executed": false,
+  "merge_authorized": true,
+  "push_authorized": false,
+  "scope_exclusions": ["Tiny/Small", "additional seeds", "whole CL sequence", "BudgetCL/aL-SAR budget comparison", "HiDe-Prompt implementation", "remote push"],
+  "measurement_policy": "Each method runs measurement, measurement, measurement+separate FLOPs in order. Only the three measurement passes enter median/min/max efficiency statistics. EASE is reused without a new experiment."
+}

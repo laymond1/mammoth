@@ -553,15 +553,21 @@ def worker(spec_path):
     profiler, real_finish, wandb, patch_context = None, None, None, None
     profiler_closed = False
     ease_audit = None
+    baseline_audit = None
     code = 1
     try:
         ease_pin = ease_execution_pin() if spec['model'] == 'ease' else None
+        baseline_pin = None
+        if spec.get('baseline_pilot'):
+            from scripts.baseline_audit import execution_pin, BaselineAudit, instrument_baseline
+            baseline_pin = execution_pin(spec)
+            metadata.update(baseline_pin)
         if ease_pin is not None:
             if spec['gpu'] != '1':
                 raise ValueError('The approved EASE pilot requires physical GPU1')
             metadata.update(ease_pin)
         import torch
-        if ease_pin is not None:
+        if ease_pin is not None or baseline_pin is not None:
             metadata['precision'] = _configure_ease_precision(torch)
         import main as mammoth
         import utils.training as training
@@ -582,6 +588,9 @@ def worker(spec_path):
         if ease_pin is not None:
             _pinned_argument(command, '--ease_checkpoint', ease_pin['checkpoint_file'])
             _pinned_argument(command, '--code_optimization', '0')
+        if baseline_pin is not None:
+            _pinned_argument(command, '--pretrained_checkpoint', baseline_pin['checkpoint_file'])
+            _pinned_argument(command, '--code_optimization', '0')
         # Mammoth checks sys.argv in several parser helpers, even when cmd is supplied.
         sys.argv = ['main.py', *command]
         args = mammoth.parse_args(cmd=command, verbose=True)
@@ -598,7 +607,7 @@ def worker(spec_path):
         patch_context.enter_context(patch.object(training.Logger, 'write', write))
 
         def initialize(*args, **kwargs):
-            nonlocal ease_audit
+            nonlocal ease_audit, baseline_audit
             with recorder.phase('initialize'):
                 model, dataset, effective_args = original_initialize(*args, **kwargs)
             if spec['wandb_mode'] == 'disabled':
@@ -620,6 +629,9 @@ def worker(spec_path):
             if ease_pin is not None:
                 ease_audit = EaseAudit(model, dataset, effective_args, recorder, metadata, torch)
                 patch_context.enter_context(instrument_ease(ease_audit))
+            if baseline_pin is not None:
+                baseline_audit = BaselineAudit(model, dataset, effective_args, recorder, metadata, torch)
+                patch_context.enter_context(instrument_baseline(baseline_audit))
             return model, dataset, effective_args
 
         patch_context.enter_context(patch.object(mammoth, 'initialize', initialize))
@@ -643,6 +655,10 @@ def worker(spec_path):
             raise RuntimeError('EASE initialization did not install the required pilot audits')
         if ease_audit is not None:
             ease_audit.complete()
+        if baseline_pin is not None and baseline_audit is None:
+            raise RuntimeError('Baseline initialization did not install its required audits')
+        if baseline_audit is not None:
+            baseline_audit.complete()
         metadata['status'], code = 'completed', 0
     except BaseException as error:
         metadata['error_type'] = type(error).__name__
