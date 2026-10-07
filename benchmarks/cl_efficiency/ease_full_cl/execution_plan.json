@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "stage": "ease_common_input_full_cl",
+  "status": "reference_ready",
+  "training_authorized": true,
+  "executed": false,
+  "approval": "User: 좋아. 이대로 진행. — EASE Base adapter64 using the existing HiDe full10 input transforms, matched author/native first2 task batch64 validation followed by native full10 only after PASS.",
+  "protocol": {
+    "model": "ease",
+    "vit_size": "base",
+    "adapter_size": 64,
+    "checkpoint_family": "AugReg IN21K to IN1K fine-tuned",
+    "dataset": "seq-cifar100-224",
+    "input_policy": "Exact train/test preprocessing from pinned HiDe full10 hide_prompt; EASE task schedule remains20 epochs.",
+    "classes_per_task": 10,
+    "class_order": "0..99",
+    "seed": 1993,
+    "batch_size": 64,
+    "num_workers": 4,
+    "physical_gpu": "1",
+    "precision": "FP32",
+    "cpu_threads": 2,
+    "epochs_per_task": 20,
+    "optimizer": "sgd",
+    "lr": 0.025,
+    "momentum": 0.9,
+    "weight_decay": 0.0005,
+    "scheduler": "cosine",
+    "paper_reproduction": false,
+    "equal_compute_budget": false
+  },
+  "sequence": [
+    {
+      "stage": "matched_author_reference",
+      "tasks": 2,
+      "outer_epochs": 40,
+      "outer_steps": 3160,
+      "outer_training_images": 200000,
+      "evaluation_images": 3000
+    },
+    {
+      "stage": "native_acceptance",
+      "tasks": 2,
+      "outer_epochs": 40,
+      "outer_steps": 3160,
+      "outer_training_images": 200000,
+      "evaluation_images": 3000,
+      "pass_drop_pp": 1.5,
+      "review_drop_pp": 3.0
+    },
+    {
+      "stage": "native_full_cl",
+      "tasks": 10,
+      "outer_epochs": 200,
+      "outer_steps": 15800,
+      "outer_training_images": 1000000,
+      "evaluation_images": 55000,
+      "requires": "all matched2task accuracy/structure checks PASS and exact native-prefix validation"
+    }
+  ],
+  "reuse": {
+    "previous_hide_full10": "benchmarks/cl_efficiency/hide_prompt/full_cl/results.json",
+    "data_root": "/mnt/sdab1/share/data",
+    "cache_root": "/mnt/sdab1/userHome/wslim/.cache",
+    "wandb_entity": "laymond1",
+    "wandb_project": "cl-efficiency",
+    "slack": "existing private configuration"
+  },
+  "preserve_existing_results": true,
+  "deferred": [
+    "Additional seeds",
+    "HiDe Tiny/Small",
+    "BudgetCL/aL-SAR normalized budget comparisons",
+    "Independent full10 reference unless diagnostics require it",
+    "Full-run FLOPs profiling"
+  ],
+  "local_integration": {
+    "execution_branch": "codex/ease-full-cl",
+    "foundation_branch": "codex/cl-foundation",
+    "remote_push_authorized": false
+  },
+  "source_frozen": true
+}

@@ -1,0 +1,28 @@
+{
+  "status": "pass",
+  "gpu_training_executed": false,
+  "focused_suite": {
+    "command": "CUDA_VISIBLE_DEVICES=\"\" MAMMOTH_DEVICE=cpu OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv UV_CACHE_DIR=/tmp/ease-fullcl-uvcache HF_HUB_OFFLINE=1 JE_ARROW_MALLOC_CONF=background_thread:false MPLCONFIGDIR=/tmp/ease-fullcl-matplotlib uv run --no-sync --offline pytest tests/test_ease_common_reference.py tests/test_ease_fullcl_execution.py tests/test_ease_fullcl_report.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_ease_execution.py tests/test_ease_reference_utils.py -q --tb=short",
+    "passed": 268,
+    "wall_s": 16.17
+  },
+  "initial_core_suite": {
+    "files": [
+      "tests/test_ease.py",
+      "tests/test_ease_backbone.py",
+      "tests/test_ease_classifier.py"
+    ],
+    "passed": 99,
+    "wall_s": 5.21
+  },
+  "dry_cli": [
+    "python scripts/run_ease_common_reference.py",
+    "python scripts/run_ease_fullcl.py --mode full_cl"
+  ],
+  "dry_cli_exit_codes": [
+    0,
+    0
+  ],
+  "catalog_sha256": "6c5b27a6c420971883e9b41304a7efe414ae22aa07e3f1614df38e81ff9a07fc",
+  "native_cpu_smoke": "pending"
+}

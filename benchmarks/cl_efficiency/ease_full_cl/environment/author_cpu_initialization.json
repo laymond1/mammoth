@@ -1,0 +1,46 @@
+{
+  "status": "pass",
+  "canonical_pretrained_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+  "learned_sha256": "98b9ad7649a5529f6498dbfd990f554adebf7f7a25d0277728fc702a486266f1",
+  "data_fingerprint": {
+    "n_samples": 5000,
+    "image_shape": [
+      32,
+      32,
+      3
+    ],
+    "image_dtype": "uint8",
+    "class_counts": {
+      "0": 500,
+      "1": 500,
+      "2": 500,
+      "3": 500,
+      "4": 500,
+      "5": 500,
+      "6": 500,
+      "7": 500,
+      "8": 500,
+      "9": 500
+    },
+    "samples_ordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+    "samples_unordered_sha256": "6133f3ada6bd36aa4cef77fa1156f405dbe7308735af8d32b6a000ba90ab9545",
+    "global_ids_ordered_sha256": "ffe8eed6aa9fc6cc6c76bea1dded57f4d26f4bc10b072707f45839087307e38c",
+    "first_global_ids": [
+      2,
+      4,
+      16,
+      30,
+      53,
+      55,
+      102,
+      113,
+      130,
+      145
+    ],
+    "transform_repr": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333), interpolation=bicubic, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ColorJitter(brightness=(0.7529411764705882, 1.2470588235294118), contrast=None, saturation=None, hue=None)\n    ToTensor()\n    Normalize(mean=[0.5071, 0.4867, 0.4408], std=[0.2675, 0.2565, 0.2761])\n)",
+    "transform_repr_sha256": "33dccfc531f6428a148f668f6d26035378805c196ebfd441695296a6ebb2b7de"
+  },
+  "image_forwards": 0,
+  "optimizer_steps": 0,
+  "gpu_used": false
+}

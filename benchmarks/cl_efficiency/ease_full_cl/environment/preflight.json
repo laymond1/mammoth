@@ -1,0 +1,24 @@
+{
+  "status": "pass",
+  "gpu_training_executed": false,
+  "python": "3.12.15",
+  "versions": {
+    "torch": "2.13.0+cu126",
+    "torchvision": "0.28.0+cu126",
+    "timm": "0.9.8",
+    "wandb": "0.29.0",
+    "numpy": "2.5.2"
+  },
+  "official_reference_source": "/tmp/cl-ease-official-20261007",
+  "official_reference_commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+  "official_reference_clean": true,
+  "checkpoint": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+  "checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+  "shared_data_present": true,
+  "shared_environment": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv",
+  "previous_hide_full10": {
+    "status": "completed",
+    "final_accuracy_pct": 94.27
+  },
+  "gpu_available_at_start": true
+}
