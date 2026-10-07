@@ -1,6 +1,10 @@
 # HiDe-Prompt 구현 및 실행 준비
 
-이 단계는 **ViT-B/16 구현, CPU 합성 검증, 실행 계획 준비**까지입니다. CL 학습·GPU 연산·실제 이미지 추론·데이터/가중치 다운로드·W&B 업로드·Slack 전송은 실행하지 않습니다. 공개 저자 소스 코드는 검토를 위해 가져왔으며, 데이터나 사전학습 가중치를 새로 받는 작업과 구분합니다. 새 실험의 실행 상태와 권한은 [validation_plan.json](validation_plan.json)에 명시적으로 `false`/`pending_next_stage_authorization`으로 기록합니다.
+ViT-B/16 구현·CPU 검증을 마친 뒤 사용자가 **독립 기준선/native GPU 검증과 통과 후 효율성 측정**을 승인했습니다. 이후 양쪽 구현 검증의 batch도64로 맞췄습니다. 현재 승인 조건은 [execution_plan.json](execution_plan.json), 이전 CPU 준비 단계의 기록은 [validation_plan.json](validation_plan.json)에 보존합니다. 기존 공유 CIFAR100·NPZ만 사용하며 파일이 없거나 손상되면 다운로드 없이 실패합니다. 실행 결과는 로컬과 W&B `laymond1/cl-efficiency`에 저장하고 Slack으로 알립니다.
+
+실행 순서는 독립 저자 초기값 추출 → 두 구현의 GPU smoke → 각각 첫2태스크 TII20 + prompt50/task 및 태스크2 두 CA30 → 네 정확도·구조 검사 → 통과 시 공통 전처리 첫태스크 TII1 + prompt1 효율성3회와 별도 FLOPs1회입니다. 모든 GPU 실행은 GPU1이며, batch64의 실제 LR은 TII0.000125, prompt0.0075, prompt head0.00075, TII CA0.00125, prompt CA0.005입니다. 초기값·학습 배치·augmentation worker·단계별 RNG·통계 배치·평가 배치 경계를 맞춥니다.
+
+기준선은 고정 저자 ViT·prefix·학습·통계·CA 함수를 직접 사용합니다. Mammoth class-IL과 맞추기 위해 최종 prompt logits는 seen classes로 제한합니다. 저자 기본 평가 loop는100클래스 logits를 유지하므로 이 차이도 기록하며, 논문 수치 재현으로 부르지 않습니다. W&B 업로드용 immutable snapshot과 파일별 SHA를 보존하고 [readback 도구](../../../scripts/verify_hide_results.py)로 finished run·COMMITTED artifact·다운로드 해시를 확인합니다. 마지막 artifact 업로드/finish는 기존 EASE와 같이 Recorder 계측에서 제외하고 launcher wall time에 따로 남깁니다.
 
 방법은 태스크 내부 예측(WTP), 태스크 식별(TII), 전체 관측 클래스 예측(TAP)을 나누어 최적화합니다. 고정 ViT의 uninstructed 표현으로 학습한 보조 분류기가 태스크를 추론하고, 그 태스크의 prefix prompt로 최종 클래스 예측을 수행합니다. 두 표현의 클래스 통계를 보관해 과거 이미지를 저장하지 않고 분류기를 정렬하며, 과거 prompt의 평균과 대조 정규화를 사용합니다. 이는 [원 논문](https://proceedings.neurips.cc/paper_files/paper/2023/file/d9f8b5abc8e0926539ecbb492af7b2f1-Paper-Conference.pdf)의 구성 요소에 따른 포트이며, 실제 수치 검증은 다음 단계입니다.
 
@@ -34,7 +38,7 @@ Prompt StepLR은 저자 엔진의 `scheduler.step(epoch)`가 epoch 학습 뒤에
 
 | 목적 | 태스크·학습 | 전처리 | 판정·비교 범위 |
 |---|---|---|---|
-| 독립 기준선/native 구현 검증 | 첫2태스크, 각각 TII20 + prompt50, task2 CA30, batch48 | 새 `hide_prompt` config의 저자 CIFAR 전처리 | 첫태스크 및 task2 전체/과거/신규 정확도·routing·구조 검증 |
+| 독립 기준선/native 구현 검증 | 첫2태스크, 각각 TII20 + prompt50, task2 두 CA30, batch64 | 새 `hide_prompt` config의 저자 CIFAR 전처리 | 첫태스크 및 task2 전체/과거/신규 정확도·routing·구조 검증 |
 | 효율성 pilot 후보 | 첫1태스크, TII1 + prompt1, batch64 | 기존 `ease` 공통 pilot 전처리로 명시적 override | 양쪽 통계 산출·실제 routing·평가 비용 포함; task1 CA는 method상 해당 없음 |
 
 두 전처리는 같은 원본 CIFAR100을 사용하지만 crop·jitter·정규화가 다릅니다. 검증용 `hide_prompt`는 저자 실제 동작인 crop scale(.08,1), bicubic, brightness jitter63/255, CIFAR mean/std를 사용합니다. 파일의 미사용 local `scale=(.05,1)`을 적용하지 않았습니다. 검증과 pilot 사이의 전처리 변경도 결과에 남겨야 합니다.

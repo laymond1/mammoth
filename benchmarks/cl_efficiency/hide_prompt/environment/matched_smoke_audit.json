@@ -1,0 +1,37 @@
+{
+  "status": "pass",
+  "reference": "https://wandb.ai/laymond1/cl-efficiency/runs/n1a0k1cb",
+  "native": "https://wandb.ai/laymond1/cl-efficiency/runs/yib3d68j",
+  "first_batches": [
+    {
+      "task": 1,
+      "phase": "tii_train",
+      "input_labels_seed_match": true,
+      "initial_loss_difference": 0.0,
+      "gradient_sha_match": true
+    },
+    {
+      "task": 1,
+      "phase": "prompt_train",
+      "input_labels_seed_match": true,
+      "initial_loss_difference": 0.0,
+      "gradient_sha_match": true
+    },
+    {
+      "task": 2,
+      "phase": "tii_train",
+      "input_labels_seed_match": true,
+      "initial_loss_difference": -0.047611236572265625,
+      "gradient_sha_match": false
+    },
+    {
+      "task": 2,
+      "phase": "prompt_train",
+      "input_labels_seed_match": true,
+      "initial_loss_difference": 0.06460373238161043,
+      "gradient_sha_match": false
+    }
+  ],
+  "accuracy_comparison_eligible": false,
+  "note": "Reference smoke uses2minibatches; native smoke full79minibatches. Onlytask1TII startswithsamemodelstate; otherlossdifferencesareexpected fromdifferenttraininglengths."
+}

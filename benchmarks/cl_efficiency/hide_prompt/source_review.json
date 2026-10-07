@@ -86,6 +86,10 @@
     {
       "issue": "DataLoader/class partition depends on num_tasks",
       "disposition": "Keep 10 dataset tasks/10 classes per task and stop after two; never set author num_tasks=2 for this check."
+    },
+    {
+      "issue": "Pinned author final prompted class-IL evaluation keeps all 100 output logits; Mammoth uses seen-class outputs.",
+      "disposition": "Independent reference explicitly restricts final prompted logits to seen classes. Report as adapted implementation comparison, not verbatim launcher evaluation or paper-number reproduction."
     }
   ],
   "preserved_source_quirks": [

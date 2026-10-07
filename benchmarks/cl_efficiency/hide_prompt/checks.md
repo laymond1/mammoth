@@ -37,3 +37,17 @@ Ruff도 시도했지만 공유 환경에 실행 파일이 없어 exit2였습니�
 ## 다음 단계
 
 독립 저자 기준선 runner와 같은 초기화·phase RNG를 준비한 뒤, 첫2태스크 TII20+prompt50 및 태스크2의 두 CA30 실행을 확정해야 합니다. 구현 acceptance를 통과하면 TII1+prompt1 첫태스크 효율성 pilot 후보를 검토합니다. Native 이미지 학습 smoke, W&B/Slack 실험 기록, 실제 정확도 판정, 계측, 기준 브랜치 병합은 이번에 수행한 것으로 표기하지 않습니다.
+
+## 승인된 GPU 실행 단계 준비 — batch64
+
+독립 기준선·native·효율성 runner와 기존 모델/환경 검사를 함께 실행했습니다.
+
+```bash
+CUDA_VISIBLE_DEVICES='' MAMMOTH_DEVICE=cpu HF_HUB_OFFLINE=1 UV_CACHE_DIR=/tmp/hide-final-uvcache UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv uv run --no-sync --offline pytest tests/test_hide_reference.py tests/test_hide_execution.py tests/test_hide_efficiency.py tests/test_hide_prompt.py tests/test_hide_network.py tests/test_hide_statistics.py tests/test_cl_runtime.py -q --tb=short
+```
+
+230 passed, 0 failed (8.98s). 공유 경로 및 다운로드 차단 회귀, 실제 학습 배치/RNG 비교, CA gradient와 평가 finite 검사를 포함합니다.
+
+GPU1 batch64에서 독립 기준선 smoke(단계당2배치)와 native smoke(단계당79배치)를 완료했습니다. 두 smoke는 학습량이 달라 정확도 acceptance에는 사용하지 않습니다. [첫 배치 대조](environment/matched_smoke_audit.json)에서 네 단계의 input/label/seed가 일치하며, 태스크1 두 단계의 loss 및 clipped gradient도 일치합니다.
+
+W&B finished/COMMITTED artifact readback에서 smoke64 파일4개, 독립 smoke13개, native smoke10개의 로컬 SHA가 일치했습니다. 실패한 준비 시도는 [실행 시도 기록](environment/execution_attempts.json)에 보존합니다.

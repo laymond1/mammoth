@@ -1,0 +1,55 @@
+{
+  "status": "pass",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/e98ma95f",
+  "run_state": "finished",
+  "artifact": "laymond1/cl-efficiency/hide-prompt-debug-smoke-batch64:v0",
+  "artifact_state": "COMMITTED",
+  "result_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/prepared/hide_prompt/smoke64/metrics.json",
+  "result_sha256": "9e371d7ef4150517e254a223129558cbae376504658228f55e8bf59c98e41348",
+  "artifact_files": {
+    "metrics.json": {
+      "sha256": "96c98cb23428658ec381e733129200472ecfe34d77a2248d4eff7077e22ccf9f",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "effective_args.json": {
+      "sha256": "fc2a9124cf2e4d9d3c79db39011cd7a5a949a3082f0d504394c6b8c8035d41d5",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "telemetry.csv": {
+      "sha256": "eaddb728840aa0bdc67ef0dfff5c9fe24e9181ecd1ec885078170f6fc4ee2b41",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "phases.json": {
+      "sha256": "bdfd3730d87293d7e6a7f098fb9f57fb02b844856c2871d4a7271849dd9b41c0",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    }
+  },
+  "summary": {
+    "accuracy_acceptance": false,
+    "batch_size": 64,
+    "logging_recovered": true,
+    "smoke/cuda_peak_allocated_mib": 6486.240234375,
+    "smoke/cuda_peak_reserved_mib": 7014,
+    "smoke/evaluation_examples": 384,
+    "smoke/evaluation_examples_per_s": 354.5628347707802,
+    "smoke/gpu_board_energy_j": 6815.950567061582,
+    "smoke/gpu_board_energy_wh": 1.8933196019615504,
+    "smoke/gpu_energy_coverage_fraction": 0.9983480039005844,
+    "smoke/gpu_energy_coverage_s": 25.31201098448946,
+    "smoke/outer_observe_steps": 12,
+    "smoke/outer_training_examples_per_s": 302.00355089229663,
+    "smoke/outer_training_stream_examples": 768,
+    "smoke/peak_gpu_device_memory_mib": 7505,
+    "smoke/peak_gpu_power_w": 399.42,
+    "smoke/peak_gpu_utilization_percent": 100,
+    "smoke/peak_process_tree_rss_mib": 15576.984375,
+    "smoke/process_tree_cpu_s": 56.666465,
+    "smoke/process_wall_s": 25.353895520995135,
+    "smoke/tasks_completed": 1,
+    "status": "completed"
+  }
+}

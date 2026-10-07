@@ -1,0 +1,29 @@
+{
+  "status": "completed",
+  "batch_size": 64,
+  "output": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/prepared/hide_prompt/smoke64",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/e98ma95f",
+  "metrics": {
+    "process_wall_s": 25.353895520995138,
+    "outer_training_stream_examples": 768,
+    "evaluation_examples": 384,
+    "outer_observe_steps": 12,
+    "tasks_completed": 1,
+    "cuda_peak_allocated_mib": 6486.240234375,
+    "cuda_peak_reserved_mib": 7014.0,
+    "peak_process_tree_rss_mib": 15576.984375,
+    "peak_gpu_device_memory_mib": 7505.0,
+    "peak_gpu_utilization_percent": 100.0,
+    "peak_gpu_power_w": 399.42,
+    "gpu_board_energy_j": 6815.950567061582,
+    "gpu_energy_coverage_s": 25.31201098448946,
+    "gpu_energy_coverage_fraction": 0.9983480039005843,
+    "gpu_board_energy_wh": 1.8933196019615506,
+    "outer_training_examples_per_s": 302.00355089229663,
+    "evaluation_examples_per_s": 354.5628347707802,
+    "process_tree_cpu_s": 56.666465
+  },
+  "accuracy_acceptance": false,
+  "source": "/tmp/hide_gpu_smoke64.py",
+  "wandb_logging_status": "uploaded"
+}

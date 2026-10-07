@@ -1,0 +1,31 @@
+{
+  "attempts": [
+    {
+      "stage": "direct_debug_cli48",
+      "status": "parser_rejected",
+      "reason": "--nowand is not a CLI argument; no training or uploads happened."
+    },
+    {
+      "stage": "direct_debug48",
+      "status": "completed_diagnostic_only",
+      "wandb_url": "https://wandb.ai/laymond1/uncategorized/runs/i332nmv7",
+      "note": "Empty entity/project env values are non-None; native extend_args enabled W&B in default project. This debug run is excluded from comparison."
+    },
+    {
+      "stage": "direct_debug64",
+      "status": "completed_diagnostic_only",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/e98ma95f",
+      "note": "Compute completed; W&B summary mapping call corrected and existing run resumed to upload saved results. No second training was required."
+    },
+    {
+      "stage": "author_smoke_shared_path",
+      "status": "interrupted_before_training",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/81beg7ta",
+      "cause": "Reference dataset-only factory did not set native utils.conf.base_path. Download attempt stopped; add explicit shared base path and fail-closed no-download guard.",
+      "partial_download_bytes": 6684672,
+      "partial_download_sha256": "174788ed3de45f619ab0296c3cac8d71469d4741d466baeed3ca815872507abe",
+      "shared_data_modified": false,
+      "partial_file_removed": true
+    }
+  ]
+}
