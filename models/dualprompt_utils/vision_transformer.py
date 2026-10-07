@@ -1,5 +1,6 @@
 import math
 import logging
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -255,10 +256,22 @@ def checkpoint_filter_fn(state_dict, model, adapt_layer_scale=False):
     return out_dict
 
 
-def vit_base_patch16_224_dualprompt(pretrained=False, **kwargs):
+def vit_base_patch16_224_dualprompt(pretrained=False, pretrained_checkpoint=None, **kwargs):
     """ ViT-Base (ViT-B/16) from original paper (https://arxiv.org/abs/2010.11929).
     ImageNet-1k weights fine-tuned from in21k @ 224x224, source https://github.com/google-research/vision_transformer.
     """
+    checkpoint = None
+    if pretrained_checkpoint:
+        checkpoint = Path(pretrained_checkpoint).expanduser().resolve()
+        if not checkpoint.is_file():
+            raise FileNotFoundError(f'DualPrompt checkpoint does not exist: {checkpoint}')
+        if checkpoint.suffix != '.npz':
+            raise ValueError('DualPrompt pretrained_checkpoint must be a local ViT NPZ file')
     model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
-    model = create_vision_transformer('vit_base_patch16_224_in21k_fn_in1k_old', base_class=VisionTransformer, filter_fn=checkpoint_filter_fn, pretrained=pretrained, **model_kwargs)
+    model = create_vision_transformer('vit_base_patch16_224_in21k_fn_in1k_old', base_class=VisionTransformer, filter_fn=checkpoint_filter_fn,
+                                      pretrained=pretrained if checkpoint is None else False, **model_kwargs)
+    if checkpoint is not None:
+        # Prefix prompts augment attention K/V, so the image position table stays
+        # at 197 tokens and the standard timm NPZ loader applies unchanged.
+        model.load_pretrained(str(checkpoint))
     return model

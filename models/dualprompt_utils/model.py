@@ -11,6 +11,7 @@ class Model(nn.Module):
 
         self.original_model = vit_base_patch16_224_dualprompt(
             pretrained=args.pretrained,
+            pretrained_checkpoint=getattr(args, 'pretrained_checkpoint', None),
             num_classes=n_classes,
             drop_rate=0,
             drop_path_rate=0,
@@ -20,6 +21,7 @@ class Model(nn.Module):
 
         self.model = vit_base_patch16_224_dualprompt(
             pretrained=args.pretrained,
+            pretrained_checkpoint=getattr(args, 'pretrained_checkpoint', None),
             num_classes=n_classes,
             drop_rate=0,
             drop_path_rate=0,

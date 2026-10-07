@@ -27,6 +27,8 @@ class DualPrompt(ContinualModel):
         parser.set_defaults(optimizer='adam', batch_size=128)
 
         parser.add_argument('--pretrained', default=1, type=binary_to_boolean_type, help='Load pretrained model or not')
+        parser.add_argument('--pretrained_checkpoint', default=None, type=str,
+                            help='Local ViT NPZ checkpoint for both query and prompt backbones; overrides --pretrained without downloading')
         parser.add_argument('--use_permute_fix', type=binary_to_boolean_type, default=0, help='Apply fix to reshape issue from original implementation (ref: issue #56)')
 
         # Optimizer parameters
@@ -64,7 +66,11 @@ class DualPrompt(ContinualModel):
     def __init__(self, backbone, loss, args, transform, dataset=None):
         del backbone
         logging.info("-" * 20)
-        logging.info(f"DualPrompt USES A CUSTOM BACKBONE: `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz` (vit_base_patch16_224_in21k_fn_in1k_old).")
+        checkpoint = getattr(args, 'pretrained_checkpoint', None)
+        if checkpoint:
+            logging.info("DualPrompt uses a local ViT-B/16 checkpoint for both backbones: %s", checkpoint)
+        else:
+            logging.info("DualPrompt USES A CUSTOM BACKBONE: `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz` (vit_base_patch16_224_in21k_fn_in1k_old).")
         logging.info("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         logging.info("-" * 20)
 
