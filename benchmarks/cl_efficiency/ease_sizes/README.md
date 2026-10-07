@@ -8,10 +8,15 @@ All variants use CIFAR100-224 with ten classes per task, natural class order,
 seed1993 and physical GPU1. Each has an independent reference from pinned
 author code and a native Mammoth validation of two tasks, twenty epochs per
 task, batch48 and four workers. Small/Tiny references specialize only the
-author's architecture constructors and load the corresponding local AugReg
+author's architecture constructors and classifier feature-block-width default,
+and load the corresponding local AugReg
 IN21K→IN1K checkpoint. These are size-variant references, not published
 Small/Tiny paper reproductions. Different size-specific pretraining recipes
 are recorded in `environment/checkpoints.json`.
+
+The classifier's original reweight calculation remains intact: its default
+feature width changes from 768 to 384 or 192. CPU checks compare both tasks'
+logits against independently calculated block-normalized weighted scores.
 
 Native accuracy is compared with its matching reference using exact saved
 prediction counts: at most 1.5 percentage points lower passes; 1.5–3.0 points

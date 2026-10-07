@@ -1098,5 +1098,225 @@
       "gpu_execution": false,
       "downloads": false
     }
-  ]
+  ],
+  "classifier_geometry_audit": {
+    "completed_at_utc": "2026-10-07T02:47:43.445400+00:00",
+    "scope": "Real author CosineLinear.forward_reweight on synthetic CPU features for T1/T2 of all four variants; no images, backward, optimizer or GPU execution.",
+    "status": "pass",
+    "source_helper_sha256": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+    "audit_script_sha256": "fca3b12660db0e45f1dd5c4230c5ec9f2122f3dd9b890366de1a0b8923cff022",
+    "audit_script_source": "\"\"\"CPU feature-only audit of the author classifier block-width default.\"\"\"\nimport datetime\nimport hashlib\nimport importlib.util\nimport inspect\nimport json\nimport os\nfrom pathlib import Path\nimport sys\nfrom unittest.mock import patch\n\nROOT = Path('/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes')\nSOURCE = Path('/tmp/cl-ease-official-20261007/backbone/linears.py')\nsys.path.insert(0, str(ROOT))\nfrom scripts.cl_runtime import configure_environment\nconfigure_environment()\nos.environ['CUDA_VISIBLE_DEVICES'] = ''\nfrom scripts.ease_size_protocol import load_variant, VARIANTS, file_hash\nfrom scripts.ease_reference_utils import _size_constructor\nimport torch\ntorch.set_num_threads(2)\n\nspec = importlib.util.spec_from_file_location('_independent_author_linears', SOURCE)\nmodule = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(module)\noriginal = module.CosineLinear.forward_reweight\ncases = []\nfor name in VARIANTS:\n    variant = load_variant(name, verify_checkpoint=False)\n    dimension = variant['feature_dim']\n    specialized, specialization = _size_constructor(original, dimension)\n    for task in (0, 1):\n        blocks, classes, batch = task + 1, (task + 1) * 10, 8\n        generator = torch.Generator().manual_seed(1993)\n        features = torch.randn(batch, blocks * dimension, generator=generator)\n        weights = torch.randn(classes, blocks * dimension, generator=generator)\n        classifier = module.CosineLinear(blocks * dimension, classes)\n        with torch.no_grad():\n            classifier.weight.copy_(weights)\n            classifier.sigma.fill_(1.7)\n        normalized_features = torch.nn.functional.normalize(features.reshape(batch, blocks, dimension), dim=-1)\n        normalized_weights = torch.nn.functional.normalize(weights.reshape(classes, blocks, dimension), dim=-1)\n        cosines = torch.einsum('btd,ctd->bct', normalized_features, normalized_weights)\n        coefficients = torch.full((classes, blocks), .1 / task if task else 0.)\n        coefficients[torch.arange(classes), torch.arange(classes) // 10] = 1.\n        expected = (cosines * coefficients[None]).sum(-1) * 1.7\n        with patch.object(module.CosineLinear, 'forward_reweight', specialized), torch.no_grad():\n            actual = classifier.forward_reweight(features, cur_task=task, alpha=.1, init_cls=10,\n                                                 inc=10, use_init_ptm=False)['logits']\n        checks = {'default_width_matches_size': inspect.signature(specialized).parameters['out_dim'].default == dimension,\n                  'base_default_restored_768': inspect.signature(module.CosineLinear.forward_reweight).parameters['out_dim'].default == 768,\n                  'batch_by_class_shape': tuple(actual.shape) == (batch, classes),\n                  'finite_nonzero_logits': torch.isfinite(actual).all().item() and torch.count_nonzero(actual).item() > 0,\n                  'independent_block_scores_match': torch.allclose(actual, expected, rtol=1e-5, atol=2e-7),\n                  'cuda_not_initialized': not torch.cuda.is_initialized()}\n        cases.append({'variant': name, 'task': task + 1, 'feature_dim': dimension, 'logits_shape': list(actual.shape),\n                      'status': 'pass' if all(checks.values()) else 'fail', 'checks': checks,\n                      'max_absolute_error': float((actual - expected).abs().max()),\n                      'unique_predicted_classes': int(actual.argmax(1).unique().numel()),\n                      'classifier_reweight': specialization})\noutput = ROOT / 'benchmarks/cl_efficiency/ease_sizes/environment/reference_cpu_initialization.json'\nreport = json.loads(output.read_text())\nreport['classifier_geometry_audit'] = {\n    'completed_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),\n    'scope': 'Real author CosineLinear.forward_reweight on synthetic CPU features for T1/T2 of all four variants; no images, backward, optimizer or GPU execution.',\n    'status': 'pass' if all(case['status'] == 'pass' for case in cases) else 'fail',\n    'source_helper_sha256': file_hash(ROOT / 'scripts/ease_reference_utils.py'),\n    'audit_script_sha256': file_hash(Path(__file__)),\n    'audit_script_source': Path(__file__).read_text(),\n    'upstream_classifier_sha256': file_hash(SOURCE),\n    'cases': cases,\n    'initialization_audit_reused': 'Earlier four CPU initialization audits remain historical; the geometry correction changes only the classifier default width and leaves all ViT construction and pretrained tensors unchanged.'}\nif report['classifier_geometry_audit']['status'] != 'pass':\n    report['status'] = 'fail'\noutput.write_text(json.dumps(report, indent=2, allow_nan=False) + '\\n')\nprint(json.dumps({'status': report['classifier_geometry_audit']['status'], 'cases': len(cases),\n                  'max_absolute_error': max(case['max_absolute_error'] for case in cases), 'output': str(output)}))\nif report['status'] != 'pass':\n    raise RuntimeError('Reference classifier geometry CPU audit failed')\n",
+    "upstream_classifier_sha256": "2505381e259cab4dd2640caf441390dc1e040b47dce3adce1a67ea94b84865d4",
+    "cases": [
+      {
+        "variant": "small_fixed64",
+        "task": 1,
+        "feature_dim": 384,
+        "logits_shape": [
+          8,
+          10
+        ],
+        "status": "pass",
+        "checks": {
+          "default_width_matches_size": true,
+          "base_default_restored_768": true,
+          "batch_by_class_shape": true,
+          "finite_nonzero_logits": true,
+          "independent_block_scores_match": true,
+          "cuda_not_initialized": true
+        },
+        "max_absolute_error": 0.0,
+        "unique_predicted_classes": 5,
+        "classifier_reweight": {
+          "feature_dim_constants": 1,
+          "attention_head_arguments": 0,
+          "source_sha256": "d25ca2bcfba37b5ed7971e45a64dca85478d025751dd347fe686b1858dfc1223",
+          "specialized_ast_sha256": "e1a894f763a1e2989599e3e30dccb2787072a5f5aec24d073033fdb6fd782be6"
+        }
+      },
+      {
+        "variant": "small_fixed64",
+        "task": 2,
+        "feature_dim": 384,
+        "logits_shape": [
+          8,
+          20
+        ],
+        "status": "pass",
+        "checks": {
+          "default_width_matches_size": true,
+          "base_default_restored_768": true,
+          "batch_by_class_shape": true,
+          "finite_nonzero_logits": true,
+          "independent_block_scores_match": true,
+          "cuda_not_initialized": true
+        },
+        "max_absolute_error": 7.450580596923828e-08,
+        "unique_predicted_classes": 8,
+        "classifier_reweight": {
+          "feature_dim_constants": 1,
+          "attention_head_arguments": 0,
+          "source_sha256": "d25ca2bcfba37b5ed7971e45a64dca85478d025751dd347fe686b1858dfc1223",
+          "specialized_ast_sha256": "e1a894f763a1e2989599e3e30dccb2787072a5f5aec24d073033fdb6fd782be6"
+        }
+      },
+      {
+        "variant": "tiny_fixed64",
+        "task": 1,
+        "feature_dim": 192,
+        "logits_shape": [
+          8,
+          10
+        ],
+        "status": "pass",
+        "checks": {
+          "default_width_matches_size": true,
+          "base_default_restored_768": true,
+          "batch_by_class_shape": true,
+          "finite_nonzero_logits": true,
+          "independent_block_scores_match": true,
+          "cuda_not_initialized": true
+        },
+        "max_absolute_error": 0.0,
+        "unique_predicted_classes": 5,
+        "classifier_reweight": {
+          "feature_dim_constants": 1,
+          "attention_head_arguments": 0,
+          "source_sha256": "d25ca2bcfba37b5ed7971e45a64dca85478d025751dd347fe686b1858dfc1223",
+          "specialized_ast_sha256": "f695aee3f3a1232a784c56b1824083bb7336639a005bb60fb28f30fef9e856db"
+        }
+      },
+      {
+        "variant": "tiny_fixed64",
+        "task": 2,
+        "feature_dim": 192,
+        "logits_shape": [
+          8,
+          20
+        ],
+        "status": "pass",
+        "checks": {
+          "default_width_matches_size": true,
+          "base_default_restored_768": true,
+          "batch_by_class_shape": true,
+          "finite_nonzero_logits": true,
+          "independent_block_scores_match": true,
+          "cuda_not_initialized": true
+        },
+        "max_absolute_error": 5.960464477539063e-08,
+        "unique_predicted_classes": 8,
+        "classifier_reweight": {
+          "feature_dim_constants": 1,
+          "attention_head_arguments": 0,
+          "source_sha256": "d25ca2bcfba37b5ed7971e45a64dca85478d025751dd347fe686b1858dfc1223",
+          "specialized_ast_sha256": "f695aee3f3a1232a784c56b1824083bb7336639a005bb60fb28f30fef9e856db"
+        }
+      },
+      {
+        "variant": "small_relative32",
+        "task": 1,
+        "feature_dim": 384,
+        "logits_shape": [
+          8,
+          10
+        ],
+        "status": "pass",
+        "checks": {
+          "default_width_matches_size": true,
+          "base_default_restored_768": true,
+          "batch_by_class_shape": true,
+          "finite_nonzero_logits": true,
+          "independent_block_scores_match": true,
+          "cuda_not_initialized": true
+        },
+        "max_absolute_error": 0.0,
+        "unique_predicted_classes": 5,
+        "classifier_reweight": {
+          "feature_dim_constants": 1,
+          "attention_head_arguments": 0,
+          "source_sha256": "d25ca2bcfba37b5ed7971e45a64dca85478d025751dd347fe686b1858dfc1223",
+          "specialized_ast_sha256": "e1a894f763a1e2989599e3e30dccb2787072a5f5aec24d073033fdb6fd782be6"
+        }
+      },
+      {
+        "variant": "small_relative32",
+        "task": 2,
+        "feature_dim": 384,
+        "logits_shape": [
+          8,
+          20
+        ],
+        "status": "pass",
+        "checks": {
+          "default_width_matches_size": true,
+          "base_default_restored_768": true,
+          "batch_by_class_shape": true,
+          "finite_nonzero_logits": true,
+          "independent_block_scores_match": true,
+          "cuda_not_initialized": true
+        },
+        "max_absolute_error": 7.450580596923828e-08,
+        "unique_predicted_classes": 8,
+        "classifier_reweight": {
+          "feature_dim_constants": 1,
+          "attention_head_arguments": 0,
+          "source_sha256": "d25ca2bcfba37b5ed7971e45a64dca85478d025751dd347fe686b1858dfc1223",
+          "specialized_ast_sha256": "e1a894f763a1e2989599e3e30dccb2787072a5f5aec24d073033fdb6fd782be6"
+        }
+      },
+      {
+        "variant": "tiny_relative16",
+        "task": 1,
+        "feature_dim": 192,
+        "logits_shape": [
+          8,
+          10
+        ],
+        "status": "pass",
+        "checks": {
+          "default_width_matches_size": true,
+          "base_default_restored_768": true,
+          "batch_by_class_shape": true,
+          "finite_nonzero_logits": true,
+          "independent_block_scores_match": true,
+          "cuda_not_initialized": true
+        },
+        "max_absolute_error": 0.0,
+        "unique_predicted_classes": 5,
+        "classifier_reweight": {
+          "feature_dim_constants": 1,
+          "attention_head_arguments": 0,
+          "source_sha256": "d25ca2bcfba37b5ed7971e45a64dca85478d025751dd347fe686b1858dfc1223",
+          "specialized_ast_sha256": "f695aee3f3a1232a784c56b1824083bb7336639a005bb60fb28f30fef9e856db"
+        }
+      },
+      {
+        "variant": "tiny_relative16",
+        "task": 2,
+        "feature_dim": 192,
+        "logits_shape": [
+          8,
+          20
+        ],
+        "status": "pass",
+        "checks": {
+          "default_width_matches_size": true,
+          "base_default_restored_768": true,
+          "batch_by_class_shape": true,
+          "finite_nonzero_logits": true,
+          "independent_block_scores_match": true,
+          "cuda_not_initialized": true
+        },
+        "max_absolute_error": 5.960464477539063e-08,
+        "unique_predicted_classes": 8,
+        "classifier_reweight": {
+          "feature_dim_constants": 1,
+          "attention_head_arguments": 0,
+          "source_sha256": "d25ca2bcfba37b5ed7971e45a64dca85478d025751dd347fe686b1858dfc1223",
+          "specialized_ast_sha256": "f695aee3f3a1232a784c56b1824083bb7336639a005bb60fb28f30fef9e856db"
+        }
+      }
+    ],
+    "initialization_audit_reused": "Earlier four CPU initialization audits remain historical; the geometry correction changes only the classifier default width and leaves all ViT construction and pretrained tensors unchanged."
+  }
 }

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "included_in_comparison": false,
+  "attempts": [
+    {
+      "variant": "small_fixed64",
+      "stage": "author_code_size_variant_reference",
+      "source_commit": "058241a",
+      "local_run": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024100Z/small_fixed64/reference/ease-author-code-small_fixed64-reference-20261007T024100Z",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/u3mnyx9e",
+      "status": "failed",
+      "excluded_from_comparison": true,
+      "failure": "Upstream CosineLinear.forward_reweight defaults to out_dim=768; EaseNet.forward omits this argument, producing scalar logits for Small feature_dim=384.",
+      "completed_training_epochs": 20,
+      "completed_tasks": 0,
+      "completed_evaluation_examples": 0,
+      "retry_policy": "Preserve raw local/W&B artifacts, specialize only the classifier width default, rerun the unchanged approved protocol after CPU regression checks.",
+      "metrics_sha256": "80878ce016aec6d0c2a73c711413876440513e2240e643dfbced6ee92358103d",
+      "wandb_exclusion_readback": {
+        "state": "failed",
+        "excluded_from_size_pilot": true
+      }
+    }
+  ]
+}

@@ -300,10 +300,17 @@ def test_raw_shared_cifar_metadata_records_file_hashes_counts_and_class_names(tm
 def test_explicit_size_patch_wires_the_local_tag_and_restores_both_author_constructors(fake_reference, monkeypatch, size, dimension, heads, width):
     fixture = fake_reference
     original_factory, original_get_backbone = Mock(), Mock()
-    factory, get_backbone = Mock(), Mock()
+    factory, get_backbone, reweight = Mock(), Mock(), Mock()
+
+    class Classifier:
+        def forward_reweight(self, features, cur_task, out_dim=768):
+            return features
+
+    original_reweight = Classifier.forward_reweight
     fixture.stack['vit'].vit_base_patch16_224_ease = original_factory
-    fixture.stack['inc_net'] = SimpleNamespace(get_backbone=original_get_backbone)
-    specialize = Mock(side_effect=[(factory, {'feature_dim_constants': 9}), (get_backbone, {'feature_dim_constants': 5})])
+    fixture.stack['inc_net'] = SimpleNamespace(get_backbone=original_get_backbone, CosineLinear=Classifier)
+    specialize = Mock(side_effect=[(factory, {'feature_dim_constants': 9}), (get_backbone, {'feature_dim_constants': 5}),
+                                  (reweight, {'feature_dim_constants': 1})])
     monkeypatch.setattr(helpers, '_size_constructor', specialize)
     variant = {'name': f'{size}_{width}', 'vit_size': size, 'feature_dim': dimension, 'num_heads': heads,
                'adapter_size': width, 'checkpoint_file': str(fixture.checkpoint),
@@ -313,17 +320,21 @@ def test_explicit_size_patch_wires_the_local_tag_and_restores_both_author_constr
     with helpers.install_reference_patches(fixture.stack, fixture.checkpoint, fixture.data_root, records, variant=variant):
         assert fixture.stack['vit'].vit_base_patch16_224_ease is factory
         assert fixture.stack['inc_net'].get_backbone is get_backbone
+        assert Classifier.forward_reweight is reweight
         fixture.stack['timm'].create_model('vit_base_patch16_224', pretrained=True, num_classes=0)
         fixture.create.assert_called_once_with(variant['checkpoint_tag'], pretrained=False, num_classes=0)
         assert records['reference_kind'] == 'author-code-size-variant'
         assert records['variant']['adapter_size'] == width
         assert records['checkpoint']['tag'] == variant['checkpoint_tag']
+        assert records['constructor_specialization']['classifier_reweight']['feature_dim_constants'] == 1
         with pytest.raises(ValueError, match=f'selected {size.title()}'):
             fixture.stack['timm'].create_model('vit_base_patch16_224_in21k', pretrained=True)
     assert fixture.stack['vit'].vit_base_patch16_224_ease is original_factory
     assert fixture.stack['inc_net'].get_backbone is original_get_backbone
+    assert Classifier.forward_reweight is original_reweight
     assert specialize.call_args_list[0].args == (original_factory, dimension, heads)
     assert specialize.call_args_list[1].args == (original_get_backbone, dimension)
+    assert specialize.call_args_list[2].args == (original_reweight, dimension)
 
 
 def test_explicit_reference_size_rejects_mismatched_checkpoint_before_patching(fake_reference):

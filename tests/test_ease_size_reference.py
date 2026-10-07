@@ -2,8 +2,12 @@
 
 import ast
 import functools
+import hashlib
+import importlib.util
+import inspect
 from pathlib import Path
 import sys
+import textwrap
 from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -88,6 +92,53 @@ def test_reviewed_get_backbone_uses_the_same_adapter_recipe_and_selected_width(d
     assert config.vpt_on is False and config._device == 'cpu'
     assert factory.return_value.out_dim == dimension
     assert audit['feature_dim_constants'] == 5 and audit['attention_head_arguments'] == 0
+
+
+@pytest.mark.parametrize('name,dimension', [('small_fixed64', 384), ('tiny_fixed64', 192),
+                                          ('small_relative32', 384), ('tiny_relative16', 192)])
+@pytest.mark.parametrize('task', [0, 1])
+def test_author_classifier_default_width_matches_independent_block_cosine_scores(name, dimension, task):
+    """Execute only the real classifier on synthetic features, never images."""
+    source = SOURCE / 'backbone/linears.py'
+    if not source.is_file():
+        pytest.skip('The read-only reviewed EASE source is not available')
+    spec = importlib.util.spec_from_file_location(f'_author_linears_{name}_{task}', source)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    original = module.CosineLinear.forward_reweight
+    specialized, audit = helpers._size_constructor(original, dimension)
+    assert inspect.signature(original).parameters['out_dim'].default == 768
+    assert inspect.signature(specialized).parameters['out_dim'].default == dimension
+    assert audit['feature_dim_constants'] == 1
+    # Pin the entire specialized AST to a change of only its default argument.
+    # Compiling a class method as a standalone function can reorder constants.
+    expected_ast = ast.parse(textwrap.dedent(inspect.getsource(original)))
+    definition = expected_ast.body[0]
+    index = definition.args.args.index(next(arg for arg in definition.args.args if arg.arg == 'out_dim'))
+    definition.args.defaults[index - (len(definition.args.args) - len(definition.args.defaults))].value = dimension
+    assert audit['specialized_ast_sha256'] == hashlib.sha256(ast.dump(expected_ast).encode()).hexdigest()
+    blocks, classes, batch, alpha = task + 1, (task + 1) * 10, 3, .1
+    generator = torch.Generator().manual_seed(1993)
+    features = torch.randn(batch, blocks * dimension, generator=generator)
+    weights = torch.randn(classes, blocks * dimension, generator=generator)
+    classifier = module.CosineLinear(blocks * dimension, classes)
+    with torch.no_grad():
+        classifier.weight.copy_(weights)
+        classifier.sigma.fill_(1.7)
+    normalized_features = torch.nn.functional.normalize(features.reshape(batch, blocks, dimension), dim=-1)
+    normalized_prototypes = torch.nn.functional.normalize(weights.reshape(classes, blocks, dimension), dim=-1)
+    block_cosines = torch.einsum('btd,ctd->bct', normalized_features, normalized_prototypes)
+    coefficients = torch.full((classes, blocks), alpha / task if task else 0.)
+    coefficients[torch.arange(classes), torch.arange(classes) // 10] = 1.
+    expected = (block_cosines * coefficients[None]).sum(-1) * 1.7
+    with patch.object(module.CosineLinear, 'forward_reweight', specialized), torch.no_grad():
+        # Match EaseNet's call, which omits out_dim and uses the method default.
+        actual = classifier.forward_reweight(features, cur_task=task, alpha=alpha,
+                                             init_cls=10, inc=10, use_init_ptm=False)['logits']
+    assert module.CosineLinear.forward_reweight is original
+    assert inspect.signature(module.CosineLinear.forward_reweight).parameters['out_dim'].default == 768
+    assert actual.shape == (batch, classes) and torch.isfinite(actual).all()
+    torch.testing.assert_close(actual, expected, rtol=1e-5, atol=2e-7)
 
 
 def test_constructor_specialization_refuses_a_changed_unreviewed_shape():

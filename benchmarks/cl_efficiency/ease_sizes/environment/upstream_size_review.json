@@ -1,0 +1,243 @@
+{
+  "status": "reviewed",
+  "reference_commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+  "scope": [
+    "models/ease.py",
+    "utils/inc_net.py",
+    "backbone/vit_ease.py",
+    "backbone/linears.py"
+  ],
+  "remaining_active_unpatched_base_width_assumptions": [],
+  "additional_active_width_assumptions_found": false,
+  "findings": {
+    "models/ease.py": {
+      "sha256": "3639658799bb1dc02a3052cf7d1cc7e47212d4a81c69a1a1e46d123e4574b4b2",
+      "base_width_768_lines": []
+    },
+    "utils/inc_net.py": {
+      "sha256": "cd053b916ba9e47e98e3cffab2aa6a4a9c290f25fb24fd96cece3ccc6f14f21f",
+      "base_width_768_lines": [
+        13,
+        17,
+        33,
+        42,
+        46
+      ]
+    },
+    "backbone/vit_ease.py": {
+      "sha256": "6192da266ed89b0278de79d88cdb877b8fbd68a49ef4c4b195fe639abe3da9ca",
+      "base_width_768_lines": [
+        185,
+        412,
+        423,
+        424,
+        425,
+        431,
+        432,
+        433,
+        456,
+        467,
+        468,
+        469,
+        475,
+        476,
+        477
+      ]
+    },
+    "backbone/linears.py": {
+      "sha256": "2505381e259cab4dd2640caf441390dc1e040b47dce3adce1a67ea94b84865d4",
+      "base_width_768_lines": [
+        45
+      ]
+    }
+  },
+  "numeric_defaults": [
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "dropout",
+      "value": 0.0,
+      "line": 36
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "num_heads",
+      "value": 8,
+      "line": 94
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "attn_drop",
+      "value": 0.0,
+      "line": 94
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "proj_drop",
+      "value": 0.0,
+      "line": 94
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "mlp_ratio",
+      "value": 4.0,
+      "line": 139
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "drop",
+      "value": 0.0,
+      "line": 139
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "attn_drop",
+      "value": 0.0,
+      "line": 139
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "drop_path",
+      "value": 0.0,
+      "line": 140
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "img_size",
+      "value": 224,
+      "line": 185
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "patch_size",
+      "value": 16,
+      "line": 185
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "in_chans",
+      "value": 3,
+      "line": 185
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "num_classes",
+      "value": 1000,
+      "line": 185
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "embed_dim",
+      "value": 768,
+      "line": 185
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "depth",
+      "value": 12,
+      "line": 185
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "num_heads",
+      "value": 12,
+      "line": 186
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "mlp_ratio",
+      "value": 4.0,
+      "line": 186
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "drop_rate",
+      "value": 0.0,
+      "line": 187
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "attn_drop_rate",
+      "value": 0.0,
+      "line": 187
+    },
+    {
+      "file": "backbone/vit_ease.py",
+      "function": "__init__",
+      "argument": "drop_path_rate",
+      "value": 0.0,
+      "line": 187
+    },
+    {
+      "file": "backbone/linears.py",
+      "function": "__init__",
+      "argument": "nb_proxy",
+      "value": 1,
+      "line": 11
+    },
+    {
+      "file": "backbone/linears.py",
+      "function": "forward_reweight",
+      "argument": "alpha",
+      "value": 0.1,
+      "line": 45
+    },
+    {
+      "file": "backbone/linears.py",
+      "function": "forward_reweight",
+      "argument": "beta",
+      "value": 0.0,
+      "line": 45
+    },
+    {
+      "file": "backbone/linears.py",
+      "function": "forward_reweight",
+      "argument": "init_cls",
+      "value": 10,
+      "line": 45
+    },
+    {
+      "file": "backbone/linears.py",
+      "function": "forward_reweight",
+      "argument": "inc",
+      "value": 10,
+      "line": 45
+    },
+    {
+      "file": "backbone/linears.py",
+      "function": "forward_reweight",
+      "argument": "out_dim",
+      "value": 768,
+      "line": 45
+    }
+  ],
+  "disposition": {
+    "utils/inc_net.py:get_backbone": "All five 768 constants specialized by reviewed constructor AST. Active d_model/out_dim becomes D; unused non-EASE branches are never selected.",
+    "backbone/vit_ease.py:factory": "Active factory embed_dim and QKV weight/bias split limits specialized to D; attention heads explicitly specialized to 6/3. Each head remains 64-wide. Other IN21K-only factory is inactive under the pinned AugReg IN21K-to-IN1K protocol.",
+    "backbone/vit_ease.py:VisionTransformer_defaults": "embed_dim=768,num_heads=12 defaults bypassed by explicit specialized factory kwargs. Depth12/patch16/image224/MLP4 remain correct for all sizes.",
+    "backbone/vit_ease.py:Adapter": "Uses config.d_model and explicit config.ffn_num; no implicit bottleneck width. Dropout=.1 and scale=.1 unchanged author recipe.",
+    "backbone/linears.py:forward_reweight": "out_dim default must be D. Preserve the entire original body so each D-dimensional task subspace is normalized separately, alpha-weighted, and summed; T1 must yield nonzero finite tensors rather than zero Python float.",
+    "models/ease.py:completion": "Prototype placement, semantic A/B/A_hat widths and completion writes use self._network.out_dim, not Base constants. Temperature-free cosine+softmax over class relations has no D normalization assumption.",
+    "utils/inc_net.py:EaseNet": "Expanded feature_dim=(task+1)*D, proxy_fc D, task classifier widths dynamic. Class-count defaults are overridden by explicit init_cls10/increment10.",
+    "models/base.py": "CNN evaluation and topk5 are independent of D. Memory-zero protocol bypasses exemplar/NME helper batch-size64 default."
+  },
+  "corrected_runtime_assumption": "CosineLinear.forward_reweight out_dim=768 default is specialized to D by the existing AST helper; the complete classifier calculation AST is preserved.",
+  "new_cpu_test_review": "Real upstream classifier, default out_dim omitted as in EaseNet, all four variants at T1/T2; independent reshaped block-wise cosine scores, alpha/task coefficients and sigma compared. No image forward."
+}

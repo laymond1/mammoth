@@ -141,11 +141,13 @@ def _native_worker_seed(worker_id, num_workers, seed):
 
 
 def _size_constructor(original, feature_dim, num_heads=None):
-    """Specialize the author's constructor without replacing learning code.
+    """Specialize the author's geometry constants without replacing its code.
 
     The upstream factory has fixed 768-wide QKV conversion slices as well as
     architecture arguments. Specializing those same dimension constants keeps
-    its original conversion, initialization and freezing behavior intact.
+    its original conversion, initialization and freezing behavior intact. The
+    classifier reweight method also has a fixed 768-wide default argument;
+    specializing that default leaves its complete calculation body intact.
     """
     source = textwrap.dedent(inspect.getsource(original))
     tree = ast.parse(source)
@@ -185,8 +187,8 @@ def install_reference_patches(stack, checkpoint, data_root, records, seed=1993, 
     ``stack`` provides the official ``data``, ``data_manager``, ``ease`` and
     ``vit`` modules plus installed ``timm``. ``records`` is a public mutable dict.
     All learning/prototype code remains the pinned upstream implementation.
-    An explicit size variant specializes only the two upstream constructors;
-    the absent-variant Base reference keeps its original constructors.
+    An explicit size variant specializes two upstream constructors and the
+    classifier's block-width default; absent-variant Base uses their originals.
     """
     if type(seed) is not int or seed < 0:
         raise ValueError('The reference loader seed must be a nonnegative integer')
@@ -330,10 +332,14 @@ def install_reference_patches(stack, checkpoint, data_root, records, seed=1993, 
             inc_net = _module(stack, 'inc_net')
             factory, factory_audit = _size_constructor(vit.vit_base_patch16_224_ease, variant['feature_dim'], variant['num_heads'])
             get_backbone, backbone_audit = _size_constructor(inc_net.get_backbone, variant['feature_dim'])
+            classifier = inc_net.CosineLinear
+            reweight, reweight_audit = _size_constructor(classifier.forward_reweight, variant['feature_dim'])
             restoration.enter_context(patch.object(vit, 'vit_base_patch16_224_ease', factory))
             restoration.enter_context(patch.object(inc_net, 'get_backbone', get_backbone))
-            records['constructor_specialization'] = {'vit_factory': factory_audit, 'get_backbone': backbone_audit}
-            records['patches'].append('author constructors specialized only for feature dimension, attention heads and configured adapter width')
+            restoration.enter_context(patch.object(classifier, 'forward_reweight', reweight))
+            records['constructor_specialization'] = {'vit_factory': factory_audit, 'get_backbone': backbone_audit,
+                                                       'classifier_reweight': reweight_audit}
+            records['patches'].append('author constructors and classifier block-width default specialized for feature dimension, attention heads and configured adapter width; classifier calculation unchanged')
         restoration.enter_context(patch.object(timm, 'create_model', pinned_create))
         restoration.enter_context(patch.object(data.iCIFAR224, 'download_data', shared_download))
         restoration.enter_context(patch.object(manager_module.DataManager, 'get_dataset', aligned_get_dataset))
