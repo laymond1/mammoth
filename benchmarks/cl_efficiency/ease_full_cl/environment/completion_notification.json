@@ -1,0 +1,6 @@
+{
+  "status": "sent",
+  "message": "EASE Base 전체10태스크 결과 저장·검증 완료 (GPU1, batch64, seed1993).\n최종 정확도 85.42%, 평균 증분 정확도 91.25%, 과거9태스크 망각 8.00%p.\nW&B https://wandb.ai/laymond1/cl-efficiency/runs/xfrn5if3",
+  "result_sha256": "6ecbfc733b67b998a2f3923fca0c9464bb5f543c84870743bf2f3a00ff1affc9",
+  "readback_sha256": "6ad64558bf4c91e60979c932cfbb75ab07ce292442e847f49575d9fcae724165"
+}

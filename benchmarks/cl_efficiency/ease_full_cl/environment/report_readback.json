@@ -1,0 +1,97 @@
+{
+  "status": "pass",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/xfrn5if3",
+  "run_state": "finished",
+  "artifact": "laymond1/cl-efficiency/ease-fullcl-report-20261007T133103Z:v0",
+  "artifact_state": "COMMITTED",
+  "result_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/published-report/result.json",
+  "result_sha256": "6ecbfc733b67b998a2f3923fca0c9464bb5f543c84870743bf2f3a00ff1affc9",
+  "artifact_files": {
+    "results.json": {
+      "sha256": "3d0c6b1229ba67b9e831a9249e21cb35e877630e11eac98c19b3b2f31fee6b85",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "results.csv": {
+      "sha256": "88a7f2a089796a444de29c4d96c6f4e36359f47358175da9926253559a7ea846",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "report.md": {
+      "sha256": "f84a7cd158f311804806a4f41937edeb68175ca73073d017b992c32a853fa62a",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "accuracy_matrix.png": {
+      "sha256": "571960dab080e24af8e73093c1b1c16138f52c25464754cf6572e74a5b4d9a4a",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "accuracy_matrix.pdf": {
+      "sha256": "202ed8528a1c1ddb55bfbf769ff458dc8962ac3f9f07c8495ccfbb9f3427cd1d",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task_resources.png": {
+      "sha256": "9ed1ca8ed820cb5e26241d72fb6ea1652fa41cb3dfdb4f5baed2060258ffd5fc",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task_resources.pdf": {
+      "sha256": "790e8fcaebd8e51789e39b70c10f964dc244d3bce9e5104b994718b5c6124eb0",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "gpu_exclusivity.json": {
+      "sha256": "1c7b37cf212f5763eafbe74ac0824a6818a9d6bb2bf10bf6d66864ede99c76fd",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "artifact_metadata.json": {
+      "sha256": "91981cfe78c0259e32c3c660d8f8039f6ff136c73789e472344e58fe648a75c5",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    }
+  },
+  "summary": {
+    "equal_compute_budget": false,
+    "full_cl/average_incremental_accuracy_pct": 91.24547619047618,
+    "full_cl/final_accuracy_pct": 85.42,
+    "full_cl/forgetting_pp": 8.000000000000002,
+    "full_ten_task_accuracy_acceptance": "not_assessed_by_matched_ten_task_reference",
+    "gpu_continuous_reservation": false,
+    "gpu_occupancy_observations": 678,
+    "gpu_sampled_occupancy_status": "pass",
+    "hide_comparison_status": "compatible",
+    "implementation_prefix_gate": "pass",
+    "new_gpu_computation": false,
+    "new_training": false,
+    "paper_reproduction": false,
+    "report_only": true,
+    "resources/cuda_peak_allocated_mib": 5804.67236328125,
+    "resources/cuda_peak_reserved_mib": 6218,
+    "resources/evaluation_examples": 55000,
+    "resources/evaluation_examples_per_s": 115.89080276125824,
+    "resources/gpu_board_energy_j": 1455313.941659941,
+    "resources/gpu_board_energy_wh": 404.25387268331696,
+    "resources/gpu_energy_coverage_fraction": 0.999987080076204,
+    "resources/gpu_energy_coverage_s": 3493.6334777135053,
+    "resources/outer_observe_steps": 15800,
+    "resources/outer_training_examples_per_s": 376.9793163131231,
+    "resources/outer_training_stream_examples": 1000000,
+    "resources/peak_gpu_device_memory_mib": 6709,
+    "resources/peak_gpu_power_w": 450.08,
+    "resources/peak_gpu_utilization_percent": 100,
+    "resources/peak_process_tree_rss_mib": 22360.66015625,
+    "resources/process_tree_cpu_s": 4467.719743,
+    "resources/process_wall_s": 3493.6786157749884,
+    "resources/tasks_completed": 10,
+    "seed_variation_estimated": false,
+    "work/evaluation_adapter_image_pairs": 385000,
+    "work/evaluation_image_examples": 55000,
+    "work/outer_image_training_examples": 1000000,
+    "work/outer_optimizer_steps": 15800,
+    "work/prototype_adapter_image_pairs": 275000,
+    "work/prototype_examples": 50000
+  }
+}

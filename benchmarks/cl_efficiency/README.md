@@ -8,7 +8,9 @@ RanPAC·L2P·DualPrompt의 첫 태스크 효율성 pilot도 측정9회·별도 �
 
 EASE Small64·Tiny64·Small32·Tiny16도 동일 CIFAR100-224에서 독립 기준선4회·native 검증4회·측정12회·부분 FLOPs4회를 완료했습니다. 네 설정 모두 같은 설정의 기준선 대비1.5%p 통과 기준을 만족했습니다. Base64 기존 결과를 포함한 [크기별 비교 보고서](ease_sizes/report.md), [JSON](ease_sizes/results.json), [측정 CSV](ease_sizes/measurements.csv)에 정확도·시간·메모리·CPU 시간·GPU 보드 에너지·부분 연산량을 정리했습니다. 최초 Small64 기준선의 classifier 폭 기본값 오류는 수정했고 실패 시도는 비교에서 제외하여 보존했습니다.
 
-독립 `codex/hide-prompt` 브랜치에 HiDe-Prompt Base 구현과 학습 없는 검증·실행 계획을 추가했습니다. TII·prompt·클래스 통계·alignment·실제 routing을 연결했고, [구현 및 준비 기록](hide_prompt/README.md)과 [검증 명령](hide_prompt/checks.md)에 결과를 보존합니다. 실제 CL 학습·정확도 검증·효율성 측정은 후속 범위입니다. 기존 inventory/manifest의71개는 병합된 기반의 실험 준비 snapshot이며, 새 HiDe-Prompt는 별도 [계획](hide_prompt/validation_plan.json)으로 관리합니다.
+HiDe-Prompt Base는 첫2태스크 구현 검증·효율성 pilot에 이어 전체10태스크 실행을 완료했습니다. 최종 정확도94.27%·평균 증분 정확도95.891857%·과거9태스크 망각1.90%p이며, [전체 CL 보고서](hide_prompt/full_cl/report.md)에 태스크별 정확도·시간·메모리·GPU 보드 에너지와 실행 범위를 기록합니다. W&B 파일 재검증·Slack 완료 알림·로컬 병합도 완료했습니다. 기존 inventory/manifest의71개는 당시의 실험 준비 snapshot으로 보존합니다.
+
+EASE Base·adapter64의 HiDe 공통 입력 전체10태스크 실행도 완료했습니다. 최종 정확도85.42%·평균 증분91.245476%·망각8.00%p, 전체 시간3,493.678616초·GPU 보드404.253873Wh를 기록했습니다. 독립 기준선과 native 첫2태스크의 네 정확도 지표가 동일하고 전체 구조 검사12개·초반 예측 재현·W&B 원격 파일 검증·Slack 완료 알림이 통과했습니다. [EASE 전체 CL 보고서](ease_full_cl/report/report.md), [실행 및 검증 이력](ease_full_cl/README.md)에 HiDe와 같은 입력·서로 다른 학습량의 비교를 정리합니다. 이전 EASE batch48·`ease` preprocessing 결과는 새 조건과 분리해 보존합니다.
 
 ## 검토 자료
 
@@ -22,7 +24,8 @@ EASE Small64·Tiny64·Small32·Tiny16도 동일 CIFAR100-224에서 독립 기준
 - [EASE 첫 태스크 효율성 pilot 결과](ease/efficiency_pilot_report.md), [측정 3회 JSON/부분 FLOPs](ease/efficiency_pilot_results.json)
 - [ViT Base·Small·Tiny 및 adapter 비교 설정](ease/tiny_small_review.md)
 - [EASE Small/Tiny 네 설정 검증·효율성 결과](ease_sizes/report.md)
-- [HiDe-Prompt Base 구현·CPU 검증·후속 실행 계획](hide_prompt/README.md)
+- [HiDe-Prompt 전체10태스크 결과](hide_prompt/full_cl/report.md), [구현 및 검증 이력](hide_prompt/README.md)
+- [EASE Base 전체 CL 공통 입력 단계](ease_full_cl/README.md)
 - [표 형태의 전체 목록](inventory.csv)
 - [모델별 데이터셋과 인자 및 외부 요구사항](manifest.json)
 - [생성된 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)

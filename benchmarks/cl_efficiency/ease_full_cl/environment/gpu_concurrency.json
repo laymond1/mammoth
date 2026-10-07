@@ -1,0 +1,11 @@
+{
+  "detected_unix": 1791372396.1179104,
+  "physical_gpu": 1,
+  "foreign_worktree": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl",
+  "foreign_runner": "benchmarks/cl_efficiency/ease/runs/normalization-ablation-20261007/runner.py",
+  "foreign_purpose": "Normalization selection on training-derived validation, local-only, 9 configurations",
+  "reference_resource_status": "excluded_from_efficiency_comparison_concurrent_gpu_work",
+  "validation_resource_status": "excluded_from_efficiency_comparison_concurrent_gpu_work",
+  "accuracy_and_structure_checks": "Retained; independent process RNG and frozen source/checkpoint/inputs, exact native full-run first-two-task prefix required",
+  "full_cl_policy": "Wait for ablation suite completion and verify no GPU1 compute process before launching. Full ten-task resources are the efficiency comparison."
+}

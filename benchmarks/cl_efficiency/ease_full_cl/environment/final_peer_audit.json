@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "audit_kind": "Independent final saved-observation peer audit",
+  "created_utc": "2026-10-07T13:40:43.447967+00:00",
+  "auditor": "/root/hide_fullcl_report",
+  "scope": {
+    "CPU_only": true,
+    "cuda_visible_devices": "",
+    "torch_imported": false,
+    "GPU_training_calls": false,
+    "network_remote_writes": false,
+    "only_written_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/environment/final_peer_audit.json",
+    "method": "Python stdlib and NumPy saved NPZ recalculation; git show frozen-source bytes; report implementation not imported",
+    "execution": "CUDA_VISIBLE_DEVICES empty; MAMMOTH_DEVICE=cpu; HF_HUB_OFFLINE=1; shared venv uv run --no-sync --offline python stdin"
+  },
+  "accuracy": {
+    "raw_NPZ_files_checked": 24,
+    "native_observed_matrix_cells": 55,
+    "future_matrix_cells_null": 45,
+    "native_seen_correct_by_task": [
+      992,
+      1928,
+      2831,
+      3701,
+      4559,
+      5371,
+      6193,
+      7006,
+      7902,
+      8542
+    ],
+    "native_seen_samples_by_task": [
+      1000,
+      2000,
+      3000,
+      4000,
+      5000,
+      6000,
+      7000,
+      8000,
+      9000,
+      10000
+    ],
+    "final_accuracy_pct": 85.42,
+    "average_incremental_accuracy_pct": 91.2454761904762,
+    "forgetting_pp": 8.0,
+    "forgetting_definition": "Mean over tasks1..9 of max observed accuracy before task10 minus final accuracy; negative improvement retained.",
+    "native_report_all_matrix_trajectory_aggregates_match": true,
+    "HiDe_report_aggregates_match": true
+  },
+  "work_counts": {
+    "prototype_examples": 50000,
+    "prototype_adapter_image_pairs": 275000,
+    "evaluation_adapter_image_pairs": 385000,
+    "outer_observe_steps": 15800,
+    "outer_training_stream_examples": 1000000,
+    "evaluation_examples": 55000,
+    "tasks_completed": 10
+  },
+  "prefix": {
+    "accepted_native_all_four_NPZ_arrays_equal": true,
+    "matched_tasks": [
+      1,
+      2
+    ],
+    "array_comparisons": 8,
+    "epoch_rows_exact": 40,
+    "author_correct_sample_fields_equal": 12,
+    "author_full_prediction_equality_asserted": false,
+    "independent_full10_author_reference": false
+  },
+  "structure_and_sources": {
+    "structural_checks_passed": 12,
+    "frozen_backbone_task_hashes_checked": 10,
+    "old_adapter_hash_comparisons": 45,
+    "execution_source_count": 25,
+    "current_and_accepted_and_frozen_sources_match": true,
+    "frozen_commit": "0b2b788",
+    "source_pin_location": "Linked native and accepted-native result.json execution_source_sha256"
+  },
+  "input_comparison": {
+    "status": "compatible",
+    "all10_train_test_fields_equal": 120,
+    "raw_fields": [
+      "n_samples",
+      "class_counts",
+      "samples_ordered_sha256",
+      "samples_unordered_sha256",
+      "global_ids_ordered_sha256",
+      "transform_repr_sha256"
+    ],
+    "actual_first_batch_fields_equal": 40,
+    "checkpoint_precision_GPU_policy_matches": true,
+    "prediction_label_ID_populations_equal": true,
+    "equal_compute_budget": false,
+    "scope": "EASE20 epoch/task vs HiDe TII20 + prompt50 and CA30 from task2; one seed"
+  },
+  "resources": {
+    "task_phase_JSON_matches": true,
+    "CSV_rows": 10,
+    "CSV_actual_all_values_match": true,
+    "CSV_LF_only": true,
+    "telemetry_samples": 3380,
+    "independent_gpu_energy_j": 1455313.941659946,
+    "independent_gpu_energy_wh": 404.2538726833183,
+    "whole_energy_absolute_error_j": 4.889443516731262e-09,
+    "max_task_energy_absolute_error_j": 2.3283064365386963e-10,
+    "energy_coverage_s": 3493.6334777135053,
+    "sampled_NVML_RSS_peaks_match": true,
+    "figure_visual_review": "Future matrix cells masked; trajectory different-schedule single-seed caption; actual allocated/reserved/NVML memory curves with zero axis"
+  },
+  "whole_process_metrics": {
+    "process_wall_s": 3493.6786157749884,
+    "gpu_board_energy_wh": 404.25387268331696,
+    "cuda_peak_allocated_mib": 5804.67236328125,
+    "cuda_peak_reserved_mib": 6218.0,
+    "peak_gpu_device_memory_mib": 6709.0,
+    "peak_process_tree_rss_mib": 22360.66015625,
+    "process_tree_cpu_s": 4467.719743,
+    "gpu_energy_coverage_fraction": 0.9999870800762041
+  },
+  "gpu_occupancy": {
+    "status": "pass",
+    "worker_pid": 893795,
+    "samples": 678,
+    "worker_only_samples": 677,
+    "empty_samples": 1,
+    "foreign_events": 0,
+    "errors": 0,
+    "interval_min_s": 5.024076,
+    "interval_max_s": 5.104456,
+    "preflight_to_first_sample_gap_s": 95.156063,
+    "spec_result_output_console_preflight_monitor_SHA_bindings": "pass",
+    "report_copy_byte_identical": true,
+    "scope": "5-second samples from monitor start; startup and intersample gaps unobserved; not continuous reservation/device lock"
+  },
+  "local_immutable_manifests": {
+    "native": 21,
+    "reference": 11,
+    "accepted_native": 13,
+    "hide_native": 21
+  },
+  "actual_file_SHA_checks_completed": 111,
+  "report_values_match_original_and_raw_predictions": true,
+  "report_sha256": "3d0c6b1229ba67b9e831a9249e21cb35e877630e11eac98c19b3b2f31fee6b85",
+  "limitations": [
+    "Single seed, no seed variance/confidence interval estimated.",
+    "Independent author/native validation covers two tasks; independent full10 reproduction not asserted.",
+    "Author/native2 resources excluded due concurrent foreign GPU workload.",
+    "GPU-board sampled energy excludes CPU/RAM/whole-machine power; energy coverage differs from occupancy observations.",
+    "Root separately performs W&B remote readback and Slack; this audit uses local files only."
+  ],
+  "input_file_SHA_links": {
+    "native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/result.json",
+      "sha256": "f3c97b5307d2a02b86605af8b36898e5d12bee8a29501ad903e3d5514dac3c7f"
+    },
+    "reference": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/author-common-input-b64-seed1993-20261007/result.json",
+      "sha256": "7aab61e1ab6bd1ae4c19d29c78b1de9b0c130b1de5035f4072f1215bc3c5da88"
+    },
+    "accepted_native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-validation-b64-seed1993-20261007/result.json",
+      "sha256": "ea1114284f832fc51f09e709f485e02ae1ef9a1ddcd6c48b28d521c3e2bea755"
+    },
+    "native_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "eabeeab0631ccef6442d841e72c699de8b6730e6aa01f84908b09707d84c4309"
+    },
+    "reference_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/author-common-input-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "7deff9daa25f5abde2fa05bbabd222e4bcc98997ab2cdd608428e69cb22aaf49"
+    },
+    "accepted_native_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-validation-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "afcd406c623e54be156b24415f4285987f9a7919f03b6852b09e49c66f9d9eae"
+    },
+    "hide_native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007/result.json",
+      "sha256": "1e28015049fed130e04bedd654bd4746b785ca79280fce114b4ca3c11c8163a7"
+    },
+    "hide_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "e2f8235b06565e0748b31b4525901763923635f990e7b82ecde362b49a5ea46b"
+    },
+    "gpu_audit": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/environment/gpu_exclusivity_full_cl.json",
+      "sha256": "1c7b37cf212f5763eafbe74ac0824a6818a9d6bb2bf10bf6d66864ede99c76fd"
+    },
+    "report_json": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/report/results.json",
+      "sha256": "3d0c6b1229ba67b9e831a9249e21cb35e877630e11eac98c19b3b2f31fee6b85"
+    },
+    "report_csv": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/report/results.csv",
+      "sha256": "88a7f2a089796a444de29c4d96c6f4e36359f47358175da9926253559a7ea846"
+    },
+    "native_telemetry": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/telemetry.csv",
+      "sha256": "ec74e0e7cc4d830a0a2811b615f9e12ad02010e45fff0e6c355de23c03656cbe"
+    },
+    "GPU_console": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/console.log",
+      "sha256": "bf51ae975e332d9711491f3b1da0eb07fb30f4cdc894cc889f9f34f1cdcd7083"
+    },
+    "GPU_preflight": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/environment/gpu_exclusivity_preflight.json",
+      "sha256": "bc5b14357aeb0370b225f06e6c219dd8da10cb2a36b509762d9d5c0174ed2e27"
+    },
+    "GPU_monitor": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/environment/gpu_occupancy_monitor.py",
+      "sha256": "718dd713d7250a82323b9ad4cdb106030cd944a03354e20a3d0e305bd0a30a34"
+    },
+    "accuracy_figure": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/report/accuracy_matrix.png",
+      "sha256": "571960dab080e24af8e73093c1b1c16138f52c25464754cf6572e74a5b4d9a4a"
+    },
+    "resource_figure": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/report/task_resources.png",
+      "sha256": "9ed1ca8ed820cb5e26241d72fb6ea1652fa41cb3dfdb4f5baed2060258ffd5fc"
+    }
+  },
+  "hash_note": "NPZ and remaining artifact SHA pins are preserved in the linked immutable manifests; 25 execution-source pins remain in linked native result. No duplicated matrix or GPU observation arrays."
+}

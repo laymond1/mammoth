@@ -268,3 +268,89 @@ def test_memory_plot_contains_observed_allocator_reserved_device_series(records,
                                  'CUDA reserved': [20 + task / 1024 for task in range(1, 11)],
                                  'NVML device': [23 + task / 1024 for task in range(1, 11)]}
     assert captured['minimum'] == 0
+
+
+@pytest.fixture
+def gpu_proof(reports, tmp_path):
+    directory, output = reports
+    report = reporter.read_json(directory / 'results.json')
+    native_file = Path(report['sources']['native']['file'])
+    native = reporter.read_json(native_file)
+    native['output'] = str(native_file.parent)
+    write_json(native_file, native)
+    spec = {key: native[key] for key in ('model', 'mode', 'protocol', 'output', 'gpu', 'execution_source_sha256')}
+    write_json(native_file.parent / 'spec.json', spec)
+    console = native_file.parent / 'console.log'
+    console.write_text('Native initialization\nMain process PID: 12345\nCompleted ten tasks\n')
+    preflight = tmp_path / 'preflight.json'
+    write_json(preflight, {'status': 'pass', 'physical_gpu': 1, 'gpu_uuid': 'GPU-fixture', 'compute_processes': []})
+    proof = {'schema_version': 1, 'status': 'pass', 'physical_gpu': 1, 'gpu_uuid': 'GPU-fixture',
+             'worker_pid': 12345, 'run_dir': str(native_file.parent),
+             'spec_sha256': reporter.file_hash(native_file.parent / 'spec.json'),
+             'result_sha256': reporter.file_hash(native_file), 'monitor_code_sha256': 'f' * 64,
+             'interval_s': 5, 'samples': [
+                 {'timestamp_utc': '2026-10-07T12:00:00+00:00', 'processes': [{'pid': 12345, 'used_memory_mib': 6000.}]},
+                 {'timestamp_utc': '2026-10-07T12:00:05+00:00', 'processes': []}],
+             'foreign_events': [], 'errors': [], 'completion': {'status': 'completed', 'exit_code': 0, 'timeout': False},
+             'console_file': str(console), 'console_sha256': reporter.file_hash(console),
+             'preflight_file': str(preflight), 'preflight_sha256': reporter.file_hash(preflight)}
+    proof_file = tmp_path / 'gpu-proof.json'
+    write_json(proof_file, proof)
+    return reports, proof_file, native_file
+
+
+def test_gpu_occupancy_proof_binds_actual_result_spec_pid_and_preserves_sampling_scope(gpu_proof):
+    reports, proof_file, native_file = gpu_proof
+    observed = reporter.verify_gpu_audit(proof_file, native_file)
+    assert observed['observations'] == 2
+    assert observed['worker_pid'] == 12345
+    assert observed['proof_sha256'] == reporter.file_hash(proof_file)
+    assert 'startup gap' in observed['scope']
+    assert 'not a continuous reservation' in observed['scope']
+
+
+@pytest.mark.parametrize('mutation', ['running', 'foreign_event', 'foreign_sample', 'errors', 'pid', 'spec', 'result', 'incomplete', 'empty_samples'])
+def test_invalid_gpu_occupancy_proof_is_rejected(gpu_proof, mutation):
+    _, proof_file, native_file = gpu_proof
+    proof = reporter.read_json(proof_file)
+    if mutation == 'running':
+        proof['status'] = 'running'
+    elif mutation == 'foreign_event':
+        proof['foreign_events'] = [{'pid': 54321}]
+    elif mutation == 'foreign_sample':
+        proof['samples'][0]['processes'].append({'pid': 54321, 'used_memory_mib': 1.})
+    elif mutation == 'errors':
+        proof['errors'] = ['sample query failed']
+    elif mutation == 'pid':
+        proof['worker_pid'] = 54321
+    elif mutation == 'spec':
+        proof['spec_sha256'] = 'a' * 64
+    elif mutation == 'result':
+        proof['result_sha256'] = 'a' * 64
+    elif mutation == 'incomplete':
+        proof['completion']['status'] = 'running'
+    else:
+        proof['samples'] = []
+    write_json(proof_file, proof)
+    with pytest.raises(ValueError):
+        reporter.verify_gpu_audit(proof_file, native_file)
+
+
+def test_optional_gpu_proof_is_copied_and_publisher_rechecks_original_and_copy(gpu_proof, monkeypatch):
+    reports, proof_file, native_file = gpu_proof
+    directory, output = reports
+    previous = reporter.read_json(directory / 'results.json')
+    source = previous['sources']
+    report = reporter.save_report(native_file, source['reference']['file'], source['accepted_native']['file'],
+                                  directory, source['hide_native']['file'], proof_file)
+    assert report['gpu_exclusivity']['status'] == 'pass'
+    assert (directory / 'gpu_exclusivity.json').read_bytes() == proof_file.read_bytes()
+    assert report['sources']['gpu_audit']['sha256'] == reporter.file_hash(proof_file)
+    assert 'gpu_exclusivity.json' in publisher.prepare(directory)[1]
+    assert publisher.scalar_summary(report)['gpu_continuous_reservation'] is False
+    assert '효율성 비교에서 제외' in reporter.render_markdown(report)
+    monkeypatch.setattr(publisher, 'configure_environment', lambda: pytest.fail('Auth before local proof verification'))
+    (directory / 'gpu_exclusivity.json').write_text('{}')
+    with pytest.raises(ValueError, match='differs from pinned original'):
+        publisher.main(['--report-dir', str(directory), '--output', str(output), '--execute'])
+    assert not output.exists()

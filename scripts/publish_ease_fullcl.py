@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.cl_efficiency import notify_slack, write_json
 from scripts.cl_runtime import configure_environment
-from scripts.report_ease_fullcl import REPORT_FILES, RESOURCE_KEYS, audit_prediction_counts, audit_prefix_predictions, build_report, file_hash, read_json, verify_saved_predictions
+from scripts.report_ease_fullcl import REPORT_FILES, RESOURCE_KEYS, audit_prediction_counts, audit_prefix_predictions, build_report, file_hash, read_json, verify_gpu_audit, verify_saved_predictions
 
 
 def prepare(directory):
@@ -30,11 +30,18 @@ def prepare(directory):
             raise ValueError('Missing or empty full-CL report artifact: ' + filename)
         pins[filename] = file_hash(path)
     report = read_json(directory / 'results.json')
+    if report.get('gpu_exclusivity') is not None:
+        proof_copy = directory / 'gpu_exclusivity.json'
+        if not proof_copy.is_file() or not proof_copy.stat().st_size:
+            raise ValueError('Missing or empty optional GPU occupancy artifact')
+        pins['gpu_exclusivity.json'] = file_hash(proof_copy)
     sources = report.get('sources', {})
     expected_sources = {'native', 'reference', 'accepted_native', 'native_artifact_manifest',
                         'reference_artifact_manifest', 'accepted_native_artifact_manifest'}
     if report.get('comparison', {}).get('status') != 'not_provided':
         expected_sources.update({'hide_native', 'hide_artifact_manifest'})
+    if report.get('gpu_exclusivity') is not None:
+        expected_sources.add('gpu_audit')
     if set(sources) != expected_sources:
         raise ValueError('Full-CL report requires pinned run, validation and prediction provenance')
     for source in sources.values():
@@ -43,6 +50,10 @@ def prepare(directory):
             raise ValueError('Full-CL report provenance is missing or changed')
     hide = read_json(sources['hide_native']['file']) if 'hide_native' in sources else None
     expected = build_report(*(read_json(sources[name]['file']) for name in ('native', 'reference', 'accepted_native')), hide)
+    if 'gpu_audit' in sources:
+        expected['gpu_exclusivity'] = verify_gpu_audit(sources['gpu_audit']['file'], sources['native']['file'])
+        if pins['gpu_exclusivity.json'] != sources['gpu_audit']['sha256']:
+            raise ValueError('Optional GPU occupancy artifact differs from pinned original proof')
     runs = [('native', 10), ('reference', 2), ('accepted_native', 2)]
     if hide is not None:
         runs.append(('hide', 10))
@@ -72,6 +83,10 @@ def scalar_summary(report):
     for key, value in report['work_counts'].items():
         if type(value) is int:
             result['work/' + key] = value
+    if report.get('gpu_exclusivity') is not None:
+        result.update(gpu_sampled_occupancy_status=report['gpu_exclusivity']['status'],
+                      gpu_occupancy_observations=report['gpu_exclusivity']['observations'],
+                      gpu_continuous_reservation=False)
     return result
 
 

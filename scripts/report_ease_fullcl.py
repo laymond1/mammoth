@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import argparse
 import csv
+import datetime
 from fractions import Fraction
 import json
 import math
 from pathlib import Path
+import re
+import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -215,7 +218,8 @@ def build_report(native, reference, accepted_native, hide=None):
     return {'schema_version': 1, 'status': 'completed', 'model': 'ease', 'mode': 'full_cl',
             'protocol': native['protocol'], 'native_wandb_url': native.get('wandb_url'),
             'validation': {'accepted_two_task': accepted, 'current_prefix': prefix, 'prefix_prediction_match': saved_prefix,
-                           'full_ten_task_accuracy_acceptance': 'not_assessed_by_matched_ten_task_reference'},
+                           'full_ten_task_accuracy_acceptance': 'not_assessed_by_matched_ten_task_reference',
+                           'reference_and_two_task_native_resources': 'excluded_from_efficiency_comparison_due_to_concurrent_GPU_workloads'},
             'accuracy': accuracy, 'resources': resources, 'work_counts': work, 'comparison': comparison,
             'limitations': ['One native full10 run with seed1993; no seed variance or confidence interval.',
                             'Independent author/native acceptance covers two tasks, not a full10 paper-table reproduction.',
@@ -279,6 +283,85 @@ def audit_prefix_predictions(native_file, accepted_file):
                 raise ValueError('Full EASE first-two-task prediction arrays differ from accepted validation')
 
 
+def verify_gpu_audit(proof_file, native_file):
+    """Bind optional completed, sampled occupancy evidence to this exact run."""
+    proof_file, native_file = Path(proof_file).resolve(), Path(native_file).resolve()
+    proof, native = read_json(proof_file), read_json(native_file)
+    directory = native_file.parent
+    completion = proof.get('completion', {})
+    worker = proof.get('worker_pid')
+    if (proof.get('schema_version') != 1 or proof.get('status') != 'pass'
+            or type(proof.get('physical_gpu')) is not int or proof['physical_gpu'] != 1
+            or str(native.get('gpu')) != '1' or type(worker) is not int or worker < 1
+            or proof.get('foreign_events') != [] or proof.get('errors') != []
+            or not isinstance(completion, dict) or completion.get('status') != 'completed'
+            or type(completion.get('exit_code')) is not int or completion['exit_code'] != 0
+            or completion.get('timeout') is not False):
+        raise ValueError('GPU occupancy proof is incomplete, failed or contains foreign work')
+    if (not isinstance(proof.get('run_dir'), str) or Path(proof['run_dir']).resolve() != directory
+            or Path(native.get('output', '')).resolve() != directory
+            or file_hash(native_file) != proof.get('result_sha256')):
+        raise ValueError('GPU occupancy proof does not bind this completed native result')
+    spec_file = directory / 'spec.json'
+    spec = read_json(spec_file)
+    if (file_hash(spec_file) != proof.get('spec_sha256') or Path(spec.get('output', '')).resolve() != directory
+            or spec.get('mode') != 'full_cl' or spec.get('model') != 'ease'
+            or spec.get('protocol') != native.get('protocol')
+            or any(native.get(key) != value for key, value in spec.items())):
+        raise ValueError('GPU occupancy proof spec differs from the actual native execution')
+    for kind in ('console', 'preflight'):
+        source = Path(proof.get(kind + '_file', ''))
+        if not source.is_absolute() or not source.is_file() or file_hash(source) != proof.get(kind + '_sha256'):
+            raise ValueError('GPU occupancy proof console/preflight provenance changed')
+    console = Path(proof['console_file'])
+    if console.resolve() != directory / 'console.log':
+        raise ValueError('GPU occupancy proof console does not belong to this native run')
+    pids = {int(value) for value in re.findall(r'Main process PID:\s*(\d+)', console.read_text(errors='replace'))}
+    if pids != {worker}:
+        raise ValueError('GPU occupancy proof worker PID differs from the actual native console')
+    preflight = read_json(proof['preflight_file'])
+    if (preflight.get('status') != 'pass' or preflight.get('physical_gpu') != 1
+            or preflight.get('compute_processes') != [] or not isinstance(proof.get('gpu_uuid'), str)
+            or not proof['gpu_uuid'].startswith('GPU-') or preflight.get('gpu_uuid') != proof['gpu_uuid']):
+        raise ValueError('GPU occupancy proof requires the matching empty-GPU preflight')
+    pin = proof.get('monitor_code_sha256')
+    if not isinstance(pin, str) or re.fullmatch('[0-9a-f]{64}', pin) is None:
+        raise ValueError('GPU occupancy proof requires a monitor code fingerprint')
+    finite(proof.get('interval_s'), 'GPU occupancy sampling interval', minimum=1e-9)
+    samples = proof.get('samples')
+    if not isinstance(samples, list) or not samples:
+        raise ValueError('GPU occupancy proof contains no observations')
+    previous, worker_seen = None, False
+    for sample in samples:
+        try:
+            timestamp = datetime.datetime.fromisoformat(sample['timestamp_utc'].replace('Z', '+00:00'))
+        except (AttributeError, KeyError, TypeError, ValueError):
+            raise ValueError('GPU occupancy proof observation timestamp is invalid') from None
+        if timestamp.tzinfo is None or previous is not None and timestamp < previous:
+            raise ValueError('GPU occupancy observations must be timezone-aware and ordered')
+        previous = timestamp
+        processes = sample.get('processes')
+        if not isinstance(processes, list):
+            raise ValueError('GPU occupancy observation process list is invalid')
+        observed = []
+        for process in processes:
+            if type(process.get('pid')) is not int or process['pid'] != worker:
+                raise ValueError('GPU occupancy observations contain a foreign GPU process')
+            finite(process.get('used_memory_mib'), 'observed GPU process memory', minimum=0)
+            observed.append(process['pid'])
+        if len(observed) != len(set(observed)):
+            raise ValueError('GPU occupancy observation repeats a process')
+        worker_seen |= worker in observed
+    if not worker_seen:
+        raise ValueError('GPU occupancy proof never observed the native worker')
+    return {'status': 'pass', 'worker_pid': worker, 'physical_gpu': 1, 'gpu_uuid': proof['gpu_uuid'],
+            'observations': len(samples), 'interval_s': proof['interval_s'],
+            'first_sample_utc': samples[0]['timestamp_utc'], 'last_sample_utc': samples[-1]['timestamp_utc'],
+            'proof_sha256': file_hash(proof_file), 'spec_sha256': proof['spec_sha256'],
+            'result_sha256': proof['result_sha256'],
+            'scope': 'Sampled GPU occupancy evidence plus an empty-GPU preflight. Observations start after monitoring begins and do not cover the startup gap; this is not a continuous reservation or device lock.'}
+
+
 def render_markdown(report):
     accuracy, process, work = report['accuracy'], report['resources']['process'], report['work_counts']
     def display(value, digits=2):
@@ -287,6 +370,7 @@ def render_markdown(report):
              f'최종 class-IL 정확도 **{accuracy["final_accuracy_pct"]:.2f}%**, 평균 증분 정확도 **{accuracy["average_incremental_accuracy_pct"]:.2f}%**, 과거9태스크 평균 망각 **{accuracy["forgetting_pp"]:.2f}%p**입니다.', '',
              'GPU1·batch64·workers4·seed1993, ViT-B/16 AugReg IN21K → IN1K와 adapter64를 사용했습니다. CIFAR100 고정 순서10클래스/태스크이며 실제 학습·평가 전처리는 HiDe 공통 입력 조건입니다. 태스크마다20epoch를 학습했습니다.', '',
              '새 batch64·공통 입력의 독립 저자/native 첫2태스크에서 정확도 하락1.5%p 이내 통과, 1.5~3.0%p 추가 점검, 3.0%p 초과 실패 기준을 적용했습니다. Full10의 첫2태스크 예측도 accepted native와 일치했습니다. 전체10태스크 독립 기준선이나 논문 표 재현으로 판정하지 않습니다. 비정상적으로 낮은 성능은 구현 문제로 조사합니다.', '',
+             '독립 기준선과 native 첫2태스크의 자원 수치는 당시 같은 GPU에서 다른 workload가 실행되어 효율성 비교에서 제외합니다. 이 두 실행은 정확도·구조 acceptance의 근거로만 사용합니다.', '',
              f'[Native W&B]({report.get("native_wandb_url")})', '',
              '| 전체 실행 지표 | 관측값 |', '|---|---:|']
     for key, label in (('process_wall_s', 'Recorder 실행 시간(s)'), ('gpu_board_energy_wh', 'GPU 보드 에너지(Wh)'),
@@ -305,6 +389,11 @@ def render_markdown(report):
                                                     'peak_gpu_device_memory_mib', 'peak_process_tree_rss_mib')))
         lines.append('| ' + str(row['task']) + ' | ' + ' | '.join(display(value) for value in values) + ' |')
     comparison = report['comparison']
+    if report.get('gpu_exclusivity') is not None:
+        audit = report['gpu_exclusivity']
+        lines += ['', f'native 실행 중 수집한 GPU 점유 sampling proof는 **{audit["observations"]:,}개 관측, {audit["interval_s"]:g}s 간격**에서 worker PID와 empty-GPU preflight를 대조했습니다. '
+                  '이는 모니터 시작 이후의 sampling 증거입니다. 시작 구간의 관측 공백과 sampling 사이 구간은 포함하지 않으며 연속 독점·device lock을 뜻하지 않습니다. '
+                  '[보존된 GPU proof](gpu_exclusivity.json)를 함께 제공합니다.', '']
     lines += ['', '망각은 각 과거 태스크의 최종 태스크 이전 최고 정확도에서 최종 정확도를 빼고9개 태스크에 대해 평균합니다. 개선되면 음수를 유지합니다. 미래 행렬 항목은 null입니다. 평균 증분 정확도는 관측 클래스 정확도의10회 평균입니다.', '']
     if comparison['status'] == 'compatible':
         lines += ['실제10태스크 데이터·전처리·첫 배치·가중치·batch/seed/workers/GPU/precision을 대조해 HiDe와 공통 입력 비교에 포함했습니다. EASE20epoch/task와 HiDe TII20 + prompt50 + 이후CA30은 학습 작업량이 다르며 동일 계산 예산 비교가 아닙니다.', '',
@@ -318,8 +407,8 @@ def render_markdown(report):
         lines += ['HiDe 비교에서 제외했습니다: ' + '; '.join(comparison['compatibility']['reasons']) + '.', '']
     else:
         lines += ['HiDe 비교 원본이 제공되지 않았습니다.', '']
-    lines += ['', 'GPU 에너지는 선택 보드의 power sampling 적분이며 전체 머신 전력이 아닙니다. CUDA peak는 태스크마다 reset하며 전체 peak는 초기화와 모든 태스크 최대값을 보존합니다. NVML/RSS는 sampling 최대값이고 RSS는 공유 페이지를 중복 합산할 수 있습니다. 전체 Recorder는 마지막 artifact upload/finish를 제외하고, 태스크 interval은 태스크별 Slack/logging도 제외합니다. Phase 시간은 inclusive이므로 중첩 항목을 합산하지 않습니다.', '',
-              '한 seed의 한 실행입니다. Tiny·Small 및 BudgetCL/aL-SAR 계산 예산 비교는 후속 단계입니다.', '']
+    lines += ['', 'GPU 에너지는 선택 보드의 power sampling 적분이며 전체 머신 전력이 아닙니다. 에너지 sampling coverage는 power 계측 범위이며 GPU 점유 sampling proof의 관측 범위와 다릅니다. CUDA peak는 태스크마다 reset하며 전체 peak는 초기화와 모든 태스크 최대값을 보존합니다. NVML/RSS는 sampling 최대값이고 RSS는 공유 페이지를 중복 합산할 수 있습니다. 전체 Recorder는 마지막 artifact upload/finish를 제외하고, 태스크 interval은 태스크 종료 후 Slack/W&B logging을 제외하지만 epoch logging은 포함합니다. Phase 시간은 inclusive이므로 중첩 항목을 합산하지 않습니다.', '',
+              '한 seed의 한 실행이며 seed 변동이나 신뢰구간은 추정하지 않습니다. Tiny·Small 및 BudgetCL/aL-SAR 계산 예산 비교는 후속 단계입니다.', '']
     return '\n'.join(lines)
 
 
@@ -364,7 +453,7 @@ def render_plots(report, directory):
     plt.close(figure)
 
 
-def save_report(native_file, reference_file, accepted_native_file, directory, hide_file=None):
+def save_report(native_file, reference_file, accepted_native_file, directory, hide_file=None, gpu_audit=None):
     paths = {name: Path(path).resolve() for name, path in
              (('native', native_file), ('reference', reference_file), ('accepted_native', accepted_native_file))}
     hide = read_json(hide_file) if hide_file is not None else None
@@ -377,8 +466,13 @@ def save_report(native_file, reference_file, accepted_native_file, directory, hi
         paths['hide_native'] = Path(hide_file).resolve()
         paths['hide_artifact_manifest'] = verify_saved_predictions(paths['hide_native'], 10)
         audit_prediction_counts(paths['hide_native'], 10)
+    if gpu_audit is not None:
+        paths['gpu_audit'] = Path(gpu_audit).resolve()
+        report['gpu_exclusivity'] = verify_gpu_audit(paths['gpu_audit'], paths['native'])
     report['sources'] = {name: {'file': str(path), 'sha256': file_hash(path)} for name, path in paths.items()}
     directory = Path(directory).resolve(); directory.mkdir(parents=True, exist_ok=True)
+    if gpu_audit is not None and paths['gpu_audit'] != directory / 'gpu_exclusivity.json':
+        shutil.copyfile(paths['gpu_audit'], directory / 'gpu_exclusivity.json')
     write_json(directory / 'results.json', report)
     with (directory / 'results.csv').open('w', newline='') as stream:
         writer = csv.writer(stream, lineterminator='\n')
@@ -395,8 +489,9 @@ def main(argv=None):
     for name in ('native', 'reference', 'accepted-native', 'output'):
         parser.add_argument('--' + name, required=True, type=Path)
     parser.add_argument('--hide-native', type=Path)
+    parser.add_argument('--gpu-audit', type=Path)
     options = parser.parse_args(argv)
-    report = save_report(options.native, options.reference, options.accepted_native, options.output, options.hide_native)
+    report = save_report(options.native, options.reference, options.accepted_native, options.output, options.hide_native, options.gpu_audit)
     print(json.dumps({'status': report['status'], 'output': str(options.output.resolve()),
                       'final_accuracy_pct': report['accuracy']['final_accuracy_pct'], 'hide_comparison': report['comparison']['status']}))
     return 0

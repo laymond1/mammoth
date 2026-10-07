@@ -1,0 +1,35 @@
+{
+  "status": "pass",
+  "gpu_used": false,
+  "training_executed": false,
+  "image_forwards": 1,
+  "optimizer_steps": 0,
+  "native_meta_begin_task": true,
+  "initialization_catalog": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/prepared/author_initial_state.pt",
+  "initial_state_sha256": "6c5b27a6c420971883e9b41304a7efe414ae22aa07e3f1614df38e81ff9a07fc",
+  "learned_initialization_sha256": "98b9ad7649a5529f6498dbfd990f554adebf7f7a25d0277728fc702a486266f1",
+  "canonical_pretrained_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+  "effective_args": {
+    "n_epochs": 20,
+    "batch_size": 64,
+    "dataset_config": "hide_prompt",
+    "adapter_size": 64,
+    "device": "cpu"
+  },
+  "train_samples": 5000,
+  "test_samples": 1000,
+  "proxy_shape": [
+    10,
+    768
+  ],
+  "prototype_shape": [
+    10,
+    768
+  ],
+  "observed_logits_shape": [
+    1,
+    10
+  ],
+  "train_transform": "Compose(\n    RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333), interpolation=bicubic, antialias=True)\n    RandomHorizontalFlip(p=0.5)\n    ColorJitter(brightness=(0.7529411764705882, 1.2470588235294118), contrast=None, saturation=None, hue=None)\n    ToTensor()\n    Normalize(mean=[0.5071, 0.4867, 0.4408], std=[0.2675, 0.2565, 0.2761])\n)",
+  "test_transform": "Compose(\n    Resize(size=256, interpolation=bicubic, max_size=None, antialias=True)\n    CenterCrop(size=(224, 224))\n    ToTensor()\n    Normalize(mean=[0.5071, 0.4867, 0.4408], std=[0.2675, 0.2565, 0.2761])\n)"
+}

@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "checked_at_utc": "2026-10-07T12:58:20.880005+00:00",
+  "audit_scope": "Pinned-author semantic completion and inference reweight on precomputed CPU tensors; actual saved native task3/task4 prototypes",
+  "gpu_used": false,
+  "cuda_initialized": false,
+  "image_forwards": 0,
+  "training_executed": false,
+  "optimizer_steps": 0,
+  "network_calls": 0,
+  "cpu_conditions": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "torch_cpu_threads": 2,
+    "parameter_dtype": "float32",
+    "seed": 1993,
+    "device": "cpu",
+    "torch_version": "2.13.0+cu126"
+  },
+  "author_commit": "6d67508ed8b7c4d23350ed4eb28c123914b40ae3",
+  "author_clean": true,
+  "author_functions": [
+    {
+      "file": "/tmp/cl-ease-official-20261007/models/ease.py",
+      "file_sha256": "3639658799bb1dc02a3052cf7d1cc7e47212d4a81c69a1a1e46d123e4574b4b2",
+      "class": "Learner",
+      "function": "solve_sim_reset",
+      "first_line": 176,
+      "last_line": 226,
+      "function_source_sha256": "28f5eb14c9e5ff2312b382bd5d9fac99be230a0446ec571d66e0e2b8be44a770",
+      "function_ast_sha256": "dc9988b1d5482c9b89ea4ab0a06b839cf294fa714c54f943981c532f44a6e508",
+      "modification": "None; original AST/function body executed unchanged"
+    },
+    {
+      "file": "/tmp/cl-ease-official-20261007/backbone/linears.py",
+      "file_sha256": "2505381e259cab4dd2640caf441390dc1e040b47dce3adce1a67ea94b84865d4",
+      "class": "CosineLinear",
+      "function": "forward_reweight",
+      "first_line": 45,
+      "last_line": 93,
+      "function_source_sha256": "db2d1192f10eeb5d9ebf9d1c84d30f8126eecbf6159b19c2f2568291176be9e3",
+      "function_ast_sha256": "82635f4b5fc0f340e8412de12d3680ecd5874fd3ac67e070e7d2288ec2dbea84",
+      "modification": "None; original AST/function body executed unchanged"
+    }
+  ],
+  "native_classifier": {
+    "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/models/ease_utils/classifier.py",
+    "sha256": "8a24d92e2c8a58069d5a608acb7ed6b697dfda0702ac86e8f94ff9a0bb4d902c"
+  },
+  "native_run": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007",
+  "native_run_spec_sha256": "1e1ff1b537e563c641f55eb4b42c30577826ebf19640d6bb2035c266133c9082",
+  "native_execution_commit": "0b2b788d80c8cbce0cd38b6c312907552e38abdf",
+  "native_source_count": 25,
+  "all_execution_sources_frozen": true,
+  "native_execution_source_sha256": {
+    "scripts/run_ease_fullcl.py": "1ee3ce4d771b9943625f4812d0c3acead4802de416c041accdb9838492064d9d",
+    "scripts/ease_fullcl_protocol.py": "a8746580f6a5e2cf4b399c704ecfd78c8e966d3463f30c9710e02b17c4478e75",
+    "scripts/ease_common_reference_utils.py": "8ab5ac7d13261fff4bd6af677f40f14987f58a35071776cb777e779dd01e816a",
+    "scripts/ease_acceptance.py": "06bdb3a46df5306c23baa4661556f028387dc11763629099d1bc321f4d90ddf8",
+    "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+    "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+    "scripts/run_ease_validation.py": "9c4ece52d2eb866d2435aef52da334818858675fc019399907716e74b3ed027d",
+    "scripts/run_hide_validation.py": "639f87967f1fb97f362ed5cb6ec34beeb3dc0b3b6b51723b0597f60932ca4b63",
+    "scripts/hide_protocol.py": "3e6c4eb37a07385799537bfc717b40119e40e1f46416a98503b33ce48041a7a2",
+    "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+    "models/ease.py": "174156c50346bb65aee6de85a0e40dc2cbb1f12880d2efd03c8dce49290f8f79",
+    "backbone/ease_vit.py": "7362ae4cbee61b0327fe6133fc315a5b7317c2153253cc27effe8103f3713cde",
+    "models/ease_utils/network.py": "37e46b56d84e9d507e292b9831ec95b9558aa19b4d544e9076076c373c128b56",
+    "models/ease_utils/classifier.py": "8a24d92e2c8a58069d5a608acb7ed6b697dfda0702ac86e8f94ff9a0bb4d902c",
+    "models/ease_utils/vit.py": "13dff74fdd1fc52147ca68ab555733b8cfc450ac0ce0c557c8e28d0b5a16ace0",
+    "models/config/ease.yaml": "c66906e5626b1a3f3976d750dbfa160ed92f6589e94ba242f31aa9acd0655216",
+    "datasets/configs/seq-cifar100-224/hide_prompt.yaml": "20c833176ed7fe3ecbbe48649a5ba8c18f548422f07040b92e79a7080d12bcb7",
+    "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+    "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+    "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+    "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+    "utils/schedulers.py": "c10e0866c2b29c8ed7a506a43ba27a5abb1c100399796356d5a76ae01c3c3c33",
+    "utils/conf.py": "0c8dee15dba2e2e1080622546deeaf6e5b8e8eb30a689ed8363e1ad679ebeebc",
+    "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+    "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+  },
+  "comparison_conditions": {
+    "synthetic_tasks": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "feature_dim": 768,
+    "classes_per_task": 10,
+    "synthetic_inference_samples": 7,
+    "alpha_values": [
+      0.0,
+      0.1,
+      1.0
+    ],
+    "recalc_sim": true,
+    "use_init_ptm": false,
+    "moni_adam": false,
+    "completion_assertion": {
+      "atol": 2e-06,
+      "rtol": 2e-05
+    },
+    "inference_assertion": {
+      "atol": 2e-07,
+      "rtol": 2e-05
+    },
+    "actual_state_assertion": {
+      "atol": 1e-05,
+      "rtol": 2e-05
+    }
+  },
+  "synthetic_T3_to_T10": [
+    {
+      "tasks": 3,
+      "semantic_max_abs_difference": 1.7881393432617188e-07,
+      "old_diagonal_exact": true,
+      "inference": [
+        {
+          "alpha": 0.0,
+          "max_abs_logit_difference": 3.166496753692627e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 0.1,
+          "max_abs_logit_difference": 3.166496753692627e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 1.0,
+          "max_abs_logit_difference": 4.936009645462036e-08,
+          "top1_identical": true
+        }
+      ]
+    },
+    {
+      "tasks": 4,
+      "semantic_max_abs_difference": 2.384185791015625e-07,
+      "old_diagonal_exact": true,
+      "inference": [
+        {
+          "alpha": 0.0,
+          "max_abs_logit_difference": 4.470348358154297e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 0.1,
+          "max_abs_logit_difference": 4.470348358154297e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 1.0,
+          "max_abs_logit_difference": 6.705522537231445e-08,
+          "top1_identical": true
+        }
+      ]
+    },
+    {
+      "tasks": 5,
+      "semantic_max_abs_difference": 2.384185791015625e-07,
+      "old_diagonal_exact": true,
+      "inference": [
+        {
+          "alpha": 0.0,
+          "max_abs_logit_difference": 2.9802322387695312e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 0.1,
+          "max_abs_logit_difference": 3.166496753692627e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 1.0,
+          "max_abs_logit_difference": 3.3527612686157227e-08,
+          "top1_identical": true
+        }
+      ]
+    },
+    {
+      "tasks": 6,
+      "semantic_max_abs_difference": 2.384185791015625e-07,
+      "old_diagonal_exact": true,
+      "inference": [
+        {
+          "alpha": 0.0,
+          "max_abs_logit_difference": 4.470348358154297e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 0.1,
+          "max_abs_logit_difference": 4.470348358154297e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 1.0,
+          "max_abs_logit_difference": 5.21540641784668e-08,
+          "top1_identical": true
+        }
+      ]
+    },
+    {
+      "tasks": 7,
+      "semantic_max_abs_difference": 2.384185791015625e-07,
+      "old_diagonal_exact": true,
+      "inference": [
+        {
+          "alpha": 0.0,
+          "max_abs_logit_difference": 4.284083843231201e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 0.1,
+          "max_abs_logit_difference": 4.284083843231201e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 1.0,
+          "max_abs_logit_difference": 4.284083843231201e-08,
+          "top1_identical": true
+        }
+      ]
+    },
+    {
+      "tasks": 8,
+      "semantic_max_abs_difference": 4.76837158203125e-07,
+      "old_diagonal_exact": true,
+      "inference": [
+        {
+          "alpha": 0.0,
+          "max_abs_logit_difference": 4.0978193283081055e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 0.1,
+          "max_abs_logit_difference": 4.0978193283081055e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 1.0,
+          "max_abs_logit_difference": 4.842877388000488e-08,
+          "top1_identical": true
+        }
+      ]
+    },
+    {
+      "tasks": 9,
+      "semantic_max_abs_difference": 2.980232238769531e-07,
+      "old_diagonal_exact": true,
+      "inference": [
+        {
+          "alpha": 0.0,
+          "max_abs_logit_difference": 4.842877388000488e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 0.1,
+          "max_abs_logit_difference": 4.842877388000488e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 1.0,
+          "max_abs_logit_difference": 4.842877388000488e-08,
+          "top1_identical": true
+        }
+      ]
+    },
+    {
+      "tasks": 10,
+      "semantic_max_abs_difference": 2.384185791015625e-07,
+      "old_diagonal_exact": true,
+      "inference": [
+        {
+          "alpha": 0.0,
+          "max_abs_logit_difference": 4.470348358154297e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 0.1,
+          "max_abs_logit_difference": 4.470348358154297e-08,
+          "top1_identical": true
+        },
+        {
+          "alpha": 1.0,
+          "max_abs_logit_difference": 4.936009645462036e-08,
+          "top1_identical": true
+        }
+      ]
+    }
+  ],
+  "actual_saved_prototype_tables": [
+    {
+      "tasks": 3,
+      "state_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/task3_state.pt",
+      "state_file_sha256": "9df7cff074c9080a89ae8220a166aee16f7ce33001762904559f7495080e75df",
+      "state_file_bytes": 357875183,
+      "prototype_tensor_sha256": "d7e0f1b7b3fbf51c0e4cc7e4d089a5304c4da2026ca3c6f77e3266c9580cfb19",
+      "shape": [
+        30,
+        2304
+      ],
+      "task_offsets": [
+        [
+          0,
+          10
+        ],
+        [
+          10,
+          20
+        ],
+        [
+          20,
+          30
+        ]
+      ],
+      "max_abs_semantic_difference": 1.9073486328125e-06,
+      "finite": true
+    },
+    {
+      "tasks": 4,
+      "state_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/task4_state.pt",
+      "state_file_sha256": "1a9b79e4dc67c40b46f4b716a19bb30a52868574b38cdba7a6a842c160381dd5",
+      "state_file_bytes": 362863951,
+      "prototype_tensor_sha256": "6f9905cf020a4eed998d61993b84951ec5d7c087e519284a05bf9ab79f31c561",
+      "shape": [
+        40,
+        3072
+      ],
+      "task_offsets": [
+        [
+          0,
+          10
+        ],
+        [
+          10,
+          20
+        ],
+        [
+          20,
+          30
+        ],
+        [
+          30,
+          40
+        ]
+      ],
+      "max_abs_semantic_difference": 2.384185791015625e-06,
+      "finite": true
+    }
+  ],
+  "interpretation": "No semantic range/index or alpha aggregation mismatch. Small nonzero differences reflect FP32 loop versus vectorized reduction order; this audit is not an independent full10 image performance reproduction.",
+  "audit_script": {
+    "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/environment/audit_semantic_completion.py",
+    "sha256": "21688bd87ba28c8859676dcde25c96f3b966a563167922258d9fa3d373a6ecb7"
+  }
+}

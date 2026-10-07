@@ -1,0 +1,10 @@
+{
+  "status": "pass",
+  "timestamp_utc": "2026-10-07T12:29:40.349772+00:00",
+  "physical_gpu": 1,
+  "gpu_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+  "compute_processes": [],
+  "foreign_suite": "normalization-ablation-20261007",
+  "foreign_status": "completed",
+  "completed_configurations": 9
+}

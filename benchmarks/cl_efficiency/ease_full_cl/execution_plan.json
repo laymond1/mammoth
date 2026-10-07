@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "stage": "ease_common_input_full_cl",
-  "status": "reference_ready",
+  "status": "completed",
   "training_authorized": true,
-  "executed": false,
-  "approval": "User: 좋아. 이대로 진행. — EASE Base adapter64 using the existing HiDe full10 input transforms, matched author/native first2 task batch64 validation followed by native full10 only after PASS.",
+  "executed": true,
+  "approval": "User: \uc88b\uc544. \uc774\ub300\ub85c \uc9c4\ud589. \u2014 EASE Base adapter64 using the existing HiDe full10 input transforms, matched author/native first2 task batch64 validation followed by native full10 only after PASS.",
   "protocol": {
     "model": "ease",
     "vit_size": "base",
@@ -77,7 +77,343 @@
   "local_integration": {
     "execution_branch": "codex/ease-full-cl",
     "foundation_branch": "codex/cl-foundation",
-    "remote_push_authorized": false
+    "remote_push_authorized": false,
+    "results_committed": true,
+    "foundation_fast_forward_target": true
   },
-  "source_frozen": true
+  "source_frozen": true,
+  "implementation_commit": "0b2b788",
+  "reference_completed": true,
+  "reference_readback": "pass",
+  "validation_resources_compared": false,
+  "full_cl_waits_for_exclusive_gpu": false,
+  "native_validation_completed": true,
+  "native_validation_acceptance": "pass",
+  "native_validation_accuracy_pct": {
+    "task1": 99.2,
+    "task2_seen": 96.4,
+    "task2_old": 95.7,
+    "task2_new": 97.1
+  },
+  "native_validation_structural_checks": 12,
+  "foreign_gpu_suite_completed": true,
+  "exclusive_gpu_preflight": "pass",
+  "full_cl_executed": true,
+  "native_full_cl_completed": true,
+  "full_cl_waited_for_exclusive_gpu": true,
+  "full_cl_prefix_validation": "pass",
+  "full_cl_structural_checks": 12,
+  "full_cl_native_artifact_files_verified": 21,
+  "report_artifact_files_verified": 9,
+  "full_cl_readback": "pass",
+  "report_readback": "pass",
+  "slack_completion": "sent",
+  "hide_common_input_comparison": "compatible",
+  "full_cl_accuracy": {
+    "class_il_accuracy_matrix_pct": [
+      [
+        99.2,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        95.7,
+        97.1,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        94.89999999999999,
+        95.3,
+        92.9,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        94.3,
+        90.9,
+        92.0,
+        92.9,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        93.89999999999999,
+        89.0,
+        89.60000000000001,
+        90.5,
+        92.9,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        92.60000000000001,
+        88.5,
+        88.5,
+        89.1,
+        91.5,
+        86.9,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        92.80000000000001,
+        86.9,
+        87.7,
+        88.3,
+        90.9,
+        86.4,
+        86.3,
+        null,
+        null,
+        null
+      ],
+      [
+        92.2,
+        86.0,
+        86.8,
+        87.1,
+        90.10000000000001,
+        84.7,
+        85.1,
+        88.6,
+        null,
+        null
+      ],
+      [
+        91.9,
+        85.3,
+        86.5,
+        86.1,
+        88.7,
+        84.2,
+        83.89999999999999,
+        89.0,
+        94.6,
+        null
+      ],
+      [
+        91.2,
+        83.5,
+        86.3,
+        79.7,
+        83.0,
+        76.6,
+        81.39999999999999,
+        85.7,
+        92.4,
+        94.39999999999999
+      ]
+    ],
+    "trajectory": [
+      {
+        "task": 1,
+        "seen_accuracy_pct": 99.2,
+        "old_accuracy_pct": null,
+        "new_accuracy_pct": 99.2,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 2,
+        "seen_accuracy_pct": 96.4,
+        "old_accuracy_pct": 95.7,
+        "new_accuracy_pct": 97.1,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 3,
+        "seen_accuracy_pct": 94.36666666666666,
+        "old_accuracy_pct": 95.1,
+        "new_accuracy_pct": 92.9,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 4,
+        "seen_accuracy_pct": 92.525,
+        "old_accuracy_pct": 92.4,
+        "new_accuracy_pct": 92.9,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 5,
+        "seen_accuracy_pct": 91.18,
+        "old_accuracy_pct": 90.75,
+        "new_accuracy_pct": 92.9,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 6,
+        "seen_accuracy_pct": 89.51666666666667,
+        "old_accuracy_pct": 90.04,
+        "new_accuracy_pct": 86.9,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 7,
+        "seen_accuracy_pct": 88.47142857142858,
+        "old_accuracy_pct": 88.83333333333333,
+        "new_accuracy_pct": 86.3,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 8,
+        "seen_accuracy_pct": 87.575,
+        "old_accuracy_pct": 87.42857142857143,
+        "new_accuracy_pct": 88.6,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 9,
+        "seen_accuracy_pct": 87.8,
+        "old_accuracy_pct": 86.95,
+        "new_accuracy_pct": 94.6,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 10,
+        "seen_accuracy_pct": 85.42,
+        "old_accuracy_pct": 84.42222222222222,
+        "new_accuracy_pct": 94.39999999999999,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      }
+    ],
+    "final_accuracy_pct": 85.42,
+    "average_incremental_accuracy_pct": 91.24547619047618,
+    "forgetting_pp": 8.000000000000002,
+    "forgetting_by_task": [
+      {
+        "task": 1,
+        "best_previous_accuracy_pct": 99.2,
+        "final_accuracy_pct": 91.2,
+        "forgetting_pp": 8.0
+      },
+      {
+        "task": 2,
+        "best_previous_accuracy_pct": 97.1,
+        "final_accuracy_pct": 83.5,
+        "forgetting_pp": 13.599999999999994
+      },
+      {
+        "task": 3,
+        "best_previous_accuracy_pct": 92.9,
+        "final_accuracy_pct": 86.3,
+        "forgetting_pp": 6.6000000000000085
+      },
+      {
+        "task": 4,
+        "best_previous_accuracy_pct": 92.9,
+        "final_accuracy_pct": 79.7,
+        "forgetting_pp": 13.200000000000003
+      },
+      {
+        "task": 5,
+        "best_previous_accuracy_pct": 92.9,
+        "final_accuracy_pct": 83.0,
+        "forgetting_pp": 9.900000000000006
+      },
+      {
+        "task": 6,
+        "best_previous_accuracy_pct": 86.9,
+        "final_accuracy_pct": 76.6,
+        "forgetting_pp": 10.300000000000011
+      },
+      {
+        "task": 7,
+        "best_previous_accuracy_pct": 86.3,
+        "final_accuracy_pct": 81.39999999999999,
+        "forgetting_pp": 4.900000000000006
+      },
+      {
+        "task": 8,
+        "best_previous_accuracy_pct": 89.0,
+        "final_accuracy_pct": 85.7,
+        "forgetting_pp": 3.299999999999997
+      },
+      {
+        "task": 9,
+        "best_previous_accuracy_pct": 94.6,
+        "final_accuracy_pct": 92.4,
+        "forgetting_pp": 2.1999999999999886
+      }
+    ],
+    "forgetting_definition": "Mean over old tasks 1..9 of max accuracy after acquisition through task9 minus accuracy after task10; improvements remain negative.",
+    "future_matrix_entries": "null: unobserved, never zero",
+    "test_samples_per_task": 1000,
+    "cumulative_evaluation_examples": 55000
+  },
+  "full_cl_resources": {
+    "process_wall_s": 3493.6786157749884,
+    "outer_training_stream_examples": 1000000,
+    "evaluation_examples": 55000,
+    "outer_observe_steps": 15800,
+    "tasks_completed": 10,
+    "cuda_peak_allocated_mib": 5804.67236328125,
+    "cuda_peak_reserved_mib": 6218.0,
+    "peak_process_tree_rss_mib": 22360.66015625,
+    "peak_gpu_device_memory_mib": 6709.0,
+    "peak_gpu_utilization_percent": 100.0,
+    "peak_gpu_power_w": 450.08,
+    "gpu_board_energy_j": 1455313.941659941,
+    "gpu_energy_coverage_s": 3493.6334777135053,
+    "gpu_energy_coverage_fraction": 0.9999870800762041,
+    "gpu_board_energy_wh": 404.25387268331696,
+    "outer_training_examples_per_s": 376.9793163131231,
+    "evaluation_examples_per_s": 115.89080276125824,
+    "process_tree_cpu_s": 4467.719743
+  },
+  "full_cl_counts": {
+    "prototype_examples": 50000,
+    "prototype_adapter_image_pairs": 275000,
+    "evaluation_adapter_image_pairs": 385000,
+    "outer_observe_steps": 15800,
+    "outer_training_stream_examples": 1000000,
+    "evaluation_examples": 55000,
+    "tasks_completed": 10
+  },
+  "native_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ru1nmce0",
+  "report_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/xfrn5if3",
+  "gpu_occupancy_sampling": {
+    "status": "pass",
+    "observations": 678,
+    "interval_s": 5,
+    "continuous_reservation": false
+  },
+  "independent_full_ten_task_accuracy_acceptance": "not_assessed"
 }

@@ -1,0 +1,2505 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "model": "ease",
+  "mode": "full_cl",
+  "protocol": {
+    "schema_version": 1,
+    "mode": "full_cl",
+    "model": "ease",
+    "training_authorized": true,
+    "approval": "User: 좋아. 이대로 진행. after EASE shared-input recommendations",
+    "tasks": 10,
+    "n_epochs": 20,
+    "batch_size": 64,
+    "seed": 1993,
+    "num_workers": 4,
+    "dataset": "seq-cifar100-224",
+    "dataset_config": "hide_prompt",
+    "dataset_total_tasks": 10,
+    "classes_per_task": 10,
+    "vit_size": "base",
+    "feature_dim": 768,
+    "adapter_size": 64,
+    "pretrain_family": "augreg_in21k_ft_in1k",
+    "optimizer": "sgd",
+    "lr": 0.025,
+    "momentum": 0.9,
+    "weight_decay": 0.0005,
+    "lr_scheduler": "cosine",
+    "scheduler_mode": "epoch",
+    "ease_alpha": 0.1,
+    "ease_recalc_sim": true,
+    "ease_use_reweight": true,
+    "drop_last": false,
+    "shuffle_training": true,
+    "phase_rng": "base_seed + 100000*task_id + 1000*phase_index + local_epoch",
+    "initialization": "Pinned author adapter/proxy catalog for all ten task coordinates",
+    "prototype_batching": "stable raw-index order, sequential, no dropped tail",
+    "evaluation_batching": "separate native test-task loaders, stable raw-index order",
+    "pass_max_drop_pp": 1.5,
+    "review_max_drop_pp": 3.0,
+    "paper_reproduction": false,
+    "equal_compute_budget": false
+  },
+  "native_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ru1nmce0",
+  "validation": {
+    "accepted_two_task": {
+      "acceptance": {
+        "status": "pass",
+        "pass_max_drop_pp": 1.5,
+        "pass_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "review_max_drop_pp": 3.0,
+        "review_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "metrics": {
+          "task1_seen": {
+            "task": 1,
+            "status": "pass",
+            "reference_correct": 992,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 99.2,
+            "native_correct": 992,
+            "native_samples": 1000,
+            "native_accuracy_pct": 99.2,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_seen": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 1928,
+            "reference_samples": 2000,
+            "reference_accuracy_pct": 96.4,
+            "native_correct": 1928,
+            "native_samples": 2000,
+            "native_accuracy_pct": 96.4,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_old": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 957,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 95.7,
+            "native_correct": 957,
+            "native_samples": 1000,
+            "native_accuracy_pct": 95.7,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_new": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 971,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 97.1,
+            "native_correct": 971,
+            "native_samples": 1000,
+            "native_accuracy_pct": 97.1,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          }
+        },
+        "structural_checks": {
+          "finite_loss_and_gradients": true,
+          "dataset_matches_reference": true,
+          "frozen_backbone_unchanged": true,
+          "old_adapters_unchanged": true,
+          "prototype_and_adapter_shapes": true,
+          "training_protocol_complete": true,
+          "frozen_backbone_gradients_absent": true,
+          "checkpoint_round_trip": true,
+          "learnable_initialization_matches": true,
+          "actual_inputs_match_reference": true,
+          "nonoracle_seen_class_evaluation": true,
+          "canonical_pretrained_matches_pin": true
+        },
+        "structural_failures": [],
+        "validation_errors": [],
+        "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+        "statistical_tolerance_estimated": false
+      },
+      "accuracy_metrics": [
+        {
+          "metric": "task1_seen",
+          "reference_accuracy_pct": 99.2,
+          "native_accuracy_pct": 99.2,
+          "reference_minus_native_pp": 0.0,
+          "status": "pass",
+          "gap_exact": {
+            "numerator": 0,
+            "denominator": 1
+          }
+        },
+        {
+          "metric": "task2_seen",
+          "reference_accuracy_pct": 96.4,
+          "native_accuracy_pct": 96.4,
+          "reference_minus_native_pp": 0.0,
+          "status": "pass",
+          "gap_exact": {
+            "numerator": 0,
+            "denominator": 1
+          }
+        },
+        {
+          "metric": "task2_old",
+          "reference_accuracy_pct": 95.7,
+          "native_accuracy_pct": 95.7,
+          "reference_minus_native_pp": 0.0,
+          "status": "pass",
+          "gap_exact": {
+            "numerator": 0,
+            "denominator": 1
+          }
+        },
+        {
+          "metric": "task2_new",
+          "reference_accuracy_pct": 97.1,
+          "native_accuracy_pct": 97.1,
+          "reference_minus_native_pp": 0.0,
+          "status": "pass",
+          "gap_exact": {
+            "numerator": 0,
+            "denominator": 1
+          }
+        }
+      ],
+      "first_batches": [
+        {
+          "task": 1,
+          "status": "pass",
+          "gradient_sha256_matches": false
+        },
+        {
+          "task": 2,
+          "status": "pass",
+          "gradient_sha256_matches": false
+        }
+      ],
+      "report_gate": "pass",
+      "scope": "Independent author/native first-two-task counts and actual first-batch inputs/labels/seed/batch64. Gradient hashes are diagnostics."
+    },
+    "current_prefix": {
+      "acceptance": {
+        "status": "pass",
+        "pass_max_drop_pp": 1.5,
+        "pass_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "review_max_drop_pp": 3.0,
+        "review_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "metrics": {
+          "task1_seen": {
+            "task": 1,
+            "status": "pass",
+            "reference_correct": 992,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 99.2,
+            "native_correct": 992,
+            "native_samples": 1000,
+            "native_accuracy_pct": 99.2,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_seen": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 1928,
+            "reference_samples": 2000,
+            "reference_accuracy_pct": 96.4,
+            "native_correct": 1928,
+            "native_samples": 2000,
+            "native_accuracy_pct": 96.4,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_old": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 957,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 95.7,
+            "native_correct": 957,
+            "native_samples": 1000,
+            "native_accuracy_pct": 95.7,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_new": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 971,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 97.1,
+            "native_correct": 971,
+            "native_samples": 1000,
+            "native_accuracy_pct": 97.1,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          }
+        },
+        "structural_checks": {
+          "finite_loss_and_gradients": true,
+          "dataset_matches_reference": true,
+          "frozen_backbone_unchanged": true,
+          "old_adapters_unchanged": true,
+          "prototype_and_adapter_shapes": true,
+          "training_protocol_complete": true,
+          "frozen_backbone_gradients_absent": true,
+          "checkpoint_round_trip": true,
+          "learnable_initialization_matches": true,
+          "actual_inputs_match_reference": true,
+          "nonoracle_seen_class_evaluation": true,
+          "canonical_pretrained_matches_pin": true
+        },
+        "structural_failures": [],
+        "validation_errors": [],
+        "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+        "statistical_tolerance_estimated": false
+      },
+      "accuracy_metrics": [
+        {
+          "metric": "task1_seen",
+          "reference_accuracy_pct": 99.2,
+          "native_accuracy_pct": 99.2,
+          "reference_minus_native_pp": 0.0,
+          "status": "pass",
+          "gap_exact": {
+            "numerator": 0,
+            "denominator": 1
+          }
+        },
+        {
+          "metric": "task2_seen",
+          "reference_accuracy_pct": 96.4,
+          "native_accuracy_pct": 96.4,
+          "reference_minus_native_pp": 0.0,
+          "status": "pass",
+          "gap_exact": {
+            "numerator": 0,
+            "denominator": 1
+          }
+        },
+        {
+          "metric": "task2_old",
+          "reference_accuracy_pct": 95.7,
+          "native_accuracy_pct": 95.7,
+          "reference_minus_native_pp": 0.0,
+          "status": "pass",
+          "gap_exact": {
+            "numerator": 0,
+            "denominator": 1
+          }
+        },
+        {
+          "metric": "task2_new",
+          "reference_accuracy_pct": 97.1,
+          "native_accuracy_pct": 97.1,
+          "reference_minus_native_pp": 0.0,
+          "status": "pass",
+          "gap_exact": {
+            "numerator": 0,
+            "denominator": 1
+          }
+        }
+      ],
+      "first_batches": [
+        {
+          "task": 1,
+          "status": "pass",
+          "gradient_sha256_matches": false
+        },
+        {
+          "task": 2,
+          "status": "pass",
+          "gradient_sha256_matches": false
+        }
+      ],
+      "report_gate": "pass",
+      "scope": "Independent author/native first-two-task counts and actual first-batch inputs/labels/seed/batch64. Gradient hashes are diagnostics."
+    },
+    "prefix_prediction_match": {
+      "status": "pass",
+      "prediction_match": true,
+      "matched_tasks": [
+        1,
+        2
+      ],
+      "scope": "First two tasks only; no independent ten-task performance reference",
+      "acceptance": {
+        "status": "pass",
+        "pass_max_drop_pp": 1.5,
+        "pass_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "review_max_drop_pp": 3.0,
+        "review_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "metrics": {
+          "task1_seen": {
+            "task": 1,
+            "status": "pass",
+            "reference_correct": 992,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 99.2,
+            "native_correct": 992,
+            "native_samples": 1000,
+            "native_accuracy_pct": 99.2,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_seen": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 1928,
+            "reference_samples": 2000,
+            "reference_accuracy_pct": 96.4,
+            "native_correct": 1928,
+            "native_samples": 2000,
+            "native_accuracy_pct": 96.4,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_old": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 957,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 95.7,
+            "native_correct": 957,
+            "native_samples": 1000,
+            "native_accuracy_pct": 95.7,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_new": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 971,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 97.1,
+            "native_correct": 971,
+            "native_samples": 1000,
+            "native_accuracy_pct": 97.1,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          }
+        },
+        "structural_checks": {
+          "finite_loss_and_gradients": true,
+          "dataset_matches_reference": true,
+          "frozen_backbone_unchanged": true,
+          "old_adapters_unchanged": true,
+          "prototype_and_adapter_shapes": true,
+          "training_protocol_complete": true,
+          "frozen_backbone_gradients_absent": true,
+          "checkpoint_round_trip": true,
+          "learnable_initialization_matches": true,
+          "actual_inputs_match_reference": true,
+          "nonoracle_seen_class_evaluation": true,
+          "canonical_pretrained_matches_pin": true
+        },
+        "structural_failures": [],
+        "validation_errors": [],
+        "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+        "statistical_tolerance_estimated": false
+      }
+    },
+    "full_ten_task_accuracy_acceptance": "not_assessed_by_matched_ten_task_reference",
+    "reference_and_two_task_native_resources": "excluded_from_efficiency_comparison_due_to_concurrent_GPU_workloads"
+  },
+  "accuracy": {
+    "class_il_accuracy_matrix_pct": [
+      [
+        99.2,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        95.7,
+        97.1,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        94.89999999999999,
+        95.3,
+        92.9,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        94.3,
+        90.9,
+        92.0,
+        92.9,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        93.89999999999999,
+        89.0,
+        89.60000000000001,
+        90.5,
+        92.9,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        92.60000000000001,
+        88.5,
+        88.5,
+        89.1,
+        91.5,
+        86.9,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        92.80000000000001,
+        86.9,
+        87.7,
+        88.3,
+        90.9,
+        86.4,
+        86.3,
+        null,
+        null,
+        null
+      ],
+      [
+        92.2,
+        86.0,
+        86.8,
+        87.1,
+        90.10000000000001,
+        84.7,
+        85.1,
+        88.6,
+        null,
+        null
+      ],
+      [
+        91.9,
+        85.3,
+        86.5,
+        86.1,
+        88.7,
+        84.2,
+        83.89999999999999,
+        89.0,
+        94.6,
+        null
+      ],
+      [
+        91.2,
+        83.5,
+        86.3,
+        79.7,
+        83.0,
+        76.6,
+        81.39999999999999,
+        85.7,
+        92.4,
+        94.39999999999999
+      ]
+    ],
+    "trajectory": [
+      {
+        "task": 1,
+        "seen_accuracy_pct": 99.2,
+        "old_accuracy_pct": null,
+        "new_accuracy_pct": 99.2,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 2,
+        "seen_accuracy_pct": 96.4,
+        "old_accuracy_pct": 95.7,
+        "new_accuracy_pct": 97.1,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 3,
+        "seen_accuracy_pct": 94.36666666666666,
+        "old_accuracy_pct": 95.1,
+        "new_accuracy_pct": 92.9,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 4,
+        "seen_accuracy_pct": 92.525,
+        "old_accuracy_pct": 92.4,
+        "new_accuracy_pct": 92.9,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 5,
+        "seen_accuracy_pct": 91.18,
+        "old_accuracy_pct": 90.75,
+        "new_accuracy_pct": 92.9,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 6,
+        "seen_accuracy_pct": 89.51666666666667,
+        "old_accuracy_pct": 90.04,
+        "new_accuracy_pct": 86.9,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 7,
+        "seen_accuracy_pct": 88.47142857142858,
+        "old_accuracy_pct": 88.83333333333333,
+        "new_accuracy_pct": 86.3,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 8,
+        "seen_accuracy_pct": 87.575,
+        "old_accuracy_pct": 87.42857142857143,
+        "new_accuracy_pct": 88.6,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 9,
+        "seen_accuracy_pct": 87.8,
+        "old_accuracy_pct": 86.95,
+        "new_accuracy_pct": 94.6,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      },
+      {
+        "task": 10,
+        "seen_accuracy_pct": 85.42,
+        "old_accuracy_pct": 84.42222222222222,
+        "new_accuracy_pct": 94.39999999999999,
+        "tii_seen_accuracy_pct": null,
+        "tii_task_routing_accuracy_pct": null
+      }
+    ],
+    "final_accuracy_pct": 85.42,
+    "average_incremental_accuracy_pct": 91.24547619047618,
+    "forgetting_pp": 8.000000000000002,
+    "forgetting_by_task": [
+      {
+        "task": 1,
+        "best_previous_accuracy_pct": 99.2,
+        "final_accuracy_pct": 91.2,
+        "forgetting_pp": 8.0
+      },
+      {
+        "task": 2,
+        "best_previous_accuracy_pct": 97.1,
+        "final_accuracy_pct": 83.5,
+        "forgetting_pp": 13.599999999999994
+      },
+      {
+        "task": 3,
+        "best_previous_accuracy_pct": 92.9,
+        "final_accuracy_pct": 86.3,
+        "forgetting_pp": 6.6000000000000085
+      },
+      {
+        "task": 4,
+        "best_previous_accuracy_pct": 92.9,
+        "final_accuracy_pct": 79.7,
+        "forgetting_pp": 13.200000000000003
+      },
+      {
+        "task": 5,
+        "best_previous_accuracy_pct": 92.9,
+        "final_accuracy_pct": 83.0,
+        "forgetting_pp": 9.900000000000006
+      },
+      {
+        "task": 6,
+        "best_previous_accuracy_pct": 86.9,
+        "final_accuracy_pct": 76.6,
+        "forgetting_pp": 10.300000000000011
+      },
+      {
+        "task": 7,
+        "best_previous_accuracy_pct": 86.3,
+        "final_accuracy_pct": 81.39999999999999,
+        "forgetting_pp": 4.900000000000006
+      },
+      {
+        "task": 8,
+        "best_previous_accuracy_pct": 89.0,
+        "final_accuracy_pct": 85.7,
+        "forgetting_pp": 3.299999999999997
+      },
+      {
+        "task": 9,
+        "best_previous_accuracy_pct": 94.6,
+        "final_accuracy_pct": 92.4,
+        "forgetting_pp": 2.1999999999999886
+      }
+    ],
+    "forgetting_definition": "Mean over old tasks 1..9 of max accuracy after acquisition through task9 minus accuracy after task10; improvements remain negative.",
+    "future_matrix_entries": "null: unobserved, never zero",
+    "test_samples_per_task": 1000,
+    "cumulative_evaluation_examples": 55000
+  },
+  "resources": {
+    "process": {
+      "process_wall_s": 3493.6786157749884,
+      "outer_training_stream_examples": 1000000,
+      "evaluation_examples": 55000,
+      "outer_observe_steps": 15800,
+      "tasks_completed": 10,
+      "cuda_peak_allocated_mib": 5804.67236328125,
+      "cuda_peak_reserved_mib": 6218.0,
+      "peak_process_tree_rss_mib": 22360.66015625,
+      "peak_gpu_device_memory_mib": 6709.0,
+      "peak_gpu_utilization_percent": 100.0,
+      "peak_gpu_power_w": 450.08,
+      "gpu_board_energy_j": 1455313.941659941,
+      "gpu_energy_coverage_s": 3493.6334777135053,
+      "gpu_energy_coverage_fraction": 0.9999870800762041,
+      "gpu_board_energy_wh": 404.25387268331696,
+      "outer_training_examples_per_s": 376.9793163131231,
+      "evaluation_examples_per_s": 115.89080276125824,
+      "process_tree_cpu_s": 4467.719743
+    },
+    "tasks": [
+      {
+        "task": 1,
+        "wall_s": 274.3285171390162,
+        "metrics": {
+          "gpu_board_energy_wh": 31.323133234832486,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5760.65673828125,
+          "cuda_peak_reserved_mib": 6174.0,
+          "peak_gpu_device_memory_mib": 6665.0,
+          "peak_process_tree_rss_mib": 13438.6328125,
+          "process_tree_cpu_s": 364.887273
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 0.9702072649961337,
+            "calls": 1,
+            "gpu_board_energy_j": 296.2674982772819,
+            "gpu_energy_coverage_s": 0.9702072649961337
+          },
+          "begin_epoch": {
+            "wall_s": 0.0005770019488409162,
+            "calls": 20,
+            "gpu_board_energy_j": 0.18159059146099316,
+            "gpu_energy_coverage_s": 0.0005770019488409162
+          },
+          "begin_task": {
+            "wall_s": 0.013292410993017256,
+            "calls": 1,
+            "gpu_board_energy_j": 0.7884081774930409,
+            "gpu_energy_coverage_s": 0.013292410993017256
+          },
+          "checkpoint": {
+            "wall_s": 0.7553464410011657,
+            "calls": 1,
+            "gpu_board_energy_j": 222.02519076558167,
+            "gpu_energy_coverage_s": 0.7553464410011657
+          },
+          "data_loading": {
+            "wall_s": 0.8156453429837711,
+            "calls": 1,
+            "gpu_board_energy_j": 41.76325858615368,
+            "gpu_energy_coverage_s": 0.8156453429837711
+          },
+          "end_epoch": {
+            "wall_s": 0.0009135500004049391,
+            "calls": 20,
+            "gpu_board_energy_j": 0.36808559074626823,
+            "gpu_energy_coverage_s": 0.0009135500004049391
+          },
+          "end_task": {
+            "wall_s": 6.588386037008604,
+            "calls": 1,
+            "gpu_board_energy_j": 2767.4896986489834,
+            "gpu_energy_coverage_s": 6.588386037008604
+          },
+          "epoch_audit": {
+            "wall_s": 0.07554059801623225,
+            "calls": 20,
+            "gpu_board_energy_j": 30.43904390026769,
+            "gpu_energy_coverage_s": 0.07554059801623225
+          },
+          "evaluation": {
+            "wall_s": 1.4969359560054727,
+            "calls": 1,
+            "gpu_board_energy_j": 593.3701668877371,
+            "gpu_energy_coverage_s": 1.4969359560054727
+          },
+          "first_batch_audit": {
+            "wall_s": 0.03897173801669851,
+            "calls": 1,
+            "gpu_board_energy_j": 2.31175175391238,
+            "gpu_energy_coverage_s": 0.03897173801669851
+          },
+          "initialization_audit": {
+            "wall_s": 0.03442963000270538,
+            "calls": 1,
+            "gpu_board_energy_j": 2.0421208345000825,
+            "gpu_energy_coverage_s": 0.03442963000270538
+          },
+          "prototype_completion": {
+            "wall_s": 6.587695100985002,
+            "calls": 1,
+            "gpu_board_energy_j": 2767.214022307601,
+            "gpu_energy_coverage_s": 6.587695100985002
+          },
+          "train_epoch": {
+            "wall_s": 264.24474891397404,
+            "calls": 20,
+            "gpu_board_energy_j": 109016.48293517406,
+            "gpu_energy_coverage_s": 264.24474891397404
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 264.24474891397404,
+            "gpu_board_energy_wh": 30.282356370881683
+          },
+          "prototype_completion": {
+            "wall_s": 6.587695100985002,
+            "gpu_board_energy_wh": 0.7686705617521115
+          },
+          "evaluation": {
+            "wall_s": 1.4969359560054727,
+            "gpu_board_energy_wh": 0.16482504635770476
+          }
+        }
+      },
+      {
+        "task": 2,
+        "wall_s": 285.0354642770253,
+        "metrics": {
+          "gpu_board_energy_wh": 32.70938180076692,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5765.28564453125,
+          "cuda_peak_reserved_mib": 6178.0,
+          "peak_gpu_device_memory_mib": 6669.0,
+          "peak_process_tree_rss_mib": 17337.49609375,
+          "process_tree_cpu_s": 378.06418800000006
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.0240255119861104,
+            "calls": 1,
+            "gpu_board_energy_j": 328.4642397514625,
+            "gpu_energy_coverage_s": 1.0240255119861104
+          },
+          "begin_epoch": {
+            "wall_s": 0.0009005220199469477,
+            "calls": 20,
+            "gpu_board_energy_j": 0.23000823441877366,
+            "gpu_energy_coverage_s": 0.0009005220199469477
+          },
+          "begin_task": {
+            "wall_s": 0.008461946010356769,
+            "calls": 1,
+            "gpu_board_energy_j": 0.9509017234518915,
+            "gpu_energy_coverage_s": 0.008461946010356769
+          },
+          "checkpoint": {
+            "wall_s": 0.8043112749874126,
+            "calls": 1,
+            "gpu_board_energy_j": 233.97105787425417,
+            "gpu_energy_coverage_s": 0.8043112749874126
+          },
+          "data_loading": {
+            "wall_s": 0.8053816409956198,
+            "calls": 1,
+            "gpu_board_energy_j": 69.52804346250088,
+            "gpu_energy_coverage_s": 0.8053816409956198
+          },
+          "end_epoch": {
+            "wall_s": 0.0011766119860112667,
+            "calls": 20,
+            "gpu_board_energy_j": 0.477596400982084,
+            "gpu_energy_coverage_s": 0.0011766119860112667
+          },
+          "end_task": {
+            "wall_s": 12.510444919986185,
+            "calls": 1,
+            "gpu_board_energy_j": 5429.250440474071,
+            "gpu_energy_coverage_s": 12.510444919986185
+          },
+          "epoch_audit": {
+            "wall_s": 0.07793280994519591,
+            "calls": 20,
+            "gpu_board_energy_j": 31.51986998658341,
+            "gpu_energy_coverage_s": 0.07793280994519591
+          },
+          "evaluation": {
+            "wall_s": 5.375377697986551,
+            "calls": 1,
+            "gpu_board_energy_j": 2234.2179621575483,
+            "gpu_energy_coverage_s": 5.375377697986551
+          },
+          "first_batch_audit": {
+            "wall_s": 0.03974332599318586,
+            "calls": 1,
+            "gpu_board_energy_j": 6.110283083684368,
+            "gpu_energy_coverage_s": 0.03974332599318586
+          },
+          "initialization_audit": {
+            "wall_s": 0.03947330900700763,
+            "calls": 1,
+            "gpu_board_energy_j": 4.518677962307332,
+            "gpu_energy_coverage_s": 0.03947330900700763
+          },
+          "prototype_completion": {
+            "wall_s": 12.509957825008314,
+            "calls": 1,
+            "gpu_board_energy_j": 5429.056913427395,
+            "gpu_energy_coverage_s": 12.509957825008314
+          },
+          "train_epoch": {
+            "wall_s": 265.0629014080041,
+            "calls": 20,
+            "gpu_board_energy_j": 109630.98970244275,
+            "gpu_energy_coverage_s": 265.0629014080041
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.0629014080041,
+            "gpu_board_energy_wh": 30.453052695122985
+          },
+          "prototype_completion": {
+            "wall_s": 12.509957825008314,
+            "gpu_board_energy_wh": 1.508071364840943
+          },
+          "evaluation": {
+            "wall_s": 5.375377697986551,
+            "gpu_board_energy_wh": 0.6206161005993189
+          }
+        }
+      },
+      {
+        "task": 3,
+        "wall_s": 297.3541384509881,
+        "metrics": {
+          "gpu_board_energy_wh": 34.20047651337145,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5769.97314453125,
+          "cuda_peak_reserved_mib": 6184.0,
+          "peak_gpu_device_memory_mib": 6675.0,
+          "peak_process_tree_rss_mib": 17837.4921875,
+          "process_tree_cpu_s": 392.2251369999999
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.0069642660091631,
+            "calls": 1,
+            "gpu_board_energy_j": 329.5821521019718,
+            "gpu_energy_coverage_s": 1.0069642660091631
+          },
+          "begin_epoch": {
+            "wall_s": 0.0007057640177663416,
+            "calls": 20,
+            "gpu_board_energy_j": 0.1968492703948346,
+            "gpu_energy_coverage_s": 0.0007057640177663416
+          },
+          "begin_task": {
+            "wall_s": 0.008620488981250674,
+            "calls": 1,
+            "gpu_board_energy_j": 0.7116296141615017,
+            "gpu_energy_coverage_s": 0.008620488981250674
+          },
+          "checkpoint": {
+            "wall_s": 0.7881875110033434,
+            "calls": 1,
+            "gpu_board_energy_j": 233.97180151273025,
+            "gpu_energy_coverage_s": 0.7881875110033434
+          },
+          "data_loading": {
+            "wall_s": 0.7983452070038766,
+            "calls": 1,
+            "gpu_board_energy_j": 77.16860301665099,
+            "gpu_energy_coverage_s": 0.7983452070038766
+          },
+          "end_epoch": {
+            "wall_s": 0.0011510790209285915,
+            "calls": 20,
+            "gpu_board_energy_j": 0.4661923717694628,
+            "gpu_energy_coverage_s": 0.0011510790209285915
+          },
+          "end_task": {
+            "wall_s": 18.401497066020966,
+            "calls": 1,
+            "gpu_board_energy_j": 8070.0546746505515,
+            "gpu_energy_coverage_s": 18.401497066020966
+          },
+          "epoch_audit": {
+            "wall_s": 0.07934020896209404,
+            "calls": 20,
+            "gpu_board_energy_j": 32.12308772618105,
+            "gpu_energy_coverage_s": 0.07934020896209404
+          },
+          "evaluation": {
+            "wall_s": 11.620907967997482,
+            "calls": 1,
+            "gpu_board_energy_j": 5018.982086765976,
+            "gpu_energy_coverage_s": 11.620907967997482
+          },
+          "first_batch_audit": {
+            "wall_s": 0.03853889199672267,
+            "calls": 1,
+            "gpu_board_energy_j": 4.410693072886332,
+            "gpu_energy_coverage_s": 0.03853889199672267
+          },
+          "initialization_audit": {
+            "wall_s": 0.044468792009865865,
+            "calls": 1,
+            "gpu_board_energy_j": 3.628544310007422,
+            "gpu_energy_coverage_s": 0.044468792009865865
+          },
+          "prototype_completion": {
+            "wall_s": 18.400998842000263,
+            "calls": 1,
+            "gpu_board_energy_j": 8069.845985508305,
+            "gpu_energy_coverage_s": 18.400998842000263
+          },
+          "train_epoch": {
+            "wall_s": 265.24778227802017,
+            "calls": 20,
+            "gpu_board_energy_j": 109567.42887496653,
+            "gpu_energy_coverage_s": 265.24778227802017
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.24778227802017,
+            "gpu_board_energy_wh": 30.435396909712924
+          },
+          "prototype_completion": {
+            "wall_s": 18.400998842000263,
+            "gpu_board_energy_wh": 2.241623884863418
+          },
+          "evaluation": {
+            "wall_s": 11.620907967997482,
+            "gpu_board_energy_wh": 1.3941616907683267
+          }
+        }
+      },
+      {
+        "task": 4,
+        "wall_s": 312.1137678929954,
+        "metrics": {
+          "gpu_board_energy_wh": 35.92473192022232,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5774.71923828125,
+          "cuda_peak_reserved_mib": 6188.0,
+          "peak_gpu_device_memory_mib": 6679.0,
+          "peak_process_tree_rss_mib": 21722.07421875,
+          "process_tree_cpu_s": 408.38997599999993
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.1035105669870973,
+            "calls": 1,
+            "gpu_board_energy_j": 316.93963644118446,
+            "gpu_energy_coverage_s": 1.1035105669870973
+          },
+          "begin_epoch": {
+            "wall_s": 0.000719208997907117,
+            "calls": 20,
+            "gpu_board_energy_j": 0.19733525616985526,
+            "gpu_energy_coverage_s": 0.000719208997907117
+          },
+          "begin_task": {
+            "wall_s": 0.009044800972333178,
+            "calls": 1,
+            "gpu_board_energy_j": 0.6849206740940991,
+            "gpu_energy_coverage_s": 0.009044800972333178
+          },
+          "checkpoint": {
+            "wall_s": 0.8758725310035516,
+            "calls": 1,
+            "gpu_board_energy_j": 232.3797884854252,
+            "gpu_energy_coverage_s": 0.8758725310035516
+          },
+          "data_loading": {
+            "wall_s": 0.7006434180075303,
+            "calls": 1,
+            "gpu_board_energy_j": 53.916563431501416,
+            "gpu_energy_coverage_s": 0.7006434180075303
+          },
+          "end_epoch": {
+            "wall_s": 0.0012679860228672624,
+            "calls": 20,
+            "gpu_board_energy_j": 0.5075535779036531,
+            "gpu_energy_coverage_s": 0.0012679860228672624
+          },
+          "end_task": {
+            "wall_s": 24.34416201899876,
+            "calls": 1,
+            "gpu_board_energy_j": 10730.488349356354,
+            "gpu_energy_coverage_s": 24.34416201899876
+          },
+          "epoch_audit": {
+            "wall_s": 0.08041560201672837,
+            "calls": 20,
+            "gpu_board_energy_j": 32.24393201532588,
+            "gpu_energy_coverage_s": 0.08041560201672837
+          },
+          "evaluation": {
+            "wall_s": 20.308435284008738,
+            "calls": 1,
+            "gpu_board_energy_j": 8677.643243402883,
+            "gpu_energy_coverage_s": 20.308435284008738
+          },
+          "first_batch_audit": {
+            "wall_s": 0.03905886001302861,
+            "calls": 1,
+            "gpu_board_energy_j": 5.434485604043959,
+            "gpu_energy_coverage_s": 0.03905886001302861
+          },
+          "initialization_audit": {
+            "wall_s": 0.04974443599348888,
+            "calls": 1,
+            "gpu_board_energy_j": 3.761712603865466,
+            "gpu_energy_coverage_s": 0.04974443599348888
+          },
+          "prototype_completion": {
+            "wall_s": 24.34364848100813,
+            "calls": 1,
+            "gpu_board_energy_j": 10730.275976218141,
+            "gpu_energy_coverage_s": 24.34364848100813
+          },
+          "train_epoch": {
+            "wall_s": 265.3554331259802,
+            "calls": 20,
+            "gpu_board_energy_j": 109489.7527516644,
+            "gpu_energy_coverage_s": 265.3554331259802
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.3554331259802,
+            "gpu_board_energy_wh": 30.413820208795666
+          },
+          "prototype_completion": {
+            "wall_s": 24.34364848100813,
+            "gpu_board_energy_wh": 2.98063221561615
+          },
+          "evaluation": {
+            "wall_s": 20.308435284008738,
+            "gpu_board_energy_wh": 2.4104564565008006
+          }
+        }
+      },
+      {
+        "task": 5,
+        "wall_s": 329.03303817199776,
+        "metrics": {
+          "gpu_board_energy_wh": 38.01653287559524,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5779.52392578125,
+          "cuda_peak_reserved_mib": 6194.0,
+          "peak_gpu_device_memory_mib": 6685.0,
+          "peak_process_tree_rss_mib": 21820.609375,
+          "process_tree_cpu_s": 426.1050809999997
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.0890344069921412,
+            "calls": 1,
+            "gpu_board_energy_j": 300.87690524826564,
+            "gpu_energy_coverage_s": 1.0890344069921412
+          },
+          "begin_epoch": {
+            "wall_s": 0.000687003048369661,
+            "calls": 20,
+            "gpu_board_energy_j": 0.2228736279899175,
+            "gpu_energy_coverage_s": 0.000687003048369661
+          },
+          "begin_task": {
+            "wall_s": 0.009277692006435245,
+            "calls": 1,
+            "gpu_board_energy_j": 0.7087933114273286,
+            "gpu_energy_coverage_s": 0.009277692006435245
+          },
+          "checkpoint": {
+            "wall_s": 0.8589505410054699,
+            "calls": 1,
+            "gpu_board_energy_j": 220.53541204430218,
+            "gpu_energy_coverage_s": 0.8589505410054699
+          },
+          "data_loading": {
+            "wall_s": 0.7016020369774196,
+            "calls": 1,
+            "gpu_board_energy_j": 57.95639810556764,
+            "gpu_energy_coverage_s": 0.7016020369774196
+          },
+          "end_epoch": {
+            "wall_s": 0.001037675072439015,
+            "calls": 20,
+            "gpu_board_energy_j": 0.4194954582251343,
+            "gpu_energy_coverage_s": 0.001037675072439015
+          },
+          "end_task": {
+            "wall_s": 30.26143892100663,
+            "calls": 1,
+            "gpu_board_energy_j": 13369.314197532969,
+            "gpu_energy_coverage_s": 30.26143892100663
+          },
+          "epoch_audit": {
+            "wall_s": 0.08215436394675635,
+            "calls": 20,
+            "gpu_board_energy_j": 33.13109062599975,
+            "gpu_energy_coverage_s": 0.08215436394675635
+          },
+          "evaluation": {
+            "wall_s": 31.295295405987417,
+            "calls": 1,
+            "gpu_board_energy_j": 13564.510744080137,
+            "gpu_energy_coverage_s": 31.295295405987417
+          },
+          "first_batch_audit": {
+            "wall_s": 0.044198040006449446,
+            "calls": 1,
+            "gpu_board_energy_j": 3.279449938646821,
+            "gpu_energy_coverage_s": 0.044198040006449446
+          },
+          "initialization_audit": {
+            "wall_s": 0.054522717982763425,
+            "calls": 1,
+            "gpu_board_energy_j": 4.158156751250023,
+            "gpu_energy_coverage_s": 0.054522717982763425
+          },
+          "prototype_completion": {
+            "wall_s": 30.26099286900717,
+            "calls": 1,
+            "gpu_board_energy_j": 13369.128382176581,
+            "gpu_energy_coverage_s": 30.26099286900717
+          },
+          "train_epoch": {
+            "wall_s": 265.37453505795565,
+            "calls": 20,
+            "gpu_board_energy_j": 109504.50181262249,
+            "gpu_energy_coverage_s": 265.37453505795565
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.37453505795565,
+            "gpu_board_energy_wh": 30.417917170172913
+          },
+          "prototype_completion": {
+            "wall_s": 30.26099286900717,
+            "gpu_board_energy_wh": 3.713646772826828
+          },
+          "evaluation": {
+            "wall_s": 31.295295405987417,
+            "gpu_board_energy_wh": 3.7679196511333712
+          }
+        }
+      },
+      {
+        "task": 6,
+        "wall_s": 348.6140402870078,
+        "metrics": {
+          "gpu_board_energy_wh": 40.44240522203653,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5785.33251953125,
+          "cuda_peak_reserved_mib": 6196.0,
+          "peak_gpu_device_memory_mib": 6687.0,
+          "peak_process_tree_rss_mib": 22084.5390625,
+          "process_tree_cpu_s": 447.2907560000001
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.1045005380001385,
+            "calls": 1,
+            "gpu_board_energy_j": 377.8922899356768,
+            "gpu_energy_coverage_s": 1.1045005380001385
+          },
+          "begin_epoch": {
+            "wall_s": 0.0007050060085020959,
+            "calls": 20,
+            "gpu_board_energy_j": 0.20082590188859117,
+            "gpu_energy_coverage_s": 0.0007050060085020959
+          },
+          "begin_task": {
+            "wall_s": 0.00934893498197198,
+            "calls": 1,
+            "gpu_board_energy_j": 0.7796863250896092,
+            "gpu_energy_coverage_s": 0.00934893498197198
+          },
+          "checkpoint": {
+            "wall_s": 0.869402991986135,
+            "calls": 1,
+            "gpu_board_energy_j": 283.61784988604825,
+            "gpu_energy_coverage_s": 0.869402991986135
+          },
+          "data_loading": {
+            "wall_s": 0.70544807400438,
+            "calls": 1,
+            "gpu_board_energy_j": 56.30333843170766,
+            "gpu_energy_coverage_s": 0.70544807400438
+          },
+          "end_epoch": {
+            "wall_s": 0.0009173679572995752,
+            "calls": 20,
+            "gpu_board_energy_j": 0.3721002319698494,
+            "gpu_energy_coverage_s": 0.0009173679572995752
+          },
+          "end_task": {
+            "wall_s": 36.20275505600148,
+            "calls": 1,
+            "gpu_board_energy_j": 16000.9390015083,
+            "gpu_energy_coverage_s": 36.20275505600148
+          },
+          "epoch_audit": {
+            "wall_s": 0.0836078949214425,
+            "calls": 20,
+            "gpu_board_energy_j": 33.909091399293274,
+            "gpu_energy_coverage_s": 0.0836078949214425
+          },
+          "evaluation": {
+            "wall_s": 44.67221360799158,
+            "calls": 1,
+            "gpu_board_energy_j": 19436.82559674426,
+            "gpu_energy_coverage_s": 44.67221360799158
+          },
+          "first_batch_audit": {
+            "wall_s": 0.04487587799667381,
+            "calls": 1,
+            "gpu_board_energy_j": 4.0897427600141105,
+            "gpu_energy_coverage_s": 0.04487587799667381
+          },
+          "initialization_audit": {
+            "wall_s": 0.05926755000837147,
+            "calls": 1,
+            "gpu_board_energy_j": 4.9680391134348945,
+            "gpu_energy_coverage_s": 0.05926755000837147
+          },
+          "prototype_completion": {
+            "wall_s": 36.20229936600663,
+            "calls": 1,
+            "gpu_board_energy_j": 16000.753324149084,
+            "gpu_energy_coverage_s": 36.20229936600663
+          },
+          "train_epoch": {
+            "wall_s": 265.5990058530879,
+            "calls": 20,
+            "gpu_board_energy_j": 109653.35280328883,
+            "gpu_energy_coverage_s": 265.5990058530879
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.5990058530879,
+            "gpu_board_energy_wh": 30.45926466758023
+          },
+          "prototype_completion": {
+            "wall_s": 36.20229936600663,
+            "gpu_board_energy_wh": 4.444653701152523
+          },
+          "evaluation": {
+            "wall_s": 44.67221360799158,
+            "gpu_board_energy_wh": 5.39911822131785
+          }
+        }
+      },
+      {
+        "task": 7,
+        "wall_s": 370.39519630599534,
+        "metrics": {
+          "gpu_board_energy_wh": 43.17442543563224,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5789.87353515625,
+          "cuda_peak_reserved_mib": 6202.0,
+          "peak_gpu_device_memory_mib": 6693.0,
+          "peak_process_tree_rss_mib": 22089.91796875,
+          "process_tree_cpu_s": 470.4560749999996
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.1168164130067453,
+            "calls": 1,
+            "gpu_board_energy_j": 365.267879709931,
+            "gpu_energy_coverage_s": 1.1168164130067453
+          },
+          "begin_epoch": {
+            "wall_s": 0.0010233950451947749,
+            "calls": 20,
+            "gpu_board_energy_j": 0.21666499962154054,
+            "gpu_energy_coverage_s": 0.0010233950451947749
+          },
+          "begin_task": {
+            "wall_s": 0.009758453001268208,
+            "calls": 1,
+            "gpu_board_energy_j": 0.7554497518047882,
+            "gpu_energy_coverage_s": 0.009758453001268208
+          },
+          "checkpoint": {
+            "wall_s": 0.8746506609895732,
+            "calls": 1,
+            "gpu_board_energy_j": 262.75780060657246,
+            "gpu_energy_coverage_s": 0.8746506609895732
+          },
+          "data_loading": {
+            "wall_s": 0.7048468140128534,
+            "calls": 1,
+            "gpu_board_energy_j": 55.42697430142455,
+            "gpu_energy_coverage_s": 0.7048468140128534
+          },
+          "end_epoch": {
+            "wall_s": 0.0009231940493918955,
+            "calls": 20,
+            "gpu_board_energy_j": 0.3721371962657052,
+            "gpu_energy_coverage_s": 0.0009231940493918955
+          },
+          "end_task": {
+            "wall_s": 42.26662331097759,
+            "calls": 1,
+            "gpu_board_energy_j": 18823.944762574094,
+            "gpu_energy_coverage_s": 42.26662331097759
+          },
+          "epoch_audit": {
+            "wall_s": 0.08398119214689359,
+            "calls": 20,
+            "gpu_board_energy_j": 33.804829769259904,
+            "gpu_energy_coverage_s": 0.08398119214689359
+          },
+          "evaluation": {
+            "wall_s": 60.526343436999014,
+            "calls": 1,
+            "gpu_board_energy_j": 26559.082659584186,
+            "gpu_energy_coverage_s": 60.526343436999014
+          },
+          "first_batch_audit": {
+            "wall_s": 0.043493082019267604,
+            "calls": 1,
+            "gpu_board_energy_j": 3.44890397533121,
+            "gpu_energy_coverage_s": 0.043493082019267604
+          },
+          "initialization_audit": {
+            "wall_s": 0.06383288800134324,
+            "calls": 1,
+            "gpu_board_energy_j": 4.932409025499016,
+            "gpu_energy_coverage_s": 0.06383288800134324
+          },
+          "prototype_completion": {
+            "wall_s": 42.26616138999816,
+            "calls": 1,
+            "gpu_board_energy_j": 18823.751615871508,
+            "gpu_energy_coverage_s": 42.26616138999816
+          },
+          "train_epoch": {
+            "wall_s": 265.4364438189659,
+            "calls": 20,
+            "gpu_board_energy_j": 109556.83151250858,
+            "gpu_energy_coverage_s": 265.4364438189659
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.4364438189659,
+            "gpu_board_energy_wh": 30.43245319791905
+          },
+          "prototype_completion": {
+            "wall_s": 42.26616138999816,
+            "gpu_board_energy_wh": 5.228819893297641
+          },
+          "evaluation": {
+            "wall_s": 60.526343436999014,
+            "gpu_board_energy_wh": 7.3775229609956074
+          }
+        }
+      },
+      {
+        "task": 8,
+        "wall_s": 394.29319748602575,
+        "metrics": {
+          "gpu_board_energy_wh": 46.08524842828575,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5794.41455078125,
+          "cuda_peak_reserved_mib": 6208.0,
+          "peak_gpu_device_memory_mib": 6699.0,
+          "peak_process_tree_rss_mib": 22160.84765625,
+          "process_tree_cpu_s": 495.36920599999985
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.1712026380118914,
+            "calls": 1,
+            "gpu_board_energy_j": 329.43834479227934,
+            "gpu_energy_coverage_s": 1.1712026380118914
+          },
+          "begin_epoch": {
+            "wall_s": 0.0007327219936996698,
+            "calls": 20,
+            "gpu_board_energy_j": 0.20289613849114407,
+            "gpu_energy_coverage_s": 0.0007327219936996698
+          },
+          "begin_task": {
+            "wall_s": 0.010227382008451968,
+            "calls": 1,
+            "gpu_board_energy_j": 0.7751663541962471,
+            "gpu_energy_coverage_s": 0.010227382008451968
+          },
+          "checkpoint": {
+            "wall_s": 0.9260518589871936,
+            "calls": 1,
+            "gpu_board_energy_j": 225.33008440753247,
+            "gpu_energy_coverage_s": 0.9260518589871936
+          },
+          "data_loading": {
+            "wall_s": 0.69960092601832,
+            "calls": 1,
+            "gpu_board_energy_j": 54.276979304872015,
+            "gpu_energy_coverage_s": 0.69960092601832
+          },
+          "end_epoch": {
+            "wall_s": 0.0010235880326945335,
+            "calls": 20,
+            "gpu_board_energy_j": 0.4078621563645962,
+            "gpu_energy_coverage_s": 0.0010235880326945335
+          },
+          "end_task": {
+            "wall_s": 48.115475173981395,
+            "calls": 1,
+            "gpu_board_energy_j": 21333.936033294154,
+            "gpu_energy_coverage_s": 48.115475173981395
+          },
+          "epoch_audit": {
+            "wall_s": 0.08529064306640066,
+            "calls": 20,
+            "gpu_board_energy_j": 34.02116743208755,
+            "gpu_energy_coverage_s": 0.08529064306640066
+          },
+          "evaluation": {
+            "wall_s": 78.53843273498933,
+            "calls": 1,
+            "gpu_board_energy_j": 34531.61781567355,
+            "gpu_energy_coverage_s": 78.53843273498933
+          },
+          "first_batch_audit": {
+            "wall_s": 0.0429671129968483,
+            "calls": 1,
+            "gpu_board_energy_j": 5.899436472606917,
+            "gpu_energy_coverage_s": 0.0429671129968483
+          },
+          "initialization_audit": {
+            "wall_s": 0.0692035109968856,
+            "calls": 1,
+            "gpu_board_energy_j": 5.230902914124101,
+            "gpu_energy_coverage_s": 0.0692035109968856
+          },
+          "prototype_completion": {
+            "wall_s": 48.115018231997965,
+            "calls": 1,
+            "gpu_board_energy_j": 21333.74959429838,
+            "gpu_energy_coverage_s": 48.115018231997965
+          },
+          "train_epoch": {
+            "wall_s": 265.429477324069,
+            "calls": 20,
+            "gpu_board_energy_j": 109589.7756533584,
+            "gpu_energy_coverage_s": 265.429477324069
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.429477324069,
+            "gpu_board_energy_wh": 30.441604348155114
+          },
+          "prototype_completion": {
+            "wall_s": 48.115018231997965,
+            "gpu_board_energy_wh": 5.926041553971772
+          },
+          "evaluation": {
+            "wall_s": 78.53843273498933,
+            "gpu_board_energy_wh": 9.59211605990932
+          }
+        }
+      },
+      {
+        "task": 9,
+        "wall_s": 420.4894786250079,
+        "metrics": {
+          "gpu_board_energy_wh": 49.30654126354131,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5799.32861328125,
+          "cuda_peak_reserved_mib": 6212.0,
+          "peak_gpu_device_memory_mib": 6703.0,
+          "peak_process_tree_rss_mib": 22178.70703125,
+          "process_tree_cpu_s": 523.7318319999999
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.127480184979504,
+            "calls": 1,
+            "gpu_board_energy_j": 334.3900065724812,
+            "gpu_energy_coverage_s": 1.127480184979504
+          },
+          "begin_epoch": {
+            "wall_s": 0.0006881719746161252,
+            "calls": 20,
+            "gpu_board_energy_j": 0.2072586289624016,
+            "gpu_energy_coverage_s": 0.0006881719746161252
+          },
+          "begin_task": {
+            "wall_s": 0.010547877027420327,
+            "calls": 1,
+            "gpu_board_energy_j": 0.9286185571454225,
+            "gpu_energy_coverage_s": 0.010547877027420327
+          },
+          "checkpoint": {
+            "wall_s": 0.8779421590152197,
+            "calls": 1,
+            "gpu_board_energy_j": 231.8812995314324,
+            "gpu_energy_coverage_s": 0.8779421590152197
+          },
+          "data_loading": {
+            "wall_s": 0.7059639130020514,
+            "calls": 1,
+            "gpu_board_energy_j": 55.55700648896644,
+            "gpu_energy_coverage_s": 0.7059639130020514
+          },
+          "end_epoch": {
+            "wall_s": 0.00118097203085199,
+            "calls": 20,
+            "gpu_board_energy_j": 0.482121890181182,
+            "gpu_energy_coverage_s": 0.00118097203085199
+          },
+          "end_task": {
+            "wall_s": 53.964424640988,
+            "calls": 1,
+            "gpu_board_energy_j": 23998.593985700147,
+            "gpu_energy_coverage_s": 53.964424640988
+          },
+          "epoch_audit": {
+            "wall_s": 0.08728111497475766,
+            "calls": 20,
+            "gpu_board_energy_j": 35.800806193927414,
+            "gpu_energy_coverage_s": 0.08728111497475766
+          },
+          "evaluation": {
+            "wall_s": 98.82652133298689,
+            "calls": 1,
+            "gpu_board_energy_j": 43470.6017925313,
+            "gpu_energy_coverage_s": 98.82652133298689
+          },
+          "first_batch_audit": {
+            "wall_s": 0.04322600000887178,
+            "calls": 1,
+            "gpu_board_energy_j": 5.603639954571324,
+            "gpu_energy_coverage_s": 0.04322600000887178
+          },
+          "initialization_audit": {
+            "wall_s": 0.07658415101468563,
+            "calls": 1,
+            "gpu_board_energy_j": 6.993357344782689,
+            "gpu_energy_coverage_s": 0.07658415101468563
+          },
+          "prototype_completion": {
+            "wall_s": 53.963876644993434,
+            "calls": 1,
+            "gpu_board_energy_j": 23998.36454641424,
+            "gpu_energy_coverage_s": 53.963876644993434
+          },
+          "train_epoch": {
+            "wall_s": 265.5042064739682,
+            "calls": 20,
+            "gpu_board_energy_j": 109565.19672898756,
+            "gpu_energy_coverage_s": 265.5042064739682
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.5042064739682,
+            "gpu_board_energy_wh": 30.434776869163212
+          },
+          "prototype_completion": {
+            "wall_s": 53.963876644993434,
+            "gpu_board_energy_wh": 6.666212374003956
+          },
+          "evaluation": {
+            "wall_s": 98.82652133298689,
+            "gpu_board_energy_wh": 12.075167164592028
+          }
+        }
+      },
+      {
+        "task": 10,
+        "wall_s": 449.7610875359969,
+        "metrics": {
+          "gpu_board_energy_wh": 52.91631501039696,
+          "gpu_energy_coverage_fraction": 1.0,
+          "cuda_peak_allocated_mib": 5804.67236328125,
+          "cuda_peak_reserved_mib": 6218.0,
+          "peak_gpu_device_memory_mib": 6709.0,
+          "peak_process_tree_rss_mib": 22360.66015625,
+          "process_tree_cpu_s": 553.0062000000003
+        },
+        "phases": {
+          "acceptance_audit": {
+            "wall_s": 1.1964986799866892,
+            "calls": 1,
+            "gpu_board_energy_j": 384.267967004984,
+            "gpu_energy_coverage_s": 1.1964986799866892
+          },
+          "begin_epoch": {
+            "wall_s": 0.0008064591384027153,
+            "calls": 20,
+            "gpu_board_energy_j": 0.2374597006948221,
+            "gpu_energy_coverage_s": 0.0008064591384027153
+          },
+          "begin_task": {
+            "wall_s": 0.010388080001575872,
+            "calls": 1,
+            "gpu_board_energy_j": 0.8078768725815858,
+            "gpu_energy_coverage_s": 0.010388080001575872
+          },
+          "checkpoint": {
+            "wall_s": 0.9434265549934935,
+            "calls": 1,
+            "gpu_board_energy_j": 276.9520832149436,
+            "gpu_energy_coverage_s": 0.9434265549934935
+          },
+          "data_loading": {
+            "wall_s": 0.706871982984012,
+            "calls": 1,
+            "gpu_board_energy_j": 55.66698515112328,
+            "gpu_energy_coverage_s": 0.706871982984012
+          },
+          "end_epoch": {
+            "wall_s": 0.0010367110662627965,
+            "calls": 20,
+            "gpu_board_energy_j": 0.42235502827505755,
+            "gpu_energy_coverage_s": 0.0010367110662627965
+          },
+          "end_task": {
+            "wall_s": 60.120430361974286,
+            "calls": 1,
+            "gpu_board_energy_j": 26829.755195141293,
+            "gpu_energy_coverage_s": 60.120430361974286
+          },
+          "epoch_audit": {
+            "wall_s": 0.08977044196217321,
+            "calls": 20,
+            "gpu_board_energy_j": 36.311413774330596,
+            "gpu_energy_coverage_s": 0.08977044196217321
+          },
+          "evaluation": {
+            "wall_s": 121.92422051500762,
+            "calls": 1,
+            "gpu_board_energy_j": 53668.985596264676,
+            "gpu_energy_coverage_s": 121.92422051500762
+          },
+          "first_batch_audit": {
+            "wall_s": 0.044215069006895646,
+            "calls": 1,
+            "gpu_board_energy_j": 5.407974997274862,
+            "gpu_energy_coverage_s": 0.044215069006895646
+          },
+          "initialization_audit": {
+            "wall_s": 0.07667187100742012,
+            "calls": 1,
+            "gpu_board_energy_j": 5.953333419618093,
+            "gpu_energy_coverage_s": 0.07667187100742012
+          },
+          "prototype_completion": {
+            "wall_s": 60.11995124499663,
+            "calls": 1,
+            "gpu_board_energy_j": 26829.560774203903,
+            "gpu_energy_coverage_s": 60.11995124499663
+          },
+          "train_epoch": {
+            "wall_s": 265.41089519194793,
+            "calls": 20,
+            "gpu_board_energy_j": 109471.21801286326,
+            "gpu_energy_coverage_s": 265.41089519194793
+          }
+        },
+        "phase_groups": {
+          "adapter_training": {
+            "wall_s": 265.41089519194793,
+            "gpu_board_energy_wh": 30.408671670239794
+          },
+          "prototype_completion": {
+            "wall_s": 60.11995124499663,
+            "gpu_board_energy_wh": 7.452655770612195
+          },
+          "evaluation": {
+            "wall_s": 121.92422051500762,
+            "gpu_board_energy_wh": 14.908051554517966
+          }
+        }
+      }
+    ],
+    "scope": "Whole Recorder includes preparation, training, prototypes, evaluation and audits; final artifact upload/finish excluded. Task interval ends after evaluation/checkpoint audit before task Slack/logging. Phase times are inclusive.",
+    "energy_scope": "Selected GPU-board sampled power integral; CPU/RAM and total-machine energy are unmeasured.",
+    "memory_scope": "Per-task CUDA peaks are reset; process peak preserves initialization and all tasks. NVML/RSS peaks are sampled; summed process-tree RSS can duplicate shared pages.",
+    "missing_values": "null is unavailable, never imputed."
+  },
+  "work_counts": {
+    "outer_optimizer_steps": 15800,
+    "outer_image_training_examples": 1000000,
+    "evaluation_image_examples": 55000,
+    "prototype_examples": 50000,
+    "prototype_adapter_image_pairs": 275000,
+    "evaluation_adapter_image_pairs": 385000,
+    "scope": "Saved image exposure and adapter-image pair counters; a pair counts one image through one adapter subspace. Repeated frozen-backbone passes are method work, not unique images, FLOPs or equal compute budgets."
+  },
+  "comparison": {
+    "status": "compatible",
+    "compatibility": {
+      "status": "compatible",
+      "reasons": [],
+      "scope": "All ten raw train/test populations, observed post-begin-task transforms, first training batches, checkpoint, seed/batch/workers/GPU and eight recorded precision policies. The EASE train RNG matches HiDe TII; HiDe prompt-stage augmentation and all phase budgets remain method-specific."
+    },
+    "equal_compute_budget": false,
+    "hide_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ba00j7ud",
+    "schedule_scope": "EASE20 epochs/task vs HiDe TII20+prompt50 and CA30/task2 onward; single seed and different optimization work.",
+    "methods": [
+      {
+        "model": "ease",
+        "accuracy": {
+          "class_il_accuracy_matrix_pct": [
+            [
+              99.2,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              95.7,
+              97.1,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              94.89999999999999,
+              95.3,
+              92.9,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              94.3,
+              90.9,
+              92.0,
+              92.9,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              93.89999999999999,
+              89.0,
+              89.60000000000001,
+              90.5,
+              92.9,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              92.60000000000001,
+              88.5,
+              88.5,
+              89.1,
+              91.5,
+              86.9,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              92.80000000000001,
+              86.9,
+              87.7,
+              88.3,
+              90.9,
+              86.4,
+              86.3,
+              null,
+              null,
+              null
+            ],
+            [
+              92.2,
+              86.0,
+              86.8,
+              87.1,
+              90.10000000000001,
+              84.7,
+              85.1,
+              88.6,
+              null,
+              null
+            ],
+            [
+              91.9,
+              85.3,
+              86.5,
+              86.1,
+              88.7,
+              84.2,
+              83.89999999999999,
+              89.0,
+              94.6,
+              null
+            ],
+            [
+              91.2,
+              83.5,
+              86.3,
+              79.7,
+              83.0,
+              76.6,
+              81.39999999999999,
+              85.7,
+              92.4,
+              94.39999999999999
+            ]
+          ],
+          "trajectory": [
+            {
+              "task": 1,
+              "seen_accuracy_pct": 99.2,
+              "old_accuracy_pct": null,
+              "new_accuracy_pct": 99.2,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 2,
+              "seen_accuracy_pct": 96.4,
+              "old_accuracy_pct": 95.7,
+              "new_accuracy_pct": 97.1,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 3,
+              "seen_accuracy_pct": 94.36666666666666,
+              "old_accuracy_pct": 95.1,
+              "new_accuracy_pct": 92.9,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 4,
+              "seen_accuracy_pct": 92.525,
+              "old_accuracy_pct": 92.4,
+              "new_accuracy_pct": 92.9,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 5,
+              "seen_accuracy_pct": 91.18,
+              "old_accuracy_pct": 90.75,
+              "new_accuracy_pct": 92.9,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 6,
+              "seen_accuracy_pct": 89.51666666666667,
+              "old_accuracy_pct": 90.04,
+              "new_accuracy_pct": 86.9,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 7,
+              "seen_accuracy_pct": 88.47142857142858,
+              "old_accuracy_pct": 88.83333333333333,
+              "new_accuracy_pct": 86.3,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 8,
+              "seen_accuracy_pct": 87.575,
+              "old_accuracy_pct": 87.42857142857143,
+              "new_accuracy_pct": 88.6,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 9,
+              "seen_accuracy_pct": 87.8,
+              "old_accuracy_pct": 86.95,
+              "new_accuracy_pct": 94.6,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            },
+            {
+              "task": 10,
+              "seen_accuracy_pct": 85.42,
+              "old_accuracy_pct": 84.42222222222222,
+              "new_accuracy_pct": 94.39999999999999,
+              "tii_seen_accuracy_pct": null,
+              "tii_task_routing_accuracy_pct": null
+            }
+          ],
+          "final_accuracy_pct": 85.42,
+          "average_incremental_accuracy_pct": 91.24547619047618,
+          "forgetting_pp": 8.000000000000002,
+          "forgetting_by_task": [
+            {
+              "task": 1,
+              "best_previous_accuracy_pct": 99.2,
+              "final_accuracy_pct": 91.2,
+              "forgetting_pp": 8.0
+            },
+            {
+              "task": 2,
+              "best_previous_accuracy_pct": 97.1,
+              "final_accuracy_pct": 83.5,
+              "forgetting_pp": 13.599999999999994
+            },
+            {
+              "task": 3,
+              "best_previous_accuracy_pct": 92.9,
+              "final_accuracy_pct": 86.3,
+              "forgetting_pp": 6.6000000000000085
+            },
+            {
+              "task": 4,
+              "best_previous_accuracy_pct": 92.9,
+              "final_accuracy_pct": 79.7,
+              "forgetting_pp": 13.200000000000003
+            },
+            {
+              "task": 5,
+              "best_previous_accuracy_pct": 92.9,
+              "final_accuracy_pct": 83.0,
+              "forgetting_pp": 9.900000000000006
+            },
+            {
+              "task": 6,
+              "best_previous_accuracy_pct": 86.9,
+              "final_accuracy_pct": 76.6,
+              "forgetting_pp": 10.300000000000011
+            },
+            {
+              "task": 7,
+              "best_previous_accuracy_pct": 86.3,
+              "final_accuracy_pct": 81.39999999999999,
+              "forgetting_pp": 4.900000000000006
+            },
+            {
+              "task": 8,
+              "best_previous_accuracy_pct": 89.0,
+              "final_accuracy_pct": 85.7,
+              "forgetting_pp": 3.299999999999997
+            },
+            {
+              "task": 9,
+              "best_previous_accuracy_pct": 94.6,
+              "final_accuracy_pct": 92.4,
+              "forgetting_pp": 2.1999999999999886
+            }
+          ],
+          "forgetting_definition": "Mean over old tasks 1..9 of max accuracy after acquisition through task9 minus accuracy after task10; improvements remain negative.",
+          "future_matrix_entries": "null: unobserved, never zero",
+          "test_samples_per_task": 1000,
+          "cumulative_evaluation_examples": 55000
+        },
+        "metrics": {
+          "process_wall_s": 3493.6786157749884,
+          "outer_training_stream_examples": 1000000,
+          "evaluation_examples": 55000,
+          "outer_observe_steps": 15800,
+          "tasks_completed": 10,
+          "cuda_peak_allocated_mib": 5804.67236328125,
+          "cuda_peak_reserved_mib": 6218.0,
+          "peak_process_tree_rss_mib": 22360.66015625,
+          "peak_gpu_device_memory_mib": 6709.0,
+          "peak_gpu_utilization_percent": 100.0,
+          "peak_gpu_power_w": 450.08,
+          "gpu_board_energy_j": 1455313.941659941,
+          "gpu_energy_coverage_s": 3493.6334777135053,
+          "gpu_energy_coverage_fraction": 0.9999870800762041,
+          "gpu_board_energy_wh": 404.25387268331696,
+          "outer_training_examples_per_s": 376.9793163131231,
+          "evaluation_examples_per_s": 115.89080276125824,
+          "process_tree_cpu_s": 4467.719743
+        }
+      },
+      {
+        "model": "hide-prompt",
+        "accuracy": {
+          "class_il_accuracy_matrix_pct": [
+            [
+              99.4,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              98.9,
+              97.0,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              97.89999999999999,
+              96.5,
+              96.0,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              97.39999999999999,
+              95.39999999999999,
+              95.6,
+              96.6,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              96.89999999999999,
+              95.0,
+              94.69999999999999,
+              95.6,
+              95.39999999999999,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              96.6,
+              95.6,
+              94.39999999999999,
+              95.5,
+              93.8,
+              93.7,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              96.6,
+              94.3,
+              94.69999999999999,
+              94.6,
+              93.30000000000001,
+              94.3,
+              95.3,
+              null,
+              null,
+              null
+            ],
+            [
+              96.7,
+              94.1,
+              94.1,
+              94.69999999999999,
+              93.10000000000001,
+              94.0,
+              94.3,
+              94.19999999999999,
+              null,
+              null
+            ],
+            [
+              96.39999999999999,
+              93.7,
+              94.19999999999999,
+              94.39999999999999,
+              93.2,
+              94.5,
+              94.19999999999999,
+              94.69999999999999,
+              96.7,
+              null
+            ],
+            [
+              96.2,
+              93.60000000000001,
+              94.0,
+              93.89999999999999,
+              92.80000000000001,
+              94.0,
+              93.7,
+              94.0,
+              96.3,
+              94.19999999999999
+            ]
+          ],
+          "trajectory": [
+            {
+              "task": 1,
+              "seen_accuracy_pct": 99.4,
+              "old_accuracy_pct": null,
+              "new_accuracy_pct": 99.4,
+              "tii_seen_accuracy_pct": 98.5,
+              "tii_task_routing_accuracy_pct": 100.0
+            },
+            {
+              "task": 2,
+              "seen_accuracy_pct": 97.95,
+              "old_accuracy_pct": 98.9,
+              "new_accuracy_pct": 97.0,
+              "tii_seen_accuracy_pct": 94.39999999999999,
+              "tii_task_routing_accuracy_pct": 96.39999999999999
+            },
+            {
+              "task": 3,
+              "seen_accuracy_pct": 96.8,
+              "old_accuracy_pct": 97.2,
+              "new_accuracy_pct": 96.0,
+              "tii_seen_accuracy_pct": 91.53333333333333,
+              "tii_task_routing_accuracy_pct": 92.80000000000001
+            },
+            {
+              "task": 4,
+              "seen_accuracy_pct": 96.25,
+              "old_accuracy_pct": 96.13333333333334,
+              "new_accuracy_pct": 96.6,
+              "tii_seen_accuracy_pct": 89.625,
+              "tii_task_routing_accuracy_pct": 90.7
+            },
+            {
+              "task": 5,
+              "seen_accuracy_pct": 95.52,
+              "old_accuracy_pct": 95.55,
+              "new_accuracy_pct": 95.39999999999999,
+              "tii_seen_accuracy_pct": 88.66000000000001,
+              "tii_task_routing_accuracy_pct": 89.68
+            },
+            {
+              "task": 6,
+              "seen_accuracy_pct": 94.93333333333334,
+              "old_accuracy_pct": 95.18,
+              "new_accuracy_pct": 93.7,
+              "tii_seen_accuracy_pct": 86.98333333333333,
+              "tii_task_routing_accuracy_pct": 88.11666666666666
+            },
+            {
+              "task": 7,
+              "seen_accuracy_pct": 94.72857142857143,
+              "old_accuracy_pct": 94.63333333333334,
+              "new_accuracy_pct": 95.3,
+              "tii_seen_accuracy_pct": 86.18571428571428,
+              "tii_task_routing_accuracy_pct": 87.17142857142856
+            },
+            {
+              "task": 8,
+              "seen_accuracy_pct": 94.4,
+              "old_accuracy_pct": 94.42857142857143,
+              "new_accuracy_pct": 94.19999999999999,
+              "tii_seen_accuracy_pct": 84.475,
+              "tii_task_routing_accuracy_pct": 85.575
+            },
+            {
+              "task": 9,
+              "seen_accuracy_pct": 94.66666666666667,
+              "old_accuracy_pct": 94.4125,
+              "new_accuracy_pct": 96.7,
+              "tii_seen_accuracy_pct": 84.75555555555555,
+              "tii_task_routing_accuracy_pct": 85.75555555555555
+            },
+            {
+              "task": 10,
+              "seen_accuracy_pct": 94.27,
+              "old_accuracy_pct": 94.27777777777777,
+              "new_accuracy_pct": 94.19999999999999,
+              "tii_seen_accuracy_pct": 83.54,
+              "tii_task_routing_accuracy_pct": 84.47
+            }
+          ],
+          "final_accuracy_pct": 94.27,
+          "average_incremental_accuracy_pct": 95.89185714285715,
+          "forgetting_pp": 1.8999999999999961,
+          "forgetting_by_task": [
+            {
+              "task": 1,
+              "best_previous_accuracy_pct": 99.4,
+              "final_accuracy_pct": 96.2,
+              "forgetting_pp": 3.200000000000003
+            },
+            {
+              "task": 2,
+              "best_previous_accuracy_pct": 97.0,
+              "final_accuracy_pct": 93.60000000000001,
+              "forgetting_pp": 3.3999999999999915
+            },
+            {
+              "task": 3,
+              "best_previous_accuracy_pct": 96.0,
+              "final_accuracy_pct": 94.0,
+              "forgetting_pp": 2.0
+            },
+            {
+              "task": 4,
+              "best_previous_accuracy_pct": 96.6,
+              "final_accuracy_pct": 93.89999999999999,
+              "forgetting_pp": 2.700000000000003
+            },
+            {
+              "task": 5,
+              "best_previous_accuracy_pct": 95.39999999999999,
+              "final_accuracy_pct": 92.80000000000001,
+              "forgetting_pp": 2.59999999999998
+            },
+            {
+              "task": 6,
+              "best_previous_accuracy_pct": 94.5,
+              "final_accuracy_pct": 94.0,
+              "forgetting_pp": 0.5
+            },
+            {
+              "task": 7,
+              "best_previous_accuracy_pct": 95.3,
+              "final_accuracy_pct": 93.7,
+              "forgetting_pp": 1.5999999999999943
+            },
+            {
+              "task": 8,
+              "best_previous_accuracy_pct": 94.69999999999999,
+              "final_accuracy_pct": 94.0,
+              "forgetting_pp": 0.6999999999999886
+            },
+            {
+              "task": 9,
+              "best_previous_accuracy_pct": 96.7,
+              "final_accuracy_pct": 96.3,
+              "forgetting_pp": 0.4000000000000057
+            }
+          ],
+          "forgetting_definition": "Mean over old tasks 1..9 of max accuracy after acquisition through task9 minus accuracy after task10; improvements remain negative.",
+          "future_matrix_entries": "null: unobserved, never zero",
+          "test_samples_per_task": 1000,
+          "cumulative_evaluation_examples": 55000
+        },
+        "metrics": {
+          "process_wall_s": 11734.549227294978,
+          "outer_training_stream_examples": 3500000,
+          "evaluation_examples": 55000,
+          "outer_observe_steps": 55300,
+          "tasks_completed": 10,
+          "cuda_peak_allocated_mib": 6486.240234375,
+          "cuda_peak_reserved_mib": 23224.0,
+          "peak_process_tree_rss_mib": 31936.74609375,
+          "peak_gpu_device_memory_mib": 23751.0,
+          "peak_gpu_utilization_percent": 100.0,
+          "peak_gpu_power_w": 434.35,
+          "gpu_board_energy_j": 4794526.636208187,
+          "gpu_energy_coverage_s": 11734.504012498015,
+          "gpu_energy_coverage_fraction": 0.999996146865458,
+          "gpu_board_energy_wh": 1331.8129545022741,
+          "outer_training_examples_per_s": 315.8652891195218,
+          "evaluation_examples_per_s": 375.27706758771615,
+          "process_tree_cpu_s": 15158.248896000001
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "One native full10 run with seed1993; no seed variance or confidence interval.",
+    "Independent author/native acceptance covers two tasks, not a full10 paper-table reproduction.",
+    "Abnormally low accuracy is an implementation issue to investigate.",
+    "Different method schedules; no equal-compute-budget or full10 FLOPs comparison."
+  ],
+  "gpu_exclusivity": {
+    "status": "pass",
+    "worker_pid": 893795,
+    "physical_gpu": 1,
+    "gpu_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+    "observations": 678,
+    "interval_s": 5,
+    "first_sample_utc": "2026-10-07T12:31:15.505835+00:00",
+    "last_sample_utc": "2026-10-07T13:28:12.165437+00:00",
+    "proof_sha256": "1c7b37cf212f5763eafbe74ac0824a6818a9d6bb2bf10bf6d66864ede99c76fd",
+    "spec_sha256": "1e1ff1b537e563c641f55eb4b42c30577826ebf19640d6bb2035c266133c9082",
+    "result_sha256": "f3c97b5307d2a02b86605af8b36898e5d12bee8a29501ad903e3d5514dac3c7f",
+    "scope": "Sampled GPU occupancy evidence plus an empty-GPU preflight. Observations start after monitoring begins and do not cover the startup gap; this is not a continuous reservation or device lock."
+  },
+  "sources": {
+    "native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/result.json",
+      "sha256": "f3c97b5307d2a02b86605af8b36898e5d12bee8a29501ad903e3d5514dac3c7f"
+    },
+    "reference": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/author-common-input-b64-seed1993-20261007/result.json",
+      "sha256": "7aab61e1ab6bd1ae4c19d29c78b1de9b0c130b1de5035f4072f1215bc3c5da88"
+    },
+    "accepted_native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-validation-b64-seed1993-20261007/result.json",
+      "sha256": "ea1114284f832fc51f09e709f485e02ae1ef9a1ddcd6c48b28d521c3e2bea755"
+    },
+    "native_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "eabeeab0631ccef6442d841e72c699de8b6730e6aa01f84908b09707d84c4309"
+    },
+    "reference_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/author-common-input-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "7deff9daa25f5abde2fa05bbabd222e4bcc98997ab2cdd608428e69cb22aaf49"
+    },
+    "accepted_native_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-validation-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "afcd406c623e54be156b24415f4285987f9a7919f03b6852b09e49c66f9d9eae"
+    },
+    "hide_native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007/result.json",
+      "sha256": "1e28015049fed130e04bedd654bd4746b785ca79280fce114b4ca3c11c8163a7"
+    },
+    "hide_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "e2f8235b06565e0748b31b4525901763923635f990e7b82ecde362b49a5ea46b"
+    },
+    "gpu_audit": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/environment/gpu_exclusivity_full_cl.json",
+      "sha256": "1c7b37cf212f5763eafbe74ac0824a6818a9d6bb2bf10bf6d66864ede99c76fd"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "status": "pass",
-  "gpu_training_executed": false,
+  "gpu_training_executed": true,
   "focused_suite": {
     "command": "CUDA_VISIBLE_DEVICES=\"\" MAMMOTH_DEVICE=cpu OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv UV_CACHE_DIR=/tmp/ease-fullcl-uvcache HF_HUB_OFFLINE=1 JE_ARROW_MALLOC_CONF=background_thread:false MPLCONFIGDIR=/tmp/ease-fullcl-matplotlib uv run --no-sync --offline pytest tests/test_ease_common_reference.py tests/test_ease_fullcl_execution.py tests/test_ease_fullcl_report.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_ease_execution.py tests/test_ease_reference_utils.py -q --tb=short",
     "passed": 268,
@@ -24,5 +24,52 @@
     0
   ],
   "catalog_sha256": "6c5b27a6c420971883e9b41304a7efe414ae22aa07e3f1614df38e81ff9a07fc",
-  "native_cpu_smoke": "pending"
+  "native_cpu_smoke": {
+    "status": "pass",
+    "proof": "native_cpu_initialization.json",
+    "wall_s": 6.85,
+    "image_forwards": 1,
+    "optimizer_steps": 0,
+    "cpu_only": true
+  },
+  "gpu_audit_report_suite": {
+    "command": "CUDA_VISIBLE_DEVICES=\"\" MAMMOTH_DEVICE=cpu OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 UV_PROJECT_ENVIRONMENT=/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.venv UV_CACHE_DIR=/tmp/ease-fullcl-uvcache HF_HUB_OFFLINE=1 JE_ARROW_MALLOC_CONF=background_thread:false MPLCONFIGDIR=/tmp/ease-fullcl-matplotlib uv run --no-sync --offline pytest tests/test_ease_fullcl_report.py -q --tb=short",
+    "passed": 43,
+    "wall_s": 22.67,
+    "scope": "Optional GPU proof validation/publishing; rerun after final report wording clarification.",
+    "previous_wall_s": 23.46
+  },
+  "completed_gpu_execution": {
+    "status": "pass",
+    "native_structural_checks": {
+      "finite_loss_and_gradients": true,
+      "dataset_matches_reference": true,
+      "frozen_backbone_unchanged": true,
+      "old_adapters_unchanged": true,
+      "prototype_and_adapter_shapes": true,
+      "training_protocol_complete": true,
+      "frozen_backbone_gradients_absent": true,
+      "checkpoint_round_trip": true,
+      "learnable_initialization_matches": true,
+      "actual_inputs_match_reference": true,
+      "nonoracle_seen_class_evaluation": true,
+      "canonical_pretrained_matches_pin": true
+    },
+    "prefix_validation": "pass",
+    "epoch_records": 200,
+    "native_artifact_files_verified": 21,
+    "report_artifact_files_verified": 9,
+    "slack_completion": "sent",
+    "report_generation": "pass",
+    "publisher_dry_preflight": "pass",
+    "hide_common_input_comparison": "compatible",
+    "source_files_frozen": 25
+  },
+  "semantic_completion_audit": {
+    "status": "pass",
+    "proof": "semantic_completion_audit.json",
+    "command_file": "semantic_completion_audit.md",
+    "wall_s": 2.24
+  },
+  "initial_preflight_gpu_training_executed": false
 }

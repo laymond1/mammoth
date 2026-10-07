@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "name": "ease-fullcl-report-20261007T133103Z",
+  "model": "ease",
+  "mode": "full_cl",
+  "report_only": true,
+  "new_training": false,
+  "new_gpu_computation": false,
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/xfrn5if3",
+  "wandb_artifact": {
+    "name": "laymond1/cl-efficiency/ease-fullcl-report-20261007T133103Z:v0",
+    "state": "COMMITTED"
+  },
+  "wandb_logging_status": "uploaded",
+  "sources": {
+    "native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/result.json",
+      "sha256": "f3c97b5307d2a02b86605af8b36898e5d12bee8a29501ad903e3d5514dac3c7f"
+    },
+    "reference": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/author-common-input-b64-seed1993-20261007/result.json",
+      "sha256": "7aab61e1ab6bd1ae4c19d29c78b1de9b0c130b1de5035f4072f1215bc3c5da88"
+    },
+    "accepted_native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-validation-b64-seed1993-20261007/result.json",
+      "sha256": "ea1114284f832fc51f09e709f485e02ae1ef9a1ddcd6c48b28d521c3e2bea755"
+    },
+    "native_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-full10-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "eabeeab0631ccef6442d841e72c699de8b6730e6aa01f84908b09707d84c4309"
+    },
+    "reference_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/author-common-input-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "7deff9daa25f5abde2fa05bbabd222e4bcc98997ab2cdd608428e69cb22aaf49"
+    },
+    "accepted_native_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/runs/native-common-input-validation-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "afcd406c623e54be156b24415f4285987f9a7919f03b6852b09e49c66f9d9eae"
+    },
+    "hide_native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007/result.json",
+      "sha256": "1e28015049fed130e04bedd654bd4746b785ca79280fce114b4ca3c11c8163a7"
+    },
+    "hide_artifact_manifest": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-prompt/benchmarks/cl_efficiency/hide_prompt/runs/native-full-cl-b64-seed1993-20261007/artifact_files.json",
+      "sha256": "e2f8235b06565e0748b31b4525901763923635f990e7b82ecde362b49a5ea46b"
+    },
+    "gpu_audit": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-full-cl/benchmarks/cl_efficiency/ease_full_cl/environment/gpu_exclusivity_full_cl.json",
+      "sha256": "1c7b37cf212f5763eafbe74ac0824a6818a9d6bb2bf10bf6d66864ede99c76fd"
+    }
+  },
+  "summary": {
+    "report_only": true,
+    "new_training": false,
+    "new_gpu_computation": false,
+    "paper_reproduction": false,
+    "seed_variation_estimated": false,
+    "equal_compute_budget": false,
+    "implementation_prefix_gate": "pass",
+    "full_ten_task_accuracy_acceptance": "not_assessed_by_matched_ten_task_reference",
+    "hide_comparison_status": "compatible",
+    "full_cl/final_accuracy_pct": 85.42,
+    "full_cl/average_incremental_accuracy_pct": 91.24547619047618,
+    "full_cl/forgetting_pp": 8.000000000000002,
+    "resources/process_wall_s": 3493.6786157749884,
+    "resources/outer_training_stream_examples": 1000000,
+    "resources/evaluation_examples": 55000,
+    "resources/outer_observe_steps": 15800,
+    "resources/tasks_completed": 10,
+    "resources/cuda_peak_allocated_mib": 5804.67236328125,
+    "resources/cuda_peak_reserved_mib": 6218.0,
+    "resources/peak_process_tree_rss_mib": 22360.66015625,
+    "resources/peak_gpu_device_memory_mib": 6709.0,
+    "resources/peak_gpu_utilization_percent": 100.0,
+    "resources/peak_gpu_power_w": 450.08,
+    "resources/gpu_board_energy_j": 1455313.941659941,
+    "resources/gpu_energy_coverage_s": 3493.6334777135053,
+    "resources/gpu_energy_coverage_fraction": 0.9999870800762041,
+    "resources/gpu_board_energy_wh": 404.25387268331696,
+    "resources/outer_training_examples_per_s": 376.9793163131231,
+    "resources/evaluation_examples_per_s": 115.89080276125824,
+    "resources/process_tree_cpu_s": 4467.719743,
+    "work/outer_optimizer_steps": 15800,
+    "work/outer_image_training_examples": 1000000,
+    "work/evaluation_image_examples": 55000,
+    "work/prototype_examples": 50000,
+    "work/prototype_adapter_image_pairs": 275000,
+    "work/evaluation_adapter_image_pairs": 385000,
+    "gpu_sampled_occupancy_status": "pass",
+    "gpu_occupancy_observations": 678,
+    "gpu_continuous_reservation": false
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "acceptance": {
+    "status": "pass",
+    "pass_max_drop_pp": 1.5,
+    "pass_max_drop_pp_exact": {
+      "numerator": 3,
+      "denominator": 2
+    },
+    "review_max_drop_pp": 3.0,
+    "review_max_drop_pp_exact": {
+      "numerator": 3,
+      "denominator": 1
+    },
+    "metrics": {
+      "task1_seen": {
+        "task": 1,
+        "status": "pass",
+        "reference_correct": 992,
+        "reference_samples": 1000,
+        "reference_accuracy_pct": 99.2,
+        "native_correct": 992,
+        "native_samples": 1000,
+        "native_accuracy_pct": 99.2,
+        "drop_pp": 0.0,
+        "drop_pp_exact": {
+          "numerator": 0,
+          "denominator": 1
+        },
+        "validation_errors": []
+      },
+      "task2_seen": {
+        "task": 2,
+        "status": "pass",
+        "reference_correct": 1928,
+        "reference_samples": 2000,
+        "reference_accuracy_pct": 96.4,
+        "native_correct": 1928,
+        "native_samples": 2000,
+        "native_accuracy_pct": 96.4,
+        "drop_pp": 0.0,
+        "drop_pp_exact": {
+          "numerator": 0,
+          "denominator": 1
+        },
+        "validation_errors": []
+      },
+      "task2_old": {
+        "task": 2,
+        "status": "pass",
+        "reference_correct": 957,
+        "reference_samples": 1000,
+        "reference_accuracy_pct": 95.7,
+        "native_correct": 957,
+        "native_samples": 1000,
+        "native_accuracy_pct": 95.7,
+        "drop_pp": 0.0,
+        "drop_pp_exact": {
+          "numerator": 0,
+          "denominator": 1
+        },
+        "validation_errors": []
+      },
+      "task2_new": {
+        "task": 2,
+        "status": "pass",
+        "reference_correct": 971,
+        "reference_samples": 1000,
+        "reference_accuracy_pct": 97.1,
+        "native_correct": 971,
+        "native_samples": 1000,
+        "native_accuracy_pct": 97.1,
+        "drop_pp": 0.0,
+        "drop_pp_exact": {
+          "numerator": 0,
+          "denominator": 1
+        },
+        "validation_errors": []
+      }
+    },
+    "structural_checks": {
+      "finite_loss_and_gradients": true,
+      "dataset_matches_reference": true,
+      "frozen_backbone_unchanged": true,
+      "old_adapters_unchanged": true,
+      "prototype_and_adapter_shapes": true,
+      "training_protocol_complete": true,
+      "frozen_backbone_gradients_absent": true,
+      "checkpoint_round_trip": true,
+      "learnable_initialization_matches": true,
+      "actual_inputs_match_reference": true,
+      "nonoracle_seen_class_evaluation": true,
+      "canonical_pretrained_matches_pin": true
+    },
+    "structural_failures": [],
+    "validation_errors": [],
+    "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+    "statistical_tolerance_estimated": false
+  },
+  "accuracy_metrics": [
+    {
+      "metric": "task1_seen",
+      "reference_accuracy_pct": 99.2,
+      "native_accuracy_pct": 99.2,
+      "reference_minus_native_pp": 0.0,
+      "status": "pass",
+      "gap_exact": {
+        "numerator": 0,
+        "denominator": 1
+      }
+    },
+    {
+      "metric": "task2_seen",
+      "reference_accuracy_pct": 96.4,
+      "native_accuracy_pct": 96.4,
+      "reference_minus_native_pp": 0.0,
+      "status": "pass",
+      "gap_exact": {
+        "numerator": 0,
+        "denominator": 1
+      }
+    },
+    {
+      "metric": "task2_old",
+      "reference_accuracy_pct": 95.7,
+      "native_accuracy_pct": 95.7,
+      "reference_minus_native_pp": 0.0,
+      "status": "pass",
+      "gap_exact": {
+        "numerator": 0,
+        "denominator": 1
+      }
+    },
+    {
+      "metric": "task2_new",
+      "reference_accuracy_pct": 97.1,
+      "native_accuracy_pct": 97.1,
+      "reference_minus_native_pp": 0.0,
+      "status": "pass",
+      "gap_exact": {
+        "numerator": 0,
+        "denominator": 1
+      }
+    }
+  ],
+  "first_batches": [
+    {
+      "task": 1,
+      "status": "pass",
+      "gradient_sha256_matches": false
+    },
+    {
+      "task": 2,
+      "status": "pass",
+      "gradient_sha256_matches": false
+    }
+  ],
+  "report_gate": "pass",
+  "scope": "Independent author/native first-two-task counts and actual first-batch inputs/labels/seed/batch64. Gradient hashes are diagnostics."
+}

@@ -1,0 +1,26 @@
+{
+  "status": "pass",
+  "scope": "Observed author first batch for completed/present tasks only; independent native validation and all10 compatibility remain pending",
+  "tasks": [
+    {
+      "task": 1,
+      "checks": {
+        "seed": true,
+        "batch_size": true,
+        "inputs_sha256": true,
+        "labels_sha256": true
+      },
+      "status": "pass"
+    },
+    {
+      "task": 2,
+      "checks": {
+        "seed": true,
+        "batch_size": true,
+        "inputs_sha256": true,
+        "labels_sha256": true
+      },
+      "status": "pass"
+    }
+  ]
+}
