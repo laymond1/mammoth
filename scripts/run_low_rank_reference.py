@@ -1,6 +1,7 @@
 """Independent immutable low-rank reference, with opt-in first-two-task runs.
 
-Only local weight loading, loader order, RNG and instrumentation are adapted.
+Local weight loading, loader order, RNG, instrumentation and runtime type/graph
+compatibility are adapted.
 The source's learner, loss, optimizer steps and numerical forwards run directly
 from the reviewed external checkout. A default invocation never trains.
 """
@@ -82,6 +83,18 @@ def precision():
     torch.backends.cudnn.benchmark = False
 
 
+def numpy_covariances(matrices):
+    """Keep the original NumPy DualGPM routine in its intended array domain.
+
+    NumPy SVD can wrap a Torch input's output back into Torch tensors. The
+    source subsequently uses NumPy's zero-argument transpose, so convert only
+    at this boundary, preserving dtype, values and the source SVD algorithm.
+    """
+    import numpy as np
+    return [np.array(matrix.detach().cpu().numpy() if hasattr(matrix, 'detach') else matrix, copy=True)
+            for matrix in matrices]
+
+
 def prepare_initial(options):
     os.environ['CUDA_VISIBLE_DEVICES'] = ''
     configure_native_environment()
@@ -136,6 +149,7 @@ def run_spec(options, profile):
                                           capture_output=True, check=True).stdout.strip(),
             'compatibility_adaptations': ['local canonical150 NPZ loader and unused1000-way head',
                 'stable raw IDs and explicit phase RNG; no downloads',
+                'Inf CPU covariance tensors converted to NumPy before original DualGPM',
                 'CL pre-KD CE graph retained with allow_mutation_on_saved_tensors']}
 
 
@@ -378,6 +392,8 @@ def worker(spec_path):
         source_module.tqdm = lambda values, **kwargs: EpochProgress(values, **kwargs) if isinstance(values, range) else original_progress(values, **kwargs)
         # Controlled phase seeding wraps source routines, never their math.
         if method == 'inf-lora':
+            original_dualgpm = learner.update_DualGPM
+            learner.update_DualGPM = lambda matrices: original_dualgpm(numpy_covariances(matrices))
             for name, phase in (('init_drm', 'task_begin'), ('psv_info', 'task_end')):
                 original = getattr(learner, name)
 

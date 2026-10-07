@@ -53,6 +53,14 @@ It never imports native lifecycle implementations. For CL-LoRA, modern PyTorch's
 `allow_mutation_on_saved_tensors` preserves the original CE graph across the
 separate KD parameter update in both workers.
 
+For InfLoRA, CPU covariance tensors are converted to NumPy arrays before calling
+the original `update_DualGPM`. In the installed NumPy/Torch combination,
+`np.linalg.svd(torch_tensor)` returns Torch tensors, while the source expects
+NumPy's zero-argument `transpose()`. The boundary conversion preserves the
+covariance dtype/values and original SVD/threshold/complement arithmetic. The
+first failed reference attempt is preserved separately and excluded from the
+completed-run report.
+
 The pinned EWC source evaluates before merging A/B. Native Mammoth evaluates
 after `end_task`, so EWC computes Fisher there and defers only merge/reset to
 `end_eval`. Checkpoints contain the finalized algorithm state; a saved pending
