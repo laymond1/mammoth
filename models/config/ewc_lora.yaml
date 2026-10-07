@@ -1,0 +1,17 @@
+default:
+  backbone: low-rank-vit
+  low_rank_method: ewclora
+  lora_vit_size: base
+  lora_rank: 10
+  lora_fc_lr: 0.005
+  lora_gamma: 1.0
+  lora_ewc_lambda: 10000000.0
+  optimizer: adam
+  lr: 0.0005
+  optim_wd: 0.0
+  n_epochs: 20
+  batch_size: 64
+  seed: 1993
+  lr_scheduler: cosine
+  scheduler_mode: epoch
+  enable_other_metrics: false
