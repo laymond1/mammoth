@@ -1,0 +1,18 @@
+{
+  "status": "completed",
+  "verified_at_results_commit": "af25e2326068f38d16b3ee1cb9440db197b882da",
+  "validated_code_commit": "20ec3237699ccfd12a3fb07e74f70a53e1fba79f",
+  "target_branch": "codex/cl-foundation",
+  "code_and_results_fast_forward_completed": true,
+  "git_clean_before_finalization_record": true,
+  "execution_sources_match_committed_files": true,
+  "summary_artifact_files_match_foundation": true,
+  "ease_reference_unchanged": true,
+  "generic_manifest_args_preserved": true,
+  "all_twelve_worker_readbacks_verified": true,
+  "summary_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/pfg5ytbp",
+  "slack_completion_notification": "sent",
+  "remote_push_performed": false,
+  "new_training_after_pilot": false,
+  "provenance_note": "Result local_merge fields describe publication-time code merge; this record confirms the subsequent results commit was also merged."
+}

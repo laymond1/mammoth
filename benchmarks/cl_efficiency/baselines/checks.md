@@ -50,3 +50,5 @@ git merge --ff-only 20ec3237699ccfd12a3fb07e74f70a53e1fba79f
 uv run --no-sync --offline python main.py --model sgd --dataset seq-cifar10 --help
 uv run --no-sync python /tmp/upload-baseline-summary-20261007.py
 ```
+
+공개 결과 커밋 `af25e23`도 Foundation에 fast-forward 병합했습니다. [최종 확인](environment/finalization.json)에서 Foundation의 실행 소스 hash·W&B artifact7파일·EASE 참조·기존 manifest args 보존과 최종 Slack 완료 알림 `sent`를 확인했습니다. 집계 업로드 후 추가 학습이나 원격 push는 수행하지 않았습니다.
