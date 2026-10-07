@@ -1,4 +1,6 @@
 """Independent reference preparation and guards; no training or external writes."""
+import ast
+from copy import deepcopy
 import json
 import os
 from pathlib import Path
@@ -13,6 +15,64 @@ from scripts import run_low_rank_reference as runner
 
 
 SOURCE = Path('/tmp/cl-low-rank-official-20261008')
+
+
+@pytest.mark.parametrize('dtype', ['float32', 'float64'])
+def test_inf_numpy_boundary_preserves_cpu_covariance_values_and_source_state(dtype):
+    import numpy as np
+    import torch
+
+    if not SOURCE.is_dir():
+        pytest.skip('Pinned source is not installed locally')
+    protocol.verify_reference_source(SOURCE)
+    path = SOURCE / 'methods/inflora.py'
+    source = ast.parse(path.read_text())
+    method = next(node for owner in source.body if isinstance(owner, ast.ClassDef) and owner.name == 'InfLoRA'
+                  for node in owner.body if isinstance(node, ast.FunctionDef) and node.name == 'update_DualGPM')
+    namespace = {'np': np}
+    exec(compile(ast.Module(body=[method], type_ignores=[]), str(path), 'exec'), namespace)
+    original = namespace['update_DualGPM']
+    holder = SimpleNamespace(lame=1., lamb=.95, cur_task=0, sessions=10, feature_list=[], project_type=[])
+    baseline, adapted = deepcopy(holder), deepcopy(holder)
+    first = np.diag(np.array([10., 1., .1, .01, .001, .0001, .00001, .000001], dtype=dtype))
+    second = np.diag(np.array([1., 4., 3., 2., 1., 1., 1., 1.], dtype=dtype))
+    for task, matrix in enumerate((first, second)):
+        baseline.cur_task = adapted.cur_task = task
+        tensor = torch.from_numpy(matrix.copy())
+        converted = runner.numpy_covariances([tensor])
+        assert converted[0].dtype == matrix.dtype
+        np.testing.assert_array_equal(converted[0], matrix)
+        assert not np.shares_memory(converted[0], tensor.numpy())
+        original(baseline, [matrix.copy()])
+        original(adapted, converted)
+        assert adapted.project_type == baseline.project_type
+        for actual, expected in zip(adapted.feature_list, baseline.feature_list):
+            assert isinstance(actual, np.ndarray)
+            np.testing.assert_array_equal(actual, expected)
+            np.testing.assert_array_equal(actual @ actual.T, expected @ expected.T)
+        np.testing.assert_array_equal(tensor.numpy(), matrix)
+    assert adapted.project_type == ['retain']  # The original remove -> complement path was exercised.
+
+
+def test_inf_numpy_boundary_keeps_original_retain_update():
+    import numpy as np
+    import torch
+
+    if not SOURCE.is_dir():
+        pytest.skip('Pinned source is not installed locally')
+    source = ast.parse((SOURCE / 'methods/inflora.py').read_text())
+    method = next(node for owner in source.body if isinstance(owner, ast.ClassDef) and owner.name == 'InfLoRA'
+                  for node in owner.body if isinstance(node, ast.FunctionDef) and node.name == 'update_DualGPM')
+    namespace = {'np': np}
+    exec(compile(ast.Module(body=[method], type_ignores=[]), '<pinned original DualGPM>', 'exec'), namespace)
+    holder = SimpleNamespace(lame=1., lamb=.95, cur_task=1, sessions=10,
+                             feature_list=[np.eye(8, dtype=np.float32)[:, :2]], project_type=['retain'])
+    baseline, adapted = deepcopy(holder), deepcopy(holder)
+    matrix = np.diag(np.array([4., 1., 2., 2., 2., 2., 2., 2.], dtype=np.float32))
+    namespace['update_DualGPM'](baseline, [matrix.copy()])
+    namespace['update_DualGPM'](adapted, runner.numpy_covariances([torch.from_numpy(matrix)]))
+    assert adapted.project_type == baseline.project_type == ['retain']
+    np.testing.assert_array_equal(adapted.feature_list[0], baseline.feature_list[0])
 
 
 def test_reference_dry_run_is_stdlib_only_and_ignores_missing_inputs(tmp_path):
