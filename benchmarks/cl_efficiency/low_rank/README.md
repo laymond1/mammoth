@@ -1,5 +1,21 @@
 # Continual LoRA implementation validation
 
+2026-10-08: all four native methods passed first-two-task validation and merged
+locally into `codex/cl-foundation`. EWC/SD/CL match all four reference accuracy
+counts exactly. InfLoRA's maximum accuracy degradation is 0.10 percentage points,
+within the approved 1.5-point pass threshold; all 14 structural gates pass for
+every method. [Results](RESULTS.md), [JSON](results.json) and [CSV](results.csv)
+contain the eight completed validation runs and their resource diagnostics.
+Final integrated CPU checks passed 170 tests. Small/Tiny creation and forward
+checks passed for all four methods; their training remains a later scope.
+
+[The W&B summary](https://wandb.ai/laymond1/cl-efficiency/runs/ztcuu1oq)
+is finished and its report artifact is COMMITTED. All eight source runs passed
+[remote evidence verification](source_readback.json); the final report passed
+[remote readback](publication_readback.json). The
+[publication receipt](publication.json) confirms uploaded results and a sent
+final Slack completion notification.
+
 The accepted source is [low-rank-cl](https://github.com/yaoyz96/low-rank-cl)
 at `d007ef5c13a6d8a7d7db3eedf93f5e796e2ce429`. These are ports of that
 repository's basic variants, rather than paper-result reproduction claims.
@@ -61,6 +77,20 @@ covariance dtype/values and original SVD/threshold/complement arithmetic. The
 first failed reference attempt is preserved separately and excluded from the
 completed-run report.
 
+InfLoRA passed with a small task2 accuracy difference: native 96.40% versus
+reference 96.25%, old 98.20% versus 97.80%, new 94.60% versus 94.70%. Read-only
+checkpoint inspection found identical task1 network tensors and all 12 GPM
+bases. The source retains sliced basis strides; native checkpoint buffers pack
+them. Float32 NumPy projection products then differ in 10/12 layers by at most
+1.1920928955e-7; packing the source basis reproduces native projections, and
+restoring source strides reproduces source projections exactly. This locates
+the first numerical difference before task2 SVD; it does not establish that
+this alone caused every final prediction difference. Actual count differences
+are retained in the report, within the approved acceptance bounds.
+[The numerical audit](inf_numerical_diagnostics.json) preserves checkpoint
+hashes, array layouts, exact basis comparisons, projector differences,
+prediction disagreements and the limits of this diagnosis.
+
 The pinned EWC source evaluates before merging A/B. Native Mammoth evaluates
 after `end_task`, so EWC computes Fisher there and defers only merge/reset to
 `end_eval`. Checkpoints contain the finalized algorithm state; a saved pending
@@ -99,3 +129,51 @@ uv run python scripts/run_low_rank_validation.py --method ewc-lora \
   --initial-state results/low_rank/initial/ewc-lora.pt \
   --reference-summary /absolute/reference/result/summary.json --execute
 ```
+
+## Final validation and preserved attempts
+
+The final native validations use the actual `main.initialize` and Mammoth
+trainer through `meta_*` hooks. Focused CPU validation was executed with the
+shared uv environment and no visible GPU:
+
+```bash
+CUDA_VISIBLE_DEVICES='' MAMMOTH_DEVICE=cpu uv run --no-sync --offline pytest \
+  tests/test_low_rank_network.py tests/test_low_rank_methods.py \
+  tests/test_low_rank_execution.py tests/test_low_rank_protocol.py \
+  tests/test_low_rank_reference.py tests/test_low_rank_report.py \
+  tests/test_low_rank_upload_recovery.py \
+  tests/test_module_register.py::test_args_with_choices \
+  tests/test_module_register.py::test_register_backbone \
+  tests/test_module_register.py::test_register_dataset -q
+```
+
+Result: **170 passed**. Method-specific skill wiring checks and native dry runs
+also passed before each branch was frozen. No full repository test suite was
+run. The full first-two-task native runs provide training smoke coverage.
+
+EWC's completed computation initially failed W&B logging because the installed
+SDK requires `Summary.update(dictionary)`. The call and an actual-SDK regression
+test were corrected. Upload-only recovery retained run 88xfp4mx, preserved the
+original failed records, uploaded 14 evidence files and verified remote counts,
+finished state, COMMITTED artifact, hashes and Slack notification. Its original
+training observations were not rerun or changed.
+
+The first InfLoRA reference run 0v4y05ys failed after task1 training on the NumPy/
+Torch array-wrap boundary described above. Its logs and failed W&B run remain
+separate. The completed reference is retry1/run atlzpgob, selected by the final
+input manifest and reports; failed attempt time/energy are excluded.
+
+Final report generation and publication use:
+
+```bash
+uv run --no-sync --offline python scripts/report_low_rank_results.py \
+  --inputs results/low_rank/inputs.json \
+  --output benchmarks/cl_efficiency/low_rank --write
+uv run --no-sync --offline python scripts/publish_low_rank_results.py \
+  --report-dir benchmarks/cl_efficiency/low_rank \
+  --output results/low_rank/publication_20261008 --execute
+```
+
+The first command writes local reports. The second verifies eight finished W&B
+runs and their small evidence artifacts, uploads the report, reads it back, and
+then sends the authorized final Slack completion. It performs no new training.

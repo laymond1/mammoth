@@ -1,8 +1,10 @@
 # 현재 CL 알고리즘과 특성
 
-2026년 10월 1일 확인한 70개 모델에 10월 7일 EASE를 추가하여, 현재 `models/*.py`의 NAME과 COMPATIBILITY 기준으로 71개 엔트리입니다. 전체 모델의 import 성공이나 실험 재현을 뜻하지 않습니다. 정적 추론 3개와 joint 기준선 2개를 제외하면 학습 방법 및 변형 66개입니다. `models/lora_prototype_utils/`는 `second_order`의 내부 구성요소이며 독립 모델 엔트리가 아닙니다. EASE Base64·seed1993의 첫 2개 태스크는 동일 조건 공식 기준선 대비 네 정확도 지표와 일곱 구조 검사를 모두 통과했습니다. [Native 검증 보고서](ease/native_validation_report.md)와 [JSON 결과](ease/native_validation_results.json)를 참고합니다. Base64의 첫 태스크 효율성 측정 3회·부분 FLOPs 진단 1회도 완료하고 실행 source를 로컬 공통 기반에 병합했습니다. 후속 RanPAC·L2P·DualPrompt의 공통 첫 태스크 pilot도 완료했습니다. Tiny·Small 학습과 원격 push는 수행하지 않았습니다.
+2026-10-08 `inventory()`가 `models/*.py`의 NAME·COMPATIBILITY를 AST로 확인한 결과는 **76개 소스 엔트리**입니다. 정적 추론 3개·joint 기준선 2개를 제외하면 학습 방법과 변형 71개입니다. 10월 1일의 70개에 EASE를 추가했던 71개 `inventory.csv`·`manifest.json` 스냅샷은 그대로 보존하며, 이후 HiDe-Prompt와 네 LoRA 방법이 추가됐습니다. 이 수는 전체 모델의 import 성공이나 실험 재현을 뜻하지 않습니다. `models/lora_prototype_utils/`와 `models/low_rank_utils/`는 내부 구성요소이며 독립 모델 엔트리가 아닙니다.
 
-표의 장단점과 효율성 영향은 현재 코드 구조에 근거한 분석입니다. 대부분 방법의 정확도·시간·메모리·에너지는 아직 측정하지 않았으며, EASE Base의 공통 1-epoch 측정은 [효율성 pilot 보고서](ease/efficiency_pilot_report.md)에 기록합니다. 세 측정의 정확도는 모두 96.50%, 전체 시간 중앙값 29.7629초, CUDA peak allocated 5760.5054 MiB, GPU 보드 에너지 중앙값 2.4432 Wh입니다. 같은 seed의 반복이며 20-epoch 구현 검증 정확도와 판정 조건이 다릅니다. Native 보고서와 [공식 기준선 측정 이력](ease/execution_report.md)은 별도 검증 이력입니다. EASE·RanPAC·L2P·DualPrompt의4개 설정을 비교한 [공통 pilot 결과](baselines/efficiency_pilot_report.md)도 완료했습니다. 전체71개 방법의 비교는 완료하지 않았으며, 이 결과는 각 방법의 원래 기본 checkpoint나 전체 CL 검증으로 확대하지 않습니다. 기본 실행 조건, 필요한 외부 데이터, 상세 args는 `manifest.json`에 기록했습니다.
+표의 장단점과 비용 영향은 코드 구조에 근거한 분석입니다. EASE·RanPAC·L2P·DualPrompt의 [공통 첫 태스크 pilot](baselines/efficiency_pilot_report.md), [EASE 크기별 검증·측정](ease_sizes/report.md), [HiDe-Prompt Base 전체10태스크](hide_prompt/full_cl/report.md)와 [Small/Tiny 단기 결과](hide_sizes/report/report.md)는 각 보고서의 조건으로 해석합니다. 전체76개 엔트리의 공통 정확도·효율성 비교는 완료하지 않았습니다. 기존 실행 인자·외부 요구사항은 71개 `manifest.json` 스냅샷에, 추가 방법의 조건은 각 구현·검증 문서에 기록합니다.
+
+EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA는 Base ViT 첫2태스크의 저자·native 총8회 검증에서 네 정확도 지표·14개 구조 검사·첫 배치 입력 검사가 모두 pass입니다. EWC·SD·CL의 네 정답 수는 저자 실행과 같으며, Inf의 태스크2 저자−native 차이는 전체 −0.15%p·과거 −0.40%p·신규 +0.10%p입니다. [검증 결과](low_rank/RESULTS.md)와 [구현·실행 범위](low_rank/README.md)를 참고합니다. 공통 저자 저장소 변형을 검증했으며 논문 수치 재현·효율성 순위·전체10태스크 성능은 평가하지 않았습니다. LoRA Small·Tiny는 CPU 생성·forward 확인 범위입니다.
 
 ## 알고리즘별 비교
 
@@ -79,8 +81,15 @@
 | [xder-rpc-cscct](../../models/xder_rpc_cscct.py) | 리플레이 | X-DER와 Regular Polytope Classifier; CSCCT: cross-space clustering와 cross-task consistency | 고정된 클래스 기하를 활용; 표현 구조와 과거 태스크 일관성 | 분류기 가정과 replay overhead; feature/teacher 연산과 손실 추가 |
 | [xder-rpc-star](../../models/xder_rpc_star.py) | 리플레이 | X-DER와 Regular Polytope Classifier; STAR: 가중치 perturbation을 이용한 안정성 정규화 | 고정된 클래스 기하를 활용; 과거 지식의 안정성을 보강 | 분류기 가정과 replay overhead; 추가 perturbation/gradient 연산; STARPrompt와 다른 방법 |
 | [zscl](../../models/zscl.py) | CLIP 증류 | reference image/text 증류와 weight averaging으로 zero-shot 보존 | 학습 후 zero-shot 능력 유지 목적 | CLIP teacher와 Conceptual Captions 외부 데이터 필요; 기본은 full tuning |
+| [hide-prompt](../../models/hide_prompt.py) | 태스크 추론과 Prompt | TII·prompt 학습을 분리하고 feature 통계로 분류기를 정렬 | 원본 이미지 replay 없이 추론한 태스크에 맞는 prompt 선택 | 두 ViT 경로·통계 수집·분류기 정렬·routing 비용; 태스크 추론 오차의 영향 |
+| [ewc-lora](../../models/ewc_lora.py) | LoRA와 Fisher 정규화 | frozen ViT의 새 LoRA를 누적 Fisher로 제약하고 태스크 평가 후 인자를 누적 | 과거 원본 이미지 buffer 없이 저차원 적응과 중요도 보존 | 층별 Fisher 행렬 저장·태스크 말 추가 데이터 패스·누적/reset 비용 |
+| [sd-lora](../../models/sd_lora.py) | LoRA와 스케일 조절 | 태스크별 LoRA와 분류기를 추가하고 과거 LoRA의 기여도를 scaling factor로 조절 | 이전 LoRA 인자를 고정하며 현재 태스크에 필요한 기여도를 학습 | 태스크별 인자 저장과 과거 LoRA 계산 증가; scaling 변화가 과거 출력에 영향 |
+| [inf-lora](../../models/inf_lora.py) | LoRA와 부분공간 | SVD로 A를 초기화·고정하고 DualGPM으로 과거 feature 부분공간을 보존하며 B를 학습 | 원본 이미지 replay 없이 저차원 업데이트의 간섭을 제어 | 태스크 시작·종료 통계 패스·CPU SVD·부분공간 저장; float32 투영의 수치 차이 |
+| [cl-lora](../../models/cl_lora.py) | 공유·태스크별 LoRA와 증류 | 공유/특화 LoRA에 KD·gradient 재할당·직교 손실과 prototype 분류기를 적용 | 공유 지식과 태스크별 적응을 결합하며 원본 replay buffer 불필요 | 후속 태스크 KD·CE 별도 optimizer update·이전 공유 LoRA 저장·태스크별 prototype 추출 비용 |
 
 ## 지원 설정과 실행 그룹
+
+아래의 첫 태스크 pilot은 준비한 조건이며 측정 완료를 뜻하지 않습니다. 기존 71개 manifest와 계획은 당시 스냅샷입니다. HiDe-Prompt와 네 LoRA 방법의 완료 범위는 별도 보고서에 따르며, LoRA 검증의 자원 관측을 효율성 pilot이나 방법 간 순위로 사용하지 않습니다.
 
 | 모델 | 코드의 COMPATIBILITY | 실행 그룹 | 데이터셋 | 실행 조건 |
 |---|---|---|---|---|
@@ -101,7 +110,7 @@
 | `derpp-lider` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `derpp-star` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `dualprompt` | class-il, task-il | pretrained_224 | seq-cifar100-224 | 동일 NPZ·전처리 첫 태스크 측정3회·별도 부분 FLOPs1회 완료; 전체 CL 미검증 |
-| `ease` | class-il, task-il | pretrained_224 | seq-cifar100-224 | Base64·seed1993 첫 2태스크 검증 통과; 효율성 측정 3회·별도 부분 FLOPs 1회 완료; Tiny/Small 미실행 |
+| `ease` | class-il, task-il | pretrained_224 | seq-cifar100-224 | Base 첫2태스크 검증·전체10태스크 완료; Small64/Tiny64/Small32/Tiny16 첫2태스크 검증·첫 태스크 pilot 완료 |
 | `er` | class-il, domain-il, task-il, general-continual | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `er-ace` | class-il, task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `er-ace-aer-abs` | class-il, task-il | noisy_clean_224 | seq-cifar100-224 | Shared clean-label pilot; native wrapper supplies true_labels=labels. No noisy-label robustness claim. |
@@ -155,3 +164,8 @@
 | `xder-rpc-cscct` | class-il, task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `xder-rpc-star` | class-il, task-il | classic_resnet224 | seq-cifar100-224 | 첫 태스크 pilot |
 | `zscl` | class-il, domain-il, task-il, general-continual | pretrained_224 | seq-cifar100-224 | data/conceptual_captions must be prepared externally |
+| `hide-prompt` | class-il, task-il | 개별 HiDe 검증·측정 | seq-cifar100-224 | Base 첫2태스크 검증·전체10태스크, Small/Tiny 첫2태스크 검증·첫 태스크 pilot 완료 |
+| `ewc-lora` | class-il, task-il | 개별 low_rank 검증 | seq-cifar100-224 | Base 첫2태스크 검증 pass; 20epoch/task; Small/Tiny CPU 생성·forward만 확인 |
+| `sd-lora` | class-il, task-il | 개별 low_rank 검증 | seq-cifar100-224 | Base 첫2태스크 검증 pass; 20epoch/task; Small/Tiny CPU 생성·forward만 확인 |
+| `inf-lora` | class-il, task-il | 개별 low_rank 검증 | seq-cifar100-224 | Base 첫2태스크 검증 pass; 20epoch/task; Small/Tiny CPU 생성·forward만 확인 |
+| `cl-lora` | class-il, task-il | 개별 low_rank 검증 | seq-cifar100-224 | Base 첫2태스크 검증 pass; 30epoch/task; Small/Tiny CPU 생성·forward만 확인 |

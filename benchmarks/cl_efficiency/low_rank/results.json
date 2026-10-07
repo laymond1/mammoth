@@ -1,0 +1,3419 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "report_kind": "four_method_two_task_validation",
+  "publication_gate": "pass",
+  "reference_commit": "d007ef5c13a6d8a7d7db3eedf93f5e796e2ce429",
+  "checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+  "canonical_pretrained_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+  "source_variant": "Immutable common author repository with matched shared input/initialization/phase RNG.",
+  "paper_reproduction": false,
+  "efficiency_comparison": false,
+  "new_training": false,
+  "statistical_tolerance_estimated": false,
+  "methods": {
+    "ewc-lora": {
+      "method": "ewc-lora",
+      "label": "EWC-LoRA",
+      "protocol": {
+        "schema_version": 1,
+        "mode": "validation",
+        "method": "ewc-lora",
+        "author_method": "ewclora",
+        "tasks": 2,
+        "dataset": "seq-cifar100-224",
+        "dataset_total_tasks": 10,
+        "classes_per_task": 10,
+        "class_order": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99
+        ],
+        "training_authorized": true,
+        "n_epochs": 20,
+        "batch_size": 64,
+        "num_workers": 4,
+        "seed": 1993,
+        "vit_size": "base",
+        "rank": 10,
+        "drop_last": false,
+        "shuffle_training": true,
+        "precision": {
+          "matmul_precision": "highest",
+          "tf32_allowed": false,
+          "cudnn_tf32_allowed": true,
+          "cudnn_deterministic": true,
+          "cudnn_benchmark": false,
+          "autocast": false,
+          "parameter_dtype": "float32",
+          "torch_cpu_threads": 2
+        },
+        "pass_max_drop_pp": 1.5,
+        "review_max_drop_pp": 3.0,
+        "hyperparameters": {
+          "optimizer": "adam",
+          "lr": 0.0005,
+          "fc_lr": 0.005,
+          "weight_decay": 0.0,
+          "gamma": 1.0,
+          "ewc_lambda": 10000000.0
+        },
+        "lr_scheduler": "cosine",
+        "scheduler_mode": "epoch",
+        "phase_rng": "base_seed + 100000*task_id + 1000*phase_index + local_epoch",
+        "sample_order": "stable original raw global index order before seeded shuffle",
+        "train_transforms": [
+          "RandomResizedCrop(224,bilinear)",
+          "RandomHorizontalFlip(0.5)",
+          "ToTensor",
+          "Normalize((0,0,0),(1,1,1))"
+        ],
+        "test_transforms": [
+          "Resize(224,bilinear)",
+          "ToTensor",
+          "Normalize((0,0,0),(1,1,1))"
+        ],
+        "normalization_source": "Pinned author dataloaders/data.py iCIFAR100 identity normalization",
+        "paper_reproduction": false,
+        "efficiency_comparison": false,
+        "synthetic_training": false
+      },
+      "acceptance_status": "pass",
+      "acceptance": {
+        "status": "pass",
+        "pass_max_drop_pp": 1.5,
+        "pass_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "review_max_drop_pp": 3.0,
+        "review_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "metrics": {
+          "task1_seen": {
+            "task": 1,
+            "status": "pass",
+            "reference_correct": 997,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 99.7,
+            "native_correct": 997,
+            "native_samples": 1000,
+            "native_accuracy_pct": 99.7,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_seen": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 1921,
+            "reference_samples": 2000,
+            "reference_accuracy_pct": 96.05,
+            "native_correct": 1921,
+            "native_samples": 2000,
+            "native_accuracy_pct": 96.05,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_old": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 962,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 96.2,
+            "native_correct": 962,
+            "native_samples": 1000,
+            "native_accuracy_pct": 96.2,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_new": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 959,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 95.9,
+            "native_correct": 959,
+            "native_samples": 1000,
+            "native_accuracy_pct": 95.9,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          }
+        },
+        "structural_checks": {
+          "finite_loss_and_gradients": true,
+          "dataset_matches_reference": true,
+          "frozen_backbone_unchanged": true,
+          "frozen_backbone_gradients_absent": true,
+          "canonical_pretrained_matches_pin": true,
+          "learnable_initialization_matches": true,
+          "training_protocol_complete": true,
+          "nonoracle_seen_class_evaluation": true,
+          "prediction_ids_and_counts_complete": true,
+          "method_state_valid": true,
+          "no_future_or_replay_samples": true,
+          "first_batch_inputs_match": true,
+          "optimizer_updates_complete": true,
+          "checkpoint_round_trip": true
+        },
+        "structural_failures": [],
+        "validation_errors": [],
+        "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+        "statistical_tolerance_estimated": false
+      },
+      "publication_gate": "pass",
+      "accuracy_metrics": [
+        {
+          "metric": "task1_seen",
+          "task": 1,
+          "status": "pass",
+          "reference_correct": 997,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 99.7,
+          "native_correct": 997,
+          "native_samples": 1000,
+          "native_accuracy_pct": 99.7,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_seen",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 1921,
+          "reference_samples": 2000,
+          "reference_accuracy_pct": 96.05,
+          "native_correct": 1921,
+          "native_samples": 2000,
+          "native_accuracy_pct": 96.05,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_old",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 962,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 96.2,
+          "native_correct": 962,
+          "native_samples": 1000,
+          "native_accuracy_pct": 96.2,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_new",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 959,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 95.9,
+          "native_correct": 959,
+          "native_samples": 1000,
+          "native_accuracy_pct": 95.9,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        }
+      ],
+      "first_batch_comparison": {
+        "status": "pass",
+        "rows": [
+          {
+            "task": 1,
+            "optimizer_update_index": 1,
+            "inputs_match": true,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "optimizer_update_index": 1,
+            "inputs_match": true,
+            "gradient_sha256_matches": true
+          }
+        ],
+        "gradient_hash_scope": "Recorded diagnostic only; accuracy acceptance uses exact prediction counts."
+      },
+      "runs": {
+        "reference": {
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/d5ueg17n",
+          "run_path": "laymond1/cl-efficiency/d5ueg17n",
+          "counts": {
+            "observe_calls": 3160,
+            "optimizer_updates": 3160,
+            "task_begin_extra_samples": 0,
+            "task_end_extra_samples": 10000
+          },
+          "task_results": [
+            {
+              "task": 1,
+              "seen_correct": 997,
+              "seen_samples": 1000,
+              "old_correct": 0,
+              "old_samples": 0,
+              "new_correct": 997,
+              "new_samples": 1000
+            },
+            {
+              "task": 2,
+              "seen_correct": 1921,
+              "seen_samples": 2000,
+              "old_correct": 962,
+              "old_samples": 1000,
+              "new_correct": 959,
+              "new_samples": 1000
+            }
+          ],
+          "state_audits": {
+            "tasks": [
+              {
+                "task": 1,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "6a251d751514fec7b21c4a81901f25f442b19f94566d7c87b99829137caea373",
+                "algorithm_sha256": "88c46566cd1f582908d54b32b94da8b42a06f8f11b9ec539f3368ce2ba2ea24c",
+                "algorithm_state_shapes": {
+                  "omega_W.0": [
+                    768,
+                    768
+                  ],
+                  "omega_W.1": [
+                    768,
+                    768
+                  ],
+                  "omega_W.2": [
+                    768,
+                    768
+                  ],
+                  "omega_W.3": [
+                    768,
+                    768
+                  ],
+                  "omega_W.4": [
+                    768,
+                    768
+                  ],
+                  "omega_W.5": [
+                    768,
+                    768
+                  ],
+                  "omega_W.6": [
+                    768,
+                    768
+                  ],
+                  "omega_W.7": [
+                    768,
+                    768
+                  ],
+                  "omega_W.8": [
+                    768,
+                    768
+                  ],
+                  "omega_W.9": [
+                    768,
+                    768
+                  ],
+                  "omega_W.10": [
+                    768,
+                    768
+                  ],
+                  "omega_W.11": [
+                    768,
+                    768
+                  ],
+                  "omega_W.12": [
+                    768,
+                    768
+                  ],
+                  "omega_W.13": [
+                    768,
+                    768
+                  ],
+                  "omega_W.14": [
+                    768,
+                    768
+                  ],
+                  "omega_W.15": [
+                    768,
+                    768
+                  ],
+                  "omega_W.16": [
+                    768,
+                    768
+                  ],
+                  "omega_W.17": [
+                    768,
+                    768
+                  ],
+                  "omega_W.18": [
+                    768,
+                    768
+                  ],
+                  "omega_W.19": [
+                    768,
+                    768
+                  ],
+                  "omega_W.20": [
+                    768,
+                    768
+                  ],
+                  "omega_W.21": [
+                    768,
+                    768
+                  ],
+                  "omega_W.22": [
+                    768,
+                    768
+                  ],
+                  "omega_W.23": [
+                    768,
+                    768
+                  ]
+                },
+                "network_task_id": 0,
+                "seen_classes": 10,
+                "checkpoint_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_reference_20261008/task1_state.pt",
+                "checkpoint_sha256": "0438e663c5fbd373f95f2284fd19e1ae1d77aeb8610b5d398a23bee14b8ed5eb"
+              },
+              {
+                "task": 2,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "c84d5d0c96c04bf87f63d8ebc94c0fce0a671da521240e18b9fca959f1a147f1",
+                "algorithm_sha256": "db4da03ae0bfbba736e3cdefc20e9035f9fb1b572d7bea781b0ec1a9790bafa0",
+                "algorithm_state_shapes": {
+                  "omega_W.0": [
+                    768,
+                    768
+                  ],
+                  "omega_W.1": [
+                    768,
+                    768
+                  ],
+                  "omega_W.2": [
+                    768,
+                    768
+                  ],
+                  "omega_W.3": [
+                    768,
+                    768
+                  ],
+                  "omega_W.4": [
+                    768,
+                    768
+                  ],
+                  "omega_W.5": [
+                    768,
+                    768
+                  ],
+                  "omega_W.6": [
+                    768,
+                    768
+                  ],
+                  "omega_W.7": [
+                    768,
+                    768
+                  ],
+                  "omega_W.8": [
+                    768,
+                    768
+                  ],
+                  "omega_W.9": [
+                    768,
+                    768
+                  ],
+                  "omega_W.10": [
+                    768,
+                    768
+                  ],
+                  "omega_W.11": [
+                    768,
+                    768
+                  ],
+                  "omega_W.12": [
+                    768,
+                    768
+                  ],
+                  "omega_W.13": [
+                    768,
+                    768
+                  ],
+                  "omega_W.14": [
+                    768,
+                    768
+                  ],
+                  "omega_W.15": [
+                    768,
+                    768
+                  ],
+                  "omega_W.16": [
+                    768,
+                    768
+                  ],
+                  "omega_W.17": [
+                    768,
+                    768
+                  ],
+                  "omega_W.18": [
+                    768,
+                    768
+                  ],
+                  "omega_W.19": [
+                    768,
+                    768
+                  ],
+                  "omega_W.20": [
+                    768,
+                    768
+                  ],
+                  "omega_W.21": [
+                    768,
+                    768
+                  ],
+                  "omega_W.22": [
+                    768,
+                    768
+                  ],
+                  "omega_W.23": [
+                    768,
+                    768
+                  ]
+                },
+                "network_task_id": 1,
+                "seen_classes": 20,
+                "checkpoint_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_reference_20261008/task2_state.pt",
+                "checkpoint_sha256": "fac1da2b492b8d89ad08bfe5f1732f3541b7f303a14381fe9aaaa7ee40db4665"
+              }
+            ],
+            "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+          },
+          "resource_diagnostics": {
+            "observation_count": 1,
+            "metrics": {
+              "process_wall_s": 928.7257576910197,
+              "process_tree_cpu_s": 1084.646779,
+              "gpu_board_energy_wh": 99.11177331272215,
+              "gpu_board_energy_j": 356802.38392579975,
+              "gpu_energy_coverage_fraction": 0.9999424489171861,
+              "cuda_peak_allocated_mib": 6714.44140625,
+              "cuda_peak_reserved_mib": 7308.0,
+              "peak_process_tree_rss_mib": 11191.7109375,
+              "peak_gpu_device_memory_mib": 7799.0,
+              "outer_training_examples_per_s": null,
+              "evaluation_examples_per_s": null
+            },
+            "phases": {
+              "task1_evaluation": {
+                "wall_s": 1.7176693670044187,
+                "calls": 1,
+                "gpu_board_energy_j": 570.3275854563828,
+                "gpu_energy_coverage_s": 1.7176693670044187
+              },
+              "task1_finalize": {
+                "wall_s": 21.229022486979375,
+                "calls": 1,
+                "gpu_board_energy_j": 8377.959095431204,
+                "gpu_energy_coverage_s": 21.229022486979375
+              },
+              "task1_train": {
+                "wall_s": 434.1095068959985,
+                "calls": 1,
+                "gpu_board_energy_j": 168060.78674192814,
+                "gpu_energy_coverage_s": 434.1095068959985
+              },
+              "task2_evaluation": {
+                "wall_s": 3.343448811006965,
+                "calls": 1,
+                "gpu_board_energy_j": 1239.858773604596,
+                "gpu_energy_coverage_s": 3.343448811006965
+              },
+              "task2_finalize": {
+                "wall_s": 21.29095803500968,
+                "calls": 1,
+                "gpu_board_energy_j": 8380.51296343824,
+                "gpu_energy_coverage_s": 21.29095803500968
+              },
+              "task2_train": {
+                "wall_s": 437.6758321269881,
+                "calls": 1,
+                "gpu_board_energy_j": 169108.5976343167,
+                "gpu_energy_coverage_s": 437.6758321269881
+              }
+            },
+            "scope": "One full validation run. Includes statistics/prototypes/evaluation/instrumentation; no efficiency pilot, repeats, FLOPs or energy ranking."
+          }
+        },
+        "native": {
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/88xfp4mx",
+          "run_path": "laymond1/cl-efficiency/88xfp4mx",
+          "counts": {
+            "observe_calls": 3160,
+            "optimizer_updates": 3160,
+            "task_begin_extra_samples": 0,
+            "task_end_extra_samples": 10000
+          },
+          "task_results": [
+            {
+              "task": 1,
+              "seen_correct": 997,
+              "seen_samples": 1000,
+              "old_correct": 0,
+              "old_samples": 0,
+              "new_correct": 997,
+              "new_samples": 1000
+            },
+            {
+              "task": 2,
+              "seen_correct": 1921,
+              "seen_samples": 2000,
+              "old_correct": 962,
+              "old_samples": 1000,
+              "new_correct": 959,
+              "new_samples": 1000
+            }
+          ],
+          "state_audits": {
+            "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+            "tasks": [
+              {
+                "task": 1,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "6a251d751514fec7b21c4a81901f25f442b19f94566d7c87b99829137caea373",
+                "algorithm_sha256": "4128a18d37e6902ff48cbfbe8d861cbfcb99e1717b8ddec3a655fd28dc600bca",
+                "network_task_id": 0,
+                "seen_classes": 10,
+                "algorithm_state_shapes": {
+                  "count_updates": [],
+                  "pending_merge": [],
+                  "omega_W.0": [
+                    768,
+                    768
+                  ],
+                  "omega_W.1": [
+                    768,
+                    768
+                  ],
+                  "omega_W.2": [
+                    768,
+                    768
+                  ],
+                  "omega_W.3": [
+                    768,
+                    768
+                  ],
+                  "omega_W.4": [
+                    768,
+                    768
+                  ],
+                  "omega_W.5": [
+                    768,
+                    768
+                  ],
+                  "omega_W.6": [
+                    768,
+                    768
+                  ],
+                  "omega_W.7": [
+                    768,
+                    768
+                  ],
+                  "omega_W.8": [
+                    768,
+                    768
+                  ],
+                  "omega_W.9": [
+                    768,
+                    768
+                  ],
+                  "omega_W.10": [
+                    768,
+                    768
+                  ],
+                  "omega_W.11": [
+                    768,
+                    768
+                  ],
+                  "omega_W.12": [
+                    768,
+                    768
+                  ],
+                  "omega_W.13": [
+                    768,
+                    768
+                  ],
+                  "omega_W.14": [
+                    768,
+                    768
+                  ],
+                  "omega_W.15": [
+                    768,
+                    768
+                  ],
+                  "omega_W.16": [
+                    768,
+                    768
+                  ],
+                  "omega_W.17": [
+                    768,
+                    768
+                  ],
+                  "omega_W.18": [
+                    768,
+                    768
+                  ],
+                  "omega_W.19": [
+                    768,
+                    768
+                  ],
+                  "omega_W.20": [
+                    768,
+                    768
+                  ],
+                  "omega_W.21": [
+                    768,
+                    768
+                  ],
+                  "omega_W.22": [
+                    768,
+                    768
+                  ],
+                  "omega_W.23": [
+                    768,
+                    768
+                  ]
+                },
+                "checkpoint_sha256": "0e869732ab5d59ea555906b9a751d9ebb088a9d36ce9676ba03d218cc12d484c"
+              },
+              {
+                "task": 2,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "c84d5d0c96c04bf87f63d8ebc94c0fce0a671da521240e18b9fca959f1a147f1",
+                "algorithm_sha256": "74c7ae0e591015ddd5b6440743533219a2aa7db4f8c242fbdce7af0174690c9a",
+                "network_task_id": 1,
+                "seen_classes": 20,
+                "algorithm_state_shapes": {
+                  "count_updates": [],
+                  "pending_merge": [],
+                  "omega_W.0": [
+                    768,
+                    768
+                  ],
+                  "omega_W.1": [
+                    768,
+                    768
+                  ],
+                  "omega_W.2": [
+                    768,
+                    768
+                  ],
+                  "omega_W.3": [
+                    768,
+                    768
+                  ],
+                  "omega_W.4": [
+                    768,
+                    768
+                  ],
+                  "omega_W.5": [
+                    768,
+                    768
+                  ],
+                  "omega_W.6": [
+                    768,
+                    768
+                  ],
+                  "omega_W.7": [
+                    768,
+                    768
+                  ],
+                  "omega_W.8": [
+                    768,
+                    768
+                  ],
+                  "omega_W.9": [
+                    768,
+                    768
+                  ],
+                  "omega_W.10": [
+                    768,
+                    768
+                  ],
+                  "omega_W.11": [
+                    768,
+                    768
+                  ],
+                  "omega_W.12": [
+                    768,
+                    768
+                  ],
+                  "omega_W.13": [
+                    768,
+                    768
+                  ],
+                  "omega_W.14": [
+                    768,
+                    768
+                  ],
+                  "omega_W.15": [
+                    768,
+                    768
+                  ],
+                  "omega_W.16": [
+                    768,
+                    768
+                  ],
+                  "omega_W.17": [
+                    768,
+                    768
+                  ],
+                  "omega_W.18": [
+                    768,
+                    768
+                  ],
+                  "omega_W.19": [
+                    768,
+                    768
+                  ],
+                  "omega_W.20": [
+                    768,
+                    768
+                  ],
+                  "omega_W.21": [
+                    768,
+                    768
+                  ],
+                  "omega_W.22": [
+                    768,
+                    768
+                  ],
+                  "omega_W.23": [
+                    768,
+                    768
+                  ]
+                },
+                "checkpoint_sha256": "12eef34ea245f2f8e51c5f2e84bd874381238097cfb3bb97faccf4d4e5c287d0"
+              }
+            ]
+          },
+          "resource_diagnostics": {
+            "observation_count": 1,
+            "metrics": {
+              "process_wall_s": 941.8489486119943,
+              "process_tree_cpu_s": 1104.238572,
+              "gpu_board_energy_wh": 99.67762724368124,
+              "gpu_board_energy_j": 358839.4580772525,
+              "gpu_energy_coverage_fraction": 0.9999551442441506,
+              "cuda_peak_allocated_mib": 6722.796875,
+              "cuda_peak_reserved_mib": 7200.0,
+              "peak_process_tree_rss_mib": 18077.05078125,
+              "peak_gpu_device_memory_mib": 7691.0,
+              "outer_training_examples_per_s": 228.01550960285616,
+              "evaluation_examples_per_s": 575.6817936134759
+            },
+            "phases": {
+              "begin_epoch": {
+                "wall_s": 0.0017960639379452914,
+                "calls": 40,
+                "gpu_board_energy_j": 0.5425717331891362,
+                "gpu_energy_coverage_s": 0.0017960639379452914
+              },
+              "begin_task": {
+                "wall_s": 0.00399354100227356,
+                "calls": 2,
+                "gpu_board_energy_j": 0.3083021877426004,
+                "gpu_energy_coverage_s": 0.00399354100227356
+              },
+              "data_loading": {
+                "wall_s": 1.3840006690006703,
+                "calls": 2,
+                "gpu_board_energy_j": 97.11779165005669,
+                "gpu_energy_coverage_s": 1.3840006690006703
+              },
+              "end_epoch": {
+                "wall_s": 0.0034222780086565763,
+                "calls": 40,
+                "gpu_board_energy_j": 1.2815716949651188,
+                "gpu_energy_coverage_s": 0.0034222780086565763
+              },
+              "end_task": {
+                "wall_s": 42.45304326698533,
+                "calls": 2,
+                "gpu_board_energy_j": 16712.391544844857,
+                "gpu_energy_coverage_s": 42.45304326698533
+              },
+              "evaluation": {
+                "wall_s": 5.211212223977782,
+                "calls": 2,
+                "gpu_board_energy_j": 2038.2012691330237,
+                "gpu_energy_coverage_s": 5.211212223977782
+              },
+              "initialize": {
+                "wall_s": 1.091541628993582,
+                "calls": 1,
+                "gpu_board_energy_j": 27.102588176451114,
+                "gpu_energy_coverage_s": 1.091541628993582
+              },
+              "train_epoch": {
+                "wall_s": 877.1333158360503,
+                "calls": 40,
+                "gpu_board_energy_j": 337062.59358658013,
+                "gpu_energy_coverage_s": 877.1333158360503
+              }
+            },
+            "scope": "One full validation run. Includes statistics/prototypes/evaluation/instrumentation; no efficiency pilot, repeats, FLOPs or energy ranking."
+          }
+        }
+      }
+    },
+    "sd-lora": {
+      "method": "sd-lora",
+      "label": "SD-LoRA",
+      "protocol": {
+        "schema_version": 1,
+        "mode": "validation",
+        "method": "sd-lora",
+        "author_method": "sdlora",
+        "tasks": 2,
+        "dataset": "seq-cifar100-224",
+        "dataset_total_tasks": 10,
+        "classes_per_task": 10,
+        "class_order": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99
+        ],
+        "training_authorized": true,
+        "n_epochs": 20,
+        "batch_size": 64,
+        "num_workers": 4,
+        "seed": 1993,
+        "vit_size": "base",
+        "rank": 10,
+        "drop_last": false,
+        "shuffle_training": true,
+        "precision": {
+          "matmul_precision": "highest",
+          "tf32_allowed": false,
+          "cudnn_tf32_allowed": true,
+          "cudnn_deterministic": true,
+          "cudnn_benchmark": false,
+          "autocast": false,
+          "parameter_dtype": "float32",
+          "torch_cpu_threads": 2
+        },
+        "pass_max_drop_pp": 1.5,
+        "review_max_drop_pp": 3.0,
+        "hyperparameters": {
+          "optimizer": "adam",
+          "lr": 0.008,
+          "fc_lr": 0.008,
+          "weight_decay": 0.0
+        },
+        "lr_scheduler": "cosine",
+        "scheduler_mode": "epoch",
+        "phase_rng": "base_seed + 100000*task_id + 1000*phase_index + local_epoch",
+        "sample_order": "stable original raw global index order before seeded shuffle",
+        "train_transforms": [
+          "RandomResizedCrop(224,bilinear)",
+          "RandomHorizontalFlip(0.5)",
+          "ToTensor",
+          "Normalize((0,0,0),(1,1,1))"
+        ],
+        "test_transforms": [
+          "Resize(224,bilinear)",
+          "ToTensor",
+          "Normalize((0,0,0),(1,1,1))"
+        ],
+        "normalization_source": "Pinned author dataloaders/data.py iCIFAR100 identity normalization",
+        "paper_reproduction": false,
+        "efficiency_comparison": false,
+        "synthetic_training": false
+      },
+      "acceptance_status": "pass",
+      "acceptance": {
+        "status": "pass",
+        "pass_max_drop_pp": 1.5,
+        "pass_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "review_max_drop_pp": 3.0,
+        "review_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "metrics": {
+          "task1_seen": {
+            "task": 1,
+            "status": "pass",
+            "reference_correct": 993,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 99.3,
+            "native_correct": 993,
+            "native_samples": 1000,
+            "native_accuracy_pct": 99.3,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_seen": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 1896,
+            "reference_samples": 2000,
+            "reference_accuracy_pct": 94.8,
+            "native_correct": 1896,
+            "native_samples": 2000,
+            "native_accuracy_pct": 94.8,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_old": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 905,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 90.5,
+            "native_correct": 905,
+            "native_samples": 1000,
+            "native_accuracy_pct": 90.5,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_new": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 991,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 99.1,
+            "native_correct": 991,
+            "native_samples": 1000,
+            "native_accuracy_pct": 99.1,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          }
+        },
+        "structural_checks": {
+          "finite_loss_and_gradients": true,
+          "dataset_matches_reference": true,
+          "frozen_backbone_unchanged": true,
+          "frozen_backbone_gradients_absent": true,
+          "canonical_pretrained_matches_pin": true,
+          "learnable_initialization_matches": true,
+          "training_protocol_complete": true,
+          "nonoracle_seen_class_evaluation": true,
+          "prediction_ids_and_counts_complete": true,
+          "method_state_valid": true,
+          "no_future_or_replay_samples": true,
+          "first_batch_inputs_match": true,
+          "optimizer_updates_complete": true,
+          "checkpoint_round_trip": true
+        },
+        "structural_failures": [],
+        "validation_errors": [],
+        "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+        "statistical_tolerance_estimated": false
+      },
+      "publication_gate": "pass",
+      "accuracy_metrics": [
+        {
+          "metric": "task1_seen",
+          "task": 1,
+          "status": "pass",
+          "reference_correct": 993,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 99.3,
+          "native_correct": 993,
+          "native_samples": 1000,
+          "native_accuracy_pct": 99.3,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_seen",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 1896,
+          "reference_samples": 2000,
+          "reference_accuracy_pct": 94.8,
+          "native_correct": 1896,
+          "native_samples": 2000,
+          "native_accuracy_pct": 94.8,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_old",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 905,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 90.5,
+          "native_correct": 905,
+          "native_samples": 1000,
+          "native_accuracy_pct": 90.5,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_new",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 991,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 99.1,
+          "native_correct": 991,
+          "native_samples": 1000,
+          "native_accuracy_pct": 99.1,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        }
+      ],
+      "first_batch_comparison": {
+        "status": "pass",
+        "rows": [
+          {
+            "task": 1,
+            "optimizer_update_index": 1,
+            "inputs_match": true,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "optimizer_update_index": 1,
+            "inputs_match": true,
+            "gradient_sha256_matches": true
+          }
+        ],
+        "gradient_hash_scope": "Recorded diagnostic only; accuracy acceptance uses exact prediction counts."
+      },
+      "runs": {
+        "reference": {
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/1jp6yh9x",
+          "run_path": "laymond1/cl-efficiency/1jp6yh9x",
+          "counts": {
+            "observe_calls": 3160,
+            "optimizer_updates": 3160,
+            "task_begin_extra_samples": 0,
+            "task_end_extra_samples": 0
+          },
+          "task_results": [
+            {
+              "task": 1,
+              "seen_correct": 993,
+              "seen_samples": 1000,
+              "old_correct": 0,
+              "old_samples": 0,
+              "new_correct": 993,
+              "new_samples": 1000
+            },
+            {
+              "task": 2,
+              "seen_correct": 1896,
+              "seen_samples": 2000,
+              "old_correct": 905,
+              "old_samples": 1000,
+              "new_correct": 991,
+              "new_samples": 1000
+            }
+          ],
+          "state_audits": {
+            "tasks": [
+              {
+                "task": 1,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "5a1d6d752ce80c483f365fa5ff95c8fa0bf3c8b303c6925dcc5af5e9ea2b0779",
+                "algorithm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "algorithm_state_shapes": {},
+                "network_task_id": 0,
+                "seen_classes": 10,
+                "checkpoint_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/task1_state.pt",
+                "checkpoint_sha256": "8c97bc7250eeaad56346d5fffd5dc5f9b8c56f20f7d985549377a542625fb705"
+              },
+              {
+                "task": 2,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "3df9adbf6806cca0a176dd1e850993098beb232114abec70851487964f39cb36",
+                "algorithm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "algorithm_state_shapes": {},
+                "network_task_id": 1,
+                "seen_classes": 20,
+                "checkpoint_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/task2_state.pt",
+                "checkpoint_sha256": "4687854e2f280ddd31677e5647195127b27f1d1debae2c7f3f573a13942abe8f"
+              }
+            ],
+            "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+          },
+          "resource_diagnostics": {
+            "observation_count": 1,
+            "metrics": {
+              "process_wall_s": 751.1140978029871,
+              "process_tree_cpu_s": 900.981289,
+              "gpu_board_energy_wh": 80.13453095622776,
+              "gpu_board_energy_j": 288484.31144241994,
+              "gpu_energy_coverage_fraction": 0.9999326148535185,
+              "cuda_peak_allocated_mib": 8288.96533203125,
+              "cuda_peak_reserved_mib": 8806.0,
+              "peak_process_tree_rss_mib": 11217.05078125,
+              "peak_gpu_device_memory_mib": 9295.0,
+              "outer_training_examples_per_s": null,
+              "evaluation_examples_per_s": null
+            },
+            "phases": {
+              "task1_evaluation": {
+                "wall_s": 1.5393248909967951,
+                "calls": 1,
+                "gpu_board_energy_j": 505.9923519962874,
+                "gpu_energy_coverage_s": 1.5393248909967951
+              },
+              "task1_finalize": {
+                "wall_s": 4.1659019188955426e-05,
+                "calls": 1,
+                "gpu_board_energy_j": 0.015744500957032472,
+                "gpu_energy_coverage_s": 4.1659019188955426e-05
+              },
+              "task1_train": {
+                "wall_s": 355.7944308560109,
+                "calls": 1,
+                "gpu_board_energy_j": 138273.7743170238,
+                "gpu_energy_coverage_s": 355.7944308560109
+              },
+              "task2_evaluation": {
+                "wall_s": 3.2007768740004394,
+                "calls": 1,
+                "gpu_board_energy_j": 1179.9718063363707,
+                "gpu_energy_coverage_s": 3.2007768740004394
+              },
+              "task2_finalize": {
+                "wall_s": 6.592101999558508e-05,
+                "calls": 1,
+                "gpu_board_energy_j": 0.027057236606801167,
+                "gpu_energy_coverage_s": 6.592101999558508e-05
+              },
+              "task2_train": {
+                "wall_s": 382.19886911302456,
+                "calls": 1,
+                "gpu_board_energy_j": 147361.1240973769,
+                "gpu_energy_coverage_s": 382.19886911302456
+              }
+            },
+            "scope": "One full validation run. Includes statistics/prototypes/evaluation/instrumentation; no efficiency pilot, repeats, FLOPs or energy ranking."
+          }
+        },
+        "native": {
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nx8a4spa",
+          "run_path": "laymond1/cl-efficiency/nx8a4spa",
+          "counts": {
+            "observe_calls": 3160,
+            "optimizer_updates": 3160,
+            "task_begin_extra_samples": 0,
+            "task_end_extra_samples": 0
+          },
+          "task_results": [
+            {
+              "task": 1,
+              "seen_correct": 993,
+              "seen_samples": 1000,
+              "old_correct": 0,
+              "old_samples": 0,
+              "new_correct": 993,
+              "new_samples": 1000
+            },
+            {
+              "task": 2,
+              "seen_correct": 1896,
+              "seen_samples": 2000,
+              "old_correct": 905,
+              "old_samples": 1000,
+              "new_correct": 991,
+              "new_samples": 1000
+            }
+          ],
+          "state_audits": {
+            "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+            "tasks": [
+              {
+                "task": 1,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "5a1d6d752ce80c483f365fa5ff95c8fa0bf3c8b303c6925dcc5af5e9ea2b0779",
+                "algorithm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "network_task_id": 0,
+                "seen_classes": 10,
+                "algorithm_state_shapes": {},
+                "checkpoint_sha256": "850c4749bca85baac284481dd3466d3aad3c423fa641b58a5f772a7978b9f062"
+              },
+              {
+                "task": 2,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "3df9adbf6806cca0a176dd1e850993098beb232114abec70851487964f39cb36",
+                "algorithm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "network_task_id": 1,
+                "seen_classes": 20,
+                "algorithm_state_shapes": {},
+                "checkpoint_sha256": "0fa3afa58acf1f3421d0f1585776db2be61b633ea174f1c749c320516d1fb03d"
+              }
+            ]
+          },
+          "resource_diagnostics": {
+            "observation_count": 1,
+            "metrics": {
+              "process_wall_s": 766.2687079160241,
+              "process_tree_cpu_s": 919.6711520000001,
+              "gpu_board_energy_wh": 80.6753446912511,
+              "gpu_board_energy_j": 290431.24088850396,
+              "gpu_energy_coverage_fraction": 0.9999363380345593,
+              "cuda_peak_allocated_mib": 8325.02783203125,
+              "cuda_peak_reserved_mib": 8844.0,
+              "peak_process_tree_rss_mib": 16743.59375,
+              "peak_gpu_device_memory_mib": 9335.0,
+              "outer_training_examples_per_s": 268.68241400508214,
+              "evaluation_examples_per_s": 616.1545311207893
+            },
+            "phases": {
+              "begin_epoch": {
+                "wall_s": 0.0019298391707707196,
+                "calls": 40,
+                "gpu_board_energy_j": 0.5476670282224838,
+                "gpu_energy_coverage_s": 0.0019298391707707196
+              },
+              "begin_task": {
+                "wall_s": 0.010121936007635668,
+                "calls": 2,
+                "gpu_board_energy_j": 0.7009274978301632,
+                "gpu_energy_coverage_s": 0.010121936007635668
+              },
+              "data_loading": {
+                "wall_s": 1.5318101689917967,
+                "calls": 2,
+                "gpu_board_energy_j": 103.83989422830405,
+                "gpu_energy_coverage_s": 1.5318101689917967
+              },
+              "end_epoch": {
+                "wall_s": 0.003295153990620747,
+                "calls": 40,
+                "gpu_board_energy_j": 1.2439944917056478,
+                "gpu_energy_coverage_s": 0.003295153990620747
+              },
+              "end_task": {
+                "wall_s": 0.00021206698147580028,
+                "calls": 2,
+                "gpu_board_energy_j": 0.07995106364405824,
+                "gpu_energy_coverage_s": 0.00021206698147580028
+              },
+              "evaluation": {
+                "wall_s": 4.86890844500158,
+                "calls": 2,
+                "gpu_board_energy_j": 1801.6453747899463,
+                "gpu_energy_coverage_s": 4.86890844500158
+              },
+              "initialize": {
+                "wall_s": 1.1171078479965217,
+                "calls": 1,
+                "gpu_board_energy_j": 28.22830980727519,
+                "gpu_energy_coverage_s": 1.1171078479965217
+              },
+              "train_epoch": {
+                "wall_s": 744.3732435581624,
+                "calls": 40,
+                "gpu_board_energy_j": 285682.99894485174,
+                "gpu_energy_coverage_s": 744.3732435581624
+              }
+            },
+            "scope": "One full validation run. Includes statistics/prototypes/evaluation/instrumentation; no efficiency pilot, repeats, FLOPs or energy ranking."
+          }
+        }
+      }
+    },
+    "inf-lora": {
+      "method": "inf-lora",
+      "label": "InfLoRA",
+      "protocol": {
+        "schema_version": 1,
+        "mode": "validation",
+        "method": "inf-lora",
+        "author_method": "inflora",
+        "tasks": 2,
+        "dataset": "seq-cifar100-224",
+        "dataset_total_tasks": 10,
+        "classes_per_task": 10,
+        "class_order": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99
+        ],
+        "training_authorized": true,
+        "n_epochs": 20,
+        "batch_size": 64,
+        "num_workers": 4,
+        "seed": 1993,
+        "vit_size": "base",
+        "rank": 10,
+        "drop_last": false,
+        "shuffle_training": true,
+        "precision": {
+          "matmul_precision": "highest",
+          "tf32_allowed": false,
+          "cudnn_tf32_allowed": true,
+          "cudnn_deterministic": true,
+          "cudnn_benchmark": false,
+          "autocast": false,
+          "parameter_dtype": "float32",
+          "torch_cpu_threads": 2
+        },
+        "pass_max_drop_pp": 1.5,
+        "review_max_drop_pp": 3.0,
+        "hyperparameters": {
+          "optimizer": "adam",
+          "lr": 0.0005,
+          "fc_lr": 0.0005,
+          "weight_decay": 0.0,
+          "lamb": 0.95,
+          "lame": 1.0
+        },
+        "lr_scheduler": "cosine",
+        "scheduler_mode": "epoch",
+        "phase_rng": "base_seed + 100000*task_id + 1000*phase_index + local_epoch",
+        "sample_order": "stable original raw global index order before seeded shuffle",
+        "train_transforms": [
+          "RandomResizedCrop(224,bilinear)",
+          "RandomHorizontalFlip(0.5)",
+          "ToTensor",
+          "Normalize((0,0,0),(1,1,1))"
+        ],
+        "test_transforms": [
+          "Resize(224,bilinear)",
+          "ToTensor",
+          "Normalize((0,0,0),(1,1,1))"
+        ],
+        "normalization_source": "Pinned author dataloaders/data.py iCIFAR100 identity normalization",
+        "paper_reproduction": false,
+        "efficiency_comparison": false,
+        "synthetic_training": false
+      },
+      "acceptance_status": "pass",
+      "acceptance": {
+        "status": "pass",
+        "pass_max_drop_pp": 1.5,
+        "pass_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "review_max_drop_pp": 3.0,
+        "review_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "metrics": {
+          "task1_seen": {
+            "task": 1,
+            "status": "pass",
+            "reference_correct": 993,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 99.3,
+            "native_correct": 993,
+            "native_samples": 1000,
+            "native_accuracy_pct": 99.3,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_seen": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 1925,
+            "reference_samples": 2000,
+            "reference_accuracy_pct": 96.25,
+            "native_correct": 1928,
+            "native_samples": 2000,
+            "native_accuracy_pct": 96.4,
+            "drop_pp": -0.15,
+            "drop_pp_exact": {
+              "numerator": -3,
+              "denominator": 20
+            },
+            "validation_errors": []
+          },
+          "task2_old": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 978,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 97.8,
+            "native_correct": 982,
+            "native_samples": 1000,
+            "native_accuracy_pct": 98.2,
+            "drop_pp": -0.4,
+            "drop_pp_exact": {
+              "numerator": -2,
+              "denominator": 5
+            },
+            "validation_errors": []
+          },
+          "task2_new": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 947,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 94.7,
+            "native_correct": 946,
+            "native_samples": 1000,
+            "native_accuracy_pct": 94.6,
+            "drop_pp": 0.1,
+            "drop_pp_exact": {
+              "numerator": 1,
+              "denominator": 10
+            },
+            "validation_errors": []
+          }
+        },
+        "structural_checks": {
+          "finite_loss_and_gradients": true,
+          "dataset_matches_reference": true,
+          "frozen_backbone_unchanged": true,
+          "frozen_backbone_gradients_absent": true,
+          "canonical_pretrained_matches_pin": true,
+          "learnable_initialization_matches": true,
+          "training_protocol_complete": true,
+          "nonoracle_seen_class_evaluation": true,
+          "prediction_ids_and_counts_complete": true,
+          "method_state_valid": true,
+          "no_future_or_replay_samples": true,
+          "first_batch_inputs_match": true,
+          "optimizer_updates_complete": true,
+          "checkpoint_round_trip": true
+        },
+        "structural_failures": [],
+        "validation_errors": [],
+        "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+        "statistical_tolerance_estimated": false
+      },
+      "publication_gate": "pass",
+      "accuracy_metrics": [
+        {
+          "metric": "task1_seen",
+          "task": 1,
+          "status": "pass",
+          "reference_correct": 993,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 99.3,
+          "native_correct": 993,
+          "native_samples": 1000,
+          "native_accuracy_pct": 99.3,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_seen",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 1925,
+          "reference_samples": 2000,
+          "reference_accuracy_pct": 96.25,
+          "native_correct": 1928,
+          "native_samples": 2000,
+          "native_accuracy_pct": 96.4,
+          "drop_pp": -0.15,
+          "drop_pp_exact": {
+            "numerator": -3,
+            "denominator": 20
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_old",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 978,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 97.8,
+          "native_correct": 982,
+          "native_samples": 1000,
+          "native_accuracy_pct": 98.2,
+          "drop_pp": -0.4,
+          "drop_pp_exact": {
+            "numerator": -2,
+            "denominator": 5
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_new",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 947,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 94.7,
+          "native_correct": 946,
+          "native_samples": 1000,
+          "native_accuracy_pct": 94.6,
+          "drop_pp": 0.1,
+          "drop_pp_exact": {
+            "numerator": 1,
+            "denominator": 10
+          },
+          "validation_errors": []
+        }
+      ],
+      "first_batch_comparison": {
+        "status": "pass",
+        "rows": [
+          {
+            "task": 1,
+            "optimizer_update_index": 1,
+            "inputs_match": true,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "optimizer_update_index": 1,
+            "inputs_match": true,
+            "gradient_sha256_matches": false
+          }
+        ],
+        "gradient_hash_scope": "Recorded diagnostic only; accuracy acceptance uses exact prediction counts."
+      },
+      "runs": {
+        "reference": {
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/atlzpgob",
+          "run_path": "laymond1/cl-efficiency/atlzpgob",
+          "counts": {
+            "observe_calls": 3160,
+            "optimizer_updates": 3160,
+            "task_begin_extra_samples": 10000,
+            "task_end_extra_samples": 10000
+          },
+          "task_results": [
+            {
+              "task": 1,
+              "seen_correct": 993,
+              "seen_samples": 1000,
+              "old_correct": 0,
+              "old_samples": 0,
+              "new_correct": 993,
+              "new_samples": 1000
+            },
+            {
+              "task": 2,
+              "seen_correct": 1925,
+              "seen_samples": 2000,
+              "old_correct": 978,
+              "old_samples": 1000,
+              "new_correct": 947,
+              "new_samples": 1000
+            }
+          ],
+          "state_audits": {
+            "tasks": [
+              {
+                "task": 1,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "02c73032ac26ccb9bfd20dbde496dc63065910b05774e5511a43eb7c5e7ba549",
+                "algorithm_sha256": "5ec8ef0767da867f6fe6c7494c57dca8cc02ec571f6f7887f7e0f4f638650bb7",
+                "algorithm_state_shapes": {
+                  "feature_list.0": [
+                    768,
+                    6
+                  ],
+                  "feature_list.1": [
+                    768,
+                    9
+                  ],
+                  "feature_list.2": [
+                    768,
+                    12
+                  ],
+                  "feature_list.3": [
+                    768,
+                    12
+                  ],
+                  "feature_list.4": [
+                    768,
+                    19
+                  ],
+                  "feature_list.5": [
+                    768,
+                    22
+                  ],
+                  "feature_list.6": [
+                    768,
+                    21
+                  ],
+                  "feature_list.7": [
+                    768,
+                    25
+                  ],
+                  "feature_list.8": [
+                    768,
+                    29
+                  ],
+                  "feature_list.9": [
+                    768,
+                    23
+                  ],
+                  "feature_list.10": [
+                    768,
+                    7
+                  ],
+                  "feature_list.11": [
+                    768,
+                    9
+                  ],
+                  "feature_mat.0": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.1": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.2": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.3": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.4": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.5": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.6": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.7": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.8": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.9": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.10": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.11": [
+                    768,
+                    768
+                  ]
+                },
+                "network_task_id": 0,
+                "seen_classes": 10,
+                "checkpoint_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/task1_state.pt",
+                "checkpoint_sha256": "18f98b1a3be9ba94b19845077b665e7b40c280490dbff6a63ca9fcf17c75b9d0"
+              },
+              {
+                "task": 2,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "7d9120890c90928fafd5c8a25b9c8d4c03529abc9e22e572e66a41ea7f28233d",
+                "algorithm_sha256": "a2deba011838c5fa672bbea867ab087d3a64095afa3dcfd998485e8b99454cb1",
+                "algorithm_state_shapes": {
+                  "feature_list.0": [
+                    768,
+                    7
+                  ],
+                  "feature_list.1": [
+                    768,
+                    11
+                  ],
+                  "feature_list.2": [
+                    768,
+                    15
+                  ],
+                  "feature_list.3": [
+                    768,
+                    15
+                  ],
+                  "feature_list.4": [
+                    768,
+                    24
+                  ],
+                  "feature_list.5": [
+                    768,
+                    31
+                  ],
+                  "feature_list.6": [
+                    768,
+                    30
+                  ],
+                  "feature_list.7": [
+                    768,
+                    36
+                  ],
+                  "feature_list.8": [
+                    768,
+                    47
+                  ],
+                  "feature_list.9": [
+                    768,
+                    46
+                  ],
+                  "feature_list.10": [
+                    768,
+                    14
+                  ],
+                  "feature_list.11": [
+                    768,
+                    19
+                  ],
+                  "feature_mat.0": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.1": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.2": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.3": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.4": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.5": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.6": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.7": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.8": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.9": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.10": [
+                    768,
+                    768
+                  ],
+                  "feature_mat.11": [
+                    768,
+                    768
+                  ]
+                },
+                "network_task_id": 1,
+                "seen_classes": 20,
+                "checkpoint_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/task2_state.pt",
+                "checkpoint_sha256": "8e58c229a355c23a404a35a1d3f5b3a7b49cb99e042e826579513a24e10da996"
+              }
+            ],
+            "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+          },
+          "resource_diagnostics": {
+            "observation_count": 1,
+            "metrics": {
+              "process_wall_s": 730.0589271420031,
+              "process_tree_cpu_s": 1219.472079,
+              "gpu_board_energy_wh": 81.51912322274525,
+              "gpu_board_energy_j": 293468.8436018829,
+              "gpu_energy_coverage_fraction": 0.9999412277517831,
+              "cuda_peak_allocated_mib": 6527.4150390625,
+              "cuda_peak_reserved_mib": 6906.0,
+              "peak_process_tree_rss_mib": 12736.4140625,
+              "peak_gpu_device_memory_mib": 7395.0,
+              "outer_training_examples_per_s": null,
+              "evaluation_examples_per_s": null
+            },
+            "phases": {
+              "task1_evaluation": {
+                "wall_s": 1.6484502500097733,
+                "calls": 1,
+                "gpu_board_energy_j": 341.89752587597224,
+                "gpu_energy_coverage_s": 1.6484502500097733
+              },
+              "task1_finalize": {
+                "wall_s": 4.412999260239303e-05,
+                "calls": 1,
+                "gpu_board_energy_j": 0.01458071535046786,
+                "gpu_energy_coverage_s": 4.412999260239303e-05
+              },
+              "task1_train": {
+                "wall_s": 359.70055705300183,
+                "calls": 1,
+                "gpu_board_energy_j": 145335.35119411052,
+                "gpu_energy_coverage_s": 359.70055705300183
+              },
+              "task2_evaluation": {
+                "wall_s": 3.2472419120022096,
+                "calls": 1,
+                "gpu_board_energy_j": 962.2548829120062,
+                "gpu_energy_coverage_s": 3.2472419120022096
+              },
+              "task2_finalize": {
+                "wall_s": 4.109798464924097e-05,
+                "calls": 1,
+                "gpu_board_energy_j": 0.0159868424621025,
+                "gpu_energy_coverage_s": 4.109798464924097e-05
+              },
+              "task2_train": {
+                "wall_s": 356.41498434200184,
+                "calls": 1,
+                "gpu_board_energy_j": 145816.83235958274,
+                "gpu_energy_coverage_s": 356.41498434200184
+              }
+            },
+            "scope": "One full validation run. Includes statistics/prototypes/evaluation/instrumentation; no efficiency pilot, repeats, FLOPs or energy ranking."
+          }
+        },
+        "native": {
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/8ysv61ah",
+          "run_path": "laymond1/cl-efficiency/8ysv61ah",
+          "counts": {
+            "observe_calls": 3160,
+            "optimizer_updates": 3160,
+            "task_begin_extra_samples": 10000,
+            "task_end_extra_samples": 10000
+          },
+          "task_results": [
+            {
+              "task": 1,
+              "seen_correct": 993,
+              "seen_samples": 1000,
+              "old_correct": 0,
+              "old_samples": 0,
+              "new_correct": 993,
+              "new_samples": 1000
+            },
+            {
+              "task": 2,
+              "seen_correct": 1928,
+              "seen_samples": 2000,
+              "old_correct": 982,
+              "old_samples": 1000,
+              "new_correct": 946,
+              "new_samples": 1000
+            }
+          ],
+          "state_audits": {
+            "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+            "tasks": [
+              {
+                "task": 1,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "02c73032ac26ccb9bfd20dbde496dc63065910b05774e5511a43eb7c5e7ba549",
+                "algorithm_sha256": "818963e6e8c3c8f33d24f40aef07ea16807629748a1d232b66a734b060b9fc60",
+                "network_task_id": 0,
+                "seen_classes": 10,
+                "algorithm_state_shapes": {
+                  "project_codes": [
+                    12
+                  ],
+                  "feature_list.0": [
+                    768,
+                    6
+                  ],
+                  "feature_list.1": [
+                    768,
+                    9
+                  ],
+                  "feature_list.2": [
+                    768,
+                    12
+                  ],
+                  "feature_list.3": [
+                    768,
+                    12
+                  ],
+                  "feature_list.4": [
+                    768,
+                    19
+                  ],
+                  "feature_list.5": [
+                    768,
+                    22
+                  ],
+                  "feature_list.6": [
+                    768,
+                    21
+                  ],
+                  "feature_list.7": [
+                    768,
+                    25
+                  ],
+                  "feature_list.8": [
+                    768,
+                    29
+                  ],
+                  "feature_list.9": [
+                    768,
+                    23
+                  ],
+                  "feature_list.10": [
+                    768,
+                    7
+                  ],
+                  "feature_list.11": [
+                    768,
+                    9
+                  ]
+                },
+                "checkpoint_sha256": "ec11a98b7093e58edce588fef54818f79505e5d2d43674cc205c2b807346c00a"
+              },
+              {
+                "task": 2,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "5726454d06c868473ede03781c8fa26fb4ae874cafa874ef71d9323003707d41",
+                "algorithm_sha256": "50387660af4c20cb669a0592512201a60e8e68c7a7cb59e5e27eccf6366be295",
+                "network_task_id": 1,
+                "seen_classes": 20,
+                "algorithm_state_shapes": {
+                  "project_codes": [
+                    12
+                  ],
+                  "feature_list.0": [
+                    768,
+                    7
+                  ],
+                  "feature_list.1": [
+                    768,
+                    11
+                  ],
+                  "feature_list.2": [
+                    768,
+                    15
+                  ],
+                  "feature_list.3": [
+                    768,
+                    16
+                  ],
+                  "feature_list.4": [
+                    768,
+                    24
+                  ],
+                  "feature_list.5": [
+                    768,
+                    31
+                  ],
+                  "feature_list.6": [
+                    768,
+                    31
+                  ],
+                  "feature_list.7": [
+                    768,
+                    36
+                  ],
+                  "feature_list.8": [
+                    768,
+                    48
+                  ],
+                  "feature_list.9": [
+                    768,
+                    48
+                  ],
+                  "feature_list.10": [
+                    768,
+                    14
+                  ],
+                  "feature_list.11": [
+                    768,
+                    19
+                  ]
+                },
+                "checkpoint_sha256": "fc082f48d80e7aa4ac785987583ebc83d341475a236084689bdc62739b7b9fd6"
+              }
+            ]
+          },
+          "resource_diagnostics": {
+            "observation_count": 1,
+            "metrics": {
+              "process_wall_s": 734.1701873879938,
+              "process_tree_cpu_s": 1036.845165,
+              "gpu_board_energy_wh": 81.65736409644573,
+              "gpu_board_energy_j": 293966.51074720465,
+              "gpu_energy_coverage_fraction": 0.9999393892270905,
+              "cuda_peak_allocated_mib": 6564.6181640625,
+              "cuda_peak_reserved_mib": 6906.0,
+              "peak_process_tree_rss_mib": 18106.8125,
+              "peak_gpu_device_memory_mib": 7397.0,
+              "outer_training_examples_per_s": 296.75946155562394,
+              "evaluation_examples_per_s": 598.6546656407675
+            },
+            "phases": {
+              "begin_epoch": {
+                "wall_s": 0.00191477284533903,
+                "calls": 40,
+                "gpu_board_energy_j": 0.7328243831592092,
+                "gpu_energy_coverage_s": 0.00191477284533903
+              },
+              "begin_task": {
+                "wall_s": 18.3190368579817,
+                "calls": 2,
+                "gpu_board_energy_j": 6634.264757421562,
+                "gpu_energy_coverage_s": 18.3190368579817
+              },
+              "data_loading": {
+                "wall_s": 1.3671966559777502,
+                "calls": 2,
+                "gpu_board_energy_j": 93.71136748349406,
+                "gpu_energy_coverage_s": 1.3671966559777502
+              },
+              "end_epoch": {
+                "wall_s": 0.0033550349762663245,
+                "calls": 40,
+                "gpu_board_energy_j": 1.3455425282020814,
+                "gpu_energy_coverage_s": 0.0033550349762663245
+              },
+              "end_task": {
+                "wall_s": 20.136642624012893,
+                "calls": 2,
+                "gpu_board_energy_j": 7737.667134859217,
+                "gpu_energy_coverage_s": 20.136642624012893
+              },
+              "evaluation": {
+                "wall_s": 5.011236313992413,
+                "calls": 2,
+                "gpu_board_energy_j": 1340.1395429591018,
+                "gpu_energy_coverage_s": 5.011236313992413
+              },
+              "initialize": {
+                "wall_s": 1.086844139994355,
+                "calls": 1,
+                "gpu_board_energy_j": 26.732458292723372,
+                "gpu_energy_coverage_s": 1.086844139994355
+              },
+              "train_epoch": {
+                "wall_s": 673.9464984590304,
+                "calls": 40,
+                "gpu_board_energy_j": 275226.9950397672,
+                "gpu_energy_coverage_s": 673.9464984590304
+              }
+            },
+            "scope": "One full validation run. Includes statistics/prototypes/evaluation/instrumentation; no efficiency pilot, repeats, FLOPs or energy ranking."
+          }
+        }
+      }
+    },
+    "cl-lora": {
+      "method": "cl-lora",
+      "label": "CL-LoRA",
+      "protocol": {
+        "schema_version": 1,
+        "mode": "validation",
+        "method": "cl-lora",
+        "author_method": "cllora",
+        "tasks": 2,
+        "dataset": "seq-cifar100-224",
+        "dataset_total_tasks": 10,
+        "classes_per_task": 10,
+        "class_order": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99
+        ],
+        "training_authorized": true,
+        "n_epochs": 30,
+        "batch_size": 64,
+        "num_workers": 4,
+        "seed": 1993,
+        "vit_size": "base",
+        "rank": 10,
+        "drop_last": false,
+        "shuffle_training": true,
+        "precision": {
+          "matmul_precision": "highest",
+          "tf32_allowed": false,
+          "cudnn_tf32_allowed": true,
+          "cudnn_deterministic": true,
+          "cudnn_benchmark": false,
+          "autocast": false,
+          "parameter_dtype": "float32",
+          "torch_cpu_threads": 2
+        },
+        "pass_max_drop_pp": 1.5,
+        "review_max_drop_pp": 3.0,
+        "hyperparameters": {
+          "optimizer": "sgd",
+          "lr": 0.03,
+          "fc_lr": 0.03,
+          "weight_decay": 0.0001,
+          "momentum": 0.9,
+          "kd_ratio": 5.0,
+          "temperature": 2.0,
+          "msa": [
+            1,
+            0,
+            1
+          ],
+          "shared_pos": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "specific_pos": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ]
+        },
+        "lr_scheduler": "cosine",
+        "scheduler_mode": "epoch",
+        "phase_rng": "base_seed + 100000*task_id + 1000*phase_index + local_epoch",
+        "sample_order": "stable original raw global index order before seeded shuffle",
+        "train_transforms": [
+          "RandomResizedCrop(224,bilinear)",
+          "RandomHorizontalFlip(0.5)",
+          "ToTensor",
+          "Normalize((0,0,0),(1,1,1))"
+        ],
+        "test_transforms": [
+          "Resize(224,bilinear)",
+          "ToTensor",
+          "Normalize((0,0,0),(1,1,1))"
+        ],
+        "normalization_source": "Pinned author dataloaders/data.py iCIFAR100 identity normalization",
+        "paper_reproduction": false,
+        "efficiency_comparison": false,
+        "synthetic_training": false
+      },
+      "acceptance_status": "pass",
+      "acceptance": {
+        "status": "pass",
+        "pass_max_drop_pp": 1.5,
+        "pass_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 2
+        },
+        "review_max_drop_pp": 3.0,
+        "review_max_drop_pp_exact": {
+          "numerator": 3,
+          "denominator": 1
+        },
+        "metrics": {
+          "task1_seen": {
+            "task": 1,
+            "status": "pass",
+            "reference_correct": 995,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 99.5,
+            "native_correct": 995,
+            "native_samples": 1000,
+            "native_accuracy_pct": 99.5,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_seen": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 1945,
+            "reference_samples": 2000,
+            "reference_accuracy_pct": 97.25,
+            "native_correct": 1945,
+            "native_samples": 2000,
+            "native_accuracy_pct": 97.25,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_old": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 985,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 98.5,
+            "native_correct": 985,
+            "native_samples": 1000,
+            "native_accuracy_pct": 98.5,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          },
+          "task2_new": {
+            "task": 2,
+            "status": "pass",
+            "reference_correct": 960,
+            "reference_samples": 1000,
+            "reference_accuracy_pct": 96.0,
+            "native_correct": 960,
+            "native_samples": 1000,
+            "native_accuracy_pct": 96.0,
+            "drop_pp": 0.0,
+            "drop_pp_exact": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "validation_errors": []
+          }
+        },
+        "structural_checks": {
+          "finite_loss_and_gradients": true,
+          "dataset_matches_reference": true,
+          "frozen_backbone_unchanged": true,
+          "frozen_backbone_gradients_absent": true,
+          "canonical_pretrained_matches_pin": true,
+          "learnable_initialization_matches": true,
+          "training_protocol_complete": true,
+          "nonoracle_seen_class_evaluation": true,
+          "prediction_ids_and_counts_complete": true,
+          "method_state_valid": true,
+          "no_future_or_replay_samples": true,
+          "first_batch_inputs_match": true,
+          "optimizer_updates_complete": true,
+          "checkpoint_round_trip": true
+        },
+        "structural_failures": [],
+        "validation_errors": [],
+        "comparison_basis": "Exact correct/sample counts; displayed accuracy and drop values do not decide acceptance.",
+        "statistical_tolerance_estimated": false
+      },
+      "publication_gate": "pass",
+      "accuracy_metrics": [
+        {
+          "metric": "task1_seen",
+          "task": 1,
+          "status": "pass",
+          "reference_correct": 995,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 99.5,
+          "native_correct": 995,
+          "native_samples": 1000,
+          "native_accuracy_pct": 99.5,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_seen",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 1945,
+          "reference_samples": 2000,
+          "reference_accuracy_pct": 97.25,
+          "native_correct": 1945,
+          "native_samples": 2000,
+          "native_accuracy_pct": 97.25,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_old",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 985,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 98.5,
+          "native_correct": 985,
+          "native_samples": 1000,
+          "native_accuracy_pct": 98.5,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        },
+        {
+          "metric": "task2_new",
+          "task": 2,
+          "status": "pass",
+          "reference_correct": 960,
+          "reference_samples": 1000,
+          "reference_accuracy_pct": 96.0,
+          "native_correct": 960,
+          "native_samples": 1000,
+          "native_accuracy_pct": 96.0,
+          "drop_pp": 0.0,
+          "drop_pp_exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "validation_errors": []
+        }
+      ],
+      "first_batch_comparison": {
+        "status": "pass",
+        "rows": [
+          {
+            "task": 1,
+            "optimizer_update_index": 1,
+            "inputs_match": true,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "optimizer_update_index": 1,
+            "inputs_match": true,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "optimizer_update_index": 2,
+            "inputs_match": true,
+            "gradient_sha256_matches": true
+          }
+        ],
+        "gradient_hash_scope": "Recorded diagnostic only; accuracy acceptance uses exact prediction counts."
+      },
+      "runs": {
+        "reference": {
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ao9ihx5x",
+          "run_path": "laymond1/cl-efficiency/ao9ihx5x",
+          "counts": {
+            "observe_calls": 4740,
+            "optimizer_updates": 7110,
+            "task_begin_extra_samples": 0,
+            "task_end_extra_samples": 15000
+          },
+          "task_results": [
+            {
+              "task": 1,
+              "seen_correct": 995,
+              "seen_samples": 1000,
+              "old_correct": 0,
+              "old_samples": 0,
+              "new_correct": 995,
+              "new_samples": 1000
+            },
+            {
+              "task": 2,
+              "seen_correct": 1945,
+              "seen_samples": 2000,
+              "old_correct": 985,
+              "old_samples": 1000,
+              "new_correct": 960,
+              "new_samples": 1000
+            }
+          ],
+          "state_audits": {
+            "tasks": [
+              {
+                "task": 1,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "f4f41d7f270d8dffc0769f88495486bec798f0bbb6c5ae57ccdad337ebd3ff52",
+                "algorithm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "algorithm_state_shapes": {},
+                "network_task_id": 0,
+                "seen_classes": 10,
+                "checkpoint_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_reference_20261008/task1_state.pt",
+                "checkpoint_sha256": "0acff1de8d0bd63f8612b25ac67dcc35664f76a10978945755582236d368558b"
+              },
+              {
+                "task": 2,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "050487e324572d0ebebbfed33d61a2a2692492e85c4e7cff28044d65e677f2cb",
+                "algorithm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "algorithm_state_shapes": {},
+                "network_task_id": 1,
+                "seen_classes": 20,
+                "checkpoint_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_reference_20261008/task2_state.pt",
+                "checkpoint_sha256": "cbb2e62674a43ae2042a33cf8999d7ae9dbce687ca36e4f5e75a7b7b943d08f6"
+              }
+            ],
+            "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+          },
+          "resource_diagnostics": {
+            "observation_count": 1,
+            "metrics": {
+              "process_wall_s": 1204.2086073309765,
+              "process_tree_cpu_s": 1494.422318,
+              "gpu_board_energy_wh": 137.19440887998275,
+              "gpu_board_energy_j": 493899.87196793786,
+              "gpu_energy_coverage_fraction": 0.9999696017805783,
+              "cuda_peak_allocated_mib": 9642.01220703125,
+              "cuda_peak_reserved_mib": 10404.0,
+              "peak_process_tree_rss_mib": 11931.69140625,
+              "peak_gpu_device_memory_mib": 10893.0,
+              "outer_training_examples_per_s": null,
+              "evaluation_examples_per_s": null
+            },
+            "phases": {
+              "task1_evaluation": {
+                "wall_s": 1.5222824460070115,
+                "calls": 1,
+                "gpu_board_energy_j": 513.2009022663922,
+                "gpu_energy_coverage_s": 1.5222824460070115
+              },
+              "task1_finalize": {
+                "wall_s": 0.0008848799916449934,
+                "calls": 1,
+                "gpu_board_energy_j": 0.3281754276121986,
+                "gpu_energy_coverage_s": 0.0008848799916449934
+              },
+              "task1_train": {
+                "wall_s": 443.52173158799997,
+                "calls": 1,
+                "gpu_board_energy_j": 179490.9762283,
+                "gpu_energy_coverage_s": 443.52173158799997
+              },
+              "task2_evaluation": {
+                "wall_s": 5.409772739978507,
+                "calls": 1,
+                "gpu_board_energy_j": 2160.183541851349,
+                "gpu_energy_coverage_s": 5.409772739978507
+              },
+              "task2_finalize": {
+                "wall_s": 0.0007674389926251024,
+                "calls": 1,
+                "gpu_board_energy_j": 0.3268258962631272,
+                "gpu_energy_coverage_s": 0.0007674389926251024
+              },
+              "task2_train": {
+                "wall_s": 745.8217963399948,
+                "calls": 1,
+                "gpu_board_energy_j": 310716.7805620261,
+                "gpu_energy_coverage_s": 745.8217963399948
+              }
+            },
+            "scope": "One full validation run. Includes statistics/prototypes/evaluation/instrumentation; no efficiency pilot, repeats, FLOPs or energy ranking."
+          }
+        },
+        "native": {
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/02znct1l",
+          "run_path": "laymond1/cl-efficiency/02znct1l",
+          "counts": {
+            "observe_calls": 4740,
+            "optimizer_updates": 7110,
+            "task_begin_extra_samples": 0,
+            "task_end_extra_samples": 15000
+          },
+          "task_results": [
+            {
+              "task": 1,
+              "seen_correct": 995,
+              "seen_samples": 1000,
+              "old_correct": 0,
+              "old_samples": 0,
+              "new_correct": 995,
+              "new_samples": 1000
+            },
+            {
+              "task": 2,
+              "seen_correct": 1945,
+              "seen_samples": 2000,
+              "old_correct": 985,
+              "old_samples": 1000,
+              "new_correct": 960,
+              "new_samples": 1000
+            }
+          ],
+          "state_audits": {
+            "initial_frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+            "tasks": [
+              {
+                "task": 1,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "f4f41d7f270d8dffc0769f88495486bec798f0bbb6c5ae57ccdad337ebd3ff52",
+                "algorithm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "network_task_id": 0,
+                "seen_classes": 10,
+                "algorithm_state_shapes": {},
+                "checkpoint_sha256": "b805832184dd6383adb20e4a17fba785960a3535d382d1a6531d2255705c60df"
+              },
+              {
+                "task": 2,
+                "frozen_backbone_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+                "network_sha256": "050487e324572d0ebebbfed33d61a2a2692492e85c4e7cff28044d65e677f2cb",
+                "algorithm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "network_task_id": 1,
+                "seen_classes": 20,
+                "algorithm_state_shapes": {},
+                "checkpoint_sha256": "2d2e194c0897f7ecab04c5e0420e9e7a2e233e3d35c5e18fd24da778219a2741"
+              }
+            ]
+          },
+          "resource_diagnostics": {
+            "observation_count": 1,
+            "metrics": {
+              "process_wall_s": 1219.252214985987,
+              "process_tree_cpu_s": 1452.230116,
+              "gpu_board_energy_wh": 138.03793658916356,
+              "gpu_board_energy_j": 496936.57172098884,
+              "gpu_energy_coverage_fraction": 0.9999651082946707,
+              "cuda_peak_allocated_mib": 9678.73876953125,
+              "cuda_peak_reserved_mib": 10442.0,
+              "peak_process_tree_rss_mib": 18364.046875,
+              "peak_gpu_device_memory_mib": 10933.0,
+              "outer_training_examples_per_s": 255.92014683086148,
+              "evaluation_examples_per_s": 427.1786167191212
+            },
+            "phases": {
+              "begin_epoch": {
+                "wall_s": 0.002595455967821181,
+                "calls": 60,
+                "gpu_board_energy_j": 0.8483294942817269,
+                "gpu_energy_coverage_s": 0.002595455967821181
+              },
+              "begin_task": {
+                "wall_s": 0.012893178005469963,
+                "calls": 2,
+                "gpu_board_energy_j": 0.8568780109217979,
+                "gpu_energy_coverage_s": 0.012893178005469963
+              },
+              "data_loading": {
+                "wall_s": 1.410668464988703,
+                "calls": 2,
+                "gpu_board_energy_j": 100.77074477972917,
+                "gpu_energy_coverage_s": 1.410668464988703
+              },
+              "end_epoch": {
+                "wall_s": 0.0042342201340943575,
+                "calls": 60,
+                "gpu_board_energy_j": 1.7060364033362667,
+                "gpu_energy_coverage_s": 0.0042342201340943575
+              },
+              "end_task": {
+                "wall_s": 21.224967601010576,
+                "calls": 2,
+                "gpu_board_energy_j": 8630.01678464953,
+                "gpu_energy_coverage_s": 21.224967601010576
+              },
+              "evaluation": {
+                "wall_s": 7.02282343400293,
+                "calls": 2,
+                "gpu_board_energy_j": 2838.4314387485256,
+                "gpu_energy_coverage_s": 7.02282343400293
+              },
+              "initialize": {
+                "wall_s": 1.056738707004115,
+                "calls": 1,
+                "gpu_board_energy_j": 25.74680747051121,
+                "gpu_energy_coverage_s": 1.056738707004115
+              },
+              "train_epoch": {
+                "wall_s": 1172.2406528559513,
+                "calls": 60,
+                "gpu_board_energy_j": 481451.05791003775,
+                "gpu_energy_coverage_s": 1172.2406528559513
+              }
+            },
+            "scope": "One full validation run. Includes statistics/prototypes/evaluation/instrumentation; no efficiency pilot, repeats, FLOPs or energy ranking."
+          }
+        }
+      }
+    }
+  },
+  "sources": {
+    "ewc-lora": {
+      "reference": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_reference_20261008/summary.json",
+        "sha256": "3a2edbbc37be8b29b78139dc982e5a9f0a53b79e6d6828522f630ac5e86d6e46",
+        "artifacts": {
+          "files": {
+            "spec.json": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_reference_20261008/spec.json",
+              "sha256": "8b5462e0daaf9c99336a3f2abe920aa796f1545ea1d2cca507a540f5e15012ae",
+              "bytes": 11130
+            },
+            "task1_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_reference_20261008/task1_predictions.npz",
+              "sha256": "f8e7d662209b9f9a736683bebc6390be16a8d499a04f58be853b32820b484539",
+              "bytes": 3997
+            },
+            "task2_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_reference_20261008/task2_predictions.npz",
+              "sha256": "43de29c992d1f356f44dca0f3b0c22955e205a456ad1a9a5122632709f1d2539",
+              "bytes": 7830
+            }
+          },
+          "local_checkpoints": {
+            "1": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_reference_20261008/task1_state.pt",
+              "relative_file": "task1_state.pt",
+              "sha256": "0438e663c5fbd373f95f2284fd19e1ae1d77aeb8610b5d398a23bee14b8ed5eb",
+              "bytes": 406243551,
+              "uploaded": false
+            },
+            "2": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_reference_20261008/task2_state.pt",
+              "relative_file": "task2_state.pt",
+              "sha256": "fac1da2b492b8d89ad08bfe5f1732f3541b7f303a14381fe9aaaa7ee40db4665",
+              "bytes": 406243551,
+              "uploaded": false
+            }
+          },
+          "remote_record_file": "summary.json"
+        }
+      },
+      "native": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_native_20261008/result.json",
+        "sha256": "e6b57abf8d4db028e3e6b84bf303606212836648051fb86283cb639ba6702fe0",
+        "artifacts": {
+          "files": {
+            "spec.json": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_native_20261008/spec.json",
+              "sha256": "34674cabd4032f9b49f4f6e1951c2f72955af42f43b6b6ffefb810752b0d1793",
+              "bytes": 9812
+            },
+            "task1_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_native_20261008/task1_predictions.npz",
+              "sha256": "f8e7d662209b9f9a736683bebc6390be16a8d499a04f58be853b32820b484539",
+              "bytes": 3997
+            },
+            "task2_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_native_20261008/task2_predictions.npz",
+              "sha256": "43de29c992d1f356f44dca0f3b0c22955e205a456ad1a9a5122632709f1d2539",
+              "bytes": 7830
+            }
+          },
+          "local_checkpoints": {
+            "1": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_native_20261008/task1_state.pt",
+              "relative_file": "task1_state.pt",
+              "sha256": "0e869732ab5d59ea555906b9a751d9ebb088a9d36ce9676ba03d218cc12d484c",
+              "bytes": 406272613,
+              "uploaded": false
+            },
+            "2": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/ewc_native_20261008/task2_state.pt",
+              "relative_file": "task2_state.pt",
+              "sha256": "12eef34ea245f2f8e51c5f2e84bd874381238097cfb3bb97faccf4d4e5c287d0",
+              "bytes": 406272613,
+              "uploaded": false
+            }
+          },
+          "remote_record_file": "result.json"
+        }
+      }
+    },
+    "sd-lora": {
+      "reference": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/summary.json",
+        "sha256": "0ca2a5e020a1892ecfa352865dd5719cdb47acff9ab426dcb6eac7a96024662b",
+        "artifacts": {
+          "files": {
+            "spec.json": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/spec.json",
+              "sha256": "1ae58a772221a41ec8102d748cdf6d183dd98f71bd9f3bc73dad3723aac79054",
+              "bytes": 11265
+            },
+            "task1_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/task1_predictions.npz",
+              "sha256": "d8f69913d6a2db66dc3046652c76c7a4d9d18a0b811265e3f07bcbb22292ae4a",
+              "bytes": 4000
+            },
+            "task2_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/task2_predictions.npz",
+              "sha256": "14db2af0afff381ccd1531c983793f1a9df66434b582594a75bc06a67570e8c1",
+              "bytes": 7833
+            }
+          },
+          "local_checkpoints": {
+            "1": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/task1_state.pt",
+              "relative_file": "task1_state.pt",
+              "sha256": "8c97bc7250eeaad56346d5fffd5dc5f9b8c56f20f7d985549377a542625fb705",
+              "bytes": 361625489,
+              "uploaded": false
+            },
+            "2": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/task2_state.pt",
+              "relative_file": "task2_state.pt",
+              "sha256": "4687854e2f280ddd31677e5647195127b27f1d1debae2c7f3f573a13942abe8f",
+              "bytes": 361625489,
+              "uploaded": false
+            }
+          },
+          "remote_record_file": "summary.json"
+        }
+      },
+      "native": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_native_20261008/result.json",
+        "sha256": "7e9dc46f18f51c502b14948702072f05b9c9123387b8da60424cdf15008fa2d7",
+        "artifacts": {
+          "files": {
+            "spec.json": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_native_20261008/spec.json",
+              "sha256": "70be5856a1e6ff47e68d85d4f1f5bd2b6b87824eccf0df10d1e6cb5fc37afb01",
+              "bytes": 9945
+            },
+            "task1_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_native_20261008/task1_predictions.npz",
+              "sha256": "d8f69913d6a2db66dc3046652c76c7a4d9d18a0b811265e3f07bcbb22292ae4a",
+              "bytes": 4000
+            },
+            "task2_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_native_20261008/task2_predictions.npz",
+              "sha256": "14db2af0afff381ccd1531c983793f1a9df66434b582594a75bc06a67570e8c1",
+              "bytes": 7833
+            }
+          },
+          "local_checkpoints": {
+            "1": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_native_20261008/task1_state.pt",
+              "relative_file": "task1_state.pt",
+              "sha256": "850c4749bca85baac284481dd3466d3aad3c423fa641b58a5f772a7978b9f062",
+              "bytes": 361664987,
+              "uploaded": false
+            },
+            "2": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_native_20261008/task2_state.pt",
+              "relative_file": "task2_state.pt",
+              "sha256": "0fa3afa58acf1f3421d0f1585776db2be61b633ea174f1c749c320516d1fb03d",
+              "bytes": 361664987,
+              "uploaded": false
+            }
+          },
+          "remote_record_file": "result.json"
+        }
+      }
+    },
+    "inf-lora": {
+      "reference": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/summary.json",
+        "sha256": "2064c27c0e9019d5696c9611a617ce41d11ed332608972d36dbbcc9bdae56cf8",
+        "artifacts": {
+          "files": {
+            "spec.json": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/spec.json",
+              "sha256": "769cd2f2dbdf6fd37f7393d7f763f00e90b8da47d79025b4ef16576f63770b4e",
+              "bytes": 11594
+            },
+            "task1_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/task1_predictions.npz",
+              "sha256": "ea21c53199ac5dfb14bd40d81e526b208fd5bcde0d5ab017b9ad698f06ebc369",
+              "bytes": 3996
+            },
+            "task2_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/task2_predictions.npz",
+              "sha256": "55ecfbd2616e093f092821583739f53a5a57fdb7b1da32daf870536e6d439ec7",
+              "bytes": 7835
+            }
+          },
+          "local_checkpoints": {
+            "1": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/task1_state.pt",
+              "relative_file": "task1_state.pt",
+              "sha256": "18f98b1a3be9ba94b19845077b665e7b40c280490dbff6a63ca9fcf17c75b9d0",
+              "bytes": 418129183,
+              "uploaded": false
+            },
+            "2": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/task2_state.pt",
+              "relative_file": "task2_state.pt",
+              "sha256": "8e58c229a355c23a404a35a1d3f5b3a7b49cb99e042e826579513a24e10da996",
+              "bytes": 390760351,
+              "uploaded": false
+            }
+          },
+          "remote_record_file": "summary.json"
+        }
+      },
+      "native": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_native_20261008/result.json",
+        "sha256": "eeb9a4c264808761922a4c20c51cebd6249cb11869ee87e061bdfe1fbf344a16",
+        "artifacts": {
+          "files": {
+            "spec.json": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_native_20261008/spec.json",
+              "sha256": "c4ff301f6db2f9458c5f294af8444a74d3aa16202b2c058489640fda95d49dc6",
+              "bytes": 10213
+            },
+            "task1_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_native_20261008/task1_predictions.npz",
+              "sha256": "ea21c53199ac5dfb14bd40d81e526b208fd5bcde0d5ab017b9ad698f06ebc369",
+              "bytes": 3996
+            },
+            "task2_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_native_20261008/task2_predictions.npz",
+              "sha256": "0c5094b2ad0e7a410a4fb1ed8022fe003cde72135a690853d7b7dfab80ca5b15",
+              "bytes": 7831
+            }
+          },
+          "local_checkpoints": {
+            "1": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_native_20261008/task1_state.pt",
+              "relative_file": "task1_state.pt",
+              "sha256": "ec11a98b7093e58edce588fef54818f79505e5d2d43674cc205c2b807346c00a",
+              "bytes": 362198923,
+              "uploaded": false
+            },
+            "2": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_native_20261008/task2_state.pt",
+              "relative_file": "task2_state.pt",
+              "sha256": "fc082f48d80e7aa4ac785987583ebc83d341475a236084689bdc62739b7b9fd6",
+              "bytes": 362524555,
+              "uploaded": false
+            }
+          },
+          "remote_record_file": "result.json"
+        }
+      }
+    },
+    "cl-lora": {
+      "reference": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_reference_20261008/summary.json",
+        "sha256": "a07a384620ce17dcd52f31c91c795806d497d7c332f5ece7ab3ebcf8dd24fd8f",
+        "artifacts": {
+          "files": {
+            "spec.json": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_reference_20261008/spec.json",
+              "sha256": "13cf86960bbff43525959b79e70150ad2eaa96e745d0bdf56969b12155461141",
+              "bytes": 12058
+            },
+            "task1_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_reference_20261008/task1_predictions.npz",
+              "sha256": "275a8336d003a1c353e8b2c0f6ecc96f96a87f2e68ccf3821fde158029495e6d",
+              "bytes": 3998
+            },
+            "task2_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_reference_20261008/task2_predictions.npz",
+              "sha256": "aad590750c2bafec81f6eb5e87ea0e94248f6bcc38bb13aeebe4f86fd7a38e29",
+              "bytes": 7830
+            }
+          },
+          "local_checkpoints": {
+            "1": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_reference_20261008/task1_state.pt",
+              "relative_file": "task1_state.pt",
+              "sha256": "0acff1de8d0bd63f8612b25ac67dcc35664f76a10978945755582236d368558b",
+              "bytes": 352252127,
+              "uploaded": false
+            },
+            "2": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_reference_20261008/task2_state.pt",
+              "relative_file": "task2_state.pt",
+              "sha256": "cbb2e62674a43ae2042a33cf8999d7ae9dbce687ca36e4f5e75a7b7b943d08f6",
+              "bytes": 352344287,
+              "uploaded": false
+            }
+          },
+          "remote_record_file": "summary.json"
+        }
+      },
+      "native": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_native_20261008/result.json",
+        "sha256": "2de0b01a11bda1a92d4384b4498e98ba3778dec479c1802046b5ec254eb521e4",
+        "artifacts": {
+          "files": {
+            "spec.json": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_native_20261008/spec.json",
+              "sha256": "59b3a584f71093cc023cf39feec3e7c74803a6f9087a6589260f93ce7ef181ef",
+              "bytes": 10661
+            },
+            "task1_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_native_20261008/task1_predictions.npz",
+              "sha256": "275a8336d003a1c353e8b2c0f6ecc96f96a87f2e68ccf3821fde158029495e6d",
+              "bytes": 3998
+            },
+            "task2_predictions.npz": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_native_20261008/task2_predictions.npz",
+              "sha256": "aad590750c2bafec81f6eb5e87ea0e94248f6bcc38bb13aeebe4f86fd7a38e29",
+              "bytes": 7830
+            }
+          },
+          "local_checkpoints": {
+            "1": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_native_20261008/task1_state.pt",
+              "relative_file": "task1_state.pt",
+              "sha256": "b805832184dd6383adb20e4a17fba785960a3535d382d1a6531d2255705c60df",
+              "bytes": 352307553,
+              "uploaded": false
+            },
+            "2": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/cl_native_20261008/task2_state.pt",
+              "relative_file": "task2_state.pt",
+              "sha256": "2d2e194c0897f7ecab04c5e0420e9e7a2e233e3d35c5e18fd24da778219a2741",
+              "bytes": 352399713,
+              "uploaded": false
+            }
+          },
+          "remote_record_file": "result.json"
+        }
+      }
+    }
+  },
+  "generated_at": "2026-10-07T19:36:12.927371+00:00"
+}

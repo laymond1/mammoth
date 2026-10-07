@@ -1,0 +1,40 @@
+{
+  "status": "pass",
+  "run_state": "finished",
+  "artifact_state": "COMMITTED",
+  "artifact": "laymond1/cl-efficiency/low-rank-validation-report-20261007T193707Z:v0",
+  "artifact_digest": "dc964367fde9a2e88b6299a040ae37a2",
+  "files": {
+    "RESULTS.md": {
+      "sha256": "37ca62f4c2daf9a0f7413ec3fb0d5c7554ad19be33ef7f06954a2efe304dabcb",
+      "wandb_manifest_digest": "Eloy3mbzZvYfo8Zh705H9w==",
+      "bytes": 3935,
+      "matches": true
+    },
+    "results.json": {
+      "sha256": "5c578fe861e8a957dfc701267473a502422d4cec508f17e6ad1142bb41baa906",
+      "wandb_manifest_digest": "3OmGG+EP+PvX0l+7fzAAvg==",
+      "bytes": 114480,
+      "matches": true
+    },
+    "results.csv": {
+      "sha256": "5487bac30d2d973be3a178d32fbb0f239e1ca179a4d4273a5d09a223c0d39c08",
+      "wandb_manifest_digest": "Tjhzam1Kb/KSa8mPiXfVpQ==",
+      "bytes": 1067,
+      "matches": true
+    },
+    "artifact_metadata.json": {
+      "sha256": "bbeb4057bdc499fdf43cd568ea273bbc58479f86d556ecd97a5d780803c7333c",
+      "wandb_manifest_digest": "VuhGk/vprrceSsppFPN8Gw==",
+      "bytes": 6656,
+      "matches": true
+    },
+    "source_readback.json": {
+      "sha256": "93e62d58f176df4fe4a8aeaecba18f3cff0ce50aa44c36aabddb579e1f3a2c1a",
+      "wandb_manifest_digest": "V1wtn3aEJTJCMLyKaG2U8A==",
+      "bytes": 15695,
+      "matches": true
+    }
+  },
+  "summary_verified": true
+}

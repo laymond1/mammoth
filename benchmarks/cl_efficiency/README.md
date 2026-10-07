@@ -1,5 +1,11 @@
 # CL 알고리즘 검토와 효율성 실험 준비
 
+2026-10-08 기준 AST 목록은 **76개 소스 엔트리**입니다. 기존 71개 목록에 HiDe-Prompt와 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA가 추가됐으며, 당시의 `inventory.csv`·`manifest.json`·실행 계획은 71개 스냅샷으로 보존합니다. 소스 수를 import 성공이나 완료한 실험 수로 해석하지 않습니다.
+
+네 LoRA 방법의 Base ViT 첫 2개 태스크는 독립 저자 코드·native 총 8회 검증을 완료했습니다. 각 방법의 네 정확도 지표·14개 구조 검사·첫 배치 입력 검사가 모두 pass입니다. Native 태스크2 전체 정확도는 EWC 96.05%·SD 94.80%·Inf 96.40%·CL 97.25%입니다. EWC·SD·CL의 네 정답 수는 저자 실행과 같고, Inf의 저자−native 차이는 전체 −0.15%p·과거 −0.40%p·신규 +0.10%p로 보존합니다. [LoRA 결과](low_rank/RESULTS.md), [구현·검증 범위](low_rank/README.md)에 조건과 실패·복구 이력을 기록합니다. 공통 저자 저장소 변형에 대한 검증이며 논문 수치 재현·효율성 pilot·전체10태스크 결과로 확대하지 않습니다. LoRA Small·Tiny는 CPU 생성·forward 확인만 수행했습니다.
+
+저자·native 8개 W&B 실행의 finished 상태·정답 수·증거 파일과 최종 보고서 artifact의 COMMITTED 상태를 재검증했고 최종 Slack 알림을 완료했습니다. [최종 W&B 보고서](https://wandb.ai/laymond1/cl-efficiency/runs/ztcuu1oq)에 검증 결과를 저장했습니다.
+
 EASE Base64·seed1993의 첫 2개 태스크 구현 검증이 통과했습니다. Native 정확도는 Task 1 99.40%, Task 2 전체 97.30%·과거 96.60%·신규 98.00%이며, 네 정확도 지표와 일곱 구조 검사가 모두 통과했습니다. [Native 검증 보고서](ease/native_validation_report.md)와 [JSON 결과](ease/native_validation_results.json)에 결과를 기록합니다. 알고리즘별 특징·장단점, 추가 구현 후보와 첫 태스크 효율성 비교 도구도 준비했습니다. 전체 알고리즘의 공통 효율성 비교는 아직 실행하지 않았으며, 기본 실행은 준비 파일 생성만 수행합니다.
 
 EASE Base64의 공통 조건 첫 태스크 효율성 pilot도 **측정 3회와 별도 부분 FLOPs 진단 1회**를 완료했습니다. 세 측정의 정확도는 모두 96.50%이며 전체 관측 시간 중앙값 29.7629초, CUDA peak allocated 5760.5054 MiB, GPU 보드 에너지 중앙값 2.4432 Wh입니다. [효율성 보고서](ease/efficiency_pilot_report.md), [JSON 결과](ease/efficiency_pilot_results.json), [측정 CSV](ease/efficiency_pilot_results.csv)에 연산 범위와 측정 한계를 함께 기록합니다. W&B 저장·Slack 알림·독립 감사가 통과했고 실행 source `49897a3`을 로컬 공통 기반에 병합했습니다. 이 EASE pilot은 Base64만 대상으로 했으며 Tiny·Small과 원격 push는 수행하지 않았습니다.
@@ -18,8 +24,8 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 
 ## 검토 자료
 
-- [현재 71개 모델의 특징과 장단점](algorithms.md)
-- [추가 검토할 14개 항목과 우선순위: 방법 13개·예산 프로토콜 1개](recommendations.md)
+- [현재 76개 소스 엔트리의 특징과 장단점](algorithms.md)
+- [초기 후보 14개 검토와 현재 구현 현황: 방법 13개·예산 프로토콜 1개](recommendations.md)
 - [BudgetCL·aL-SAR의 추가 가능성 및 이식 범위](budgeted_cl_review.md)
 - [공통 환경·worktree 사용법과 10월 6일 연결 검증](foundation.md)
 - [EASE 구현 범위·실행 결과·다음 단계](ease/README.md)
@@ -31,17 +37,18 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 - [HiDe-Prompt 전체10태스크 결과](hide_prompt/full_cl/report.md), [구현 및 검증 이력](hide_prompt/README.md)
 - [EASE Base 전체 CL 공통 입력 단계](ease_full_cl/README.md)
 - [HiDe-Prompt Small/Tiny 검증·효율성 결과](hide_sizes/README.md)
-- [표 형태의 전체 목록](inventory.csv)
-- [모델별 데이터셋과 인자 및 외부 요구사항](manifest.json)
-- [생성된 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)
+- [네 LoRA 방법의 Base 첫2태스크 결과](low_rank/RESULTS.md), [구현·검증 이력](low_rank/README.md)
+- [71개 목록 스냅샷](inventory.csv)
+- [71개 모델의 데이터셋·인자·외부 요구사항 스냅샷](manifest.json)
+- [당시 생성한 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)
 
-71개는 EASE를 추가한 소스의 모델 엔트리 수입니다. 정적 추론 기준선 3개와 Joint 기준선 2개를 포함하며, 학습 방법과 그 변형은 66개입니다. CaSpeR·CSCCT·LiDER·STAR 변형도 독립 실행 엔트리로 기록합니다. STAR 정규화 변형과 STARPrompt는 서로 다른 방법입니다.
+현재 76개는 정적 추론 기준선 3개·Joint 기준선 2개·학습 방법과 변형 71개로 구성합니다. EASE 추가 당시의 71개 스냅샷은 학습 방법과 변형 66개를 포함합니다. CaSpeR·CSCCT·LiDER·STAR 변형도 독립 실행 엔트리로 기록합니다. STAR 정규화 변형과 STARPrompt는 서로 다른 방법입니다. 전체76개의 공통 실행·효율성 비교는 완료하지 않았습니다.
 
-## 현재 준비 상태 (10월 7일)
+## EASE 준비·측정 당시 상태 (10월 7일)
 
 독립 worktree `.worktrees/ease`, 브랜치 `codex/ease`에 EASE의 기본 replay-free 경로를 구현했습니다. 첫 2개 태스크의 구현 검증과 첫 1개 태스크의 효율성 측정을 분리했으며, 세 크기 모두 **AugReg IN21K → IN1K fine-tuned**, 공통 adapter 64 및 Tiny16·Small32·Base64의 비율 정렬 비교를 준비했습니다. Base64 native 검증은 동일 조건 공식 기준선 대비 사용자 판정 기준을 통과했습니다. 이후 승인한 Base64 효율성 측정 3회·부분 FLOPs 진단 1회도 통과했고 W&B run 종료와 artifact COMMITTED 상태를 서버에서 확인했습니다. 실행 source `49897a3`은 `codex/cl-foundation`에 fast-forward 병합했습니다. 당시 Base64 단계에서는 Tiny·Small 학습과 원격 push를 수행하지 않았습니다. 이후 승인한 Small/Tiny 네 설정의 결과는 [크기별 비교 보고서](ease_sizes/report.md)에, 세 방법의 비교는 아래 후속 결과에 기록합니다.
 
-현재 manifest는 71개, 실행 대상으로 준비한 엔트리66개·보류5개입니다. 계획 수를 완료한 실험 수로 해석하지 않습니다. 공통 첫 태스크 효율성 설정은 EASE Base64·RanPAC·L2P·DualPrompt의4개이며, 신규 세 방법은 명시 checkpoint·공통 preprocessing을 적용한 pilot입니다. EASE Tiny·Small 네 설정도 완료했으며, 나머지 방법은 미실행입니다. [네 방법 비교 보고서](baselines/efficiency_pilot_report.md), [EASE 구현 검증](ease/native_validation_report.md), [크기별 결과](ease_sizes/report.md)를 참고합니다. 아래10월1일·6일 기록은 당시의 상태입니다.
+보존한 manifest는 71개, 당시 실행 대상으로 준비한 엔트리66개·보류5개입니다. 계획 수를 완료한 실험 수로 해석하지 않습니다. 공통 첫 태스크 효율성 설정은 EASE Base64·RanPAC·L2P·DualPrompt의4개이며, 신규 세 방법은 명시 checkpoint·공통 preprocessing을 적용한 pilot입니다. EASE Tiny·Small 네 설정도 완료했으며, 이후의 HiDe-Prompt·LoRA 검증은 위의 별도 보고서에 기록합니다. [네 방법 비교 보고서](baselines/efficiency_pilot_report.md), [EASE 구현 검증](ease/native_validation_report.md), [크기별 결과](ease_sizes/report.md)를 참고합니다. 아래10월1일·6일 기록은 당시의 상태입니다.
 
 ## 공통 기반 준비 당시 상태 (10월 6일)
 
@@ -76,7 +83,7 @@ native `MammothDatasetWrapper`가 만든 샘플 index/label의 SHA256을 train/t
 
 모든 알고리즘의 내부 학습을 1 epoch로 바꾸지는 않습니다. GDumb의 buffer fitting, STARPrompt의 첫 단계와 생성 replay, `second_order`의 pre-tuning/Fisher/alignment, SPR의 expert 학습은 고유 알고리즘 비용으로 그대로 포함합니다. **1개 태스크가 짧은 실행을 보장하지 않습니다.** 기본 timeout은 pass당 2시간이고, 초과/실패/누락을 결과에 표시합니다. 논문 재현용 최적 hyperparameter나 공정한 최종 성능 순위로 해석할 조건은 아닙니다.
 
-**71개 중 66개를 첫 태스크 실행 대상으로 준비하고 5개는 보류**합니다. Joint와 Joint-GCL은 다른 protocol이 필요합니다. LwS는 편향 데이터 필드가 필요하고, PuriDivER는 constructor에서 seq-cifar100-224를 허용하지 않습니다. CNLL은 hard augmentation이 32 pixel crop으로 고정되어 공통 224 pixel 입력과의 혼합 학습 경로를 이식해야 합니다. 보류한 방법의 알고리즘이나 protocol을 이번 비교에 맞추어 수정하지는 않았습니다.
+**보존한 71개 manifest에서 66개를 첫 태스크 실행 대상으로 준비하고 5개는 보류**했습니다. Joint와 Joint-GCL은 다른 protocol이 필요합니다. LwS는 편향 데이터 필드가 필요하고, PuriDivER는 constructor에서 seq-cifar100-224를 허용하지 않습니다. CNLL은 hard augmentation이 32 pixel crop으로 고정되어 공통 224 pixel 입력과의 혼합 학습 경로를 이식해야 합니다. 보류한 방법의 알고리즘이나 protocol을 이번 비교에 맞추어 수정하지는 않았습니다.
 
 ZSCL은 학습용 기준 데이터는 동일하게 사용하지만 distillation reference로 `data/conceptual_captions`를 추가로 필요로 합니다. CLIP·LLaVA·IDEFICS는 학습 없이 첫 태스크의 추론 비용과 정확도를 측정합니다. TwF pilot은 별도 논문 pretrained teacher checkpoint를 지정하지 않습니다. AttriCLIP에는 원논문 성능 미재현 경고가 있으므로 추천/순위에 그 한계를 표시합니다.
 

@@ -1,0 +1,414 @@
+{
+  "status": "pass",
+  "run_count": 8,
+  "runs": [
+    {
+      "method": "ewc-lora",
+      "side": "reference",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/d5ueg17n",
+      "run_state": "finished",
+      "count_summary_verified": {
+        "counts/observe_calls": 3160,
+        "counts/optimizer_updates": 3160,
+        "task1/seen_correct": 997,
+        "task1/seen_samples": 1000,
+        "task1/old_correct": 0,
+        "task1/old_samples": 0,
+        "task1/new_correct": 997,
+        "task1/new_samples": 1000,
+        "task2/seen_correct": 1921,
+        "task2/seen_samples": 2000,
+        "task2/old_correct": 962,
+        "task2/old_samples": 1000,
+        "task2/new_correct": 959,
+        "task2/new_samples": 1000
+      },
+      "artifact": "laymond1/cl-efficiency/ewc-lora-reference-20261007T165738Z-record:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "453ff4e554da12960bc2ed38cb641be6",
+      "files": {
+        "spec.json": {
+          "sha256": "8b5462e0daaf9c99336a3f2abe920aa796f1545ea1d2cca507a540f5e15012ae",
+          "wandb_manifest_digest": "6TkYPWYw2oOpMdAjZ7Cqkg==",
+          "bytes": 11130,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "f8e7d662209b9f9a736683bebc6390be16a8d499a04f58be853b32820b484539",
+          "wandb_manifest_digest": "HVatodL1M0YEVesGdgWl4A==",
+          "bytes": 3997,
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "43de29c992d1f356f44dca0f3b0c22955e205a456ad1a9a5122632709f1d2539",
+          "wandb_manifest_digest": "SUW9MGx7f3D6HeUz/xvQag==",
+          "bytes": 7830,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "local_checkpoint_sha256": {
+        "task1": "0438e663c5fbd373f95f2284fd19e1ae1d77aeb8610b5d398a23bee14b8ed5eb",
+        "task2": "fac1da2b492b8d89ad08bfe5f1732f3541b7f303a14381fe9aaaa7ee40db4665"
+      },
+      "full_checkpoints_uploaded": false
+    },
+    {
+      "method": "ewc-lora",
+      "side": "native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/88xfp4mx",
+      "run_state": "finished",
+      "count_summary_verified": {
+        "native_counts/observe_calls": 3160,
+        "native_counts/optimizer_updates": 3160,
+        "task1/seen_correct": 997,
+        "task1/seen_samples": 1000,
+        "task1/old_correct": 0,
+        "task1/old_samples": 0,
+        "task1/new_correct": 997,
+        "task1/new_samples": 1000,
+        "task2/seen_correct": 1921,
+        "task2/seen_samples": 2000,
+        "task2/old_correct": 962,
+        "task2/old_samples": 1000,
+        "task2/new_correct": 959,
+        "task2/new_samples": 1000
+      },
+      "artifact": "laymond1/cl-efficiency/ewc-lora-native-first2-20261007T171324Z:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "36bf36ed0c61f09e04605e893e177874",
+      "files": {
+        "spec.json": {
+          "sha256": "34674cabd4032f9b49f4f6e1951c2f72955af42f43b6b6ffefb810752b0d1793",
+          "wandb_manifest_digest": "9x8n1eupOe2aGA+GSZKeIA==",
+          "bytes": 9812,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "f8e7d662209b9f9a736683bebc6390be16a8d499a04f58be853b32820b484539",
+          "wandb_manifest_digest": "HVatodL1M0YEVesGdgWl4A==",
+          "bytes": 3997,
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "43de29c992d1f356f44dca0f3b0c22955e205a456ad1a9a5122632709f1d2539",
+          "wandb_manifest_digest": "SUW9MGx7f3D6HeUz/xvQag==",
+          "bytes": 7830,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "local_checkpoint_sha256": {
+        "task1": "0e869732ab5d59ea555906b9a751d9ebb088a9d36ce9676ba03d218cc12d484c",
+        "task2": "12eef34ea245f2f8e51c5f2e84bd874381238097cfb3bb97faccf4d4e5c287d0"
+      },
+      "full_checkpoints_uploaded": false
+    },
+    {
+      "method": "sd-lora",
+      "side": "reference",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/1jp6yh9x",
+      "run_state": "finished",
+      "count_summary_verified": {
+        "counts/observe_calls": 3160,
+        "counts/optimizer_updates": 3160,
+        "task1/seen_correct": 993,
+        "task1/seen_samples": 1000,
+        "task1/old_correct": 0,
+        "task1/old_samples": 0,
+        "task1/new_correct": 993,
+        "task1/new_samples": 1000,
+        "task2/seen_correct": 1896,
+        "task2/seen_samples": 2000,
+        "task2/old_correct": 905,
+        "task2/old_samples": 1000,
+        "task2/new_correct": 991,
+        "task2/new_samples": 1000
+      },
+      "artifact": "laymond1/cl-efficiency/sd-lora-reference-20261007T175127Z-record:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "85a7aac44e43ddae222a9a7b0b4ea37f",
+      "files": {
+        "spec.json": {
+          "sha256": "1ae58a772221a41ec8102d748cdf6d183dd98f71bd9f3bc73dad3723aac79054",
+          "wandb_manifest_digest": "xANQ8uLSVKzCWYXSvUDF2g==",
+          "bytes": 11265,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "d8f69913d6a2db66dc3046652c76c7a4d9d18a0b811265e3f07bcbb22292ae4a",
+          "wandb_manifest_digest": "wrO05Xsw1Tp6I+QrNUL66w==",
+          "bytes": 4000,
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "14db2af0afff381ccd1531c983793f1a9df66434b582594a75bc06a67570e8c1",
+          "wandb_manifest_digest": "p16P35AK1DYuYYqSWodvlQ==",
+          "bytes": 7833,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "local_checkpoint_sha256": {
+        "task1": "8c97bc7250eeaad56346d5fffd5dc5f9b8c56f20f7d985549377a542625fb705",
+        "task2": "4687854e2f280ddd31677e5647195127b27f1d1debae2c7f3f573a13942abe8f"
+      },
+      "full_checkpoints_uploaded": false
+    },
+    {
+      "method": "sd-lora",
+      "side": "native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nx8a4spa",
+      "run_state": "finished",
+      "count_summary_verified": {
+        "native_counts/observe_calls": 3160,
+        "native_counts/optimizer_updates": 3160,
+        "task1/seen_correct": 993,
+        "task1/seen_samples": 1000,
+        "task1/old_correct": 0,
+        "task1/old_samples": 0,
+        "task1/new_correct": 993,
+        "task1/new_samples": 1000,
+        "task2/seen_correct": 1896,
+        "task2/seen_samples": 2000,
+        "task2/old_correct": 905,
+        "task2/old_samples": 1000,
+        "task2/new_correct": 991,
+        "task2/new_samples": 1000
+      },
+      "artifact": "laymond1/cl-efficiency/sd-lora-native-first2-20261007T180414Z:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "5236f6abe3a68d2e48a98736ff518057",
+      "files": {
+        "spec.json": {
+          "sha256": "70be5856a1e6ff47e68d85d4f1f5bd2b6b87824eccf0df10d1e6cb5fc37afb01",
+          "wandb_manifest_digest": "d1S3gBx7p3it3xL2cEHAEw==",
+          "bytes": 9945,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "d8f69913d6a2db66dc3046652c76c7a4d9d18a0b811265e3f07bcbb22292ae4a",
+          "wandb_manifest_digest": "wrO05Xsw1Tp6I+QrNUL66w==",
+          "bytes": 4000,
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "14db2af0afff381ccd1531c983793f1a9df66434b582594a75bc06a67570e8c1",
+          "wandb_manifest_digest": "p16P35AK1DYuYYqSWodvlQ==",
+          "bytes": 7833,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "local_checkpoint_sha256": {
+        "task1": "850c4749bca85baac284481dd3466d3aad3c423fa641b58a5f772a7978b9f062",
+        "task2": "0fa3afa58acf1f3421d0f1585776db2be61b633ea174f1c749c320516d1fb03d"
+      },
+      "full_checkpoints_uploaded": false
+    },
+    {
+      "method": "inf-lora",
+      "side": "reference",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/atlzpgob",
+      "run_state": "finished",
+      "count_summary_verified": {
+        "counts/observe_calls": 3160,
+        "counts/optimizer_updates": 3160,
+        "task1/seen_correct": 993,
+        "task1/seen_samples": 1000,
+        "task1/old_correct": 0,
+        "task1/old_samples": 0,
+        "task1/new_correct": 993,
+        "task1/new_samples": 1000,
+        "task2/seen_correct": 1925,
+        "task2/seen_samples": 2000,
+        "task2/old_correct": 978,
+        "task2/old_samples": 1000,
+        "task2/new_correct": 947,
+        "task2/new_samples": 1000
+      },
+      "artifact": "laymond1/cl-efficiency/inf-lora-reference-20261007T182836Z-record:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "985083cdab2ad7ee00aa37d96b1eeb7c",
+      "files": {
+        "spec.json": {
+          "sha256": "769cd2f2dbdf6fd37f7393d7f763f00e90b8da47d79025b4ef16576f63770b4e",
+          "wandb_manifest_digest": "BnX6GKPPGtwAHi59S97XZg==",
+          "bytes": 11594,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "ea21c53199ac5dfb14bd40d81e526b208fd5bcde0d5ab017b9ad698f06ebc369",
+          "wandb_manifest_digest": "G5FFD2WDX4tfUsziipxJ0w==",
+          "bytes": 3996,
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "55ecfbd2616e093f092821583739f53a5a57fdb7b1da32daf870536e6d439ec7",
+          "wandb_manifest_digest": "5ActrFye10+f7L0/xB/fRQ==",
+          "bytes": 7835,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "local_checkpoint_sha256": {
+        "task1": "18f98b1a3be9ba94b19845077b665e7b40c280490dbff6a63ca9fcf17c75b9d0",
+        "task2": "8e58c229a355c23a404a35a1d3f5b3a7b49cb99e042e826579513a24e10da996"
+      },
+      "full_checkpoints_uploaded": false
+    },
+    {
+      "method": "inf-lora",
+      "side": "native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/8ysv61ah",
+      "run_state": "finished",
+      "count_summary_verified": {
+        "native_counts/observe_calls": 3160,
+        "native_counts/optimizer_updates": 3160,
+        "task1/seen_correct": 993,
+        "task1/seen_samples": 1000,
+        "task1/old_correct": 0,
+        "task1/old_samples": 0,
+        "task1/new_correct": 993,
+        "task1/new_samples": 1000,
+        "task2/seen_correct": 1928,
+        "task2/seen_samples": 2000,
+        "task2/old_correct": 982,
+        "task2/old_samples": 1000,
+        "task2/new_correct": 946,
+        "task2/new_samples": 1000
+      },
+      "artifact": "laymond1/cl-efficiency/inf-lora-native-first2-20261007T184103Z:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "4b9570ed6bbfd8677ac75465cba1e349",
+      "files": {
+        "spec.json": {
+          "sha256": "c4ff301f6db2f9458c5f294af8444a74d3aa16202b2c058489640fda95d49dc6",
+          "wandb_manifest_digest": "jjWqmxUfq5b9kzxbLQr5Zg==",
+          "bytes": 10213,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "ea21c53199ac5dfb14bd40d81e526b208fd5bcde0d5ab017b9ad698f06ebc369",
+          "wandb_manifest_digest": "G5FFD2WDX4tfUsziipxJ0w==",
+          "bytes": 3996,
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "0c5094b2ad0e7a410a4fb1ed8022fe003cde72135a690853d7b7dfab80ca5b15",
+          "wandb_manifest_digest": "romIbyBC6I0WGWTH3aCHMw==",
+          "bytes": 7831,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "local_checkpoint_sha256": {
+        "task1": "ec11a98b7093e58edce588fef54818f79505e5d2d43674cc205c2b807346c00a",
+        "task2": "fc082f48d80e7aa4ac785987583ebc83d341475a236084689bdc62739b7b9fd6"
+      },
+      "full_checkpoints_uploaded": false
+    },
+    {
+      "method": "cl-lora",
+      "side": "reference",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ao9ihx5x",
+      "run_state": "finished",
+      "count_summary_verified": {
+        "counts/observe_calls": 4740,
+        "counts/optimizer_updates": 7110,
+        "task1/seen_correct": 995,
+        "task1/seen_samples": 1000,
+        "task1/old_correct": 0,
+        "task1/old_samples": 0,
+        "task1/new_correct": 995,
+        "task1/new_samples": 1000,
+        "task2/seen_correct": 1945,
+        "task2/seen_samples": 2000,
+        "task2/old_correct": 985,
+        "task2/old_samples": 1000,
+        "task2/new_correct": 960,
+        "task2/new_samples": 1000
+      },
+      "artifact": "laymond1/cl-efficiency/cl-lora-reference-20261007T185347Z-record:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "af0a1a5dff254951e900c15dad44490e",
+      "files": {
+        "spec.json": {
+          "sha256": "13cf86960bbff43525959b79e70150ad2eaa96e745d0bdf56969b12155461141",
+          "wandb_manifest_digest": "OA9kUt4gocFzAWtpEg7gyQ==",
+          "bytes": 12058,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "275a8336d003a1c353e8b2c0f6ecc96f96a87f2e68ccf3821fde158029495e6d",
+          "wandb_manifest_digest": "Dar+a7+Du+NPrwtI46x1Gg==",
+          "bytes": 3998,
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "aad590750c2bafec81f6eb5e87ea0e94248f6bcc38bb13aeebe4f86fd7a38e29",
+          "wandb_manifest_digest": "c++9cziEMrxrG+cG3JS4Tg==",
+          "bytes": 7830,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "local_checkpoint_sha256": {
+        "task1": "0acff1de8d0bd63f8612b25ac67dcc35664f76a10978945755582236d368558b",
+        "task2": "cbb2e62674a43ae2042a33cf8999d7ae9dbce687ca36e4f5e75a7b7b943d08f6"
+      },
+      "full_checkpoints_uploaded": false
+    },
+    {
+      "method": "cl-lora",
+      "side": "native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/02znct1l",
+      "run_state": "finished",
+      "count_summary_verified": {
+        "native_counts/observe_calls": 4740,
+        "native_counts/optimizer_updates": 7110,
+        "task1/seen_correct": 995,
+        "task1/seen_samples": 1000,
+        "task1/old_correct": 0,
+        "task1/old_samples": 0,
+        "task1/new_correct": 995,
+        "task1/new_samples": 1000,
+        "task2/seen_correct": 1945,
+        "task2/seen_samples": 2000,
+        "task2/old_correct": 985,
+        "task2/old_samples": 1000,
+        "task2/new_correct": 960,
+        "task2/new_samples": 1000
+      },
+      "artifact": "laymond1/cl-efficiency/cl-lora-native-first2-20261007T191405Z:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "a9cb23974a0c298d162e04c8e7b14740",
+      "files": {
+        "spec.json": {
+          "sha256": "59b3a584f71093cc023cf39feec3e7c74803a6f9087a6589260f93ce7ef181ef",
+          "wandb_manifest_digest": "78Z9BRe5rGN0KS9qxEuQwQ==",
+          "bytes": 10661,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "275a8336d003a1c353e8b2c0f6ecc96f96a87f2e68ccf3821fde158029495e6d",
+          "wandb_manifest_digest": "Dar+a7+Du+NPrwtI46x1Gg==",
+          "bytes": 3998,
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "aad590750c2bafec81f6eb5e87ea0e94248f6bcc38bb13aeebe4f86fd7a38e29",
+          "wandb_manifest_digest": "c++9cziEMrxrG+cG3JS4Tg==",
+          "bytes": 7830,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "local_checkpoint_sha256": {
+        "task1": "b805832184dd6383adb20e4a17fba785960a3535d382d1a6531d2255705c60df",
+        "task2": "2d2e194c0897f7ecab04c5e0420e9e7a2e233e3d35c5e18fd24da778219a2741"
+      },
+      "full_checkpoints_uploaded": false
+    }
+  ]
+}

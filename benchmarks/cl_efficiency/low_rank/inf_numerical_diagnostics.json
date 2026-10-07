@@ -1,0 +1,497 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "method": "inf-lora",
+  "diagnostic_only": true,
+  "new_training": false,
+  "new_gpu_computation": false,
+  "credentials_accessed": false,
+  "external_actions": false,
+  "numpy_version": "2.5.2",
+  "torch_version": "2.13.0+cu126",
+  "reference_commit": "d007ef5c13a6d8a7d7db3eedf93f5e796e2ce429",
+  "script_sha256": "25c210f7989bab33f172961b1667407140b84fe32436b0aab28cc0acee3c6beb",
+  "task1_checkpoint_provenance": {
+    "reference": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_reference_20261008_retry1/task1_state.pt",
+      "sha256": "18f98b1a3be9ba94b19845077b665e7b40c280490dbff6a63ca9fcf17c75b9d0",
+      "saved_audit_sha256_matches": true
+    },
+    "native": {
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/inf_native_20261008/task1_state.pt",
+      "sha256": "ec11a98b7093e58edce588fef54818f79505e5d2d43674cc205c2b807346c00a",
+      "saved_audit_sha256_matches": true
+    }
+  },
+  "task1_network": {
+    "tensor_count": 652,
+    "all_tensors_bit_exact": true,
+    "different_tensor_names": [],
+    "source_sha256": "02c73032ac26ccb9bfd20dbde496dc63065910b05774e5511a43eb7c5e7ba549",
+    "native_sha256": "02c73032ac26ccb9bfd20dbde496dc63065910b05774e5511a43eb7c5e7ba549"
+  },
+  "task1_subspaces": {
+    "all_basis_values_bit_exact": true,
+    "all_modes_match": true,
+    "ranks": [
+      6,
+      9,
+      12,
+      12,
+      19,
+      22,
+      21,
+      25,
+      29,
+      23,
+      7,
+      9
+    ],
+    "modes": [
+      "remove",
+      "remove",
+      "remove",
+      "remove",
+      "remove",
+      "remove",
+      "remove",
+      "remove",
+      "remove",
+      "remove",
+      "remove",
+      "remove"
+    ],
+    "layers": [
+      {
+        "layer": 0,
+        "rank": 6,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          6
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          6,
+          1
+        ],
+        "projector_different_elements": 0,
+        "projector_max_abs_difference": 0.0,
+        "projector_relative_frobenius_difference": 0.0,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 1,
+        "rank": 9,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          9
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          9,
+          1
+        ],
+        "projector_different_elements": 118204,
+        "projector_max_abs_difference": 1.4901161193847656e-08,
+        "projector_relative_frobenius_difference": 2.0292700853019596e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 2,
+        "rank": 12,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          12
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          12,
+          1
+        ],
+        "projector_different_elements": 137664,
+        "projector_max_abs_difference": 5.960464477539063e-08,
+        "projector_relative_frobenius_difference": 4.0351352481593494e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 3,
+        "rank": 12,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          12
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          12,
+          1
+        ],
+        "projector_different_elements": 120823,
+        "projector_max_abs_difference": 4.470348358154297e-08,
+        "projector_relative_frobenius_difference": 3.287055250211779e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 4,
+        "rank": 19,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          19
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          19,
+          1
+        ],
+        "projector_different_elements": 137224,
+        "projector_max_abs_difference": 1.1920928955078125e-07,
+        "projector_relative_frobenius_difference": 5.306594985654556e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 5,
+        "rank": 22,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          22
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          22,
+          1
+        ],
+        "projector_different_elements": 142099,
+        "projector_max_abs_difference": 3.725290298461914e-08,
+        "projector_relative_frobenius_difference": 5.2377128412217644e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 6,
+        "rank": 21,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          21
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          21,
+          1
+        ],
+        "projector_different_elements": 140909,
+        "projector_max_abs_difference": 2.9802322387695312e-08,
+        "projector_relative_frobenius_difference": 5.0873431689524296e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 7,
+        "rank": 25,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          25
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          25,
+          1
+        ],
+        "projector_different_elements": 145999,
+        "projector_max_abs_difference": 5.960464477539063e-08,
+        "projector_relative_frobenius_difference": 5.6947886406533144e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 8,
+        "rank": 29,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          29
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          29,
+          1
+        ],
+        "projector_different_elements": 149011,
+        "projector_max_abs_difference": 5.960464477539063e-08,
+        "projector_relative_frobenius_difference": 5.891952525871602e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 9,
+        "rank": 23,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          23
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          23,
+          1
+        ],
+        "projector_different_elements": 144385,
+        "projector_max_abs_difference": 2.9802322387695312e-08,
+        "projector_relative_frobenius_difference": 5.572052330649058e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 10,
+        "rank": 7,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          7
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          7,
+          1
+        ],
+        "projector_different_elements": 0,
+        "projector_max_abs_difference": 0.0,
+        "projector_relative_frobenius_difference": 0.0,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      },
+      {
+        "layer": 11,
+        "rank": 9,
+        "source_mode": "remove",
+        "native_mode": "remove",
+        "basis_shape": [
+          768,
+          9
+        ],
+        "basis_bit_exact": true,
+        "basis_max_abs_difference": 0.0,
+        "source_basis_stride": [
+          768,
+          1
+        ],
+        "native_basis_stride": [
+          9,
+          1
+        ],
+        "projector_different_elements": 137102,
+        "projector_max_abs_difference": 1.4901161193847656e-08,
+        "projector_relative_frobenius_difference": 4.200015268907009e-08,
+        "source_original_stride_reconstructs_saved_projector_exactly": true,
+        "source_C_packed_projection_equals_native_exactly": true,
+        "source_stride_restored_native_reconstructs_saved_projector_exactly": true
+      }
+    ],
+    "projector_layers_different": 10,
+    "projector_layers_total": 12,
+    "projector_max_abs_difference": 1.1920928955078125e-07,
+    "projector_max_relative_frobenius_difference": 5.891952525871602e-08,
+    "source_C_packed_projection_equals_native_all_layers": true,
+    "source_stride_restored_native_equals_saved_projector_all_layers": true
+  },
+  "thread_context": {
+    "audit_torch_cpu_threads": 2,
+    "numpy_blas_pools": [
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "num_threads": 32,
+        "prefix": "libscipy_openblas",
+        "version": "0.3.34.0.0",
+        "threading_layer": "pthreads",
+        "architecture": "Haswell"
+      }
+    ],
+    "environment": {
+      "OPENBLAS_NUM_THREADS": null,
+      "OMP_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null
+    },
+    "saved_reference_torch_cpu_threads": 2,
+    "saved_native_torch_cpu_threads": 2,
+    "saved_runs_separately_record_numpy_blas_threads": false,
+    "interpretation": "This audit uses Torch 2 threads and NumPy OpenBLAS 32 threads; original-stride projector reconstruction is bit-exact to saved source values. Torch thread limits do not limit NumPy BLAS."
+  },
+  "predictions": [
+    {
+      "task": 1,
+      "prediction_archive_sha256": {
+        "reference": "ea21c53199ac5dfb14bd40d81e526b208fd5bcde0d5ab017b9ad698f06ebc369",
+        "native": "ea21c53199ac5dfb14bd40d81e526b208fd5bcde0d5ab017b9ad698f06ebc369"
+      },
+      "global_ids_and_labels_exact": true,
+      "partitions": {
+        "seen": {
+          "samples": 1000,
+          "reference_correct": 993,
+          "native_correct": 993,
+          "prediction_disagreements": 0,
+          "reference_wrong_native_right": 0,
+          "reference_right_native_wrong": 0,
+          "native_minus_reference_correct": 0,
+          "reference_minus_native_pp": 0.0
+        }
+      }
+    },
+    {
+      "task": 2,
+      "prediction_archive_sha256": {
+        "reference": "55ecfbd2616e093f092821583739f53a5a57fdb7b1da32daf870536e6d439ec7",
+        "native": "0c5094b2ad0e7a410a4fb1ed8022fe003cde72135a690853d7b7dfab80ca5b15"
+      },
+      "global_ids_and_labels_exact": true,
+      "partitions": {
+        "seen": {
+          "samples": 2000,
+          "reference_correct": 1925,
+          "native_correct": 1928,
+          "prediction_disagreements": 11,
+          "reference_wrong_native_right": 6,
+          "reference_right_native_wrong": 3,
+          "native_minus_reference_correct": 3,
+          "reference_minus_native_pp": -0.15
+        },
+        "old": {
+          "samples": 1000,
+          "reference_correct": 978,
+          "native_correct": 982,
+          "prediction_disagreements": 5,
+          "reference_wrong_native_right": 4,
+          "reference_right_native_wrong": 0,
+          "native_minus_reference_correct": 4,
+          "reference_minus_native_pp": -0.4
+        },
+        "new": {
+          "samples": 1000,
+          "reference_correct": 947,
+          "native_correct": 946,
+          "prediction_disagreements": 6,
+          "reference_wrong_native_right": 2,
+          "reference_right_native_wrong": 3,
+          "native_minus_reference_correct": -1,
+          "reference_minus_native_pp": 0.1
+        }
+      }
+    }
+  ],
+  "acceptance_preserved": {
+    "status": "pass",
+    "structural_checks": {
+      "finite_loss_and_gradients": true,
+      "dataset_matches_reference": true,
+      "frozen_backbone_unchanged": true,
+      "frozen_backbone_gradients_absent": true,
+      "canonical_pretrained_matches_pin": true,
+      "learnable_initialization_matches": true,
+      "training_protocol_complete": true,
+      "nonoracle_seen_class_evaluation": true,
+      "prediction_ids_and_counts_complete": true,
+      "method_state_valid": true,
+      "no_future_or_replay_samples": true,
+      "first_batch_inputs_match": true,
+      "optimizer_updates_complete": true,
+      "checkpoint_round_trip": true
+    },
+    "task1_seen_reference_minus_native_pp": 0.0,
+    "task2_seen_reference_minus_native_pp": -0.15,
+    "task2_old_reference_minus_native_pp": -0.4,
+    "task2_new_reference_minus_native_pp": 0.1,
+    "maximum_accuracy_degradation_pp": 0.1,
+    "pass_threshold_pp": 1.5
+  },
+  "finding": "The first demonstrated divergence is float32 NumPy F @ F.T rounding from packing an identical source basis into native contiguous storage; the projection is used before task2 DRM SVD and its first gradient.",
+  "inference_limit": "No raw covariance snapshot or rerun was used. Layout-dependent projector differences are reproduced exactly, but this audit does not establish that they alone caused every final prediction/accuracy difference. BLAS thread configuration can also affect float32 rounding. Existing PASS and all nonzero accuracy differences are preserved."
+}

@@ -1,0 +1,17 @@
+method,metric,reference_correct,reference_samples,native_correct,native_samples,reference_accuracy_pct,native_accuracy_pct,drop_pp,status
+ewc-lora,task1_seen,997,1000,997,1000,99.7,99.7,0.0,pass
+ewc-lora,task2_seen,1921,2000,1921,2000,96.05,96.05,0.0,pass
+ewc-lora,task2_old,962,1000,962,1000,96.2,96.2,0.0,pass
+ewc-lora,task2_new,959,1000,959,1000,95.9,95.9,0.0,pass
+sd-lora,task1_seen,993,1000,993,1000,99.3,99.3,0.0,pass
+sd-lora,task2_seen,1896,2000,1896,2000,94.8,94.8,0.0,pass
+sd-lora,task2_old,905,1000,905,1000,90.5,90.5,0.0,pass
+sd-lora,task2_new,991,1000,991,1000,99.1,99.1,0.0,pass
+inf-lora,task1_seen,993,1000,993,1000,99.3,99.3,0.0,pass
+inf-lora,task2_seen,1925,2000,1928,2000,96.25,96.4,-0.15,pass
+inf-lora,task2_old,978,1000,982,1000,97.8,98.2,-0.4,pass
+inf-lora,task2_new,947,1000,946,1000,94.7,94.6,0.1,pass
+cl-lora,task1_seen,995,1000,995,1000,99.5,99.5,0.0,pass
+cl-lora,task2_seen,1945,2000,1945,2000,97.25,97.25,0.0,pass
+cl-lora,task2_old,985,1000,985,1000,98.5,98.5,0.0,pass
+cl-lora,task2_new,960,1000,960,1000,96.0,96.0,0.0,pass
