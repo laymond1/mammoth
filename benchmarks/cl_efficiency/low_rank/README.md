@@ -17,6 +17,20 @@ merging into `codex/cl-foundation`; no remote push is part of this stage.
 | InfLoRA | 20 epochs, Adam LR0.0005 | Full current-task feature collection before training, SVD initialization, post-training DualGPM update |
 | CL-LoRA | 30 epochs, SGD LR0.03, momentum0.9, decay0.0001 | Shared blocks0–5/specific blocks6–11, Q/V LoRA, KD5/temperature2, separate KD then CE+orthogonality updates, prototypes |
 
+## 방법별 검토 관점
+
+| 방법 | 특징과 장점 | 비용과 한계 |
+| --- | --- | --- |
+| EWC-LoRA | weight-space Fisher로 새 저랭크 갱신을 제약하고 누적 지식을 보존합니다. 원본 이미지 replay를 저장하지 않습니다. | Base에서 24개 768×768 Fisher 행렬만 FP32 약54MiB이며, 태스크마다 전체 데이터의 추가 backward가 필요합니다. Fisher 강도·누적 A/B 방식의 영향을 검토해야 합니다. |
+| SD-LoRA | 태스크별 LoRA와 학습 가능한 공유 scale로 과거 갱신의 영향을 조절합니다. 별도 Fisher·SVD 단계가 없어 학습 흐름이 단순합니다. | 과거 LoRA를 저장하고 매 forward에 누적해 사용하므로 태스크가 늘면 저장량·연산도 증가합니다. scale 조절에 따른 과거 클래스 변화가 검토 대상입니다. |
+| InfLoRA | 과거 feature 서브스페이스를 고려해 A를 정하고 B를 학습하여 태스크 간 간섭을 줄이려는 방법입니다. 과거 이미지를 보관하지 않습니다. | 학습 전후 전체 데이터 feature 수집, SVD와 DualGPM 상태가 필요합니다. 학습 파라미터 수만으로 실제 CPU·시간·메모리 비용을 판단하기 어렵습니다. |
+| CL-LoRA | shared/specific LoRA를 나누고 증류·직교 손실·prototype을 함께 사용합니다. 지식 공유와 태스크 특화를 각각 제어할 수 있습니다. | 두 번째 태스크부터 배치마다 KD와 CE의 두 optimizer step이 필요합니다. 이 통합 저장소의 추론은 학습한 각 태스크에 대해 전체 transformer를 다시 실행하므로, 논문의 효율성 주장을 그대로 적용하지 않습니다. |
+
+위 장단점은 고정한 [통합 코드](https://github.com/yaoyz96/low-rank-cl/tree/d007ef5c13a6d8a7d7db3eedf93f5e796e2ce429)의
+구조에 근거합니다. 실제 성능과 자원 비용은 검증 결과 및 후속 공통 효율성
+실험으로 확인합니다. 다른 데이터셋에 연결할 때는
+`--lora_classes_per_task`를 실제 태스크 크기와 맞춰야 합니다.
+
 All methods use rank10, batch64, seed1993, workers4, FP32 and physical GPU1.
 The complete `seq-cifar100-224` class order is 0–99, ten classes per task;
 validation stops after the first two tasks without changing the task capacity.
