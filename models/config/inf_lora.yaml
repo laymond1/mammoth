@@ -1,0 +1,17 @@
+default:
+  backbone: low-rank-vit
+  low_rank_method: inflora
+  lora_vit_size: base
+  lora_rank: 10
+  lora_fc_lr: .0005
+  optimizer: adam
+  lr: .0005
+  optim_wd: 0.0
+  n_epochs: 20
+  batch_size: 64
+  seed: 1993
+  lr_scheduler: cosine
+  scheduler_mode: epoch
+  enable_other_metrics: false
+  lora_lamb: 0.95
+  lora_lame: 1.0
