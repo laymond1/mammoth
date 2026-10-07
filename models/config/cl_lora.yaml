@@ -1,0 +1,22 @@
+default:
+  backbone: low-rank-vit
+  low_rank_method: cllora
+  lora_vit_size: base
+  lora_rank: 10
+  lora_fc_lr: .03
+  optimizer: sgd
+  lr: .03
+  optim_wd: 0.0001
+  n_epochs: 30
+  batch_size: 64
+  seed: 1993
+  lr_scheduler: cosine
+  scheduler_mode: epoch
+  enable_other_metrics: false
+  optim_mom: 0.9
+  optim_nesterov: 0
+  lora_kd_ratio: 5.0
+  lora_temperature: 2.0
+  lora_msa: [1, 0, 1]
+  lora_shared_pos: [0, 1, 2, 3, 4, 5]
+  lora_specific_pos: [6, 7, 8, 9, 10, 11]
