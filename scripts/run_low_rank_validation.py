@@ -40,6 +40,17 @@ def reference_record(path):
     return document.get('official_reference', document)
 
 
+def update_wandb_summary(run, record):
+    """Send summary mappings through the SDK's positional dictionary API."""
+    values = {key: value for key, value in flatten({'native_counts': record['counts'],
+              'native_acceptance': record.get('acceptance', {})}).items() if isinstance(value, (int, float, bool))}
+    values.update(native_status=record['status'], acceptance_status=record['acceptance_status'], efficiency_comparison=False)
+    for row in record['task_results']:
+        values.update({f'task{row["task"]}/{key}': row[key]
+                       for key in ('seen_correct', 'seen_samples', 'old_correct', 'old_samples', 'new_correct', 'new_samples')})
+    run.summary.update(values)
+
+
 def validate_spec(spec):
     method = spec.get('method')
     if (method not in METHODS or spec.get('protocol') != protocol(method) or spec.get('tasks') != 2
@@ -513,12 +524,7 @@ def worker(spec_path):
         write_json(output / 'result.json', record)
         if wandb is not None and wandb.run is not None:
             try:
-                wandb.run.summary.update({key: value for key, value in flatten({'native_counts': record['counts'],
-                    'native_acceptance': record.get('acceptance', {})}).items() if isinstance(value, (int, float, bool))})
-                wandb.run.summary.update(native_status=record['status'], acceptance_status=record['acceptance_status'], efficiency_comparison=False)
-                for row in record['task_results']:
-                    wandb.run.summary.update({f'task{row["task"]}/{key}': row[key]
-                        for key in ('seen_correct', 'seen_samples', 'old_correct', 'old_samples', 'new_correct', 'new_samples')})
+                update_wandb_summary(wandb.run, record)
                 write_json(output / 'state_audits.json', record.get('state_audits', {}))
                 write_json(output / 'first_batch_audits.json', record['first_batch_audits'])
                 artifact = wandb.Artifact(spec['name'], type='cl-native-acceptance')
@@ -532,6 +538,7 @@ def worker(spec_path):
                 record['wandb_logging_status'] = 'uploaded'
             except Exception as error:
                 record.update(wandb_logging_status='failed:' + type(error).__name__, status='logging_failed')
+                logging.exception('Native low-rank evidence upload failed')
                 code = 1
             finally:
                 try:

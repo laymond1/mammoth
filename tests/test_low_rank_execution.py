@@ -3,11 +3,36 @@ from copy import deepcopy
 import json
 import subprocess
 import sys
+from types import SimpleNamespace
 
 import pytest
 
 from scripts import low_rank_protocol as protocol
 from scripts import run_low_rank_validation as runner
+
+
+def test_wandb_summary_uses_sdk_dictionary_api_and_preserves_exact_counts():
+    from wandb.sdk.wandb_summary import Summary
+
+    updates = []
+    summary = Summary(lambda: {})
+    summary._set_update_callback(updates.append)
+    reference = independent_reference()
+    record = {**reference, 'acceptance_status': 'pass',
+              'counts': {'observe_calls': 3160, 'optimizer_updates': 3160},
+              'acceptance': {'status': 'pass', 'structural_checks': {'finite_loss_and_gradients': True}}}
+    runner.update_wandb_summary(SimpleNamespace(summary=summary), record)
+    assert len(updates) == 1
+    values = {item.key[0]: item.value for item in updates[0].update}
+    assert values['native_status'] == 'completed'
+    assert values['acceptance_status'] == 'pass'
+    assert values['efficiency_comparison'] is False
+    assert values['native_counts/observe_calls'] == 3160
+    assert values['native_counts/optimizer_updates'] == 3160
+    assert values['native_acceptance/structural_checks/finite_loss_and_gradients'] is True
+    for row in record['task_results']:
+        for key in ('seen_correct', 'seen_samples', 'old_correct', 'old_samples', 'new_correct', 'new_samples'):
+            assert values[f'task{row["task"]}/{key}'] == row[key]
 
 
 def valid_spec():
