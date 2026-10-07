@@ -1,0 +1,1972 @@
+{
+  "status": "pass",
+  "stage": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z",
+  "counts": {
+    "reference": 4,
+    "native_validation": 4,
+    "measurement": 12,
+    "flops": 4,
+    "total": 24
+  },
+  "base_reused": true,
+  "variants": {
+    "small_fixed64": {
+      "status": "pass",
+      "accuracy_drops": {
+        "task1_seen": {
+          "reference_correct": 986,
+          "native_correct": 985,
+          "samples": 1000,
+          "drop_pp": 0.1
+        },
+        "task2_seen": {
+          "reference_correct": 1910,
+          "native_correct": 1908,
+          "samples": 2000,
+          "drop_pp": 0.1
+        },
+        "task2_old": {
+          "reference_correct": 956,
+          "native_correct": 959,
+          "samples": 1000,
+          "drop_pp": -0.3
+        },
+        "task2_new": {
+          "reference_correct": 954,
+          "native_correct": 949,
+          "samples": 1000,
+          "drop_pp": 0.5
+        }
+      },
+      "cpu_time_s_measurement_only": {
+        "median": 28.452672999999997,
+        "min": 28.408869,
+        "max": 28.498783,
+        "values": [
+          28.408869,
+          28.452672999999997,
+          28.498783
+        ]
+      },
+      "resources_recomputed": true,
+      "power_integration_recomputed": true,
+      "partial_flops_separate": true
+    },
+    "tiny_fixed64": {
+      "status": "pass",
+      "accuracy_drops": {
+        "task1_seen": {
+          "reference_correct": 966,
+          "native_correct": 962,
+          "samples": 1000,
+          "drop_pp": 0.4
+        },
+        "task2_seen": {
+          "reference_correct": 1820,
+          "native_correct": 1822,
+          "samples": 2000,
+          "drop_pp": -0.1
+        },
+        "task2_old": {
+          "reference_correct": 900,
+          "native_correct": 895,
+          "samples": 1000,
+          "drop_pp": 0.5
+        },
+        "task2_new": {
+          "reference_correct": 920,
+          "native_correct": 927,
+          "samples": 1000,
+          "drop_pp": -0.7
+        }
+      },
+      "cpu_time_s_measurement_only": {
+        "median": 24.998628,
+        "min": 24.684243,
+        "max": 25.167555000000004,
+        "values": [
+          25.167555000000004,
+          24.998628,
+          24.684243
+        ]
+      },
+      "resources_recomputed": true,
+      "power_integration_recomputed": true,
+      "partial_flops_separate": true
+    },
+    "small_relative32": {
+      "status": "pass",
+      "accuracy_drops": {
+        "task1_seen": {
+          "reference_correct": 985,
+          "native_correct": 985,
+          "samples": 1000,
+          "drop_pp": 0.0
+        },
+        "task2_seen": {
+          "reference_correct": 1907,
+          "native_correct": 1909,
+          "samples": 2000,
+          "drop_pp": -0.1
+        },
+        "task2_old": {
+          "reference_correct": 957,
+          "native_correct": 956,
+          "samples": 1000,
+          "drop_pp": 0.1
+        },
+        "task2_new": {
+          "reference_correct": 950,
+          "native_correct": 953,
+          "samples": 1000,
+          "drop_pp": -0.3
+        }
+      },
+      "cpu_time_s_measurement_only": {
+        "median": 28.599705,
+        "min": 28.530366,
+        "max": 28.671111999999997,
+        "values": [
+          28.671111999999997,
+          28.530366,
+          28.599705
+        ]
+      },
+      "resources_recomputed": true,
+      "power_integration_recomputed": true,
+      "partial_flops_separate": true
+    },
+    "tiny_relative16": {
+      "status": "pass",
+      "accuracy_drops": {
+        "task1_seen": {
+          "reference_correct": 963,
+          "native_correct": 964,
+          "samples": 1000,
+          "drop_pp": -0.1
+        },
+        "task2_seen": {
+          "reference_correct": 1804,
+          "native_correct": 1815,
+          "samples": 2000,
+          "drop_pp": -0.55
+        },
+        "task2_old": {
+          "reference_correct": 881,
+          "native_correct": 892,
+          "samples": 1000,
+          "drop_pp": -1.1
+        },
+        "task2_new": {
+          "reference_correct": 923,
+          "native_correct": 923,
+          "samples": 1000,
+          "drop_pp": 0.0
+        }
+      },
+      "cpu_time_s_measurement_only": {
+        "median": 24.707909,
+        "min": 24.703098999999998,
+        "max": 24.711429,
+        "values": [
+          24.711429,
+          24.707909,
+          24.703098999999998
+        ]
+      },
+      "resources_recomputed": true,
+      "power_integration_recomputed": true,
+      "partial_flops_separate": true
+    }
+  },
+  "workers": [
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/reference/ease-author-code-small_fixed64-reference-20261007T024856Z",
+      "kind": "reference",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nfr0uipo",
+      "energy": {
+        "samples": 234,
+        "energy_j": 90721.56637731184,
+        "coverage_fraction": 0.9998080803520341
+      },
+      "file_sha256": {
+        "completion.json": "2ea978d0dc18980f103a493c18a3d41738040ecd8be9a6126fbd8c76671242f6",
+        "epoch_results.json": "562a9ec0c1c5b55c6e3be4670f1cb4d46a37ccc58dae13cad064d101a4dd74e3",
+        "metrics.json": "fb2783176bba3b7317b3adf6f93147e01294c2b85dfbd9ce48684951c40b6833",
+        "notifications.json": "99e25d4dbbdf533514dfe19ce5f6d4e9ccb821129a0dbc972a74037e5665f612",
+        "phases.json": "2a7ffade26ceab311d01289e77def05fbeb16b833ad3d8ae836db73b91209b79",
+        "progress.json": "3ca17f280f38fd84e74753d55ace7379dd1d90744c7223bf3ea44c0f818ffd41",
+        "runtime_patches.json": "07da857e2bb2d8e13381e2122655f7aac4be81654cb488ce743aeb5ce22cb274",
+        "shared_data.json": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+        "spec.json": "756d4ce0c474a9abc87401a7e9f402344df187977826e36b199680f3bc530a3f",
+        "task1_predictions.npz": "ba78a7321c0b3b71aea630d4414326c9be0372219768d2a00fc9fa741640c4dc",
+        "task1_state.pt": "68c2260e187e9861d4645192019af9eca15b0fd19959c87b089fc9276e55f79c",
+        "task2_predictions.npz": "5288b9946dfc12d986d8e1eae6b30b8b8b55cdbd0937c80d03c591fb1fe220bc",
+        "task2_state.pt": "fa31186833a38707001ee8cfbd0584663db2707bfa64a0f141b971881fea2eb9",
+        "task_results.json": "e86d3ee47a226fbf03cda794b0312ed1fcb6f5262958909fb4dc00e5c9030d56",
+        "telemetry.csv": "e43fbb8ba633a9192f9c8355d4da2e347fc198d119404069db76766c48aacfb0"
+      },
+      "cpu_s": 373.064834,
+      "slack": {
+        "status": "sent",
+        "count": 2,
+        "task_count": 2
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/nfr0uipo",
+        "state": "finished",
+        "artifact": "ease-author-code-small_fixed64-reference-20261007T024856Z:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 34,
+        "files": {
+          "epoch_results.json": {
+            "sha256": "562a9ec0c1c5b55c6e3be4670f1cb4d46a37ccc58dae13cad064d101a4dd74e3",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "9e541439e7904e0a3dac20a1eceb87c1e033b77c74f12dade1db2998358a6845",
+            "local_sha256": "fb2783176bba3b7317b3adf6f93147e01294c2b85dfbd9ce48684951c40b6833",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "2a7ffade26ceab311d01289e77def05fbeb16b833ad3d8ae836db73b91209b79",
+            "exact_bytes_match": true
+          },
+          "runtime_patches.json": {
+            "sha256": "07da857e2bb2d8e13381e2122655f7aac4be81654cb488ce743aeb5ce22cb274",
+            "exact_bytes_match": true
+          },
+          "shared_data.json": {
+            "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "756d4ce0c474a9abc87401a7e9f402344df187977826e36b199680f3bc530a3f",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "ba78a7321c0b3b71aea630d4414326c9be0372219768d2a00fc9fa741640c4dc",
+            "exact_bytes_match": true
+          },
+          "task2_predictions.npz": {
+            "sha256": "5288b9946dfc12d986d8e1eae6b30b8b8b55cdbd0937c80d03c591fb1fe220bc",
+            "exact_bytes_match": true
+          },
+          "task_results.json": {
+            "sha256": "e86d3ee47a226fbf03cda794b0312ed1fcb6f5262958909fb4dc00e5c9030d56",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "e43fbb8ba633a9192f9c8355d4da2e347fc198d119404069db76766c48aacfb0",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/native_validation/ease-native-validation-small_fixed64-20261007T025309Z",
+      "kind": "native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/mug37yfy",
+      "energy": {
+        "samples": 234,
+        "energy_j": 88683.49186546468,
+        "coverage_fraction": 0.9998729368634779
+      },
+      "file_sha256": {
+        "acceptance.json": "2113fdc3291ec7666a8f87f3ba7a3c996f0bea616ce78f525b265b509f3035ea",
+        "completion.json": "1a2eab0cc00772d0d01f2c678154d8b5664d88777ee4564d94ee335de25d00b7",
+        "effective_args.json": "7aa4bf9ae6e393b74a21f8f295276d1ca6022551a0e5b79b4d1251ef1ade300c",
+        "epoch_results.json": "9127b7223187d4fc703d9c488f864a4b8c6f7f3458189ceefd8a4598d5c9b2c0",
+        "metrics.json": "67331b2eec88fd900527aeea85828c5176d70bf48b69af9853181c13414c713b",
+        "notifications.json": "95acb99789346597455a3e9f7c977daf3c1b851babebcffb1493b5eb7c937c4a",
+        "phases.json": "2e7719cb4c28888c5eddd60b86037bfe6981f0b505c50f45541ac6f8e7189fdf",
+        "progress.json": "7a5c46faeaeb8eff7b61193d8ced707d2258faaa843e25dd131b646c0b3f533f",
+        "shared_data.json": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+        "spec.json": "bdc0710d69fa6b7cf8b53e5774f3b21da4beac8c542b85aeb6c4d2ee58ed3771",
+        "task1_predictions.npz": "b3b9e8e17f7bb0032d0caedf595787ba30bff28a6b38714c97379fa7e538ae91",
+        "task1_state.pt": "9ff9538be21a1b1e340cf9d7cd9759124309f878e6192f3cb1dc90d31a13045b",
+        "task2_predictions.npz": "ac0f78cf36ad67555ab1240bd26e5187c6e0457fee28b075ebcd065e05ed39c8",
+        "task2_state.pt": "893e96c9008eac2ee20ba76eab3b018577bfb7e53b4261803d850d336ec67bf1",
+        "task_results.json": "190f03a61016aa27266cac884dbca7a8a766c3b63ade312719ab5422076cf6f3",
+        "telemetry.csv": "f1471b89fad39dd2d7a6135ea24cf6bf1916ad8997fe2857e414913986a2cb8f"
+      },
+      "cpu_s": 390.560821,
+      "slack": {
+        "status": "sent",
+        "count": 2,
+        "task_count": 2
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/mug37yfy",
+        "state": "finished",
+        "artifact": "ease-native-validation-small_fixed64-20261007T025309Z:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 88,
+        "files": {
+          "acceptance.json": {
+            "sha256": "2113fdc3291ec7666a8f87f3ba7a3c996f0bea616ce78f525b265b509f3035ea",
+            "exact_bytes_match": true
+          },
+          "effective_args.json": {
+            "sha256": "7aa4bf9ae6e393b74a21f8f295276d1ca6022551a0e5b79b4d1251ef1ade300c",
+            "exact_bytes_match": true
+          },
+          "epoch_results.json": {
+            "sha256": "9127b7223187d4fc703d9c488f864a4b8c6f7f3458189ceefd8a4598d5c9b2c0",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "82f873d3a44c5800643d5d2ae1807c25685ff163ae4dfb034b49c792933cb243",
+            "local_sha256": "67331b2eec88fd900527aeea85828c5176d70bf48b69af9853181c13414c713b",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "2e7719cb4c28888c5eddd60b86037bfe6981f0b505c50f45541ac6f8e7189fdf",
+            "exact_bytes_match": true
+          },
+          "shared_data.json": {
+            "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "bdc0710d69fa6b7cf8b53e5774f3b21da4beac8c542b85aeb6c4d2ee58ed3771",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "b3b9e8e17f7bb0032d0caedf595787ba30bff28a6b38714c97379fa7e538ae91",
+            "exact_bytes_match": true
+          },
+          "task2_predictions.npz": {
+            "sha256": "ac0f78cf36ad67555ab1240bd26e5187c6e0457fee28b075ebcd065e05ed39c8",
+            "exact_bytes_match": true
+          },
+          "task_results.json": {
+            "sha256": "190f03a61016aa27266cac884dbca7a8a766c3b63ade312719ab5422076cf6f3",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "f1471b89fad39dd2d7a6135ea24cf6bf1916ad8997fe2857e414913986a2cb8f",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/efficiency/ease-efficiency-small_fixed64-20261007T025720Z/repeat1/cl-efficiency-20261007T025720Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/8wfhrbmd",
+      "energy": {
+        "samples": 17,
+        "energy_j": 3440.377952306082,
+        "coverage_fraction": 0.997181135185351
+      },
+      "file_sha256": {
+        "effective_args.json": "5b745f111bc3ca7e8cf408028fe22ac9ee0825aaf97ed5969028dab05c7d5455",
+        "metrics.json": "687c9d115374597c75981e2f45073078d2bb5ce1849e8658c2f13b07dc4811c7",
+        "phases.json": "55f4019c91ba7041ff5f69f400190f062090ed5666a70100833c7df1b0d2be1f",
+        "spec.json": "3fc667e8b532230aee79351f939deb14754db90eee767b58f89c1c40aa3639cc",
+        "task1_predictions.npz": "3c06f76c7f45d9448a196d5855c1c5b9f561da79f759843ea049cf704b5cf3ab",
+        "telemetry.csv": "d70fd29de5dc2a42b058bfba5491568d8c94cae7c87fa20370e56af899d3b49f"
+      },
+      "cpu_s": 28.408869,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/8wfhrbmd",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T025720Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "5b745f111bc3ca7e8cf408028fe22ac9ee0825aaf97ed5969028dab05c7d5455",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "94bdc7656dd2fc471752737e052c0770ef44a19b0873aa7e8ec068e4d8c20d2d",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "94bdc7656dd2fc471752737e052c0770ef44a19b0873aa7e8ec068e4d8c20d2d",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "c3c74844a9e9957ab1b8e2b5b8801aa9060b0b732f53016492875434991d25b6",
+            "local_sha256": "687c9d115374597c75981e2f45073078d2bb5ce1849e8658c2f13b07dc4811c7",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "55f4019c91ba7041ff5f69f400190f062090ed5666a70100833c7df1b0d2be1f",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "3fc667e8b532230aee79351f939deb14754db90eee767b58f89c1c40aa3639cc",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "3c06f76c7f45d9448a196d5855c1c5b9f561da79f759843ea049cf704b5cf3ab",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "d70fd29de5dc2a42b058bfba5491568d8c94cae7c87fa20370e56af899d3b49f",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/efficiency/ease-efficiency-small_fixed64-20261007T025720Z/repeat2/cl-efficiency-20261007T025745Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/eylsj2af",
+      "energy": {
+        "samples": 17,
+        "energy_j": 3341.7187534940113,
+        "coverage_fraction": 0.9971340598658143
+      },
+      "file_sha256": {
+        "effective_args.json": "34b0204a6936d7d686ad283f6040f4796866efd00f66e18dc2529e524b23ab00",
+        "metrics.json": "bdbbd81dacf6c7169a95581be4b0315f13a0bbffa6f5f3efc86a0a6c9715fd1e",
+        "phases.json": "986e9dec75b46fbade19272732c2bf97a31e00f2df13d6f709b5be48cbe39e10",
+        "spec.json": "d1bd2642090f7c900a910efb7d0ee1cc490847947fce158ca1f21d03b211eca4",
+        "task1_predictions.npz": "3c06f76c7f45d9448a196d5855c1c5b9f561da79f759843ea049cf704b5cf3ab",
+        "telemetry.csv": "545b7f8cdbfdf59514dc41ec50b5813649b6cb0e71dfafe9a763745a298900e6"
+      },
+      "cpu_s": 28.452672999999997,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/eylsj2af",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T025745Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "34b0204a6936d7d686ad283f6040f4796866efd00f66e18dc2529e524b23ab00",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "7b5e8109041810e964064715135aaf2e4430e2b3f1819ece8cf4ca5805700f4f",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "7b5e8109041810e964064715135aaf2e4430e2b3f1819ece8cf4ca5805700f4f",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "304205a8f0d03804794a689f88de6e7c8e6f3de6485ca6787b257a99c6d8a188",
+            "local_sha256": "bdbbd81dacf6c7169a95581be4b0315f13a0bbffa6f5f3efc86a0a6c9715fd1e",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "986e9dec75b46fbade19272732c2bf97a31e00f2df13d6f709b5be48cbe39e10",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "d1bd2642090f7c900a910efb7d0ee1cc490847947fce158ca1f21d03b211eca4",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "3c06f76c7f45d9448a196d5855c1c5b9f561da79f759843ea049cf704b5cf3ab",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "545b7f8cdbfdf59514dc41ec50b5813649b6cb0e71dfafe9a763745a298900e6",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/efficiency/ease-efficiency-small_fixed64-20261007T025720Z/repeat3/cl-efficiency-20261007T025812Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nmv8j5vh",
+      "energy": {
+        "samples": 17,
+        "energy_j": 3377.8997713538124,
+        "coverage_fraction": 0.9972693306741357
+      },
+      "file_sha256": {
+        "effective_args.json": "49893b82a243e577363779e17b18a6a1c942115f24a009cb4559b75999cb8549",
+        "metrics.json": "519ebd9bf7484f1c25a42d7eb6bc6e422dfdcf9dd11b583ec79bbefb47adac52",
+        "phases.json": "f2365926d00cb8753d4586d3968e15241b4c6977d7fadb35fa4c8d3b2055fb8a",
+        "spec.json": "a24d2b4a57702ebcc48ffd48f4f3138f6ade8c659cdf74b4ecf59193884ebf0c",
+        "task1_predictions.npz": "3c06f76c7f45d9448a196d5855c1c5b9f561da79f759843ea049cf704b5cf3ab",
+        "telemetry.csv": "27f0167d24a805500a5377029017f45683e141ba583c2bd0630ba1c9d262ac6f"
+      },
+      "cpu_s": 28.498783,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/nmv8j5vh",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T025812Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "49893b82a243e577363779e17b18a6a1c942115f24a009cb4559b75999cb8549",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "e93df54d063a5f321e7f4877cdd90a76f675d30c504949f43ab61723c023949b",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "e93df54d063a5f321e7f4877cdd90a76f675d30c504949f43ab61723c023949b",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "83f9810695eb44e2a64c856e95b549d73cd6be0b337a4f4c9e1986dd9159b2f8",
+            "local_sha256": "519ebd9bf7484f1c25a42d7eb6bc6e422dfdcf9dd11b583ec79bbefb47adac52",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "f2365926d00cb8753d4586d3968e15241b4c6977d7fadb35fa4c8d3b2055fb8a",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "a24d2b4a57702ebcc48ffd48f4f3138f6ade8c659cdf74b4ecf59193884ebf0c",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "3c06f76c7f45d9448a196d5855c1c5b9f561da79f759843ea049cf704b5cf3ab",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "27f0167d24a805500a5377029017f45683e141ba583c2bd0630ba1c9d262ac6f",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/efficiency/ease-efficiency-small_fixed64-20261007T025720Z/repeat3/cl-efficiency-20261007T025812Z-299015/ease/flops",
+      "kind": "flops",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/fc0wdcqw",
+      "energy": {
+        "samples": 18,
+        "energy_j": 3131.836766860007,
+        "coverage_fraction": 0.4572017938589226
+      },
+      "file_sha256": {
+        "effective_args.json": "fda20fba3fe939f5bf867f1d68faeac62beda95b1b060f2fd787f3ce5ab71ed1",
+        "flops_ops.json": "cf9d4c48faaf1352d4b375553ca8e3b8c26d1467ee4a566c553a98e1d1566e29",
+        "metrics.json": "44964d5015e18d7261b35f47170c6df7459a53c387be6ee06ec8bd2cc5237993",
+        "phases.json": "dd20ec6504eddeed6fcfe6612fd1faea359807fe5e9ac38cf9f81ff7efe813b6",
+        "spec.json": "206f884d5df25fa2a5783e33032d6f4f06333286cb7b8ff9d0039a27fea14505",
+        "task1_predictions.npz": "3c06f76c7f45d9448a196d5855c1c5b9f561da79f759843ea049cf704b5cf3ab",
+        "telemetry.csv": "55d36e8dd994c53aef75cb49f1a6a03eb70dd9e10af98d6cbc22c27429e2711c"
+      },
+      "cpu_s": 50.04577199999999,
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/fc0wdcqw",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T025812Z-299015-ease-flops:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "fda20fba3fe939f5bf867f1d68faeac62beda95b1b060f2fd787f3ce5ab71ed1",
+            "exact_bytes_match": true
+          },
+          "flops_ops.json": {
+            "sha256": "cf9d4c48faaf1352d4b375553ca8e3b8c26d1467ee4a566c553a98e1d1566e29",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "e3cf5830aa4936bfc9c64ddde91b2323432fa720d2851d3a2363d5ea6160b073",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "e3cf5830aa4936bfc9c64ddde91b2323432fa720d2851d3a2363d5ea6160b073",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "741e2a9eea368c3c8806f745ad192cfd944192ecc41fac66ebf34602e28eb842",
+            "local_sha256": "44964d5015e18d7261b35f47170c6df7459a53c387be6ee06ec8bd2cc5237993",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "dd20ec6504eddeed6fcfe6612fd1faea359807fe5e9ac38cf9f81ff7efe813b6",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "206f884d5df25fa2a5783e33032d6f4f06333286cb7b8ff9d0039a27fea14505",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "3c06f76c7f45d9448a196d5855c1c5b9f561da79f759843ea049cf704b5cf3ab",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "55d36e8dd994c53aef75cb49f1a6a03eb70dd9e10af98d6cbc22c27429e2711c",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/reference/ease-author-code-tiny_fixed64-reference-20261007T025922Z",
+      "kind": "reference",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/vf4oa8yx",
+      "energy": {
+        "samples": 129,
+        "energy_j": 39410.38668538336,
+        "coverage_fraction": 0.9995187967625743
+      },
+      "file_sha256": {
+        "completion.json": "0142940b2e5476840e1ff1b2d07501e367c1a0d1cb768f037000d51b1ac6fbe5",
+        "epoch_results.json": "05a3358262c0ad2f9daf7d1596dab40feb06e38c84a573d3816867ef17e04fa9",
+        "metrics.json": "1d9717c0caaa9663f449325012178118e4e83118cd8c631add5cad3a1b68feea",
+        "notifications.json": "980e7793fcbe82207ee683d1aac53cfefa9b8d3e6ddbe0b0168850b69cb438af",
+        "phases.json": "abd7dd5a65f2d80ac4e07dd200fd0522756d1e129f4305da46208d177e278834",
+        "progress.json": "d037ae8ea67fd633e374c60d1dfcf8988f720ebde003a3ab7e40839a76c68141",
+        "runtime_patches.json": "d73b00dcd76de7011d87b33042b5b5e7951e214dee713253443223789bcd2c5b",
+        "shared_data.json": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+        "spec.json": "5e763442d8f40a3311dcaa397e8cb4fc0c88493e2b0e5a505caaa7c722c6b58a",
+        "task1_predictions.npz": "d2ecdea7eea434e9623d9e15f3684480d233c6f6f8d6002107af06f904511322",
+        "task1_state.pt": "f25924942df69376499b087c861e3f28fdd681fdbf08d2573752f3482baf2c39",
+        "task2_predictions.npz": "71458368d06f1004755f728cc0e3e43d01bca4a1d04a7e5ab3a3b9e896c77175",
+        "task2_state.pt": "762578e652ed597bcf526713fe93886597006b3088163659dbb6534d2d8fab8f",
+        "task_results.json": "fc6b9ddae265b45acdaf5a95d7dde2d6faafdee69ffe34d53228a1e06a1ffba2",
+        "telemetry.csv": "55d1511bdce43e24918e1d23bf5678758691594fe036bd221de63b300466b744"
+      },
+      "cpu_s": 260.94748599999997,
+      "slack": {
+        "status": "sent",
+        "count": 2,
+        "task_count": 2
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/vf4oa8yx",
+        "state": "finished",
+        "artifact": "ease-author-code-tiny_fixed64-reference-20261007T025922Z:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 34,
+        "files": {
+          "epoch_results.json": {
+            "sha256": "05a3358262c0ad2f9daf7d1596dab40feb06e38c84a573d3816867ef17e04fa9",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "08135b0bb4a4c6fa77e50fd1c7cce77ba083ec83171a35687ed3034571350fcd",
+            "local_sha256": "1d9717c0caaa9663f449325012178118e4e83118cd8c631add5cad3a1b68feea",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "abd7dd5a65f2d80ac4e07dd200fd0522756d1e129f4305da46208d177e278834",
+            "exact_bytes_match": true
+          },
+          "runtime_patches.json": {
+            "sha256": "d73b00dcd76de7011d87b33042b5b5e7951e214dee713253443223789bcd2c5b",
+            "exact_bytes_match": true
+          },
+          "shared_data.json": {
+            "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "5e763442d8f40a3311dcaa397e8cb4fc0c88493e2b0e5a505caaa7c722c6b58a",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "d2ecdea7eea434e9623d9e15f3684480d233c6f6f8d6002107af06f904511322",
+            "exact_bytes_match": true
+          },
+          "task2_predictions.npz": {
+            "sha256": "71458368d06f1004755f728cc0e3e43d01bca4a1d04a7e5ab3a3b9e896c77175",
+            "exact_bytes_match": true
+          },
+          "task_results.json": {
+            "sha256": "fc6b9ddae265b45acdaf5a95d7dde2d6faafdee69ffe34d53228a1e06a1ffba2",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "55d1511bdce43e24918e1d23bf5678758691594fe036bd221de63b300466b744",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/native_validation/ease-native-validation-tiny_fixed64-20261007T030142Z",
+      "kind": "native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/9ba84j7l",
+      "energy": {
+        "samples": 130,
+        "energy_j": 39193.640151870575,
+        "coverage_fraction": 0.9997461541080481
+      },
+      "file_sha256": {
+        "acceptance.json": "6e3544772130584f11e37e184b65e7a265e33f9e7fe0ca32a7ab04666e301143",
+        "completion.json": "106b0134794542b954ed7f73304472bd7fc7a721fa5fd0f631ee6e47c97c72f4",
+        "effective_args.json": "d65987db3e5ed2287677083dbda6f3c8dd2254fca22ff5518a81f68d2fb9f676",
+        "epoch_results.json": "e0282f2b979c8c525cb47537cece49423ed959189e1829f7faf7e7fc04a0e858",
+        "metrics.json": "4dab124d85d98d6e4a31adcef5cd4cd5f2e78223b2e696daf578195100e7fc0f",
+        "notifications.json": "9bb3767d818a640632cd8ac00743d01e72179c13eb8d2ec9bbba6f7c600660aa",
+        "phases.json": "791d538691417404023e0813fd2f9abccb92729242ac05b64c5a3030fa56005e",
+        "progress.json": "32374b8048c3b5ebac946f47e585f3255c29462b28c2c268ceced3aef19a7913",
+        "shared_data.json": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+        "spec.json": "ca9ac2b9130539452438b222dc50ad7e01f61e82a7b9efae7486c7924900c938",
+        "task1_predictions.npz": "db38b73eedf17c8e7c126c664dbb396de2aecbb8e6dd5cc9388c40bffbe22614",
+        "task1_state.pt": "b9f270a3c61bec897b26153c00505546cf2b6e6a7440c07975096d632c0b4454",
+        "task2_predictions.npz": "85b10937500364803d6fc67ac0c342acf22ddf548851a0ff5d3b13725b40ddc8",
+        "task2_state.pt": "64fc876ae9c6ac923f7da95b729335915c19831d9c8304ef59075f4ebc2825af",
+        "task_results.json": "9faaf5150f95004e39255697fb921ddadf9a61a9f8110c63d153d3ba58ddd987",
+        "telemetry.csv": "3dee2eefa918101d0949cc9ff83949d468f8134ad9543805201634cdcb0549fc"
+      },
+      "cpu_s": 293.762302,
+      "slack": {
+        "status": "sent",
+        "count": 2,
+        "task_count": 2
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/9ba84j7l",
+        "state": "finished",
+        "artifact": "ease-native-validation-tiny_fixed64-20261007T030142Z:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 88,
+        "files": {
+          "acceptance.json": {
+            "sha256": "6e3544772130584f11e37e184b65e7a265e33f9e7fe0ca32a7ab04666e301143",
+            "exact_bytes_match": true
+          },
+          "effective_args.json": {
+            "sha256": "d65987db3e5ed2287677083dbda6f3c8dd2254fca22ff5518a81f68d2fb9f676",
+            "exact_bytes_match": true
+          },
+          "epoch_results.json": {
+            "sha256": "e0282f2b979c8c525cb47537cece49423ed959189e1829f7faf7e7fc04a0e858",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "0873baf2b6d4d3fbf40639b87584ba106e04f2112e8dfb19a2b7634cf43b1e10",
+            "local_sha256": "4dab124d85d98d6e4a31adcef5cd4cd5f2e78223b2e696daf578195100e7fc0f",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "791d538691417404023e0813fd2f9abccb92729242ac05b64c5a3030fa56005e",
+            "exact_bytes_match": true
+          },
+          "shared_data.json": {
+            "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "ca9ac2b9130539452438b222dc50ad7e01f61e82a7b9efae7486c7924900c938",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "db38b73eedf17c8e7c126c664dbb396de2aecbb8e6dd5cc9388c40bffbe22614",
+            "exact_bytes_match": true
+          },
+          "task2_predictions.npz": {
+            "sha256": "85b10937500364803d6fc67ac0c342acf22ddf548851a0ff5d3b13725b40ddc8",
+            "exact_bytes_match": true
+          },
+          "task_results.json": {
+            "sha256": "9faaf5150f95004e39255697fb921ddadf9a61a9f8110c63d153d3ba58ddd987",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "3dee2eefa918101d0949cc9ff83949d468f8134ad9543805201634cdcb0549fc",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/efficiency/ease-efficiency-tiny_fixed64-20261007T030407Z/repeat1/cl-efficiency-20261007T030407Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/7wtjphu7",
+      "energy": {
+        "samples": 14,
+        "energy_j": 1679.053768764081,
+        "coverage_fraction": 0.9967298502808885
+      },
+      "file_sha256": {
+        "effective_args.json": "c4126f0ecafe9958184f4e6eadf31d4f1380afb0587458c0dac4921e956c5071",
+        "metrics.json": "449c0ee74e04e953574b7654c04c77eb3b6031f5f1afae0d9e862b50dff6869c",
+        "phases.json": "ff7784a9d4497e50e478c5520e7b88bc147b59c48e2a96c48456dae494bce019",
+        "spec.json": "d47072e4e89b0d69a36d021fe0d3aaaf4ee425b77e96a81fb59a5b82d4ec0236",
+        "task1_predictions.npz": "2e267536f18d24fed4ede1d0f94ea032e8860350baef4cc40eb5931647ce22ae",
+        "telemetry.csv": "372237987bf8f70ba7eb8d0b7a14f9250e8522147513d1b730a7d474718e4761"
+      },
+      "cpu_s": 25.167555000000004,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/7wtjphu7",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T030407Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "c4126f0ecafe9958184f4e6eadf31d4f1380afb0587458c0dac4921e956c5071",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "a322cc8279760fe71131f0578fb92cdc3f8c5b009645de15c0d29f74ce053029",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "a322cc8279760fe71131f0578fb92cdc3f8c5b009645de15c0d29f74ce053029",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "edd5250a6ea4515e0f12410da762f4d8d28725dfb47d82e0321fa58b5a3df41a",
+            "local_sha256": "449c0ee74e04e953574b7654c04c77eb3b6031f5f1afae0d9e862b50dff6869c",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "ff7784a9d4497e50e478c5520e7b88bc147b59c48e2a96c48456dae494bce019",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "d47072e4e89b0d69a36d021fe0d3aaaf4ee425b77e96a81fb59a5b82d4ec0236",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "2e267536f18d24fed4ede1d0f94ea032e8860350baef4cc40eb5931647ce22ae",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "372237987bf8f70ba7eb8d0b7a14f9250e8522147513d1b730a7d474718e4761",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/efficiency/ease-efficiency-tiny_fixed64-20261007T030407Z/repeat2/cl-efficiency-20261007T030430Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/5e09puo4",
+      "energy": {
+        "samples": 17,
+        "energy_j": 1727.8821814704502,
+        "coverage_fraction": 0.9970328814828028
+      },
+      "file_sha256": {
+        "effective_args.json": "1580c68a69714ea3f8238ddbf5a08d06186404d02b3ed572659c9fe383eff182",
+        "metrics.json": "6627f2c79b252a3acf82231430e9b280c5c5f96d802c7754b10338d91721a80f",
+        "phases.json": "d9361c6f4f6b9def396454e0af52cc815102341ae5f6e88c4f8110745a28f0f3",
+        "spec.json": "1370c9359371d11758ff0c5449e4f9d2c1d306254713dfc5dfe26833f53ef8d7",
+        "task1_predictions.npz": "2e267536f18d24fed4ede1d0f94ea032e8860350baef4cc40eb5931647ce22ae",
+        "telemetry.csv": "758f93cbeb7454f094fc9455c5d667ed58a8b7ac70498b709fecfc938f185496"
+      },
+      "cpu_s": 24.998628,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/5e09puo4",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T030430Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "1580c68a69714ea3f8238ddbf5a08d06186404d02b3ed572659c9fe383eff182",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "755cc4dc02c152f3efba6de3344589d61fca94225e9ff9fed4bc9fc55ad29e65",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "755cc4dc02c152f3efba6de3344589d61fca94225e9ff9fed4bc9fc55ad29e65",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "9f68181d20d66eae8e73ed799f872cb245f6f21771e5553247529f1e0459e769",
+            "local_sha256": "6627f2c79b252a3acf82231430e9b280c5c5f96d802c7754b10338d91721a80f",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "d9361c6f4f6b9def396454e0af52cc815102341ae5f6e88c4f8110745a28f0f3",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "1370c9359371d11758ff0c5449e4f9d2c1d306254713dfc5dfe26833f53ef8d7",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "2e267536f18d24fed4ede1d0f94ea032e8860350baef4cc40eb5931647ce22ae",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "758f93cbeb7454f094fc9455c5d667ed58a8b7ac70498b709fecfc938f185496",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/efficiency/ease-efficiency-tiny_fixed64-20261007T030407Z/repeat3/cl-efficiency-20261007T030456Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/6pq2tjrf",
+      "energy": {
+        "samples": 14,
+        "energy_j": 1686.2048057951822,
+        "coverage_fraction": 0.9957683321611982
+      },
+      "file_sha256": {
+        "effective_args.json": "b025a164d08792593a348e8cad3bfb00125dba88647b0077c4a3a71c365333df",
+        "metrics.json": "905d1bbac1531e17ea9dfabe4b6adf03eb2e5de856f905af9e84fe84c6f09d01",
+        "phases.json": "49ff62382620268011a0a478efb52f9cdc2891502a45360a15558c75a80aadc4",
+        "spec.json": "34802a114e8d6d397a1dd3be2453fc3f35c32fc6d5586f2b4704f3da85de2397",
+        "task1_predictions.npz": "2e267536f18d24fed4ede1d0f94ea032e8860350baef4cc40eb5931647ce22ae",
+        "telemetry.csv": "e7d15c1a8ba0a0966088aa22e2605adbf1ff7090259d6a3cc19f95b2f9bd277f"
+      },
+      "cpu_s": 24.684243,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/6pq2tjrf",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T030456Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "b025a164d08792593a348e8cad3bfb00125dba88647b0077c4a3a71c365333df",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "226baf275944e2f05cd5aa17f53c38ea38fb5d4639f8b80c2884cab2f7940acf",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "226baf275944e2f05cd5aa17f53c38ea38fb5d4639f8b80c2884cab2f7940acf",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "1ea6838a9cf8984bea9cf6646c8326978755119e695e183531471d4f1b9deab2",
+            "local_sha256": "905d1bbac1531e17ea9dfabe4b6adf03eb2e5de856f905af9e84fe84c6f09d01",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "49ff62382620268011a0a478efb52f9cdc2891502a45360a15558c75a80aadc4",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "34802a114e8d6d397a1dd3be2453fc3f35c32fc6d5586f2b4704f3da85de2397",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "2e267536f18d24fed4ede1d0f94ea032e8860350baef4cc40eb5931647ce22ae",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "e7d15c1a8ba0a0966088aa22e2605adbf1ff7090259d6a3cc19f95b2f9bd277f",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/efficiency/ease-efficiency-tiny_fixed64-20261007T030407Z/repeat3/cl-efficiency-20261007T030456Z-299015/ease/flops",
+      "kind": "flops",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/41g34uly",
+      "energy": {
+        "samples": 15,
+        "energy_j": 1458.0032712902776,
+        "coverage_fraction": 0.4574627713848029
+      },
+      "file_sha256": {
+        "effective_args.json": "a7ea04e91255f0a2643ecaa5fb7d58d145eff7a2a1f62fda03ff9f1302aecf4c",
+        "flops_ops.json": "79f1fbcc0cffb40c39745e0a716e5df16a4ee41fa71e96f8899679226373068a",
+        "metrics.json": "fea44df7dccc3030134d891333bba9b3ac0b74308dc36f0f153aef756d246df0",
+        "phases.json": "d6dd8803d454885f3190b8115c64d76e67443c942a43662678edb7314c12abcf",
+        "spec.json": "189d83d1b128abf8d5110d56f656c12e914d5a0a968562d83c57693803d6b981",
+        "task1_predictions.npz": "2e267536f18d24fed4ede1d0f94ea032e8860350baef4cc40eb5931647ce22ae",
+        "telemetry.csv": "61606e5de15d54b4769cfd2abe6b76c269d3a5f7407e52892e5097ece517eeaa"
+      },
+      "cpu_s": 46.044116,
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/41g34uly",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T030456Z-299015-ease-flops:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "a7ea04e91255f0a2643ecaa5fb7d58d145eff7a2a1f62fda03ff9f1302aecf4c",
+            "exact_bytes_match": true
+          },
+          "flops_ops.json": {
+            "sha256": "79f1fbcc0cffb40c39745e0a716e5df16a4ee41fa71e96f8899679226373068a",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "71a078ae82ec29306a4fdc25dbb6c7f4c96b2bdecb6a9ade438a2b6e7e2875ca",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "71a078ae82ec29306a4fdc25dbb6c7f4c96b2bdecb6a9ade438a2b6e7e2875ca",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "6b4cd52bb77b6277f62fb4c72fb024ce49e7f0cce69ab0a3dfe65281b772bcd0",
+            "local_sha256": "fea44df7dccc3030134d891333bba9b3ac0b74308dc36f0f153aef756d246df0",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "d6dd8803d454885f3190b8115c64d76e67443c942a43662678edb7314c12abcf",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "189d83d1b128abf8d5110d56f656c12e914d5a0a968562d83c57693803d6b981",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "2e267536f18d24fed4ede1d0f94ea032e8860350baef4cc40eb5931647ce22ae",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "61606e5de15d54b4769cfd2abe6b76c269d3a5f7407e52892e5097ece517eeaa",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/reference/ease-author-code-small_relative32-reference-20261007T030600Z",
+      "kind": "reference",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/sjjzd977",
+      "energy": {
+        "samples": 235,
+        "energy_j": 89640.51716025558,
+        "coverage_fraction": 0.9998526874079137
+      },
+      "file_sha256": {
+        "completion.json": "ddaf7eb9ce60021ec59265ca89583ff1757f30ec7ae936a8ce8396ecf3a26168",
+        "epoch_results.json": "46176d0ee3d7bc27a77f4d21c300956716fe721b4c7ac9ee6e012ffe5d2a6c62",
+        "metrics.json": "59a89bd670815578e01cebcf3f9570df7c0ef997812b66d04305e0a65cb02912",
+        "notifications.json": "d5f8fcc15ff1ff10ac3690f525c247fd0f280f9757feb1ee0caf254cc4791374",
+        "phases.json": "70dddd1e5a4cd21f2b3d5633dd1494a8a455e2db200319cf6591d0899e14296a",
+        "progress.json": "0869b689f671cc4a9a7f410cf1cae920de0289b5d08502145affa52e79205c86",
+        "runtime_patches.json": "ad7bf30a707cdda54919ad624dc3be0cf455dabe1e63b2e744970c03c466eb6f",
+        "shared_data.json": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+        "spec.json": "1c3768854d458d824f94952f4965b7ca9b99ee2803d26f3c884024da5fb4ab98",
+        "task1_predictions.npz": "17ae757f1388c64ff489c7a945b4358567870506d5aef4e6994efaedf36ebb7f",
+        "task1_state.pt": "96b0512fa7e88b7c0fa911793970e58e112b7c2cd5bc0b3a9071adb79f1bcceb",
+        "task2_predictions.npz": "4f4ece0026b8dc29307ca33dad0e9d14a99a8812152497d799eb8b6aedbfae33",
+        "task2_state.pt": "973c2441cd367994c0a056ab1ba0d4523192de87dfebdb928cf9bcc948411201",
+        "task_results.json": "fadb5a31b28215b50c6d5db443d2daea1b096ec38dc54a5e7cd704ca4fc306c1",
+        "telemetry.csv": "59b33eb028dc3d91ba9db19724eeb62485bdf2db1225f4d49a1ae9364ef80acc"
+      },
+      "cpu_s": 376.689385,
+      "slack": {
+        "status": "sent",
+        "count": 2,
+        "task_count": 2
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/sjjzd977",
+        "state": "finished",
+        "artifact": "ease-author-code-small_relative32-reference-20261007T030600Z:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 34,
+        "files": {
+          "epoch_results.json": {
+            "sha256": "46176d0ee3d7bc27a77f4d21c300956716fe721b4c7ac9ee6e012ffe5d2a6c62",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "ecb0048f44554485662892c193683035ed459a1641e5eb61a178b03b50bf844a",
+            "local_sha256": "59a89bd670815578e01cebcf3f9570df7c0ef997812b66d04305e0a65cb02912",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "70dddd1e5a4cd21f2b3d5633dd1494a8a455e2db200319cf6591d0899e14296a",
+            "exact_bytes_match": true
+          },
+          "runtime_patches.json": {
+            "sha256": "ad7bf30a707cdda54919ad624dc3be0cf455dabe1e63b2e744970c03c466eb6f",
+            "exact_bytes_match": true
+          },
+          "shared_data.json": {
+            "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "1c3768854d458d824f94952f4965b7ca9b99ee2803d26f3c884024da5fb4ab98",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "17ae757f1388c64ff489c7a945b4358567870506d5aef4e6994efaedf36ebb7f",
+            "exact_bytes_match": true
+          },
+          "task2_predictions.npz": {
+            "sha256": "4f4ece0026b8dc29307ca33dad0e9d14a99a8812152497d799eb8b6aedbfae33",
+            "exact_bytes_match": true
+          },
+          "task_results.json": {
+            "sha256": "fadb5a31b28215b50c6d5db443d2daea1b096ec38dc54a5e7cd704ca4fc306c1",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "59b33eb028dc3d91ba9db19724eeb62485bdf2db1225f4d49a1ae9364ef80acc",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/native_validation/ease-native-validation-small_relative32-20261007T031013Z",
+      "kind": "native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/kwltkuec",
+      "energy": {
+        "samples": 232,
+        "energy_j": 87564.18764310077,
+        "coverage_fraction": 0.9997855607510842
+      },
+      "file_sha256": {
+        "acceptance.json": "54234aeaf520eb85a65df9060b5b7ded7f300395e5b334dc1f9ec912089ccdd1",
+        "completion.json": "ce101945bb82afbaf3f1a563c5c8335e5d16f069a06c7b34c61b58781229ba5e",
+        "effective_args.json": "49c85d57745b3aa238dde927f154957de0a60dd853d91312d4b0873edc2fe291",
+        "epoch_results.json": "938cfbceec4e04066dede1d994868eae39e0af5ae83682434d82568e5783af78",
+        "metrics.json": "7ffa8e40120f7068bc6aa4498c95c5f031e87cad40686d364955a131272906ad",
+        "notifications.json": "001ac0892894de44311945923a24b4e3990353a43164345ed2d3d80e867c61b7",
+        "phases.json": "a37ce85be339e287814e1557d02ca4ab90a9ba1ce5fb8f1ce689781bf6b0a919",
+        "progress.json": "42004dd20873ec342ebb419aa731ca7d83b5daa39bce436dd8be36d246c34b2f",
+        "shared_data.json": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+        "spec.json": "1bf4fd2ef79cfe7116a54846a205c50e6df08db10d7b9deee05f3cb20fc3a0d5",
+        "task1_predictions.npz": "d2add03b919427825ea46f3116e266135d9f1588e75bed22a1bd58d226828c2d",
+        "task1_state.pt": "fa4f703f438e5cf5c2094c6334445238d3352f70f8392ea146909ffb7aa5585e",
+        "task2_predictions.npz": "8dd1501761ccdf8d486958203ca50578c9180c84cc7a8c7a79c848996b31a16e",
+        "task2_state.pt": "a914e72dc1684ad18ffa6aadc0136b02e4c3b64844c771eba4dbbb3250ca9ca5",
+        "task_results.json": "79a5d42e40340b6d93177ae27314f0ba112837af763e3a8bce0b18d691e7532b",
+        "telemetry.csv": "5496204e2eb8d3a965b6363b9d1727e489b5e439db3d77274ad10e298bd1541f"
+      },
+      "cpu_s": 392.30916199999996,
+      "slack": {
+        "status": "sent",
+        "count": 2,
+        "task_count": 2
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/kwltkuec",
+        "state": "finished",
+        "artifact": "ease-native-validation-small_relative32-20261007T031013Z:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 88,
+        "files": {
+          "acceptance.json": {
+            "sha256": "54234aeaf520eb85a65df9060b5b7ded7f300395e5b334dc1f9ec912089ccdd1",
+            "exact_bytes_match": true
+          },
+          "effective_args.json": {
+            "sha256": "49c85d57745b3aa238dde927f154957de0a60dd853d91312d4b0873edc2fe291",
+            "exact_bytes_match": true
+          },
+          "epoch_results.json": {
+            "sha256": "938cfbceec4e04066dede1d994868eae39e0af5ae83682434d82568e5783af78",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "483efc43c2041efaf1370133bf9222e3e438d345a27eae241e30a65f27adf422",
+            "local_sha256": "7ffa8e40120f7068bc6aa4498c95c5f031e87cad40686d364955a131272906ad",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "a37ce85be339e287814e1557d02ca4ab90a9ba1ce5fb8f1ce689781bf6b0a919",
+            "exact_bytes_match": true
+          },
+          "shared_data.json": {
+            "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "1bf4fd2ef79cfe7116a54846a205c50e6df08db10d7b9deee05f3cb20fc3a0d5",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "d2add03b919427825ea46f3116e266135d9f1588e75bed22a1bd58d226828c2d",
+            "exact_bytes_match": true
+          },
+          "task2_predictions.npz": {
+            "sha256": "8dd1501761ccdf8d486958203ca50578c9180c84cc7a8c7a79c848996b31a16e",
+            "exact_bytes_match": true
+          },
+          "task_results.json": {
+            "sha256": "79a5d42e40340b6d93177ae27314f0ba112837af763e3a8bce0b18d691e7532b",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "5496204e2eb8d3a965b6363b9d1727e489b5e439db3d77274ad10e298bd1541f",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/efficiency/ease-efficiency-small_relative32-20261007T031423Z/repeat1/cl-efficiency-20261007T031424Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/lka2qolh",
+      "energy": {
+        "samples": 17,
+        "energy_j": 3387.12150928308,
+        "coverage_fraction": 0.9979643173562522
+      },
+      "file_sha256": {
+        "effective_args.json": "b69d9ee2919000abc4330dce402e63e4810bbd8bd0d76d54663987dade7d1b51",
+        "metrics.json": "5c94826e7637c83a329526712a8b3aeeee60c5cca87033d7e0dc4223a79f21fa",
+        "phases.json": "02c5702f7773812b2dddec95b2754229ac4551d75f03155c72ba87643b05faff",
+        "spec.json": "e48578787dac692963f5637ea8848e724cac426fb8072e962bcdf36870f7cad7",
+        "task1_predictions.npz": "37eac2a1d23897efdfdfd4ff14540e768fa78b609278f4c1378f4beb909bd0e3",
+        "telemetry.csv": "5fac431c883844a95ae2702746b28de7e371ed89918f73f1fe177e364e4c9489"
+      },
+      "cpu_s": 28.671111999999997,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/lka2qolh",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T031424Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "b69d9ee2919000abc4330dce402e63e4810bbd8bd0d76d54663987dade7d1b51",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "c9cdaeb387838f18be4aa5fc1575b7a297aac7235dab32dff5f726406c4b8670",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "c9cdaeb387838f18be4aa5fc1575b7a297aac7235dab32dff5f726406c4b8670",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "bd190d0b1637fb2a8a747aea375f3bd5c2b3155cdf88613306ec3487257712b6",
+            "local_sha256": "5c94826e7637c83a329526712a8b3aeeee60c5cca87033d7e0dc4223a79f21fa",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "02c5702f7773812b2dddec95b2754229ac4551d75f03155c72ba87643b05faff",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "e48578787dac692963f5637ea8848e724cac426fb8072e962bcdf36870f7cad7",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "37eac2a1d23897efdfdfd4ff14540e768fa78b609278f4c1378f4beb909bd0e3",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "5fac431c883844a95ae2702746b28de7e371ed89918f73f1fe177e364e4c9489",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/efficiency/ease-efficiency-small_relative32-20261007T031423Z/repeat2/cl-efficiency-20261007T031450Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ijyoav79",
+      "energy": {
+        "samples": 17,
+        "energy_j": 3424.8192707536136,
+        "coverage_fraction": 0.9979961948505497
+      },
+      "file_sha256": {
+        "effective_args.json": "bb9604cf150546b8cafd02831e9461235649cd8f5aaf728282ff520677037f67",
+        "metrics.json": "0a621ce5d0a3168a7b82526150e87272324db57c6dcb93b1f0ed818782357126",
+        "phases.json": "9f22ec0e816cca372481272d449785305e46b5931a2f804722d6dc55b536347a",
+        "spec.json": "28e650203dc8bb7010fd4e1296afe898f38a6e5664f4310092f120f181fc75e6",
+        "task1_predictions.npz": "37eac2a1d23897efdfdfd4ff14540e768fa78b609278f4c1378f4beb909bd0e3",
+        "telemetry.csv": "fb76f88813b21028e7717a57a9296ed45eb32ec71aeb7e8b79abb6c63e95368c"
+      },
+      "cpu_s": 28.530366,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/ijyoav79",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T031450Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "bb9604cf150546b8cafd02831e9461235649cd8f5aaf728282ff520677037f67",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "f2fae16227bb9596e8716ec8e15d06e990d4676591b79c8fbc5d0777e6470a18",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "f2fae16227bb9596e8716ec8e15d06e990d4676591b79c8fbc5d0777e6470a18",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "0f5e6373f74e807cbc786a5d50679becb167c5be5f3ea125cc5750010794797b",
+            "local_sha256": "0a621ce5d0a3168a7b82526150e87272324db57c6dcb93b1f0ed818782357126",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "9f22ec0e816cca372481272d449785305e46b5931a2f804722d6dc55b536347a",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "28e650203dc8bb7010fd4e1296afe898f38a6e5664f4310092f120f181fc75e6",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "37eac2a1d23897efdfdfd4ff14540e768fa78b609278f4c1378f4beb909bd0e3",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "fb76f88813b21028e7717a57a9296ed45eb32ec71aeb7e8b79abb6c63e95368c",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/efficiency/ease-efficiency-small_relative32-20261007T031423Z/repeat3/cl-efficiency-20261007T031516Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/2ykpu9u5",
+      "energy": {
+        "samples": 17,
+        "energy_j": 3332.4680721325126,
+        "coverage_fraction": 0.997912106745813
+      },
+      "file_sha256": {
+        "effective_args.json": "982859f6675a96a3c417f8370269633e024d7563859b841884e8f9f6db76c061",
+        "metrics.json": "afb6972265a0b3318a861b51beaa1cb317d9868dada97199d6c330d51e6a6880",
+        "phases.json": "3d22866130806201037deff95efa67e3e209eb0577440b7cfb9c08b557c1ca82",
+        "spec.json": "93cda23ca9fd10def94e1ee6a6b8468aa29a264ee2d81b56d39ff30ff728849b",
+        "task1_predictions.npz": "37eac2a1d23897efdfdfd4ff14540e768fa78b609278f4c1378f4beb909bd0e3",
+        "telemetry.csv": "fcba47a5c20e5af35bcb8c0e8638e4d7c00054cfac1489808ddaee3f7dfdeb7d"
+      },
+      "cpu_s": 28.599705,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/2ykpu9u5",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T031516Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "982859f6675a96a3c417f8370269633e024d7563859b841884e8f9f6db76c061",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "1edb65aba60e0c0e5858ae71e436a5a1690f8760a86a045805b73e774dfab725",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "1edb65aba60e0c0e5858ae71e436a5a1690f8760a86a045805b73e774dfab725",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "48c76e6ec7d80ff8775d2bcfb608c3269feb5c50383b2d43bb3a3252fedb28b3",
+            "local_sha256": "afb6972265a0b3318a861b51beaa1cb317d9868dada97199d6c330d51e6a6880",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "3d22866130806201037deff95efa67e3e209eb0577440b7cfb9c08b557c1ca82",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "93cda23ca9fd10def94e1ee6a6b8468aa29a264ee2d81b56d39ff30ff728849b",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "37eac2a1d23897efdfdfd4ff14540e768fa78b609278f4c1378f4beb909bd0e3",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "fcba47a5c20e5af35bcb8c0e8638e4d7c00054cfac1489808ddaee3f7dfdeb7d",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/efficiency/ease-efficiency-small_relative32-20261007T031423Z/repeat3/cl-efficiency-20261007T031516Z-299015/ease/flops",
+      "kind": "flops",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/vvijbhie",
+      "energy": {
+        "samples": 14,
+        "energy_j": 1331.1770992777465,
+        "coverage_fraction": 0.2752868629544775
+      },
+      "file_sha256": {
+        "effective_args.json": "872cb0487c27bd8435bf06be4699f037a3eced5e7075a81df21d48b2c84c827a",
+        "flops_ops.json": "debbcdaf9933e4eee55d20b7f5759dba4a7398b0e14b7076bfddc56da385fd65",
+        "metrics.json": "ca2f5bb5a043f5dfe3e398cbae5270e01343171ac9a3d7042d3c4f666ff6fc88",
+        "phases.json": "25ab7c80236e3c18504f4cc8a4b942df3f6472ac56539e7090c54fdfc876eecb",
+        "spec.json": "dbf009081925f699ef4804ef0c9bae06fd70881b943945664dd44a40a26c9449",
+        "task1_predictions.npz": "37eac2a1d23897efdfdfd4ff14540e768fa78b609278f4c1378f4beb909bd0e3",
+        "telemetry.csv": "491a571f3584866c0f0280cfcb97411d5b25ef46048d3c6bb728fece3cb01e89"
+      },
+      "cpu_s": 50.364969,
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/vvijbhie",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T031516Z-299015-ease-flops:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 78,
+        "files": {
+          "effective_args.json": {
+            "sha256": "872cb0487c27bd8435bf06be4699f037a3eced5e7075a81df21d48b2c84c827a",
+            "exact_bytes_match": true
+          },
+          "flops_ops.json": {
+            "sha256": "debbcdaf9933e4eee55d20b7f5759dba4a7398b0e14b7076bfddc56da385fd65",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "9eee8b6e31ef9fffacd502a6c60f79eb1a098b6fb6cc277de8b5775c6d20a251",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "9eee8b6e31ef9fffacd502a6c60f79eb1a098b6fb6cc277de8b5775c6d20a251",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "3041b26dd5b7d52bec70464c28046254d9d3b7435bda791afdf8880cc79f5ea1",
+            "local_sha256": "ca2f5bb5a043f5dfe3e398cbae5270e01343171ac9a3d7042d3c4f666ff6fc88",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "25ab7c80236e3c18504f4cc8a4b942df3f6472ac56539e7090c54fdfc876eecb",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "dbf009081925f699ef4804ef0c9bae06fd70881b943945664dd44a40a26c9449",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "37eac2a1d23897efdfdfd4ff14540e768fa78b609278f4c1378f4beb909bd0e3",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "491a571f3584866c0f0280cfcb97411d5b25ef46048d3c6bb728fece3cb01e89",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/reference/ease-author-code-tiny_relative16-reference-20261007T031627Z",
+      "kind": "reference",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/fngkcmzs",
+      "energy": {
+        "samples": 128,
+        "energy_j": 38501.95530991455,
+        "coverage_fraction": 0.999613073789106
+      },
+      "file_sha256": {
+        "completion.json": "188b9e91036a39215291207a16b79ca69577f0bc4c864efeb1d6d40b1278c69a",
+        "epoch_results.json": "6270f98cee4cb2b89253ac0441f2a1b27aeefc0c5dcb84cbc6d3102111562bf5",
+        "metrics.json": "05dfc43f7fa5157c5f1adbdca5433067e6f686d0430b549e077dcd3528c174ca",
+        "notifications.json": "741f880048bfb5e4284833bbfb79320ee8963a61a06155c6a6963fc5e33ea105",
+        "phases.json": "4f3ee30aa0a7d1125fb4035c4153971df90979336b87d9cbef72c949333eed52",
+        "progress.json": "0fa16906f11d964d0cf3dec79629eb41e91dbf3fa67e29943d74b8718f219df7",
+        "runtime_patches.json": "df80c5a4b07ca37078e6335d8b3ecbf2609e61f0589fc2e2f4d68d968143be95",
+        "shared_data.json": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+        "spec.json": "ab94c70853f0b5f0e80fab0018146819e8d110a8d7a27caf8d130c07647c229c",
+        "task1_predictions.npz": "c4ff0d3b8ed59bfe0b448a0b78f87ae84bfa8bdbee6b13606a0a1c10e2974431",
+        "task1_state.pt": "edbe93e8a56a898d353ae01d30404606d22d878453b6984ad0817d29ec551b3b",
+        "task2_predictions.npz": "e039476e411cdd2b133a3ebc903d657799cf6ef448d172fbd59a98459fc82a87",
+        "task2_state.pt": "79047f6c3e58fadd58e03b18beb2bd94e232f0a5cb9d1b35f2efa8116b86f322",
+        "task_results.json": "d434c37aa90a08bed9e5350f5ee89063fad9a5a636042ca0746fbe656fa804cf",
+        "telemetry.csv": "4bd0832219b86f834211e416c0a7ad4083c2d1605e6cd9301902c39614e7333f"
+      },
+      "cpu_s": 264.45392400000003,
+      "slack": {
+        "status": "sent",
+        "count": 2,
+        "task_count": 2
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/fngkcmzs",
+        "state": "finished",
+        "artifact": "ease-author-code-tiny_relative16-reference-20261007T031627Z:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 34,
+        "files": {
+          "epoch_results.json": {
+            "sha256": "6270f98cee4cb2b89253ac0441f2a1b27aeefc0c5dcb84cbc6d3102111562bf5",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "b756f53947ad208d7d84242d7b44a799f939199774785e471230d3ed98bcc3ca",
+            "local_sha256": "05dfc43f7fa5157c5f1adbdca5433067e6f686d0430b549e077dcd3528c174ca",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "4f3ee30aa0a7d1125fb4035c4153971df90979336b87d9cbef72c949333eed52",
+            "exact_bytes_match": true
+          },
+          "runtime_patches.json": {
+            "sha256": "df80c5a4b07ca37078e6335d8b3ecbf2609e61f0589fc2e2f4d68d968143be95",
+            "exact_bytes_match": true
+          },
+          "shared_data.json": {
+            "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "ab94c70853f0b5f0e80fab0018146819e8d110a8d7a27caf8d130c07647c229c",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "c4ff0d3b8ed59bfe0b448a0b78f87ae84bfa8bdbee6b13606a0a1c10e2974431",
+            "exact_bytes_match": true
+          },
+          "task2_predictions.npz": {
+            "sha256": "e039476e411cdd2b133a3ebc903d657799cf6ef448d172fbd59a98459fc82a87",
+            "exact_bytes_match": true
+          },
+          "task_results.json": {
+            "sha256": "d434c37aa90a08bed9e5350f5ee89063fad9a5a636042ca0746fbe656fa804cf",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "4bd0832219b86f834211e416c0a7ad4083c2d1605e6cd9301902c39614e7333f",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/native_validation/ease-native-validation-tiny_relative16-20261007T031848Z",
+      "kind": "native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/80lstk1e",
+      "energy": {
+        "samples": 129,
+        "energy_j": 38045.657339629535,
+        "coverage_fraction": 0.999623453774049
+      },
+      "file_sha256": {
+        "acceptance.json": "58a9c051645ac1d3ac3a263901f280737a22876e5fd7edb83bc0e59cb038fd43",
+        "completion.json": "db5136caa14c83d94f0e781395d76ed876285a2add48943e2d36b864db83fbfb",
+        "effective_args.json": "0e8cf32653a2a76700dfb901125cc74ac897c6c053f14230e39e6504705e66a4",
+        "epoch_results.json": "bfa18da3b788bbda7bf322a9dfe3f77da05bac1401dff4d42ca12447818dcf6c",
+        "metrics.json": "b3c42c93147d16f86a71bbfb39531b32b456f9da0e56f31fd7b57ed5acafcac9",
+        "notifications.json": "c1bf36641cf2fbe3ec4b862eec962217064cca8ba99e008762503f172375248a",
+        "phases.json": "cf1a7b09588f37ac83fb32b29689a3beafa6975fab9006eea9d36348fd9733e0",
+        "progress.json": "637eb672b9939744db485764129e90b66fb68e870ee9bad17898071e5a4a8d46",
+        "shared_data.json": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+        "spec.json": "72d353fb40320f1109b693a1e655fe4f434fe236d864d3627838340348a737af",
+        "task1_predictions.npz": "63d5c15632fd20ea71430f0308046bfab1cdde05373dbdf1ca469ac95463a38b",
+        "task1_state.pt": "a6628e3cefbf7af4278768a440ce8773a668065d56e7b7d5ea82e7d08ffcdb03",
+        "task2_predictions.npz": "52f6e7efa6bd4e7c31672486c55fd6957b05a43e7ba959f1b76fd2fad98b2512",
+        "task2_state.pt": "5a79c6976f171211b32f6903c0b619a2d0c24930954b948d0309860c5ad8ce92",
+        "task_results.json": "386ed49e6d1e065035d761760aba135da1db9eff4d1f4459531379869b587a76",
+        "telemetry.csv": "37d4321b6337e1b28ab56d86130b05b9f503801e263757910125dd3ca622bc07"
+      },
+      "cpu_s": 293.332285,
+      "slack": {
+        "status": "sent",
+        "count": 2,
+        "task_count": 2
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/80lstk1e",
+        "state": "finished",
+        "artifact": "ease-native-validation-tiny_relative16-20261007T031848Z:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 88,
+        "files": {
+          "acceptance.json": {
+            "sha256": "58a9c051645ac1d3ac3a263901f280737a22876e5fd7edb83bc0e59cb038fd43",
+            "exact_bytes_match": true
+          },
+          "effective_args.json": {
+            "sha256": "0e8cf32653a2a76700dfb901125cc74ac897c6c053f14230e39e6504705e66a4",
+            "exact_bytes_match": true
+          },
+          "epoch_results.json": {
+            "sha256": "bfa18da3b788bbda7bf322a9dfe3f77da05bac1401dff4d42ca12447818dcf6c",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "bd17cf13d1abb6edf090ab8e36f3d6d7ddee0f0cde917f0277db4a04b1644119",
+            "local_sha256": "b3c42c93147d16f86a71bbfb39531b32b456f9da0e56f31fd7b57ed5acafcac9",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "cf1a7b09588f37ac83fb32b29689a3beafa6975fab9006eea9d36348fd9733e0",
+            "exact_bytes_match": true
+          },
+          "shared_data.json": {
+            "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "72d353fb40320f1109b693a1e655fe4f434fe236d864d3627838340348a737af",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "63d5c15632fd20ea71430f0308046bfab1cdde05373dbdf1ca469ac95463a38b",
+            "exact_bytes_match": true
+          },
+          "task2_predictions.npz": {
+            "sha256": "52f6e7efa6bd4e7c31672486c55fd6957b05a43e7ba959f1b76fd2fad98b2512",
+            "exact_bytes_match": true
+          },
+          "task_results.json": {
+            "sha256": "386ed49e6d1e065035d761760aba135da1db9eff4d1f4459531379869b587a76",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "37d4321b6337e1b28ab56d86130b05b9f503801e263757910125dd3ca622bc07",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/efficiency/ease-efficiency-tiny_relative16-20261007T032111Z/repeat1/cl-efficiency-20261007T032111Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/gaasw51w",
+      "energy": {
+        "samples": 13,
+        "energy_j": 1502.21174389495,
+        "coverage_fraction": 0.997452297055224
+      },
+      "file_sha256": {
+        "effective_args.json": "5bfd420e4051a5e83bace1b750b2a35894924dfd0df752ee8ddf6c2003d53fa4",
+        "metrics.json": "bb1969a70b16b0c264959d4da04dec65efbcc8e515a94383bb9a4f0710a8ea86",
+        "phases.json": "32da50e8a84058f3a3b36ebee0f3d76008c016192d4db93feee0813f849abcd8",
+        "spec.json": "d891d8c354e122576efb94b7415e11574ddf5b4f6ff25ebce3779f808133fbc4",
+        "task1_predictions.npz": "1591513faa5f438cf2fa09257bd058f464a71cdc46e14a574e890255c276df9b",
+        "telemetry.csv": "018a737dea247d23d9a87340e7ec2347ecf96d1681a13d2d9e4b492d259a119e"
+      },
+      "cpu_s": 24.711429,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/gaasw51w",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T032111Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "5bfd420e4051a5e83bace1b750b2a35894924dfd0df752ee8ddf6c2003d53fa4",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "a8c9472972f3e9d0714558e7c98b65e9f261b807268cc88df784fbfb6daa16b6",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "a8c9472972f3e9d0714558e7c98b65e9f261b807268cc88df784fbfb6daa16b6",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "982c500e4d3b6ad96987eb932b8573920d867c60f33f4dd93ac33abfc940453c",
+            "local_sha256": "bb1969a70b16b0c264959d4da04dec65efbcc8e515a94383bb9a4f0710a8ea86",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "32da50e8a84058f3a3b36ebee0f3d76008c016192d4db93feee0813f849abcd8",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "d891d8c354e122576efb94b7415e11574ddf5b4f6ff25ebce3779f808133fbc4",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "1591513faa5f438cf2fa09257bd058f464a71cdc46e14a574e890255c276df9b",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "018a737dea247d23d9a87340e7ec2347ecf96d1681a13d2d9e4b492d259a119e",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/efficiency/ease-efficiency-tiny_relative16-20261007T032111Z/repeat2/cl-efficiency-20261007T032131Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/kb7gb6e5",
+      "energy": {
+        "samples": 17,
+        "energy_j": 1883.071244400421,
+        "coverage_fraction": 0.9973360480414696
+      },
+      "file_sha256": {
+        "effective_args.json": "f3591551f41ff9d300665c11e2d14847dade1dfe1c02169ea2909be7de2d9c19",
+        "metrics.json": "4ba580e623fb0adae01ec5e4743ef4ec8426fb8c284a632cccc8eb66aaa474b4",
+        "phases.json": "898a3102660c803b07e34e6e76076ce6333bc1cfb037f786b8572b372c3925e1",
+        "spec.json": "98ff488cafaef6cbd45f31d0b46f53a71c2be456813fce9cc6a5c9a36df7f51f",
+        "task1_predictions.npz": "1591513faa5f438cf2fa09257bd058f464a71cdc46e14a574e890255c276df9b",
+        "telemetry.csv": "a206da855631f35491a2e91a453fc6f684540a67a0c0e90cad2e760081987b36"
+      },
+      "cpu_s": 24.707909,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/kb7gb6e5",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T032131Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "f3591551f41ff9d300665c11e2d14847dade1dfe1c02169ea2909be7de2d9c19",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "a2be47eb3bb3e52027633c1b11c375e4b3c8e6d1ca9e6967cd079df1adbc2d91",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "a2be47eb3bb3e52027633c1b11c375e4b3c8e6d1ca9e6967cd079df1adbc2d91",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "1fa80bfba8b117a49a9ff75cc6a9d01cee934fdc8c6091d5a1ef9001053b2c8a",
+            "local_sha256": "4ba580e623fb0adae01ec5e4743ef4ec8426fb8c284a632cccc8eb66aaa474b4",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "898a3102660c803b07e34e6e76076ce6333bc1cfb037f786b8572b372c3925e1",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "98ff488cafaef6cbd45f31d0b46f53a71c2be456813fce9cc6a5c9a36df7f51f",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "1591513faa5f438cf2fa09257bd058f464a71cdc46e14a574e890255c276df9b",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "a206da855631f35491a2e91a453fc6f684540a67a0c0e90cad2e760081987b36",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/efficiency/ease-efficiency-tiny_relative16-20261007T032111Z/repeat3/cl-efficiency-20261007T032156Z-299015/ease/measurement",
+      "kind": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ymcttimf",
+      "energy": {
+        "samples": 13,
+        "energy_j": 1528.2679258549033,
+        "coverage_fraction": 0.9960359204978634
+      },
+      "file_sha256": {
+        "effective_args.json": "8fc58c8bdf7a8dc66736de5cd367a6ac76947671ffa1eb4cf0c401ea036cb37c",
+        "metrics.json": "297e3dcf2accafbaccea3da2fadf499bfee7f3eb08417845ef10d56643724dd3",
+        "phases.json": "4a6b9a1bf72f48f5baa63d7063f2918b36f288bf87a2fe8aa6b55b72e42e3ec1",
+        "spec.json": "3f4260fece76ee2a5209c2b2c31af594c80f43a458b0ded456b9a4763e041d35",
+        "task1_predictions.npz": "1591513faa5f438cf2fa09257bd058f464a71cdc46e14a574e890255c276df9b",
+        "telemetry.csv": "224be2bbc54192a5ff16401a141d4814890011982cdda41b7f53859349ce1500"
+      },
+      "cpu_s": 24.703098999999998,
+      "slack": {
+        "status": "sent",
+        "count": 4,
+        "task_count": 0
+      },
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/ymcttimf",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T032156Z-299015-ease-measurement:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "8fc58c8bdf7a8dc66736de5cd367a6ac76947671ffa1eb4cf0c401ea036cb37c",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "0034288322deb41a939c0689766f427f2b00623f68fb4875efce033992b63a50",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "0034288322deb41a939c0689766f427f2b00623f68fb4875efce033992b63a50",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "032677700a11e4b163589396199e934b8f871bc5e7ca5a3bc609987ea405beec",
+            "local_sha256": "297e3dcf2accafbaccea3da2fadf499bfee7f3eb08417845ef10d56643724dd3",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "4a6b9a1bf72f48f5baa63d7063f2918b36f288bf87a2fe8aa6b55b72e42e3ec1",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "3f4260fece76ee2a5209c2b2c31af594c80f43a458b0ded456b9a4763e041d35",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "1591513faa5f438cf2fa09257bd058f464a71cdc46e14a574e890255c276df9b",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "224be2bbc54192a5ff16401a141d4814890011982cdda41b7f53859349ce1500",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/efficiency/ease-efficiency-tiny_relative16-20261007T032111Z/repeat3/cl-efficiency-20261007T032156Z-299015/ease/flops",
+      "kind": "flops",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/a38usjsp",
+      "energy": {
+        "samples": 14,
+        "energy_j": 1287.2967796769747,
+        "coverage_fraction": 0.39286443500934576
+      },
+      "file_sha256": {
+        "effective_args.json": "5b985f54bfd9c4e176ae877b2d1a9371611134a1c3f17e78161f2482760e5fb4",
+        "flops_ops.json": "1b0ef9cd0ef4aec936320343f8f1274ae76b60c5c4270b043c10f734fbf71c50",
+        "metrics.json": "18f3cd11505e0ecf391a1a3119ca07b7397de790bd43ffe8416dfc3dc101f833",
+        "phases.json": "8167f144818b767c88215c66e90e60f1da10ae5fa5bee44a3ba82c353b2012c4",
+        "spec.json": "fa7ddc3c825618a1be14e8236c5116cb0d09f4c59fa707d03992a17d778d49ed",
+        "task1_predictions.npz": "1591513faa5f438cf2fa09257bd058f464a71cdc46e14a574e890255c276df9b",
+        "telemetry.csv": "d20289715beea135b46915988087eaa6a2965f1a868eea54b2d162fea6e60a67"
+      },
+      "cpu_s": 45.766838,
+      "wandb": {
+        "url": "https://wandb.ai/laymond1/cl-efficiency/runs/a38usjsp",
+        "state": "finished",
+        "artifact": "cl-efficiency-20261007T032156Z-299015-ease-flops:v0",
+        "artifact_state": "COMMITTED",
+        "summary_values_checked": 82,
+        "files": {
+          "effective_args.json": {
+            "sha256": "5b985f54bfd9c4e176ae877b2d1a9371611134a1c3f17e78161f2482760e5fb4",
+            "exact_bytes_match": true
+          },
+          "flops_ops.json": {
+            "sha256": "1b0ef9cd0ef4aec936320343f8f1274ae76b60c5c4270b043c10f734fbf71c50",
+            "exact_bytes_match": true
+          },
+          "mammoth/class-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "03479a8e52fd0611b3692fe70603bfff28681d7f5c3664da454faa03713e16ee",
+            "exact_bytes_match": true
+          },
+          "mammoth/task-il/seq-cifar100-224/ease/logs.pyd": {
+            "sha256": "03479a8e52fd0611b3692fe70603bfff28681d7f5c3664da454faa03713e16ee",
+            "exact_bytes_match": true
+          },
+          "metrics.json": {
+            "remote_sha256": "6593baf556286ab6baa32d18130a39a36dbc1ab6838a54fedd840c67edbd9e63",
+            "local_sha256": "18f3cd11505e0ecf391a1a3119ca07b7397de790bd43ffe8416dfc3dc101f833",
+            "intrinsic_json_matches": true,
+            "note": "Local upload-completion metadata is written after artifact snapshot."
+          },
+          "phases.json": {
+            "sha256": "8167f144818b767c88215c66e90e60f1da10ae5fa5bee44a3ba82c353b2012c4",
+            "exact_bytes_match": true
+          },
+          "spec.json": {
+            "sha256": "fa7ddc3c825618a1be14e8236c5116cb0d09f4c59fa707d03992a17d778d49ed",
+            "exact_bytes_match": true
+          },
+          "task1_predictions.npz": {
+            "sha256": "1591513faa5f438cf2fa09257bd058f464a71cdc46e14a574e890255c276df9b",
+            "exact_bytes_match": true
+          },
+          "telemetry.csv": {
+            "sha256": "d20289715beea135b46915988087eaa6a2965f1a868eea54b2d162fea6e60a67",
+            "exact_bytes_match": true
+          }
+        }
+      }
+    }
+  ],
+  "wandb_checked": true,
+  "artifact_metrics_note": "Artifact metrics snapshot precedes final local upload metadata; all other uploaded files require exact SHA256 equality.",
+  "base_report_sha256": "dc84f34f585ebd93e2add569acecd379170cd4a48c9c5779808201c401f41aa9",
+  "additional_resource_and_pin_verification": {
+    "status": "pass",
+    "source_pin_checks": 287,
+    "sensor_peak_checks": 96,
+    "throughput_checks": 48,
+    "summary_pin_checks": 20,
+    "classifier_default_patch_checks": 4,
+    "single_gpu_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+    "single_gpu_name": "NVIDIA GeForce RTX 4090",
+    "evidence_file": "/tmp/ease-size-extra-pin-sensor-audit.json",
+    "evidence_sha256": "9e3009a6ad00d2364a32847290a79d8fe45ad79154fbd26a7d5fc283d65471b7"
+  },
+  "readback_counts": {
+    "finished_runs": 24,
+    "committed_artifacts": 24,
+    "artifact_files": 216,
+    "slack_run_notifications": 64,
+    "slack_task_notifications": 16
+  },
+  "measurement_min_energy_coverage_fraction": 0.9957683321611982,
+  "failed_attempt_excluded": true
+}

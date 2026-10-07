@@ -6,6 +6,8 @@ EASE Base64의 공통 조건 첫 태스크 효율성 pilot도 **측정 3회와 �
 
 RanPAC·L2P·DualPrompt의 첫 태스크 효율성 pilot도 측정9회·별도 부분 FLOPs3회를 완료했습니다. 신규 실행 source는 `20ec323`이며 동일 로컬 NPZ·EASE preprocessing·GPU1·seed1993에서 측정했습니다. EASE의 기존3회 측정을 재사용한 [네 방법 비교 보고서](baselines/efficiency_pilot_report.md), [JSON/CSV](baselines/efficiency_pilot_results.json)에 결과와 초기화 protocol 오류로 제외한 첫 시도를 기록합니다. 첫 태스크 결과만으로 전체 CL 성능·망각·논문 재현을 판정하지 않습니다.
 
+EASE Small64·Tiny64·Small32·Tiny16도 동일 CIFAR100-224에서 독립 기준선4회·native 검증4회·측정12회·부분 FLOPs4회를 완료했습니다. 네 설정 모두 같은 설정의 기준선 대비1.5%p 통과 기준을 만족했습니다. Base64 기존 결과를 포함한 [크기별 비교 보고서](ease_sizes/report.md), [JSON](ease_sizes/results.json), [측정 CSV](ease_sizes/measurements.csv)에 정확도·시간·메모리·CPU 시간·GPU 보드 에너지·부분 연산량을 정리했습니다. 최초 Small64 기준선의 classifier 폭 기본값 오류는 수정했고 실패 시도는 비교에서 제외하여 보존했습니다.
+
 ## 검토 자료
 
 - [현재 71개 모델의 특징과 장단점](algorithms.md)
@@ -17,6 +19,7 @@ RanPAC·L2P·DualPrompt의 첫 태스크 효율성 pilot도 측정9회·별도 �
 - [EASE·RanPAC·L2P·DualPrompt 공통 첫 태스크 비교](baselines/efficiency_pilot_report.md)
 - [EASE 첫 태스크 효율성 pilot 결과](ease/efficiency_pilot_report.md), [측정 3회 JSON/부분 FLOPs](ease/efficiency_pilot_results.json)
 - [ViT Base·Small·Tiny 및 adapter 비교 설정](ease/tiny_small_review.md)
+- [EASE Small/Tiny 네 설정 검증·효율성 결과](ease_sizes/report.md)
 - [표 형태의 전체 목록](inventory.csv)
 - [모델별 데이터셋과 인자 및 외부 요구사항](manifest.json)
 - [생성된 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)
@@ -25,9 +28,9 @@ RanPAC·L2P·DualPrompt의 첫 태스크 효율성 pilot도 측정9회·별도 �
 
 ## 현재 준비 상태 (10월 7일)
 
-독립 worktree `.worktrees/ease`, 브랜치 `codex/ease`에 EASE의 기본 replay-free 경로를 구현했습니다. 첫 2개 태스크의 구현 검증과 첫 1개 태스크의 효율성 측정을 분리했으며, 세 크기 모두 **AugReg IN21K → IN1K fine-tuned**, 공통 adapter 64 및 Tiny16·Small32·Base64의 비율 정렬 비교를 준비했습니다. Base64 native 검증은 동일 조건 공식 기준선 대비 사용자 판정 기준을 통과했습니다. 이후 승인한 Base64 효율성 측정 3회·부분 FLOPs 진단 1회도 통과했고 W&B run 종료와 artifact COMMITTED 상태를 서버에서 확인했습니다. 실행 source `49897a3`은 `codex/cl-foundation`에 fast-forward 병합했습니다. Tiny·Small 학습과 원격 push는 수행하지 않았습니다. 이후 승인한 세 방법의 비교는 아래 후속 결과에 기록합니다.
+독립 worktree `.worktrees/ease`, 브랜치 `codex/ease`에 EASE의 기본 replay-free 경로를 구현했습니다. 첫 2개 태스크의 구현 검증과 첫 1개 태스크의 효율성 측정을 분리했으며, 세 크기 모두 **AugReg IN21K → IN1K fine-tuned**, 공통 adapter 64 및 Tiny16·Small32·Base64의 비율 정렬 비교를 준비했습니다. Base64 native 검증은 동일 조건 공식 기준선 대비 사용자 판정 기준을 통과했습니다. 이후 승인한 Base64 효율성 측정 3회·부분 FLOPs 진단 1회도 통과했고 W&B run 종료와 artifact COMMITTED 상태를 서버에서 확인했습니다. 실행 source `49897a3`은 `codex/cl-foundation`에 fast-forward 병합했습니다. 당시 Base64 단계에서는 Tiny·Small 학습과 원격 push를 수행하지 않았습니다. 이후 승인한 Small/Tiny 네 설정의 결과는 [크기별 비교 보고서](ease_sizes/report.md)에, 세 방법의 비교는 아래 후속 결과에 기록합니다.
 
-현재 manifest는 71개, 실행 대상으로 준비한 엔트리66개·보류5개입니다. 계획 수를 완료한 실험 수로 해석하지 않습니다. 공통 첫 태스크 효율성 설정은 EASE Base64·RanPAC·L2P·DualPrompt의4개이며, 신규 세 방법은 명시 checkpoint·공통 preprocessing을 적용한 pilot입니다. 나머지 방법과 네 Tiny·Small 설정은 미실행입니다. [네 방법 비교 보고서](baselines/efficiency_pilot_report.md), [EASE 구현 검증](ease/native_validation_report.md)을 참고합니다. 아래10월1일·6일 기록은 당시의 상태입니다.
+현재 manifest는 71개, 실행 대상으로 준비한 엔트리66개·보류5개입니다. 계획 수를 완료한 실험 수로 해석하지 않습니다. 공통 첫 태스크 효율성 설정은 EASE Base64·RanPAC·L2P·DualPrompt의4개이며, 신규 세 방법은 명시 checkpoint·공통 preprocessing을 적용한 pilot입니다. EASE Tiny·Small 네 설정도 완료했으며, 나머지 방법은 미실행입니다. [네 방법 비교 보고서](baselines/efficiency_pilot_report.md), [EASE 구현 검증](ease/native_validation_report.md), [크기별 결과](ease_sizes/report.md)를 참고합니다. 아래10월1일·6일 기록은 당시의 상태입니다.
 
 ## 공통 기반 준비 당시 상태 (10월 6일)
 

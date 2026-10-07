@@ -1,0 +1,26 @@
+{
+  "url": "https://wandb.ai/laymond1/cl-efficiency/runs/nyk1kr3q",
+  "path": "laymond1/cl-efficiency/nyk1kr3q",
+  "artifact": "laymond1/cl-efficiency/ease-size-pilot-report-20261007:v0",
+  "state": "COMMITTED",
+  "report_only": true,
+  "new_training": false,
+  "files": [
+    "results.json",
+    "measurements.csv",
+    "validation.csv",
+    "report.md",
+    "failed_attempts.json",
+    "validation_plan.json",
+    "environment/independent_pilot_audit.json",
+    "environment/accuracy_state_audit.json",
+    "environment/checkpoints.json",
+    "environment/preflight.json",
+    "environment/native_cpu_initialization.json",
+    "environment/reference_cpu_initialization.json",
+    "environment/upstream_size_review.json",
+    "environment/pin_sensor_audit.json",
+    "efficiency_comparison.png",
+    "efficiency_comparison.pdf"
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "status": "pass",
+  "run_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nyk1kr3q",
+  "run_path": "laymond1/cl-efficiency/nyk1kr3q",
+  "run_state": "finished",
+  "artifact": "laymond1/cl-efficiency/ease-size-pilot-report-20261007:v0",
+  "artifact_state": "COMMITTED",
+  "report_only": true,
+  "new_training": false,
+  "completed_workers": 24,
+  "remote_flags": {
+    "config": {
+      "report_only": true,
+      "new_training": false,
+      "completed_experiment_workers": 24,
+      "workers_verified": null
+    },
+    "summary": {
+      "report_only": true,
+      "new_training": false,
+      "completed_experiment_workers": null,
+      "workers_verified": 24
+    }
+  },
+  "file_count": 16,
+  "files": {
+    "efficiency_comparison.pdf": {
+      "local_sha256": "28f4c36b2ede1154588c082a69ca738f8928eca3b8e171c65439daccef77f899",
+      "downloaded_sha256": "28f4c36b2ede1154588c082a69ca738f8928eca3b8e171c65439daccef77f899",
+      "bytes": 25441,
+      "exact_bytes_match": true
+    },
+    "efficiency_comparison.png": {
+      "local_sha256": "6e924ea824b1381df069a3671bc26204ff47f880c5a897f6cc8003a0bd9c03e4",
+      "downloaded_sha256": "6e924ea824b1381df069a3671bc26204ff47f880c5a897f6cc8003a0bd9c03e4",
+      "bytes": 162264,
+      "exact_bytes_match": true
+    },
+    "environment/accuracy_state_audit.json": {
+      "local_sha256": "d4fb3af73dbc6deed27569a0c4db54cb5591167ae1713261be9ab0ae3f80ccd0",
+      "downloaded_sha256": "d4fb3af73dbc6deed27569a0c4db54cb5591167ae1713261be9ab0ae3f80ccd0",
+      "bytes": 46523,
+      "exact_bytes_match": true
+    },
+    "environment/checkpoints.json": {
+      "local_sha256": "1c72539d9d80b99d08e66da09a8e062d398a7a3e362896a7bfcd28f02b5e2997",
+      "downloaded_sha256": "1c72539d9d80b99d08e66da09a8e062d398a7a3e362896a7bfcd28f02b5e2997",
+      "bytes": 3503,
+      "exact_bytes_match": true
+    },
+    "environment/independent_pilot_audit.json": {
+      "local_sha256": "43a7b26b6c39d99345ceb10943c527b59b4b6106c3a476de249ef5154177e2e5",
+      "downloaded_sha256": "43a7b26b6c39d99345ceb10943c527b59b4b6106c3a476de249ef5154177e2e5",
+      "bytes": 94014,
+      "exact_bytes_match": true
+    },
+    "environment/native_cpu_initialization.json": {
+      "local_sha256": "ea5142d2d3296688444f29b83ace826acf796aa1e0cdb0f19619ee03b898d1d6",
+      "downloaded_sha256": "ea5142d2d3296688444f29b83ace826acf796aa1e0cdb0f19619ee03b898d1d6",
+      "bytes": 4612,
+      "exact_bytes_match": true
+    },
+    "environment/pin_sensor_audit.json": {
+      "local_sha256": "9e3009a6ad00d2364a32847290a79d8fe45ad79154fbd26a7d5fc283d65471b7",
+      "downloaded_sha256": "9e3009a6ad00d2364a32847290a79d8fe45ad79154fbd26a7d5fc283d65471b7",
+      "bytes": 10929,
+      "exact_bytes_match": true
+    },
+    "environment/preflight.json": {
+      "local_sha256": "01e0d716191f1ccbac2d6610b0a98075f8ff993d6efb1a897034c9a31db08dc2",
+      "downloaded_sha256": "01e0d716191f1ccbac2d6610b0a98075f8ff993d6efb1a897034c9a31db08dc2",
+      "bytes": 2104,
+      "exact_bytes_match": true
+    },
+    "environment/reference_cpu_initialization.json": {
+      "local_sha256": "b4e29b88f18b7b862b98afb3072938328a536de480e4efe35b26b5d74bd9e4d3",
+      "downloaded_sha256": "b4e29b88f18b7b862b98afb3072938328a536de480e4efe35b26b5d74bd9e4d3",
+      "bytes": 53652,
+      "exact_bytes_match": true
+    },
+    "environment/upstream_size_review.json": {
+      "local_sha256": "7e5fb6989de777b7fcdded05158b59bb44fc2e893fc85dbf667491c7596f68b3",
+      "downloaded_sha256": "7e5fb6989de777b7fcdded05158b59bb44fc2e893fc85dbf667491c7596f68b3",
+      "bytes": 7110,
+      "exact_bytes_match": true
+    },
+    "failed_attempts.json": {
+      "local_sha256": "cac160a0ef04f133465b33b3e70de95b06dc14fa9ba32e9152e2b9d554c7b278",
+      "downloaded_sha256": "cac160a0ef04f133465b33b3e70de95b06dc14fa9ba32e9152e2b9d554c7b278",
+      "bytes": 1281,
+      "exact_bytes_match": true
+    },
+    "measurements.csv": {
+      "local_sha256": "d838296cbe82823c2aa675edbbd2eaff4d299a4f406997ee743686e0453a38db",
+      "downloaded_sha256": "d838296cbe82823c2aa675edbbd2eaff4d299a4f406997ee743686e0453a38db",
+      "bytes": 6412,
+      "exact_bytes_match": true
+    },
+    "report.md": {
+      "local_sha256": "b0e8564f4b64dba5b4c4fcbcda6131d182a0b4de9bc190df454968636b935eec",
+      "downloaded_sha256": "b0e8564f4b64dba5b4c4fcbcda6131d182a0b4de9bc190df454968636b935eec",
+      "bytes": 10995,
+      "exact_bytes_match": true
+    },
+    "results.json": {
+      "local_sha256": "785edd90cfdd2841d1ad3578b6af07f69c68b9c8f7c9e35da961312a758db7cc",
+      "downloaded_sha256": "785edd90cfdd2841d1ad3578b6af07f69c68b9c8f7c9e35da961312a758db7cc",
+      "bytes": 871229,
+      "exact_bytes_match": true
+    },
+    "validation.csv": {
+      "local_sha256": "1cf6aa9d0b080d08b2ce734aa6a70ddb3e77596b734ad349307de6ff5c6ca734",
+      "downloaded_sha256": "1cf6aa9d0b080d08b2ce734aa6a70ddb3e77596b734ad349307de6ff5c6ca734",
+      "bytes": 2792,
+      "exact_bytes_match": true
+    },
+    "validation_plan.json": {
+      "local_sha256": "277797324d690c8984555f9eef7e645a96154453e0907fe09b3ec80b31d4db23",
+      "downloaded_sha256": "277797324d690c8984555f9eef7e645a96154453e0907fe09b3ec80b31d4db23",
+      "bytes": 5109,
+      "exact_bytes_match": true
+    }
+  }
+}

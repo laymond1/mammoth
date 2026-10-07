@@ -50,3 +50,9 @@ uv run --no-sync python scripts/run_ease_sizes.py --execute
 
 All worktrees share the paths pinned in `validation_plan.json`; private
 credentials remain outside tracked experiment metadata.
+
+Completed observations are in [the report](report.md), [JSON](results.json),
+[measurement CSV](measurements.csv) and [validation CSV](validation.csv).
+The [comparison figure](efficiency_comparison.png) is also available as
+[PDF](efficiency_comparison.pdf). The excluded first reference attempt is
+preserved in [failed_attempts.json](failed_attempts.json).

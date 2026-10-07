@@ -1,0 +1,153 @@
+{
+  "status": "pass",
+  "workers": [
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/reference/ease-author-code-small_fixed64-reference-20261007T024856Z",
+      "kind": "reference",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/native_validation/ease-native-validation-small_fixed64-20261007T025309Z",
+      "kind": "native",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/efficiency/ease-efficiency-small_fixed64-20261007T025720Z/repeat1/cl-efficiency-20261007T025720Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/efficiency/ease-efficiency-small_fixed64-20261007T025720Z/repeat2/cl-efficiency-20261007T025745Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/efficiency/ease-efficiency-small_fixed64-20261007T025720Z/repeat3/cl-efficiency-20261007T025812Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_fixed64/efficiency/ease-efficiency-small_fixed64-20261007T025720Z/repeat3/cl-efficiency-20261007T025812Z-299015/ease/flops",
+      "kind": "flops",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/reference/ease-author-code-tiny_fixed64-reference-20261007T025922Z",
+      "kind": "reference",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/native_validation/ease-native-validation-tiny_fixed64-20261007T030142Z",
+      "kind": "native",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/efficiency/ease-efficiency-tiny_fixed64-20261007T030407Z/repeat1/cl-efficiency-20261007T030407Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/efficiency/ease-efficiency-tiny_fixed64-20261007T030407Z/repeat2/cl-efficiency-20261007T030430Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/efficiency/ease-efficiency-tiny_fixed64-20261007T030407Z/repeat3/cl-efficiency-20261007T030456Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_fixed64/efficiency/ease-efficiency-tiny_fixed64-20261007T030407Z/repeat3/cl-efficiency-20261007T030456Z-299015/ease/flops",
+      "kind": "flops",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/reference/ease-author-code-small_relative32-reference-20261007T030600Z",
+      "kind": "reference",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/native_validation/ease-native-validation-small_relative32-20261007T031013Z",
+      "kind": "native",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/efficiency/ease-efficiency-small_relative32-20261007T031423Z/repeat1/cl-efficiency-20261007T031424Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/efficiency/ease-efficiency-small_relative32-20261007T031423Z/repeat2/cl-efficiency-20261007T031450Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/efficiency/ease-efficiency-small_relative32-20261007T031423Z/repeat3/cl-efficiency-20261007T031516Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/small_relative32/efficiency/ease-efficiency-small_relative32-20261007T031423Z/repeat3/cl-efficiency-20261007T031516Z-299015/ease/flops",
+      "kind": "flops",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/reference/ease-author-code-tiny_relative16-reference-20261007T031627Z",
+      "kind": "reference",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/native_validation/ease-native-validation-tiny_relative16-20261007T031848Z",
+      "kind": "native",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/efficiency/ease-efficiency-tiny_relative16-20261007T032111Z/repeat1/cl-efficiency-20261007T032111Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/efficiency/ease-efficiency-tiny_relative16-20261007T032111Z/repeat2/cl-efficiency-20261007T032131Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/efficiency/ease-efficiency-tiny_relative16-20261007T032111Z/repeat3/cl-efficiency-20261007T032156Z-299015/ease/measurement",
+      "kind": "measurement",
+      "status": "pass"
+    },
+    {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/ease-sizes/benchmarks/cl_efficiency/ease_sizes/runs/ease-size-pilot-20261007T024856Z/tiny_relative16/efficiency/ease-efficiency-tiny_relative16-20261007T032111Z/repeat3/cl-efficiency-20261007T032156Z-299015/ease/flops",
+      "kind": "flops",
+      "status": "pass"
+    }
+  ],
+  "source_pin_checks": 287,
+  "sensor_peak_checks": 96,
+  "throughput_checks": 48,
+  "summary_pin_checks": 20,
+  "classifier_default_patch_checks": 4,
+  "single_gpu_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+  "single_gpu_name": "NVIDIA GeForce RTX 4090",
+  "stage_source_sha256": {
+    "scripts/run_ease_sizes.py": "d38405fcf663bff60344d8f3ce3159684e159a21cb683edba8fe76b6eb0146da",
+    "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+    "scripts/run_ease_reference.py": "553999976f60618e6af38159ca354e284a14e96d9992f985df4fe18b135a4b8d",
+    "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+    "scripts/run_ease_validation.py": "9c4ece52d2eb866d2435aef52da334818858675fc019399907716e74b3ed027d",
+    "scripts/run_ease_efficiency.py": "32336375e89053edfd8088ffb48781ebc77cae251065e33553f082ee49046551",
+    "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+    "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+    "models/ease.py": "174156c50346bb65aee6de85a0e40dc2cbb1f12880d2efd03c8dce49290f8f79",
+    "backbone/ease_vit.py": "7362ae4cbee61b0327fe6133fc315a5b7317c2153253cc27effe8103f3713cde",
+    "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+    "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+    "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506",
+    "models/config/ease.yaml": "c66906e5626b1a3f3976d750dbfa160ed92f6589e94ba242f31aa9acd0655216",
+    "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+    "models/ease_utils/__init__.py": "5a3fb6ee1764e22869ab87b217d705d4de86719d8a27cf7ce098d844027b33c0",
+    "models/ease_utils/classifier.py": "8a24d92e2c8a58069d5a608acb7ed6b697dfda0702ac86e8f94ff9a0bb4d902c",
+    "models/ease_utils/network.py": "37e46b56d84e9d507e292b9831ec95b9558aa19b4d544e9076076c373c128b56",
+    "models/ease_utils/vit.py": "13dff74fdd1fc52147ca68ab555733b8cfc450ac0ce0c557c8e28d0b5a16ace0"
+  }
+}
