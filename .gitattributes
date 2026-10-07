@@ -1,0 +1,2 @@
+# Keep the published CSV's standard CRLF bytes intact for artifact hash checks.
+benchmarks/cl_efficiency/low_rank/results.csv -text whitespace=cr-at-eol
