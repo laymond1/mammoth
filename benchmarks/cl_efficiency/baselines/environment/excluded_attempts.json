@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-10-07",
+  "status": "excluded_attempt_recorded",
+  "attempts": [
+    {
+      "name": "baseline-efficiency-pilot-20261007T011753Z",
+      "execution_source_commit": "6594390abe13f430684c899377917b39dcc48a8f",
+      "attempt_status": "failed",
+      "orchestrator_failure_type": "KeyboardInterrupt",
+      "local_run_absolute": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z",
+      "execution_record": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/execution.json",
+        "sha256": "5ad07e29b1e88a4ff42c7e8d01b3e3ffa1a41316dab19c1dc0ee991d49e1ff0d"
+      },
+      "scope_planned": {
+        "models": [
+          "ranpac",
+          "l2p",
+          "dualprompt"
+        ],
+        "measurement_workers": 9,
+        "flops_workers": 3,
+        "total_workers": 12
+      },
+      "actual_counts": {
+        "workers_started": 3,
+        "measurement_workers_started": 3,
+        "flops_workers_started": 0,
+        "computation_completed_workers": 3,
+        "fully_completed_workers": 2,
+        "interrupted_during_logging_workers": 1,
+        "logging_failed_workers": 1,
+        "orchestrator_completed_invocations": 2,
+        "orchestrator_interrupted_invocations": 1,
+        "unstarted_planned_workers": 9
+      },
+      "per_model_started_workers": {
+        "ranpac": 3,
+        "l2p": 0,
+        "dualprompt": 0
+      },
+      "reason": {
+        "category": "unexpected_pretrained_loading_in_initialization",
+        "description": "The requested --pretrained 0 became effective pretrained=True through the dynamic backbone parser. RanPAC initialization therefore loaded an additional Hugging Face AugReg2 ViT checkpoint before the explicit local AugReg NPZ replaced its transformer weights. This extra checkpoint/cache/network-resolution work violates the intended shared local-checkpoint initialization protocol, so every observation from this attempt is excluded.",
+        "extra_pretrained_source": "timm/vit_base_patch16_224.augreg2_in21k_ft_in1k",
+        "observed_scope": "Console lines show Hugging Face HEAD resolution and loading cached/safetensors pretrained weights. These logs alone do not prove new artifact bytes were downloaded.",
+        "final_weights": "All three workers subsequently matched the exact accepted EASE canonical pretrained tensor SHA and kept frozen tensors unchanged. The exclusion concerns initialization protocol and resource measurements; it does not indicate incorrect final transformer weights.",
+        "interruption": "The orchestrator was deliberately interrupted after the initialization discrepancy was identified. The third worker completed native task computation and audits but received SIGINT while logging, ending with local status=logging_failed and wandb_logging_status=finish_failed:AttributeError. Its remote completion/artifact state is not asserted."
+      },
+      "excluded_from_final_comparison": true,
+      "excluded_metrics": "All accuracy, timing, CPU/GPU memory, energy, throughput and other observations from this attempt; none enter the corrected pilot aggregates.",
+      "raw_logs_retained": true,
+      "remote_verification_performed_for_this_record": false,
+      "workers": [
+        {
+          "model": "ranpac",
+          "pass": "measurement",
+          "run_directory": "ranpac/repeat1/cl-efficiency-20261007T011753Z-217945/ranpac/measurement",
+          "status": "completed",
+          "computation_status": "completed",
+          "wandb_logging_status": "uploaded",
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ert9of0q",
+          "native_accuracy_pct": 98.1,
+          "canonical_pretrained_sha256": {
+            "adapter_backbone": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+          },
+          "canonical_final_pretraining_matches_accepted_ease": true,
+          "frozen_backbone_unchanged": true,
+          "all_nine_structural_checks_passed": true,
+          "completed_counters": {
+            "tasks_completed": 1,
+            "outer_observe_steps": 79,
+            "outer_training_stream_examples": 5000,
+            "evaluation_examples": 1000
+          },
+          "specified_pretrained_flag": "0",
+          "effective_pretrained": true,
+          "pinned_checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+          "pinned_checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+          "excluded_from_final_comparison": true,
+          "console_evidence": [
+            {
+              "line": 94,
+              "text": "[INFO] 07-Oct-26 10:17:58 - Loading pretrained weights from Hugging Face hub (timm/vit_base_patch16_224.augreg2_in21k_ft_in1k)"
+            },
+            {
+              "line": 96,
+              "text": "[INFO] 07-Oct-26 10:17:58 - [timm/vit_base_patch16_224.augreg2_in21k_ft_in1k] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors."
+            }
+          ],
+          "evidence_files": {
+            "metrics.json": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat1/cl-efficiency-20261007T011753Z-217945/ranpac/measurement/metrics.json",
+              "sha256": "b589f602edfb53fe71babbeab9594525c685cdfc4768d6b574a63fc696a468cd"
+            },
+            "spec.json": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat1/cl-efficiency-20261007T011753Z-217945/ranpac/measurement/spec.json",
+              "sha256": "9a4ff2820c8df097bbf90c13efeb35e42751e0edc3b0e204205e8429c0692cf4"
+            },
+            "console.log": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat1/cl-efficiency-20261007T011753Z-217945/ranpac/measurement/console.log",
+              "sha256": "d6122ca80523c9423a69aaa3fee5e15fc732ae586a131f2aa954a4bccb724697"
+            }
+          }
+        },
+        {
+          "model": "ranpac",
+          "pass": "measurement",
+          "run_directory": "ranpac/repeat2/cl-efficiency-20261007T011921Z-217945/ranpac/measurement",
+          "status": "completed",
+          "computation_status": "completed",
+          "wandb_logging_status": "uploaded",
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/r53irvne",
+          "native_accuracy_pct": 98.1,
+          "canonical_pretrained_sha256": {
+            "adapter_backbone": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+          },
+          "canonical_final_pretraining_matches_accepted_ease": true,
+          "frozen_backbone_unchanged": true,
+          "all_nine_structural_checks_passed": true,
+          "completed_counters": {
+            "tasks_completed": 1,
+            "outer_observe_steps": 79,
+            "outer_training_stream_examples": 5000,
+            "evaluation_examples": 1000
+          },
+          "specified_pretrained_flag": "0",
+          "effective_pretrained": true,
+          "pinned_checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+          "pinned_checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+          "excluded_from_final_comparison": true,
+          "console_evidence": [
+            {
+              "line": 94,
+              "text": "[INFO] 07-Oct-26 10:19:26 - Loading pretrained weights from Hugging Face hub (timm/vit_base_patch16_224.augreg2_in21k_ft_in1k)"
+            },
+            {
+              "line": 96,
+              "text": "[INFO] 07-Oct-26 10:19:27 - [timm/vit_base_patch16_224.augreg2_in21k_ft_in1k] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors."
+            }
+          ],
+          "evidence_files": {
+            "metrics.json": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat2/cl-efficiency-20261007T011921Z-217945/ranpac/measurement/metrics.json",
+              "sha256": "52c3857653d34d90bfed1cee7210ab313c7fc9fb10ff33bc3d1c50c98fa36fdf"
+            },
+            "spec.json": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat2/cl-efficiency-20261007T011921Z-217945/ranpac/measurement/spec.json",
+              "sha256": "3b61eb43e4d148b9f37cf423862b4a7b146a02f40cd5b842e5d055c93d52ae17"
+            },
+            "console.log": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat2/cl-efficiency-20261007T011921Z-217945/ranpac/measurement/console.log",
+              "sha256": "a3565ead2a3a4c7918691ea75f709706448a70dac1a842f0b1ded57731680548"
+            }
+          }
+        },
+        {
+          "model": "ranpac",
+          "pass": "measurement",
+          "run_directory": "ranpac/repeat3/cl-efficiency-20261007T012050Z-217945/ranpac/measurement",
+          "status": "logging_failed",
+          "computation_status": "completed",
+          "wandb_logging_status": "finish_failed:AttributeError",
+          "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/xqvoe00j",
+          "native_accuracy_pct": 98.1,
+          "canonical_pretrained_sha256": {
+            "adapter_backbone": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+          },
+          "canonical_final_pretraining_matches_accepted_ease": true,
+          "frozen_backbone_unchanged": true,
+          "all_nine_structural_checks_passed": true,
+          "completed_counters": {
+            "tasks_completed": 1,
+            "outer_observe_steps": 79,
+            "outer_training_stream_examples": 5000,
+            "evaluation_examples": 1000
+          },
+          "specified_pretrained_flag": "0",
+          "effective_pretrained": true,
+          "pinned_checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+          "pinned_checkpoint_sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+          "excluded_from_final_comparison": true,
+          "console_evidence": [
+            {
+              "line": 94,
+              "text": "[INFO] 07-Oct-26 10:20:56 - Loading pretrained weights from Hugging Face hub (timm/vit_base_patch16_224.augreg2_in21k_ft_in1k)"
+            },
+            {
+              "line": 96,
+              "text": "[INFO] 07-Oct-26 10:20:56 - [timm/vit_base_patch16_224.augreg2_in21k_ft_in1k] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors."
+            },
+            {
+              "line": 135,
+              "text": "[INFO] 07-Oct-26 10:22:15 - SIGINT received before initialization. Exiting..."
+            },
+            {
+              "line": 136,
+              "text": "[INFO] 07-Oct-26 10:22:15 - SIGINT received. Saving checkpoint and exiting..."
+            },
+            {
+              "line": 137,
+              "text": "wandb: ERROR Problem finishing run"
+            }
+          ],
+          "evidence_files": {
+            "metrics.json": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat3/cl-efficiency-20261007T012050Z-217945/ranpac/measurement/metrics.json",
+              "sha256": "30a1a74e7caba20c30dbc2e9449c4790e505f0eba38c24ffbe133c2cd5c199df"
+            },
+            "spec.json": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat3/cl-efficiency-20261007T012050Z-217945/ranpac/measurement/spec.json",
+              "sha256": "0d201f7a649863e5375e8cbd953c79c3d892f326bc282f8518ac1bd5c1c34a06"
+            },
+            "console.log": {
+              "absolute_path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/cl-baselines/benchmarks/cl_efficiency/baselines/runs/baseline-efficiency-pilot-20261007T011753Z/ranpac/repeat3/cl-efficiency-20261007T012050Z-217945/ranpac/measurement/console.log",
+              "sha256": "48cc41ebfaf9ca666e4d055c099db6ffa2a4b3c2a59a195d9c7f0d8012f1a1ec"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "recording_scope": "Read existing local execution/spec/metrics/console files and create this public metadata record only. No GPU, image inference, training, downloads, network calls, W&B changes or Slack messages."
+}

@@ -93,15 +93,22 @@ def canonical_state(module, method):
     return state
 
 
+def require_initialization_args(args, metadata):
+    """Check parsed arguments before any backbone can load default weights."""
+    expected = {'n_epochs': 1, 'batch_size': 64, 'num_workers': 4, 'seed': 1993,
+                'dataset_config': 'ease', 'code_optimization': 0, 'drop_last': False,
+                'fitting_mode': 'epochs', 'permute_classes': False, 'joint': False}
+    checkpoint = getattr(args, 'pretrained_checkpoint', None)
+    if (any(getattr(args, k, None) != v for k, v in expected.items())
+            or getattr(args, 'pretrained', None) is not False
+            or args.eval_epochs is not None or args.loadcheck is not None or args.start_from is not None
+            or not checkpoint or str(Path(checkpoint).resolve()) != metadata['checkpoint_file']):
+        raise ValueError('Effective baseline arguments changed the shared pilot protocol')
+
+
 class BaselineAudit:
     def __init__(self, model, dataset, args, recorder, metadata, torch):
-        expected = {'n_epochs': 1, 'batch_size': 64, 'num_workers': 4, 'seed': 1993,
-                    'dataset_config': 'ease', 'code_optimization': 0, 'drop_last': False,
-                    'fitting_mode': 'epochs', 'permute_classes': False, 'joint': False}
-        if (any(getattr(args, k, None) != v for k, v in expected.items())
-                or args.eval_epochs is not None or args.loadcheck is not None or args.start_from is not None
-                or str(Path(args.pretrained_checkpoint).resolve()) != metadata['checkpoint_file']):
-            raise ValueError('Effective baseline arguments changed the shared pilot protocol')
+        require_initialization_args(args, metadata)
         self.model, self.dataset, self.recorder, self.metadata, self.torch = model, dataset, recorder, metadata, torch
         self.method = model.NAME
         self.roles = ({'adapter_backbone': model.net._network.convnet} if self.method == 'ranpac'

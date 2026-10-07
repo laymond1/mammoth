@@ -174,7 +174,7 @@ def audit_factory(tmp_path, monkeypatch):
         args = SimpleNamespace(n_epochs=1, batch_size=64, num_workers=4, seed=1993,
                                dataset_config='ease', code_optimization=0, drop_last=False, fitting_mode='epochs',
                                permute_classes=False, joint=False, eval_epochs=None, loadcheck=None, start_from=None,
-                               pretrained_checkpoint=str(tmp_path / 'synthetic.npz'), rp_size=4)
+                               pretrained=False, pretrained_checkpoint=str(tmp_path / 'synthetic.npz'), rp_size=4)
         model.args = args
         metadata = {'checkpoint_file': args.pretrained_checkpoint, 'minimum_accuracy_pct': 20.,
                     'accuracy': {'mean_accuracy_pct': 100.},
@@ -223,12 +223,21 @@ def test_three_methods_require_complete_structural_and_prediction_evidence(audit
                                        ('dataset_config', 'l2p'), ('code_optimization', 1), ('drop_last', True),
                                        ('fitting_mode', 'iters'), ('permute_classes', True), ('joint', True),
                                        ('eval_epochs', 1), ('loadcheck', '/tmp/other.pt'), ('start_from', 1),
-                                       ('pretrained_checkpoint', '/tmp/other.npz')])
+                                       ('pretrained_checkpoint', '/tmp/other.npz'), ('pretrained', True),
+                                       ('pretrained', 0), ('pretrained', None)])
 def test_effective_argument_changes_rejected_before_completion(audit_factory, field, value):
     audit = audit_factory()
     setattr(audit.model.args, field, value)
     with pytest.raises(ValueError, match='shared pilot protocol'):
         module.BaselineAudit(audit.model, audit.dataset, audit.model.args, audit.recorder, audit.metadata, torch)
+
+
+def test_preinitialization_guard_rejects_default_weight_loading(audit_factory):
+    audit = audit_factory()
+    module.require_initialization_args(audit.model.args, audit.metadata)
+    audit.model.args.pretrained = True
+    with pytest.raises(ValueError, match='shared pilot protocol'):
+        module.require_initialization_args(audit.model.args, audit.metadata)
 
 
 @pytest.mark.parametrize('change', ['canonical_value', 'unfrozen', 'non_fp32'])
@@ -526,3 +535,26 @@ def test_general_worker_without_baseline_pilot_never_installs_baseline_audits(tm
     forbidden_pin.assert_not_called()
     fake_main.parse_args.assert_called_once()
     assert json.loads((tmp_path / 'metrics.json').read_text())['error_type'] == 'RuntimeError'
+
+
+def test_pilot_worker_rejects_extra_pretrained_load_before_initialize(tmp_path, monkeypatch, audit_factory, caplog):
+    import sys
+    from scripts import benchmark_cl
+    audit = audit_factory()
+    audit.model.args.pretrained = True
+    monkeypatch.setattr(module, 'execution_pin', lambda spec: audit.metadata.copy())
+    spec = {'output': str(tmp_path), 'gpu': 'cpu', 'sample_interval': 1., 'model': 'dualprompt',
+            'dataset': 'seq-cifar100-224', 'group': 'vit', 'kind': 'prompt', 'pass': 'measurement',
+            'suite': 'synthetic', 'wandb_mode': 'disabled', 'wandb_project': 'synthetic',
+            'wandb_entity': None, 'main_args': [], 'data_root': str(tmp_path), 'baseline_pilot': True}
+    spec_file = tmp_path / 'spec.json'
+    spec_file.write_text(json.dumps(spec))
+    recorder = SimpleNamespace(start=Mock(), save=lambda metadata: metadata)
+    monkeypatch.setattr(benchmark_cl, 'Recorder', lambda *args, **kwargs: recorder)
+    monkeypatch.setenv('CL_EFFICIENCY_EXECUTE', '1')
+    fake_main = SimpleNamespace(parse_args=Mock(return_value=audit.model.args), initialize=Mock())
+    monkeypatch.setitem(sys.modules, 'main', fake_main)
+    assert benchmark_cl.worker(spec_file) == 1
+    fake_main.initialize.assert_not_called()
+    result = json.loads((tmp_path / 'metrics.json').read_text())
+    assert result['error_type'] == 'ValueError' and 'shared pilot protocol' in caplog.text

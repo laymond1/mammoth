@@ -21,3 +21,11 @@ git diff --check
 ```bash
 CUDA_VISIBLE_DEVICES='' uv run --no-sync --offline python -m pytest tests/test_l2p_checkpoint.py tests/test_dualprompt_checkpoint.py tests/test_ranpac_checkpoint.py tests/test_baseline_audit.py tests/test_baseline_efficiency.py tests/test_ease_efficiency.py tests/test_ease_acceptance.py tests/test_ease_execution.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_prepare_ease.py tests/test_cl_efficiency.py tests/test_cl_runtime.py tests/test_import.py::test_import_after_register tests/test_module_register.py::test_args_with_choices -q --tb=short
 ```
+
+첫 실행의 독립 감사에서 dynamic backbone parser가 `--pretrained 0`을 `bool('0') == True`로 해석하는 문제를 발견해 중단했습니다. 최종 PTM은 동일하지만 초기화에서 기본 HF 가중치를 추가로 로드했으므로 비교에서 모두 제외했습니다. [제외 기록](environment/excluded_attempts.json)에 부분 로그와 W&B URL을 보존합니다. RanPAC/L2P에 명시적인 binary parser를 추가하고 모델 생성 전 실제 옵션 검사를 넣었습니다.
+
+수정 후 실제 CLI parsing 회귀 검사 9개와 초기화 전 차단 검사를 포함한 focused suite는 **490 passed in11.15s**였습니다. 새 성공 측정에는 수정된 커밋을 사용합니다.
+
+```bash
+CUDA_VISIBLE_DEVICES='' uv run --no-sync --offline python -m pytest tests/test_baseline_pretrained_args.py tests/test_l2p_checkpoint.py tests/test_dualprompt_checkpoint.py tests/test_ranpac_checkpoint.py tests/test_baseline_audit.py tests/test_baseline_efficiency.py tests/test_ease_efficiency.py tests/test_ease_acceptance.py tests/test_ease_execution.py tests/test_ease.py tests/test_ease_backbone.py tests/test_ease_classifier.py tests/test_prepare_ease.py tests/test_cl_efficiency.py tests/test_cl_runtime.py tests/test_import.py::test_import_after_register tests/test_module_register.py::test_args_with_choices -q --tb=short
+```

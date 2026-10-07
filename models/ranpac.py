@@ -33,6 +33,8 @@ class RanPAC(ContinualModel):
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
         parser.set_defaults(pretrain_type='in21k')
+        parser.add_argument('--pretrained', type=binary_to_boolean_type, default=True,
+                            help='Load pretrained weights when constructing the supplied backbone')
         parser.set_defaults(optim_mom=0.9, optim_wd=0.0005, batch_size=48)
         parser.add_argument('--rp_size', type=int, default=10000, help='size of the random projection layer (L in the paper)')
         parser.add_argument('--pretrained_checkpoint', type=str, default=None,

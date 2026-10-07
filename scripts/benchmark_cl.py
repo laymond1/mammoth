@@ -559,7 +559,7 @@ def worker(spec_path):
         ease_pin = ease_execution_pin() if spec['model'] == 'ease' else None
         baseline_pin = None
         if spec.get('baseline_pilot'):
-            from scripts.baseline_audit import execution_pin, BaselineAudit, instrument_baseline
+            from scripts.baseline_audit import execution_pin, BaselineAudit, instrument_baseline, require_initialization_args
             baseline_pin = execution_pin(spec)
             metadata.update(baseline_pin)
         if ease_pin is not None:
@@ -594,6 +594,8 @@ def worker(spec_path):
         # Mammoth checks sys.argv in several parser helpers, even when cmd is supplied.
         sys.argv = ['main.py', *command]
         args = mammoth.parse_args(cmd=command, verbose=True)
+        if baseline_pin is not None:
+            require_initialization_args(args, metadata)
         original_initialize = mammoth.initialize
         from unittest.mock import patch
         patch_context = ExitStack()

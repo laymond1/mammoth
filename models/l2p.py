@@ -24,6 +24,8 @@ class L2P(ContinualModel):
     @staticmethod
     def get_parser(parser) -> ArgumentParser:
         parser.set_defaults(optimizer='adam')
+        parser.add_argument('--pretrained', type=binary_to_boolean_type, default=True,
+                            help='Load pretrained weights when constructing the supplied backbone')
         # Prompt parameters
         parser.add_argument('--prompt_pool', default=True, type=bool,)
         parser.add_argument('--pool_size_l2p', default=10, type=int, help='number of prompts (M in paper)')
