@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "stage": "hide_size_validation_and_first_task_efficiency",
-  "status": "ready_for_small_reference",
+  "status": "completed",
   "training_authorized": true,
-  "executed": false,
+  "executed": true,
   "immutable_plan": "validation_plan.json",
   "variant_order": [
     "small",
@@ -11,17 +11,36 @@
   ],
   "variants": {
     "small": {
-      "reference": "pending",
-      "native_validation": "pending",
-      "efficiency": "pending"
+      "reference": "completed",
+      "native_validation": "pass",
+      "efficiency": "completed",
+      "reference_output": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-small-validation-20261007T142011Z",
+      "native_validation_output": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-native-small-validation",
+      "efficiency_output": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-small"
     },
     "tiny": {
-      "reference": "pending",
-      "native_validation": "pending",
-      "efficiency": "pending"
+      "reference": "completed",
+      "native_validation": "pass",
+      "efficiency": "completed",
+      "reference_output": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-tiny-validation-20261007T145525Z",
+      "native_validation_output": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-native-tiny-validation",
+      "efficiency_output": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-tiny"
     }
   },
   "full_cl_authorized": false,
   "ease_author_full10_skipped": true,
-  "cpu_preflight": "pass"
+  "cpu_preflight": "pass",
+  "implementation_commit": "e060ccf5c6320cbd3cf13ef8a43ca8cdac7a8dc7",
+  "completed_at_utc": "2026-10-07T15:23:45.512750+00:00",
+  "report": "report/report.md",
+  "report_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/jdjy4oll",
+  "report_artifact": {
+    "name": "laymond1/cl-efficiency/hide-sizes-report-20261007T151951Z:v0",
+    "state": "COMMITTED"
+  },
+  "report_readback": "pass",
+  "report_files_verified": 6,
+  "slack_completion_status": "sent",
+  "focused_tests_passed": 440,
+  "gpu_occupancy_audit": "pass"
 }

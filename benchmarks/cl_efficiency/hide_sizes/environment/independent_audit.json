@@ -1,0 +1,211 @@
+{
+  "small_author": {
+    "status": "pass",
+    "task1": {
+      "seen_correct": 983,
+      "seen_samples": 1000,
+      "tii_correct": 973,
+      "routing_correct": 1000
+    },
+    "task2": {
+      "seen_correct": 1931,
+      "seen_samples": 2000,
+      "old_correct": 976,
+      "new_correct": 955,
+      "routing_correct": 1882
+    },
+    "raw_shared_cifar100_labels_global_ids": true,
+    "train_test_raw_fingerprints_recomputed": true,
+    "prediction_labels_and_seen_ranges": true,
+    "centroids": {
+      "classes": 20,
+      "per_class": 10,
+      "feature_dim": 384,
+      "finite": true
+    },
+    "old_centroid_and_prompt_slot0_bytes_unchanged": true,
+    "epoch_coordinates": 140,
+    "outer_steps": 11060,
+    "outer_training_examples": 700000,
+    "evaluation_examples": 3000,
+    "alignment_steps_task1": 0,
+    "alignment_steps_task2_each": 300,
+    "source_pins_checked": 21,
+    "initial_state_sha256_verified": true,
+    "remote_artifact_files_verified": 13,
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/83yhebpe"
+  },
+  "auditor": "/root/ease_common_reference",
+  "method": "Independent read-only recomputation from saved predictions/checkpoints, original shared raw data, source bytes and artifact readback receipt",
+  "small_first_task_comparison": {
+    "status": "pass",
+    "labels_global_ids_evaluation_order": true,
+    "top1_and_tii_arrays_exact": true,
+    "seen_correct": 983,
+    "tii_correct": 973,
+    "samples": 1000,
+    "first_batches_all_four": {
+      "input_labels_seed_samples": true,
+      "clipped_gradient_sha256_matches": true,
+      "loss_gap_task2_prompt": 4.74e-08
+    }
+  },
+  "report_publication_review": {
+    "status": "pass",
+    "scope": "Read-only independent report/publisher gate review; no training or CUDA path. Raw prediction/count/source/init/140epoch/3+1/commoninput gates and readback-only Slack preserved.",
+    "files_sha256": {
+      "scripts/report_hide_sizes.py": "2dc24cd26817034168d7df24721c4b0811fc0f8bef29b8c0a7c1e025ac791b4d",
+      "scripts/publish_hide_sizes.py": "4cb6dc245166a19bcc5c51e8c125e4bcdb5259a306194e2dfdadd81aae73dfab"
+    }
+  },
+  "small_terminal_comparison": {
+    "status": "pass",
+    "accuracy_metrics_pct": [
+      98.3,
+      96.55,
+      97.6,
+      95.5
+    ],
+    "gaps_pp": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "all_top1_tii_labels_global_ids_and_evaluation_orders_exact": true,
+    "completed_epochs": 140,
+    "steps": 11060,
+    "training_examples": 700000,
+    "evaluation_examples": 3000,
+    "structural_checks_all_true": true,
+    "execution_source_pins_verified": 19,
+    "remote_artifact_files_verified": 12,
+    "task2_checkpoint": {
+      "all_learned_tensors_exact": true,
+      "all_40_statistics_groups_exact": true,
+      "max_abs_tensor_delta": 0,
+      "old_statistics_prompt_bytes_unchanged": true,
+      "active_task_finalized_eval_mapping_correct": true
+    },
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/gxvxy6bc"
+  },
+  "tiny_preflight": {
+    "status": "pass",
+    "feature_dim": 192,
+    "num_heads": 3,
+    "source_pins_verified": 21,
+    "first_task_inputs_labels_seed_samples_match_base": true
+  },
+  "small_pilot": {
+    "status": "pass",
+    "measurement_count": 3,
+    "flops_count": 1,
+    "predictions_all_four_exact": true,
+    "seen_correct": 954,
+    "seen_samples": 1000,
+    "outer_steps": 158,
+    "outer_training_examples": 10000,
+    "statistics_each": 5000,
+    "alignment_steps": 0,
+    "manifest_files_each_measurement": 10,
+    "manifest_files_flops": 11,
+    "telemetry_energy_reintegration_max_gap": 1e-12,
+    "wall_mean_s": 29.77971157733312,
+    "wall_std_s": 0.1453756091511029,
+    "energy_mean_wh": 1.8787343769315574,
+    "energy_std_wh": 0.030365393187302653,
+    "cuda_allocated_mib": 3105.23876953125,
+    "nvml_mib": 3849,
+    "partial_supported_ops_total": 296624246322495,
+    "flops_resource_costs_excluded": true
+  },
+  "tiny_author": {
+    "status": "pass",
+    "task1_seen_correct": 971,
+    "task1_samples": 1000,
+    "task1_tii_correct": 928,
+    "task2_seen_correct": 1876,
+    "task2_samples": 2000,
+    "task2_old_correct": 944,
+    "task2_new_correct": 932,
+    "routing_task2_correct": 1759,
+    "raw_data_fingerprints_labels_ids_exact": true,
+    "statistics_classes": 20,
+    "centroids_per_class": 10,
+    "feature_dim": 192,
+    "statistics_finite_and_old_slots_unchanged": true,
+    "epoch_coordinates": 140,
+    "outer_steps": 11060,
+    "outer_training_examples": 700000,
+    "evaluation_examples": 3000,
+    "alignment_task1_each": 0,
+    "alignment_task2_each": 300,
+    "source_pins_verified": 21,
+    "initial_sha_verified": true,
+    "remote_artifact_files_verified": 13,
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/4oyelbvs"
+  },
+  "tiny_terminal_comparison": {
+    "status": "pass",
+    "accuracy_metrics_pct": [
+      97.1,
+      93.8,
+      94.4,
+      93.2
+    ],
+    "gaps_pp": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "all_top1_tii_labels_ids_and_evaluation_orders_exact": true,
+    "first_batches_input_labels_seed_samples_and_gradient_sha_exact": true,
+    "task2_prompt_loss_gap": -2.08e-07,
+    "epochs": 140,
+    "outer_steps": 11060,
+    "outer_training_examples": 700000,
+    "evaluation_examples": 3000,
+    "source_pins_verified": 19,
+    "remote_files_verified": 12,
+    "task2_checkpoint_all_learned_tensors_and_40_statistics_groups_exact": true,
+    "old_slots_unchanged": true,
+    "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/d97rv717"
+  },
+  "tiny_pilot": {
+    "status": "pass",
+    "seen_correct": 894,
+    "seen_samples": 1000,
+    "all_four_prediction_arrays_exact": true,
+    "measurement_count": 3,
+    "flops_count": 1,
+    "outer_steps": 158,
+    "outer_training_examples": 10000,
+    "statistics_each": 5000,
+    "alignment_steps": 0,
+    "remote_files_verified": [
+      10,
+      10,
+      10,
+      11
+    ],
+    "energy_reintegration_max_gap": 1e-12,
+    "wall_mean_s": 21.31663446033296,
+    "wall_std_s": 0.177030875771097,
+    "energy_mean_wh": 0.8536210695655781,
+    "energy_std_wh": 0.02331919092766562,
+    "cuda_allocated_mib": 1543.5263671875,
+    "nvml_mib": 2145,
+    "partial_supported_ops_total": 81594549464679,
+    "flops_resource_costs_excluded": true
+  },
+  "final_report_recomputation": {
+    "status": "pass",
+    "report_files": 5,
+    "input_files": 7,
+    "provenance_files": 75,
+    "json_csv_markdown_recomputed": true,
+    "figure_visually_checked": true,
+    "full10_executed": false
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "status": "pass",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/83yhebpe",
+  "run_state": "finished",
+  "artifact": "laymond1/cl-efficiency/hide-author-small-validation-20261007T142011Z:v0",
+  "artifact_state": "COMMITTED",
+  "result_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-small-validation-20261007T142011Z/result.json",
+  "result_sha256": "bb9cc49300db69c8fcbd3174ca155be620944b86e5d2bc136c3ebaa9f27dc6ae",
+  "artifact_files": {
+    "metrics.json": {
+      "sha256": "c08b6e2a68f7ae1c4e0ca24c821d9e9ebd60513aa26ca5f7d2602eb15d957c70",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "spec.json": {
+      "sha256": "df96aba693897765801de216d91b5e317761b3bb596034feaad7bb44382336c0",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "runtime_adaptations.json": {
+      "sha256": "852f783d5afbe98e868304d3a8fa54dea72d0ebe8a42373a6de7ba6d2f075369",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "epoch_results.json": {
+      "sha256": "1e48ece207a0485ca530fed5933651957a622b19f09daf885590f1def29bfd16",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task_results.json": {
+      "sha256": "4cf2f6d7287343e487ce6028ffbbfcad05fee3c5d4a300681addd292f827c81f",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "shared_data.json": {
+      "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "telemetry.csv": {
+      "sha256": "51df96165c52a6b5998bea1b87cac4e84ec8950a0a79d9fbc6091c70db67973d",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "phases.json": {
+      "sha256": "2f9bb74a004689b46dd57582eedcb7a446bdb37240ab378108ebe2e66061e31b",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "first_batch_audits.json": {
+      "sha256": "a0db3f3928f234d4d77d47d372ccce1d1341fb4fdeb1800cc9951bf5c115a7bc",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task1_predictions.npz": {
+      "sha256": "07cf102eb9fa7a638813fd631dcbad15b6a360e2ce50ddccb741066488703074",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task2_predictions.npz": {
+      "sha256": "a92b5a24f41ab8cf9d555d94a73952f292b0a1cb868c312465642dbcfaf921e9",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task1_checkpoint.pt": {
+      "sha256": "2977c63c0998c87a7767b89a37549e391fd565683ab67cda339c68423ae5eb26",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task2_checkpoint.pt": {
+      "sha256": "5e449007e85b285d4b90e77af19bf8d1b4d541008f71175093e23508e8098864",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    }
+  },
+  "summary": {
+    "alignment/branch": "prompt",
+    "alignment/epochs": 30,
+    "alignment/lr": 0.005,
+    "alignment/optimizer_steps": 300,
+    "alignment/status": "completed",
+    "alignment/task": 2,
+    "epoch/epoch": 50,
+    "epoch/epochs": 50,
+    "epoch/loss": 0.8047251301475719,
+    "epoch/lr": 0.00075,
+    "epoch/phase": "prompt_train",
+    "epoch/task": 2,
+    "epoch/training_top1_pct": 93.94,
+    "resources/cuda_peak_allocated_mib": 3078.4306640625,
+    "resources/cuda_peak_reserved_mib": 3740,
+    "resources/evaluation_examples": 3000,
+    "resources/evaluation_examples_per_s": 896.9604453835711,
+    "resources/gpu_board_energy_j": 346324.73725596146,
+    "resources/gpu_board_energy_wh": 96.20131590443374,
+    "resources/gpu_energy_coverage_fraction": 0.9999380349220128,
+    "resources/gpu_energy_coverage_s": 930.8506012135184,
+    "resources/outer_observe_steps": 11060,
+    "resources/outer_training_examples_per_s": 787.7168608947262,
+    "resources/outer_training_stream_examples": 700000,
+    "resources/peak_gpu_device_memory_mib": 4267,
+    "resources/peak_gpu_power_w": 401.26,
+    "resources/peak_gpu_utilization_percent": 100,
+    "resources/peak_process_tree_rss_mib": 9566.37109375,
+    "resources/process_tree_cpu_s": 1568.586785,
+    "resources/process_wall_s": 930.9082850179984,
+    "resources/tasks_completed": 2,
+    "status": "completed",
+    "structural_checks/alignment_schedule_complete": true,
+    "structural_checks/checkpoint_round_trip": true,
+    "structural_checks/dataset_matches_reference": true,
+    "structural_checks/finite_loss_and_gradients": true,
+    "structural_checks/frozen_backbone_gradients_absent": true,
+    "structural_checks/frozen_backbones_unchanged": true,
+    "structural_checks/matched_learned_initialization": true,
+    "structural_checks/matched_phase_rng_and_batching": true,
+    "structural_checks/no_future_or_replay_samples": true,
+    "structural_checks/old_prompt_slots_unchanged": true,
+    "structural_checks/routing_without_task_oracle": true,
+    "structural_checks/statistics_shapes_and_seen_classes": true,
+    "structural_checks/training_protocol_complete": true,
+    "task/new_accuracy_pct": 95.5,
+    "task/new_correct": 955,
+    "task/new_samples": 1000,
+    "task/old_accuracy_pct": 97.6,
+    "task/old_correct": 976,
+    "task/old_samples": 1000,
+    "task/predictions_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-small-validation-20261007T142011Z/task2_predictions.npz",
+    "task/predictions_sha256": "a92b5a24f41ab8cf9d555d94a73952f292b0a1cb868c312465642dbcfaf921e9",
+    "task/routing_correct": 1882,
+    "task/routing_samples": 2000,
+    "task/seen_accuracy_pct": 96.55,
+    "task/seen_correct": 1931,
+    "task/seen_samples": 2000,
+    "task/task": 2
+  }
+}

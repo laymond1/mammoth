@@ -1,0 +1,26 @@
+{
+  "results.json": {
+    "local_file": "snapshots/results.json",
+    "sha256": "942fd27b21ac948b682e7acbae7105fefa33204208f5ea904e8633db4109536f"
+  },
+  "results.csv": {
+    "local_file": "snapshots/results.csv",
+    "sha256": "0f4d8e4a74d8da9ecac8ae6c3e2858581755ad4ab9ed1268ff28b9f4bd93175f"
+  },
+  "report.md": {
+    "local_file": "snapshots/report.md",
+    "sha256": "1e99c6d3d88eff59871eeeb4b99574a7ca14cbf6f76f55e1d68d0d2140380eed"
+  },
+  "efficiency_comparison.png": {
+    "local_file": "snapshots/efficiency_comparison.png",
+    "sha256": "4f5776df29c38578564f2b0589f9b2b228b3831ee60705a2d243f6dccb2d4704"
+  },
+  "efficiency_comparison.pdf": {
+    "local_file": "snapshots/efficiency_comparison.pdf",
+    "sha256": "f312f77cd654d9e427dd6d3512a62cb8ee975d8cc36f20fc20524caed0de70d6"
+  },
+  "artifact_metadata.json": {
+    "local_file": "artifact_metadata.json",
+    "sha256": "c77a57d5a3b35f4e681240f7c83843c3a58f3b27c9c1dc2bdf0daa7e4fb84e1f"
+  }
+}

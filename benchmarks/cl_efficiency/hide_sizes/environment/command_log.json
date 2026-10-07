@@ -1,0 +1,379 @@
+{
+  "implementation_commit": "e060ccf5c6320cbd3cf13ef8a43ca8cdac7a8dc7",
+  "gpu1_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+  "commands": [
+    {
+      "stage": "small_reference",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/run_hide_reference.py",
+        "--variant",
+        "small",
+        "--mode",
+        "validation",
+        "--initial-state",
+        "benchmarks/cl_efficiency/hide_sizes/prepared/small_author_initial_state.pt",
+        "--output",
+        "benchmarks/cl_efficiency/hide_sizes/runs",
+        "--execute"
+      ],
+      "output": "runs/hide-author-small-validation-20261007T142011Z"
+    },
+    {
+      "stage": "small_reference_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-small-validation-20261007T142011Z/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/small_reference",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T14:36:06.598943+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_reference_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T14:36:11.600951+00:00"
+    },
+    {
+      "stage": "small_native",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/run_hide_validation.py",
+        "--execute",
+        "--variant",
+        "small",
+        "--mode",
+        "validation",
+        "--initial-state",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_author_initial_state.pt",
+        "--reference-summary",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-small-validation-20261007T142011Z/result.json",
+        "--result-dir",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-native-small-validation"
+      ],
+      "started_utc": "2026-10-07T14:36:11.673858+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_native.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T14:51:53.831946+00:00"
+    },
+    {
+      "stage": "small_native_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-native-small-validation/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/small_native",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T14:51:53.832172+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_native_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T14:51:57.833894+00:00"
+    },
+    {
+      "stage": "small_efficiency",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/run_hide_efficiency.py",
+        "--execute",
+        "--variant",
+        "small",
+        "--acceptance-summary",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-native-small-validation/result.json",
+        "--initial-state",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_author_initial_state.pt",
+        "--result-dir",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-small"
+      ],
+      "started_utc": "2026-10-07T14:51:58.004087+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_efficiency.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T14:55:09.040996+00:00"
+    },
+    {
+      "stage": "small_measurement1_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-small/measurement1/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/small_measurement1",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T14:55:09.044875+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_measurement1_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T14:55:13.047899+00:00"
+    },
+    {
+      "stage": "small_measurement2_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-small/measurement2/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/small_measurement2",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T14:55:13.048873+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_measurement2_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T14:55:17.051698+00:00"
+    },
+    {
+      "stage": "small_measurement3_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-small/measurement3/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/small_measurement3",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T14:55:17.052675+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_measurement3_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T14:55:21.055565+00:00"
+    },
+    {
+      "stage": "small_flops_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-small/flops/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/small_flops",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T14:55:21.056588+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_flops_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T14:55:25.059363+00:00"
+    },
+    {
+      "stage": "tiny_reference",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/run_hide_reference.py",
+        "--variant",
+        "tiny",
+        "--mode",
+        "validation",
+        "--initial-state",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_author_initial_state.pt",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T14:55:25.135342+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_reference.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:03:40.218443+00:00"
+    },
+    {
+      "stage": "tiny_reference_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-tiny-validation-20261007T145525Z/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/tiny_reference",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T15:03:40.222081+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_reference_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:03:45.225102+00:00"
+    },
+    {
+      "stage": "tiny_native",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/run_hide_validation.py",
+        "--execute",
+        "--variant",
+        "tiny",
+        "--mode",
+        "validation",
+        "--initial-state",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_author_initial_state.pt",
+        "--reference-summary",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-tiny-validation-20261007T145525Z/result.json",
+        "--result-dir",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-native-tiny-validation"
+      ],
+      "started_utc": "2026-10-07T15:03:45.286341+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_native.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:11:57.377311+00:00"
+    },
+    {
+      "stage": "tiny_native_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-native-tiny-validation/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/tiny_native",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T15:11:57.378963+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_native_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:12:01.381997+00:00"
+    },
+    {
+      "stage": "tiny_efficiency",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/run_hide_efficiency.py",
+        "--execute",
+        "--variant",
+        "tiny",
+        "--acceptance-summary",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-native-tiny-validation/result.json",
+        "--initial-state",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_author_initial_state.pt",
+        "--result-dir",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-tiny"
+      ],
+      "started_utc": "2026-10-07T15:12:01.458195+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_efficiency.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:14:39.487044+00:00"
+    },
+    {
+      "stage": "tiny_measurement1_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-tiny/measurement1/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/tiny_measurement1",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T15:14:39.490883+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_measurement1_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:14:43.493837+00:00"
+    },
+    {
+      "stage": "tiny_measurement2_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-tiny/measurement2/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/tiny_measurement2",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T15:14:43.495077+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_measurement2_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:14:47.498399+00:00"
+    },
+    {
+      "stage": "tiny_measurement3_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-tiny/measurement3/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/tiny_measurement3",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T15:14:47.499647+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_measurement3_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:14:51.502595+00:00"
+    },
+    {
+      "stage": "tiny_flops_readback",
+      "argv": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "scripts/verify_hide_results.py",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-tiny/flops/result.json",
+        "--output",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/readbacks/tiny_flops",
+        "--execute"
+      ],
+      "started_utc": "2026-10-07T15:14:51.503834+00:00",
+      "log": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_flops_readback.log",
+      "exit_code": 0,
+      "finished_utc": "2026-10-07T15:14:55.507016+00:00"
+    }
+  ]
+}

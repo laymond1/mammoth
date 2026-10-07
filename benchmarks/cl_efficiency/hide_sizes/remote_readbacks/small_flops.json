@@ -1,0 +1,115 @@
+{
+  "status": "pass",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/yb6ug2vz",
+  "run_state": "finished",
+  "artifact": "laymond1/cl-efficiency/hide-native-small-efficiency-20261007T145357Z:v0",
+  "artifact_state": "COMMITTED",
+  "result_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-efficiency-small/flops/result.json",
+  "result_sha256": "4522e51678ca26d215679b3357852921bebe29436639d540239ce95c90f0d266",
+  "artifact_files": {
+    "spec.json": {
+      "sha256": "09097303b7d3d3d3ab0315177495f381acc23a128c4d2916ba2619a6bb92392f",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "metrics.json": {
+      "sha256": "5bbd8ba32077fbbd23c51ec155ba99c9ac6392be36a654eb3bb964693889eb17",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "effective_args.json": {
+      "sha256": "f8391dd885673f698183fbd92b2f6aa510d783d41009e1096890684d51b31903",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "epoch_results.json": {
+      "sha256": "79de12ff08e437eb7d7a91b9929e7748fb51169d3e54de3930335a7c88f14bf2",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task_results.json": {
+      "sha256": "f6cece59e050caa20bbaeadd280397d0572479b279a76ee72f6b1ad52d84c9de",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "shared_data.json": {
+      "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "telemetry.csv": {
+      "sha256": "b5c0643054a114eb3d4b6196f8caaaa53c9f95d259ee3e77c3539d5f9f64ad49",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "phases.json": {
+      "sha256": "53f30c5c70f9ba04c4f3b8563bdccf689efbaeba811115bbe465589fdf5130c6",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "first_batch_audits.json": {
+      "sha256": "0f8af750f00601d63f6fadabcaaa77eff07fc114fa6683bf1ed56bd067e0f374",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "flops_ops.json": {
+      "sha256": "dc884961110c058d2546961358703f7d38d87085a0fbb690b6155644932bb73e",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task1_predictions.npz": {
+      "sha256": "8f504bd7c5154bbe0055b158d0dffc62ac202f557f714edb55598ead006a9555",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    }
+  },
+  "summary": {
+    "acceptance_status": "not_applicable",
+    "native/epoch": 1,
+    "native/loss": 0.8665306603983988,
+    "native/loss_example_weighted": 0.8754584133386611,
+    "native/new_accuracy_pct": 95.4,
+    "native/new_correct": 954,
+    "native/new_samples": 1000,
+    "native/old_correct": 0,
+    "native/old_samples": 0,
+    "native/outer_epoch": 2,
+    "native/samples": 5000,
+    "native/seed": 2993,
+    "native/seen_accuracy_pct": 95.4,
+    "native/seen_classes": 10,
+    "native/seen_correct": 954,
+    "native/seen_samples": 1000,
+    "native/steps": 79,
+    "native/task": 1,
+    "native/tii_seen_accuracy_pct": 93.6,
+    "native/tii_task_routing_accuracy_pct": 100,
+    "native/train_accuracy_pct": 73.54,
+    "native_counts/prompt_statistics_examples": 5000,
+    "native_counts/prompt_training_steps": 79,
+    "native_counts/prompt_training_tii_examples": 5000,
+    "native_counts/routing_evaluation_examples": 1000,
+    "native_counts/tii_statistics_examples": 5000,
+    "native_counts/tii_training_steps": 79,
+    "native_resources/cuda_peak_allocated_mib": 3105.23876953125,
+    "native_resources/cuda_peak_reserved_mib": 3358,
+    "native_resources/evaluation_examples": 1000,
+    "native_resources/evaluation_examples_per_s": 867.6664033962495,
+    "native_resources/gpu_board_energy_j": 6661.509786951529,
+    "native_resources/gpu_board_energy_wh": 1.8504193852643136,
+    "native_resources/gpu_energy_coverage_fraction": 0.5115792175881011,
+    "native_resources/gpu_energy_coverage_s": 29.594093301013345,
+    "native_resources/outer_observe_steps": 158,
+    "native_resources/outer_training_examples_per_s": 906.5527653232922,
+    "native_resources/outer_training_stream_examples": 10000,
+    "native_resources/peak_gpu_device_memory_mib": 3849,
+    "native_resources/peak_gpu_power_w": 396.18,
+    "native_resources/peak_gpu_utilization_percent": 95,
+    "native_resources/peak_process_tree_rss_mib": 21312.45703125,
+    "native_resources/process_tree_cpu_s": 81.526702,
+    "native_resources/process_wall_s": 57.84850573199219,
+    "native_resources/tasks_completed": 1,
+    "native_status": "completed",
+    "paper_reproduction": false
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "status": "pass",
+  "gpu1_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+  "samples": 3190,
+  "started_utc": "2026-10-07T14:20:47.781456+00:00",
+  "finished_utc": "2026-10-07T15:16:23.320119+00:00",
+  "journal_sha256": "4c11b879717f59e0c3e3e6b536b1a8fb8e2f5df9f7e551cc01a4e69fad624f25",
+  "query_errors": [],
+  "foreign_or_unclassified_observations": [],
+  "driver_exit_observations": [
+    {
+      "utc": "2026-10-07T14:35:52.981255+00:00",
+      "pid": 999896,
+      "reason": "Driver exit sample for a PID previously observed in this workspace; process metadata no longer available."
+    }
+  ],
+  "observed_workspace_pids": [
+    999896,
+    1019734,
+    1028700,
+    1029486,
+    1030270,
+    1031009,
+    1032128,
+    1039693,
+    1046176,
+    1046886,
+    1047618,
+    1048334
+  ],
+  "scope": "Sampled compute-process occupancy every approximately one second; not an exclusive GPU lock. Monitor began after the Small reference startup; both pilots are fully within the monitored interval. Separate preflight/postflight queries found GPU1 idle. Graphics/idle board power remains within board energy."
+}

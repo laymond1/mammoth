@@ -1,0 +1,137 @@
+{
+  "status": "pass",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/4oyelbvs",
+  "run_state": "finished",
+  "artifact": "laymond1/cl-efficiency/hide-author-tiny-validation-20261007T145525Z:v0",
+  "artifact_state": "COMMITTED",
+  "result_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-tiny-validation-20261007T145525Z/result.json",
+  "result_sha256": "48a84b61204fb7aff60570e61d6b6d24d7259547b5bbef4c0c24f3231d0cf4e1",
+  "artifact_files": {
+    "metrics.json": {
+      "sha256": "89a7ae470367cddbaa7e264b33a1b1f34aa0e49a36fd9fdb5cae626f647eaace",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "spec.json": {
+      "sha256": "94d87a3e8e3a520d60e5ab85999d320e57edac41e85ab9492634bc69c9909de1",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "runtime_adaptations.json": {
+      "sha256": "158836de59f9ecafbc0fe43745ec50b1dd4fc7ea523e21914e053109c3fb42b6",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "epoch_results.json": {
+      "sha256": "991840af46ed3ed04362cb3765f94fede4773c2f6226fe6b4ee68a0f070917be",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task_results.json": {
+      "sha256": "32f8d0684063560b16d8c8574aec45d4e7ccb82f2e72c2c7d361f6772a3487ef",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "shared_data.json": {
+      "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "telemetry.csv": {
+      "sha256": "e0e54ebeac2faf7685f970c0c77ab2b3dd0de015dffda16e41d6ac00f56da0f8",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "phases.json": {
+      "sha256": "e7f9d48fa2b7f816b523508bb52cf9884066be9c39a099b0387366cda2e9cdd1",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "first_batch_audits.json": {
+      "sha256": "f305c3c967149321e7294878c5d1c643235f0c9cb58abbcd9f98d0a03b8d7c70",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task1_predictions.npz": {
+      "sha256": "433bc8ccdaf12ca46c8154d911fc781299520f161ac588ef9c64eb666c5d9832",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task2_predictions.npz": {
+      "sha256": "263d926e26cb1acde76f2344cb729077daef78def46631281b3b9fc0f0cce462",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task1_checkpoint.pt": {
+      "sha256": "58a393fa6acf86a7fb3945b5dea29496a608e8bdda0f6466ab1c571e7b577d7e",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    },
+    "task2_checkpoint.pt": {
+      "sha256": "e928e8efb28d646214b6d81eae5367ce5c1506518c7976c220d7cbfde5a3b99a",
+      "matches_uploaded_pin": true,
+      "local_snapshot_matches": true
+    }
+  },
+  "summary": {
+    "alignment/branch": "prompt",
+    "alignment/epochs": 30,
+    "alignment/lr": 0.005,
+    "alignment/optimizer_steps": 300,
+    "alignment/status": "completed",
+    "alignment/task": 2,
+    "epoch/epoch": 50,
+    "epoch/epochs": 50,
+    "epoch/loss": 1.538070434256445,
+    "epoch/lr": 0.00075,
+    "epoch/phase": "prompt_train",
+    "epoch/task": 2,
+    "epoch/training_top1_pct": 89.8,
+    "resources/cuda_peak_allocated_mib": 1528.03271484375,
+    "resources/cuda_peak_reserved_mib": 1772,
+    "resources/evaluation_examples": 3000,
+    "resources/evaluation_examples_per_s": 1541.6800113295296,
+    "resources/gpu_board_energy_j": 147536.0199123501,
+    "resources/gpu_board_energy_wh": 40.982227753430585,
+    "resources/gpu_energy_coverage_fraction": 0.99991559321656,
+    "resources/gpu_energy_coverage_s": 484.3685261285282,
+    "resources/outer_observe_steps": 11060,
+    "resources/outer_training_examples_per_s": 1546.2318665017217,
+    "resources/outer_training_stream_examples": 700000,
+    "resources/peak_gpu_device_memory_mib": 2299,
+    "resources/peak_gpu_power_w": 351.88,
+    "resources/peak_gpu_utilization_percent": 98,
+    "resources/peak_process_tree_rss_mib": 9471.6953125,
+    "resources/process_tree_cpu_s": 1134.898831,
+    "resources/process_wall_s": 484.40941356899566,
+    "resources/tasks_completed": 2,
+    "status": "completed",
+    "structural_checks/alignment_schedule_complete": true,
+    "structural_checks/checkpoint_round_trip": true,
+    "structural_checks/dataset_matches_reference": true,
+    "structural_checks/finite_loss_and_gradients": true,
+    "structural_checks/frozen_backbone_gradients_absent": true,
+    "structural_checks/frozen_backbones_unchanged": true,
+    "structural_checks/matched_learned_initialization": true,
+    "structural_checks/matched_phase_rng_and_batching": true,
+    "structural_checks/no_future_or_replay_samples": true,
+    "structural_checks/old_prompt_slots_unchanged": true,
+    "structural_checks/routing_without_task_oracle": true,
+    "structural_checks/statistics_shapes_and_seen_classes": true,
+    "structural_checks/training_protocol_complete": true,
+    "task/new_accuracy_pct": 93.2,
+    "task/new_correct": 932,
+    "task/new_samples": 1000,
+    "task/old_accuracy_pct": 94.4,
+    "task/old_correct": 944,
+    "task/old_samples": 1000,
+    "task/predictions_file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/runs/hide-author-tiny-validation-20261007T145525Z/task2_predictions.npz",
+    "task/predictions_sha256": "263d926e26cb1acde76f2344cb729077daef78def46631281b3b9fc0f0cce462",
+    "task/routing_correct": 1759,
+    "task/routing_samples": 2000,
+    "task/seen_accuracy_pct": 93.8,
+    "task/seen_correct": 1876,
+    "task/seen_samples": 2000,
+    "task/task": 2
+  }
+}

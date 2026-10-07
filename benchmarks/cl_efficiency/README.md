@@ -12,6 +12,8 @@ HiDe-Prompt Base는 첫2태스크 구현 검증·효율성 pilot에 이어 전�
 
 EASE Base·adapter64의 HiDe 공통 입력 전체10태스크 실행도 완료했습니다. 최종 정확도85.42%·평균 증분91.245476%·망각8.00%p, 전체 시간3,493.678616초·GPU 보드404.253873Wh를 기록했습니다. 독립 기준선과 native 첫2태스크의 네 정확도 지표가 동일하고 전체 구조 검사12개·초반 예측 재현·W&B 원격 파일 검증·Slack 완료 알림이 통과했습니다. [EASE 전체 CL 보고서](ease_full_cl/report/report.md), [실행 및 검증 이력](ease_full_cl/README.md)에 HiDe와 같은 입력·서로 다른 학습량의 비교를 정리합니다. 이전 EASE batch48·`ease` preprocessing 결과는 새 조건과 분리해 보존합니다.
 
+HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독립 저자 코드·native 첫2태스크 검증에서 네 정확도 차이가 모두0.00%p로 통과했고, 첫 태스크 측정3회·별도 부분 FLOPs1회·W&B 원격 검증·Slack 알림을 완료했습니다. [크기별 보고서](hide_sizes/report/report.md)에 기존 Base pilot과 함께 시간·CUDA/NVML 메모리·RSS·CPU 시간·GPU 보드 에너지를 기록합니다. 단기 pilot 정확도는 Base96.60%·Small95.40%·Tiny89.40%이며, Tiny의 비용 감소와 정확도 하락을 함께 검토해야 합니다. 사용자 결정에 따라 EASE 저자 코드 전체10태스크 실행은 생략했습니다.
+
 ## 검토 자료
 
 - [현재 71개 모델의 특징과 장단점](algorithms.md)
@@ -26,6 +28,7 @@ EASE Base·adapter64의 HiDe 공통 입력 전체10태스크 실행도 완료했
 - [EASE Small/Tiny 네 설정 검증·효율성 결과](ease_sizes/report.md)
 - [HiDe-Prompt 전체10태스크 결과](hide_prompt/full_cl/report.md), [구현 및 검증 이력](hide_prompt/README.md)
 - [EASE Base 전체 CL 공통 입력 단계](ease_full_cl/README.md)
+- [HiDe-Prompt Small/Tiny 검증·효율성 결과](hide_sizes/README.md)
 - [표 형태의 전체 목록](inventory.csv)
 - [모델별 데이터셋과 인자 및 외부 요구사항](manifest.json)
 - [생성된 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)

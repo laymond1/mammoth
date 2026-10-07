@@ -1,0 +1,6 @@
+{
+  "status": "sent",
+  "message": "HiDe Small→Tiny 결과 저장·원격 검증 완료 (GPU1, batch64, seed1993).\nSmall: 검증 태스크2 정확도 96.55%; 첫 태스크 TII1+P1 계측3회 평균 29.8초, GPU 보드 1.879Wh, CUDA allocated 3.03GiB, NVML 3.76GiB.\nTiny: 검증 태스크2 정확도 93.80%; 첫 태스크 TII1+P1 계측3회 평균 21.3초, GPU 보드 0.854Wh, CUDA allocated 1.51GiB, NVML 2.09GiB.\nW&B https://wandb.ai/laymond1/cl-efficiency/runs/jdjy4oll",
+  "result_sha256": "83530547aeaece8978c1aa4d6afb96b2affb68c443c386586bebc070a342e04d",
+  "readback_sha256": "380ba02344f364dcc145933d872e7f52c38b2c41d4999b9904a07d1326b511f9"
+}

@@ -93,5 +93,16 @@
     "reason": "Existing test_import_mammoth/test_best_base call training with local default ./data/ and require CIFAR10/MNIST downloads; sandbox blocks download. Shared CIFAR100/NPZ actual HiDe CPU smoke and approved GPU validation are the targeted smoke checks. Generic failures occurred before model optimizer steps.",
     "agent_generic_failures": 8,
     "agent_generic_reason": "Module register/dynamic params generic training tests also require absent default local datasets/HF weights; not rerun."
+  },
+  "report_publication_tests": {
+    "command": "uv run --no-sync --offline pytest tests/test_report_hide_sizes.py tests/test_publish_hide_sizes.py tests/test_report_hide_results.py tests/test_publish_hide_report.py -q",
+    "passed": 117,
+    "wall_s": 9.0,
+    "post_test_recipe_wording_change": "Final 440-test suite includes final recipe wording."
+  },
+  "final_focused_tests": {
+    "command": "uv run --no-sync --offline pytest tests/test_hide_prompt.py tests/test_hide_network.py tests/test_hide_statistics.py tests/test_hide_reference.py tests/test_hide_execution.py tests/test_hide_efficiency.py tests/test_hide_fullcl_execution.py tests/test_hide_size_network.py tests/test_hide_size_protocol.py tests/test_hide_size_reference.py tests/test_hide_size_execution.py tests/test_hide_size_efficiency.py tests/test_report_hide_sizes.py tests/test_publish_hide_sizes.py tests/test_report_hide_results.py tests/test_publish_hide_report.py -q",
+    "passed": 440,
+    "wall_s": 11.31
   }
 }
