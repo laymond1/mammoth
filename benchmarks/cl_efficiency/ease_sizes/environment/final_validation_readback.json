@@ -1,0 +1,29 @@
+{
+  "status": "pass",
+  "run_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nyk1kr3q",
+  "run_state": "finished",
+  "artifact": "laymond1/cl-efficiency/ease-size-pilot-final-validation-20261007:v0",
+  "artifact_state": "COMMITTED",
+  "files": {
+    "checks.md": {
+      "local_sha256": "bfaaa9157dc8ed39076035af39e404a22fdfae4f0687b56f3691eaeff5414011",
+      "remote_sha256": "bfaaa9157dc8ed39076035af39e404a22fdfae4f0687b56f3691eaeff5414011",
+      "match": true
+    },
+    "environment/local_merge.json": {
+      "local_sha256": "1e06183fe0ef945f354830dd64adf63268321f07d4467eb9386765fc1f71d93a",
+      "remote_sha256": "1e06183fe0ef945f354830dd64adf63268321f07d4467eb9386765fc1f71d93a",
+      "match": true
+    },
+    "environment/report_upload.json": {
+      "local_sha256": "54fc857def253fd8ee06a65cbc78ea602182ef3006a5675c0743dbc51ce36323",
+      "remote_sha256": "54fc857def253fd8ee06a65cbc78ea602182ef3006a5675c0743dbc51ce36323",
+      "match": true
+    },
+    "environment/report_readback.json": {
+      "local_sha256": "1add241d7ee0da3fe34048e2e0b80539792f71a2edc6334e2c0d368d3101dc54",
+      "remote_sha256": "1add241d7ee0da3fe34048e2e0b80539792f71a2edc6334e2c0d368d3101dc54",
+      "match": true
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "status": "sent",
+  "recorded_utc": "2026-10-07T03:32:57.598716+00:00",
+  "message": "EASE Small64/Tiny64/Small32/Tiny16 완료: 네 설정 모두 독립 기준선 대비 구현 검증 통과(최대 하락 0.5%p). 24개 실험 worker 완료, 비용 측정3회씩+별도 FLOPs 진단, Base64 재사용. 로컬 codex/cl-foundation 코드·결과 병합 및 W&B run/artifact 파일 대조 완료. 집계 보고서: https://wandb.ai/laymond1/cl-efficiency/runs/nyk1kr3q",
+  "run_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nyk1kr3q",
+  "secret_webhook_recorded": false
+}

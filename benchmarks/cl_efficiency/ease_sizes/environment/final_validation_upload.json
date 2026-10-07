@@ -1,0 +1,14 @@
+{
+  "status": "uploaded",
+  "run_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nyk1kr3q",
+  "run_path": "laymond1/cl-efficiency/nyk1kr3q",
+  "artifact": "laymond1/cl-efficiency/ease-size-pilot-final-validation-20261007:v0",
+  "state": "COMMITTED",
+  "files": [
+    "checks.md",
+    "environment/local_merge.json",
+    "environment/report_upload.json",
+    "environment/report_readback.json"
+  ],
+  "new_training": false
+}

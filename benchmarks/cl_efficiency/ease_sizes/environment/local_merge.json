@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "recorded_utc": "2026-10-07T03:32:45.630743+00:00",
+  "local_only": true,
+  "target_branch": "codex/cl-foundation",
+  "source_branch": "codex/ease-size-pilot",
+  "target_before_commit": "dc588b772d00c01e54985fc21b7f7236de298b0b",
+  "merged_source_and_results_commit": "a01e7d3a706e7cb1a105e76fd9b00a69d2c91a50",
+  "execution_source_commit": "4d60f96adf8c0e18c83ff988880b8699147aeab8",
+  "command": "git merge --ff-only codex/ease-size-pilot",
+  "base_result_sha256_unchanged": "dc84f34f585ebd93e2add569acecd379170cd4a48c9c5779808201c401f41aa9",
+  "completion_records": "A subsequent documentation-only commit adds this merge record and upload/readback receipts to both branches."
+}
