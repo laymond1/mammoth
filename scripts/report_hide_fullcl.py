@@ -132,6 +132,38 @@ def resource_observations(record):
             'missing_resource_values': 'null means unavailable; values are never imputed.'}
 
 
+def work_observations(record):
+    """Preserve actual optimizer and generated-feature counts, without FLOPs."""
+    alignments = []
+    for row in record['alignment_history']:
+        populations = row.get('sampled_examples_per_epoch')
+        if (not isinstance(populations, list) or len(populations) != (0 if row['skipped'] else 30)
+                or any(type(value) is not int or value < 1 for value in populations)
+                or row.get('old_classes') != 10 * (row['task'] - 1)
+                or row.get('samples_per_centroid') != (64 if row['branch'] == 'tii' else 320)):
+            raise ValueError('Alignment generated-feature observations are incomplete')
+        alignments.append({'task': row['task'], 'branch': row['branch'],
+                           'optimizer_steps': row['optimizer_steps'],
+                           'old_classes': row['old_classes'],
+                           'samples_per_centroid': row['samples_per_centroid'],
+                           'sampled_examples_per_epoch': populations,
+                           'synthetic_feature_examples_generated': sum(populations),
+                           'skipped': row['skipped']})
+    outer_steps = record['metrics']['outer_observe_steps']
+    alignment_steps = sum(row['optimizer_steps'] for row in alignments)
+    return {'outer_image_training_examples': record['metrics']['outer_training_stream_examples'],
+            'evaluation_image_examples': record['metrics']['evaluation_examples'],
+            'outer_optimizer_steps': outer_steps,
+            'alignment_optimizer_steps': alignment_steps,
+            'total_optimizer_steps': outer_steps + alignment_steps,
+            'synthetic_feature_examples_generated': sum(row['synthetic_feature_examples_generated'] for row in alignments),
+            'synthetic_feature_examples_generated_by_branch': {
+                branch: sum(row['synthetic_feature_examples_generated'] for row in alignments if row['branch'] == branch)
+                for branch in ('tii', 'prompt')},
+            'alignment_observations': alignments,
+            'scope': 'Counts come from saved outer-loop metrics and alignment history. Generated synthetic features are a sampled population, not raw images or classifier-consumed training examples. Optimizer steps cover heterogeneous operations and do not estimate FLOPs or equal compute budgets.'}
+
+
 def build_report(native, reference, accepted_native):
     settings = native.get('protocol', {})
     if (native.get('status') != 'completed' or native.get('model') != 'hide-prompt'
@@ -173,6 +205,7 @@ def build_report(native, reference, accepted_native):
                            'prefix_prediction_match': saved_prefix,
                            'full_ten_task_accuracy_acceptance': 'not_assessed_by_matched_ten_task_reference'},
             'accuracy': task_observations(native), 'resources': resource_observations(native),
+            'work_counts': work_observations(native),
             'limitations': ['Single seed1993; no seed variation estimate or confidence interval.',
                             'Native full10 run; matched independent implementation validation covers only the first two tasks.',
                             'The author-code protocol and IN21K→IN1K weights are explicit adaptations; this is not paper-table reproduction.',
@@ -197,22 +230,36 @@ def verify_saved_predictions(native_file):
 
 def render_markdown(report):
     accuracy, resources = report['accuracy'], report['resources']
+    work = report['work_counts']
+    def formatted(value, digits=2):
+        return 'N/A' if value is None else f'{value:.{digits}f}'
+    process = resources['process']
     lines = ['# HiDe-Prompt Base 전체 10태스크 결과', '',
              f'최종 class-IL 정확도 **{accuracy["final_accuracy_pct"]:.2f}%**, 평균 증분 정확도 **{accuracy["average_incremental_accuracy_pct"]:.2f}%**, 과거 9태스크 평균 망각 **{accuracy["forgetting_pp"]:.2f}%p**입니다.', '',
              'GPU1·batch64·seed1993, CIFAR100 고정 순서 10클래스/태스크, ViT-B/16 AugReg IN21K → IN1K 가중치를 사용했습니다. 각 태스크는 TII20 + prompt50epoch이며, 태스크2부터 두 분류기에 CA30epoch를 적용했습니다.', '',
              '첫2태스크는 기존 독립 저자 기준선과 정확도·구조·첫 배치를 대조하고 저장 예측까지 일치했습니다. 전체10태스크에 대한 독립 기준선은 실행하지 않았으며 논문 표 재현으로 판정하지 않습니다. 비정상적으로 낮은 성능은 구현 문제로 조사합니다.', '',
              f'[Native W&B]({report.get("native_wandb_url")})', '',
+             '| 전체 실행 지표 | 관측값 |', '|---|---:|',
+             '| Recorder 실행 시간(s) | ' + formatted(process.get('process_wall_s')) + ' |',
+             '| GPU 보드 에너지(Wh) | ' + formatted(process.get('gpu_board_energy_wh')) + ' |',
+             '| CUDA allocated peak(MiB) | ' + formatted(process.get('cuda_peak_allocated_mib')) + ' |',
+             '| GPU device memory peak(MiB) | ' + formatted(process.get('peak_gpu_device_memory_mib')) + ' |',
+             '| 프로세스·자식 RSS peak(MiB) | ' + formatted(process.get('peak_process_tree_rss_mib')) + ' |',
+             '| GPU 에너지 sampling coverage(%) | ' + formatted(process['gpu_energy_coverage_fraction'] * 100
+                                                                               if process.get('gpu_energy_coverage_fraction') is not None else None, 4) + ' |', '',
+             f'실제 optimizer update는 외부 TII/prompt 학습 **{work["outer_optimizer_steps"]:,}회**와 classifier alignment **{work["alignment_optimizer_steps"]:,}회**, 합계 **{work["total_optimizer_steps"]:,}회**입니다. '
+             f'외부 학습 이미지 노출은 **{work["outer_image_training_examples"]:,}개**, 누적 평가 이미지 노출은 **{work["evaluation_image_examples"]:,}개**입니다. '
+             f'Alignment가 생성한 synthetic feature는 저장된 매 epoch population의 합 **{work["synthetic_feature_examples_generated"]:,}개**이며 raw image 수와 별개입니다. 생성 population 전체를 classifier가 학습에 소비한 것은 아닙니다. '
+             '각 optimizer step의 연산은 다르며 이 횟수를 FLOPs나 동일 계산 예산으로 해석하지 않습니다.', '',
              '| 학습 완료 태스크 | 관측 클래스 정확도(%) | 과거 클래스(%) | 신규 클래스(%) | 시간(s) | GPU 보드(Wh) | CUDA peak(MiB) | RSS peak(MiB) |',
              '|---:|---:|---:|---:|---:|---:|---:|---:|']
-    def formatted(value, digits=2):
-        return 'N/A' if value is None else f'{value:.{digits}f}'
     for row, cost in zip(accuracy['trajectory'], resources['tasks']):
         values = (row['seen_accuracy_pct'], row['old_accuracy_pct'], row['new_accuracy_pct'],
                   cost['wall_s'], cost['metrics']['gpu_board_energy_wh'],
                   cost['metrics']['cuda_peak_allocated_mib'], cost['metrics']['peak_process_tree_rss_mib'])
         lines.append('| ' + str(row['task']) + ' | ' + ' | '.join(formatted(value) for value in values) + ' |')
     lines += ['', '망각은 태스크1..9 각각에 대해 최종 태스크 이전의 최고 정확도에서 최종 정확도를 빼고 평균합니다. 후반 학습으로 개선되면 음수를 유지합니다. 정확도 행렬의 미래 태스크는 평가하지 않았으므로 null입니다. 평균 증분 정확도는 각 태스크 종료 시 관측 클래스 정확도의 10회 평균입니다.', '',
-              'GPU 에너지는 선택된 GPU 보드의 power sampling 적분이며 전체 머신 전력은 아닙니다. CUDA peak는 태스크별 allocator 최대값, device memory·RSS는 샘플 최대값입니다. RSS는 자식 프로세스의 공유 페이지를 중복 합산할 수 있습니다. 태스크 시간은 데이터 로딩부터 평가·예측·checkpoint 검사까지이며 Slack 및 마지막 artifact 업로드는 제외합니다. 중첩 phase 시간은 inclusive이므로 단순 합산하지 않습니다.', '',
+              'GPU 에너지는 선택된 GPU 보드의 power sampling 적분이며 전체 머신 전력은 아닙니다. CUDA peak는 태스크별 allocator 최대값이며 전체 실행 peak는 초기화와 모든 태스크의 최대값을 보존합니다. Device memory·RSS는 샘플 최대값입니다. RSS는 자식 프로세스의 공유 페이지를 중복 합산할 수 있습니다. Recorder 전체 시간은 초기화·전처리·학습·통계·정렬·평가·checkpoint·audit를 포함하며 마지막 artifact upload/finish는 제외합니다. 태스크 시간은 데이터 로딩부터 평가·예측·checkpoint 검사까지이며 태스크별 Slack/logging 및 마지막 artifact 업로드는 제외합니다. 중첩 phase 시간은 inclusive이므로 단순 합산하지 않습니다.', '',
               '한 seed의 한 실행이며 신뢰구간을 추정하지 않습니다. Tiny·Small 및 계산 예산을 맞춘 BudgetCL/aL-SAR 비교는 후속 단계입니다.', '']
     return '\n'.join(lines)
 

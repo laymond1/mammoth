@@ -45,7 +45,11 @@ def records():
                   metrics={'outer_observe_steps': 55300, 'outer_training_stream_examples': 3500000,
                            'evaluation_examples': 55000, 'tasks_completed': 10},
                   alignment_history=[{'task': task, 'branch': branch, 'optimizer_steps': 300 * (task - 1),
-                                      'skipped': task == 1} for task in range(1, 11) for branch in ('tii', 'prompt')],
+                                      'skipped': task == 1, 'old_classes': 10 * (task - 1),
+                                      'samples_per_centroid': 64 if branch == 'tii' else 320,
+                                      'sampled_examples_per_epoch': [] if task == 1 else
+                                      [10 * task * 10 * (64 if branch == 'tii' else 320)] * 30}
+                                     for task in range(1, 11) for branch in ('tii', 'prompt')],
                   wandb_logging_status='uploaded', wandb_artifact={'name': 'fixture:v0', 'state': 'COMMITTED'},
                   wandb_url='https://wandb.ai/laymond1/cl-efficiency/runs/fullfixture')
     phases = {name: {'wall_s': 1., 'gpu_board_energy_j': 360., 'calls': 1}
@@ -69,6 +73,24 @@ def test_accuracy_matrix_exact_counts_incremental_average_and_negative_forgettin
     assert accuracy['forgetting_by_task'][1]['forgetting_pp'] == 4.
     assert accuracy['forgetting_pp'] == pytest.approx((-.2 + 4 - 7 * 3) / 9)
     assert 'not_assessed' in report['validation']['full_ten_task_accuracy_acceptance']
+
+
+def test_work_counts_separate_observed_synthetic_populations_from_raw_images(records):
+    report = reporter.build_report(*records)
+    work = report['work_counts']
+    assert work['outer_optimizer_steps'] == 55300
+    assert work['alignment_optimizer_steps'] == 27000
+    assert work['total_optimizer_steps'] == 82300
+    assert work['outer_image_training_examples'] == 3500000
+    assert work['synthetic_feature_examples_generated'] == 62208000
+    # Zero-variance centroids can reduce the generated population; use the
+    # actual returned observation, never a classes*centroids plan estimate.
+    records[0]['alignment_history'][2]['sampled_examples_per_epoch'][0] -= 64
+    altered = reporter.build_report(*records)
+    assert altered['work_counts']['synthetic_feature_examples_generated'] == 62208000 - 64
+    assert altered['work_counts']['total_optimizer_steps'] == 82300
+    assert '82,300' in reporter.render_markdown(report)
+    assert publisher.scalar_summary(report)['work/alignment_optimizer_steps'] == 27000
 
 
 @pytest.mark.parametrize('field', ['seen_correct', 'new_correct', 'old_correct', 'seen_samples'])

@@ -56,6 +56,9 @@ def scalar_summary(report):
     for key, value in report['resources']['process'].items():
         if type(value) in (int, float):
             result['resources/' + key] = value
+    for key, value in report['work_counts'].items():
+        if type(value) is int:
+            result['work/' + key] = value
     return result
 
 
@@ -69,9 +72,14 @@ def tables(report):
               for task, value in enumerate(row) if value is not None]
     phases = [[row['task'], name, phase['wall_s'], phase.get('gpu_board_energy_j')]
               for row in costs for name, phase in row['phases'].items()]
+    alignment = [[row['task'], row['branch'], row['optimizer_steps'],
+                  row['synthetic_feature_examples_generated'], row['samples_per_centroid']]
+                 for row in report['work_counts']['alignment_observations']]
     return {'full_cl/task_metrics': (columns, data),
             'full_cl/accuracy_matrix': (['tasks_learned', 'evaluated_task', 'class_il_accuracy_pct'], matrix),
-            'full_cl/task_phases': (['task', 'phase', 'wall_s', 'gpu_board_energy_j'], phases)}
+            'full_cl/task_phases': (['task', 'phase', 'wall_s', 'gpu_board_energy_j'], phases),
+            'full_cl/alignment_work': (['task', 'branch', 'optimizer_steps',
+                                       'synthetic_feature_examples_generated', 'samples_per_centroid'], alignment)}
 
 
 def publish(options):
