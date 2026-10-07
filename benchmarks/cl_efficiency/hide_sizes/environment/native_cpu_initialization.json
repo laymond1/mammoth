@@ -1,0 +1,605 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "scope": "CPU construction, author learned initialization transfer, one image per branch/variant, no training",
+  "gpu_execution": false,
+  "optimizer_steps": 0,
+  "downloads_allowed": false,
+  "device": "cpu",
+  "torch_cpu_threads": 2,
+  "source_sha256": {
+    "models/hide_prompt.py": "8af3ef36c1e620919ca5edddb6c6e3775970dc5f3cefee3c6567c9199c416a98",
+    "models/hide_prompt_utils/network.py": "04ba4480533cae30d189805e2c5e9c53998e4e7bdfc0526af98da0cbae71020a",
+    "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+    "models/hide_prompt_utils/prompt.py": "52ae82790d00ea66c531bffbe4f68db6753d6c88f3e96f364496d84a38a68607"
+  },
+  "author_source": "/tmp/cl-hide-official-20261007",
+  "author_source_sha256": {
+    "README.md": "6082e6f05b51adfa9edc515e0af698d333fd1ede2699c789830d32e84e20a499",
+    "LICENSE": "1908e0040d8902ad1cc8e82a19de162be93aed99d38e6a8645ad8d7e71cf90ba",
+    "training_scripts/train_cifar100_vit.sh": "4f501271ecffee2b928ee3c97631abea29b9ba2df1f95fe1aefa7ec7d45a531a",
+    "configs/cifar100_hideprompt_5e.py": "90aaaea0603f1381bd7a444c03672a3219db2ddb36c63d9f26d760fe7a89726d",
+    "main.py": "0bd697c9016ae483e9c3ed29b6ba84c63305bed4600948b778e80e2605401bed",
+    "datasets.py": "bc4b2d48df4b6a9f0524f48cfc045d20c98582daaeb48659a05d8c87561ce122",
+    "trainers/tii_trainer.py": "8b19305192e8dbd1279ee70f6ea5d43246a032e1a6ade2a7be583e1cfa2737a0",
+    "trainers/hideprompt_trainer.py": "46f78a7fcca1aff2313017b7787a876c42703949105313619eafc9ab42d04820",
+    "engines/hide_tii_engine.py": "9d47034c8c1cf5190eb37b0840cceb15078a20432669e4c36be0eb40f7bebe8c",
+    "engines/hide_promtp_wtp_and_tap_engine.py": "05a2713ca3ee4a73661dabedb7023d86e6bfe13f8104efd81d0f278cca596195",
+    "peft/prompt/hide_prompt.py": "c756c514ac8917abd25a0b6192fd25913af7e0b19efb58876cd1f8454241f900",
+    "vits/hide_prompt_vision_transformer.py": "d6ee1a72a5c3d7e376ae3e3d4033d0198b252b471ec4b0aed46535a6509fb7db",
+    "attention.py": "5fdb9fb4c3c38ac9064c9a8fe6c89b67415342581458cd4d2c45ec4da49b3611",
+    "requirements.txt": "d47f2f292808212714a09c9d916c82e728b6435b1ebe1a15792411c7f1dafce4",
+    "utils.py": "90388878806fdb2d5c2c86343dfd7eb99ae43b53b6abb17d5f47e032c1f9423e"
+  },
+  "variants": [
+    {
+      "vit_size": "small",
+      "status": "passed",
+      "native_cli": [
+        "--model",
+        "hide-prompt",
+        "--dataset",
+        "seq-cifar100-224",
+        "--model_config",
+        "default",
+        "--dataset_config",
+        "hide_prompt",
+        "--hide_checkpoint",
+        "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "--hide_vit_size",
+        "small",
+        "--n_epochs",
+        "70",
+        "--hide_tii_epochs",
+        "20",
+        "--hide_prompt_epochs",
+        "50",
+        "--hide_ca_epochs",
+        "30",
+        "--stop_after",
+        "2",
+        "--batch_size",
+        "64",
+        "--num_workers",
+        "4",
+        "--seed",
+        "1993",
+        "--permute_classes",
+        "0",
+        "--base_path",
+        "/mnt/sdab1/share/data",
+        "--code_optimization",
+        "0",
+        "--enable_other_metrics",
+        "0",
+        "--debug_mode",
+        "0",
+        "--disable_log",
+        "1",
+        "--non_verbose",
+        "1"
+      ],
+      "effective_dataset_config": "hide_prompt",
+      "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+      "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+      "feature_dim": 384,
+      "num_heads": 6,
+      "depth": 12,
+      "patch_size": [
+        16,
+        16
+      ],
+      "mlp_hidden_width": 768,
+      "prefix_bank_shape": [
+        5,
+        2,
+        10,
+        5,
+        6,
+        64
+      ],
+      "use_permute_fix": false,
+      "canonical_pretrained_tensor_count": 150,
+      "canonical_pretrained_sha256": {
+        "tii": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+        "prompt": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5"
+      },
+      "author_canonical_pretrained_sha256": {
+        "tii": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+        "prompt": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5"
+      },
+      "initial_learned_sha256": {
+        "tii": "263c28a614864e157fc91546e36ca6a3e6a53d5bd90d67a9838b1d71f348dc91",
+        "prompt": "4ee41da7946497229ff46276599cbd990d5cb996c6cfb7fe15c91e0e700d47a7"
+      },
+      "author_initial_learned_sha256": {
+        "tii": "263c28a614864e157fc91546e36ca6a3e6a53d5bd90d67a9838b1d71f348dc91",
+        "prompt": "4ee41da7946497229ff46276599cbd990d5cb996c6cfb7fe15c91e0e700d47a7"
+      },
+      "phase_parameters": {
+        "tii": {
+          "names": [
+            "tii.head.bias",
+            "tii.head.weight",
+            "tii.mlp.net.0.0.bias",
+            "tii.mlp.net.0.0.weight",
+            "tii.mlp.net.1.0.bias",
+            "tii.mlp.net.1.0.weight",
+            "tii.mlp.norm.bias",
+            "tii.mlp.norm.weight"
+          ],
+          "trainable_parameters": 630244
+        },
+        "tii_alignment": {
+          "names": [
+            "tii.head.bias",
+            "tii.head.weight",
+            "tii.mlp.net.0.0.bias",
+            "tii.mlp.net.0.0.weight",
+            "tii.mlp.net.1.0.bias",
+            "tii.mlp.net.1.0.weight",
+            "tii.mlp.norm.bias",
+            "tii.mlp.norm.weight"
+          ],
+          "trainable_parameters": 630244
+        },
+        "prompt": {
+          "names": [
+            "prompt.e_prompt.prompt",
+            "prompt.head.bias",
+            "prompt.head.weight"
+          ],
+          "trainable_parameters": 230500
+        },
+        "prompt_alignment": {
+          "names": [
+            "prompt.head.bias",
+            "prompt.head.weight"
+          ],
+          "trainable_parameters": 38500
+        },
+        "eval": {
+          "names": [],
+          "trainable_parameters": 0
+        }
+      },
+      "mapping": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "train_samples": 5000,
+      "statistics_shape": [
+        100,
+        10,
+        384
+      ],
+      "statistics_future_valid": false,
+      "native_forward": {
+        "tii": {
+          "pre_logits_shape": [
+            1,
+            384
+          ],
+          "logits_shape": [
+            1,
+            100
+          ],
+          "finite": true
+        },
+        "prefix_shape": [
+          5,
+          1,
+          2,
+          5,
+          6,
+          64
+        ],
+        "prompt": {
+          "pre_logits_shape": [
+            1,
+            384
+          ],
+          "logits_shape": [
+            1,
+            100
+          ],
+          "finite": true
+        }
+      },
+      "seen_logits_shape": [
+        1,
+        10
+      ],
+      "input_samples_per_branch": 1,
+      "input_label": 0,
+      "checkpoint_roundtrip": true,
+      "optimizer_steps": 0,
+      "cuda_initialized": false,
+      "wall_s": 4.349687679990893
+    },
+    {
+      "vit_size": "tiny",
+      "status": "passed",
+      "native_cli": [
+        "--model",
+        "hide-prompt",
+        "--dataset",
+        "seq-cifar100-224",
+        "--model_config",
+        "default",
+        "--dataset_config",
+        "hide_prompt",
+        "--hide_checkpoint",
+        "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "--hide_vit_size",
+        "tiny",
+        "--n_epochs",
+        "70",
+        "--hide_tii_epochs",
+        "20",
+        "--hide_prompt_epochs",
+        "50",
+        "--hide_ca_epochs",
+        "30",
+        "--stop_after",
+        "2",
+        "--batch_size",
+        "64",
+        "--num_workers",
+        "4",
+        "--seed",
+        "1993",
+        "--permute_classes",
+        "0",
+        "--base_path",
+        "/mnt/sdab1/share/data",
+        "--code_optimization",
+        "0",
+        "--enable_other_metrics",
+        "0",
+        "--debug_mode",
+        "0",
+        "--disable_log",
+        "1",
+        "--non_verbose",
+        "1"
+      ],
+      "effective_dataset_config": "hide_prompt",
+      "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+      "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+      "feature_dim": 192,
+      "num_heads": 3,
+      "depth": 12,
+      "patch_size": [
+        16,
+        16
+      ],
+      "mlp_hidden_width": 384,
+      "prefix_bank_shape": [
+        5,
+        2,
+        10,
+        5,
+        3,
+        64
+      ],
+      "use_permute_fix": false,
+      "canonical_pretrained_tensor_count": 150,
+      "canonical_pretrained_sha256": {
+        "tii": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+        "prompt": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb"
+      },
+      "author_canonical_pretrained_sha256": {
+        "tii": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+        "prompt": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb"
+      },
+      "initial_learned_sha256": {
+        "tii": "e5e13f8859ddfd3ee269874de42d6c39e40c33b6e0f093a994fe3f2ba4afaa0e",
+        "prompt": "79167473f10fa7f5f646c835dce86ddd2704d59dda72478c5d2bb8cf242e6389"
+      },
+      "author_initial_learned_sha256": {
+        "tii": "e5e13f8859ddfd3ee269874de42d6c39e40c33b6e0f093a994fe3f2ba4afaa0e",
+        "prompt": "79167473f10fa7f5f646c835dce86ddd2704d59dda72478c5d2bb8cf242e6389"
+      },
+      "phase_parameters": {
+        "tii": {
+          "names": [
+            "tii.head.bias",
+            "tii.head.weight",
+            "tii.mlp.net.0.0.bias",
+            "tii.mlp.net.0.0.weight",
+            "tii.mlp.net.1.0.bias",
+            "tii.mlp.net.1.0.weight",
+            "tii.mlp.norm.bias",
+            "tii.mlp.norm.weight"
+          ],
+          "trainable_parameters": 167716
+        },
+        "tii_alignment": {
+          "names": [
+            "tii.head.bias",
+            "tii.head.weight",
+            "tii.mlp.net.0.0.bias",
+            "tii.mlp.net.0.0.weight",
+            "tii.mlp.net.1.0.bias",
+            "tii.mlp.net.1.0.weight",
+            "tii.mlp.norm.bias",
+            "tii.mlp.norm.weight"
+          ],
+          "trainable_parameters": 167716
+        },
+        "prompt": {
+          "names": [
+            "prompt.e_prompt.prompt",
+            "prompt.head.bias",
+            "prompt.head.weight"
+          ],
+          "trainable_parameters": 115300
+        },
+        "prompt_alignment": {
+          "names": [
+            "prompt.head.bias",
+            "prompt.head.weight"
+          ],
+          "trainable_parameters": 19300
+        },
+        "eval": {
+          "names": [],
+          "trainable_parameters": 0
+        }
+      },
+      "mapping": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "train_samples": 5000,
+      "statistics_shape": [
+        100,
+        10,
+        192
+      ],
+      "statistics_future_valid": false,
+      "native_forward": {
+        "tii": {
+          "pre_logits_shape": [
+            1,
+            192
+          ],
+          "logits_shape": [
+            1,
+            100
+          ],
+          "finite": true
+        },
+        "prefix_shape": [
+          5,
+          1,
+          2,
+          5,
+          3,
+          64
+        ],
+        "prompt": {
+          "pre_logits_shape": [
+            1,
+            192
+          ],
+          "logits_shape": [
+            1,
+            100
+          ],
+          "finite": true
+        }
+      },
+      "seen_logits_shape": [
+        1,
+        10
+      ],
+      "input_samples_per_branch": 1,
+      "input_label": 0,
+      "checkpoint_roundtrip": true,
+      "optimizer_steps": 0,
+      "cuda_initialized": false,
+      "wall_s": 1.3035970859928057
+    }
+  ],
+  "cuda_initialized": false
+}

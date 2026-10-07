@@ -94,7 +94,7 @@ def test_discovery_registration_and_config_without_initialization():
     assert args.hide_prompt_length == 5 and args.hide_reg == 0.1
     assert args.optim_wd == 0 and not args.hide_use_permute_fix
     with pytest.raises(SystemExit):
-        HidePrompt.get_parser(ArgumentParser()).parse_args(['--hide_vit_size', 'tiny'])
+        HidePrompt.get_parser(ArgumentParser()).parse_args(['--hide_vit_size', 'large'])
     config = yaml.safe_load((ROOT / 'models/config/hide_prompt.yaml').read_text())['default']
     assert config['backbone'] == 'hide-vit' and 'dataset_config' not in config
 

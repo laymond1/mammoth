@@ -11,6 +11,9 @@ from backbone import MammothBackbone
 from models.hide_prompt_utils.vit import HideVisionTransformer
 
 
+HIDE_VIT_SIZES = {'base': (768, 12), 'small': (384, 6), 'tiny': (192, 3)}
+
+
 class HideNetwork(MammothBackbone):
     def __init__(self, tii, prompt, n_tasks, prompt_momentum=0.01):
         super().__init__()
@@ -197,10 +200,11 @@ class HideNetwork(MammothBackbone):
 
 
 def build_hide_network(args, num_classes, n_tasks):
-    """Build Base-only branches using explicitly supplied local pretrained weights."""
+    """Build matched ViT/16 branches from explicitly supplied local weights."""
     size = getattr(args, 'hide_vit_size', 'base')
-    if size != 'base':
-        raise ValueError('HiDe-Prompt initially supports ViT-B/16 only')
+    if size not in HIDE_VIT_SIZES:
+        raise ValueError('HiDe-Prompt supports only base, small and tiny ViT/16 sizes')
+    embed_dim, num_heads = HIDE_VIT_SIZES[size]
     checkpoint = getattr(args, 'hide_checkpoint', None)
     if checkpoint is None or not Path(checkpoint).expanduser().is_file():
         raise FileNotFoundError('Set hide_checkpoint to the shared local AugReg IN21K->IN1K .npz file')
@@ -210,13 +214,14 @@ def build_hide_network(args, num_classes, n_tasks):
     hidden = tuple(get('hide_mlp_structure', 'original_model_mlp_structure', (2,)))
     drop = get('hide_drop', 'drop', 0.)
     drop_path = get('hide_drop_path', 'drop_path', 0.)
-    tii = HideVisionTransformer(num_classes, mlp_structure=hidden, drop=drop, drop_path=drop_path)
-    prompt = HideVisionTransformer(num_classes, pool_size=n_tasks, prompt_length=length,
+    geometry = dict(embed_dim=embed_dim, num_heads=num_heads, depth=12, img_size=224, patch_size=16)
+    tii = HideVisionTransformer(num_classes, **geometry, mlp_structure=hidden, drop=drop, drop_path=drop_path)
+    prompt = HideVisionTransformer(num_classes, **geometry, pool_size=n_tasks, prompt_length=length,
                                    prompt_layers=layers, drop=drop, drop_path=drop_path,
                                    use_permute_fix=get('hide_use_permute_fix', 'use_permute_fix', False))
     tii.load_pretrained(checkpoint)
     prompt.load_pretrained(checkpoint)
     network = HideNetwork(tii, prompt, n_tasks, get('hide_prompt_momentum', 'prompt_momentum', 0.01))
     network.pretrained_checkpoint = str(Path(checkpoint).expanduser().resolve())
-    network.pretrained_model = 'vit_base_patch16_224.augreg_in21k_ft_in1k'
+    network.pretrained_model = f'vit_{size}_patch16_224.augreg_in21k_ft_in1k'
     return network

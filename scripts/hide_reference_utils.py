@@ -154,7 +154,7 @@ def load_author_code(source):
 
 
 def build_author_branches(code, checkpoint=None, *, embed_dim=768, depth=12, num_heads=12, img_size=224, patch_size=16):
-    """Build the author's actual ViTs; reduced geometry is only for CPU tests."""
+    """Build actual author ViTs with explicit geometry and an optional local NPZ."""
     common = dict(num_classes=100, embed_dim=embed_dim, depth=depth, num_heads=num_heads,
                   img_size=img_size, patch_size=patch_size, drop_rate=0., drop_path_rate=0.,
                   head_type='token', global_pool='token')

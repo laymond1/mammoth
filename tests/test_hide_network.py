@@ -191,8 +191,8 @@ def test_mammoth_backbone_return_conventions(returnt):
 def test_factory_rejects_missing_weights_and_unapproved_sizes_before_construction(tmp_path):
     with pytest.raises(FileNotFoundError, match='hide_checkpoint'):
         build_hide_network(SimpleNamespace(), 100, 10)
-    with pytest.raises(ValueError, match='ViT-B'):
-        build_hide_network(SimpleNamespace(hide_vit_size='tiny'), 100, 10)
+    with pytest.raises(ValueError, match='base, small and tiny'):
+        build_hide_network(SimpleNamespace(hide_vit_size='large'), 100, 10)
 
 
 def test_npz_loader_maps_complete_synthetic_transformer_without_overwriting_head(tmp_path):

@@ -1,0 +1,97 @@
+{
+  "status": "pass",
+  "cuda_training_executed": false,
+  "focused_command": "uv run --no-sync --offline pytest tests/test_hide_prompt.py tests/test_hide_network.py tests/test_hide_statistics.py tests/test_hide_reference.py tests/test_hide_execution.py tests/test_hide_efficiency.py tests/test_hide_fullcl_execution.py tests/test_hide_size_network.py tests/test_hide_size_protocol.py tests/test_hide_size_reference.py tests/test_hide_size_execution.py tests/test_hide_size_efficiency.py -q",
+  "focused_tests_passed": 323,
+  "focused_wall_s": 6.96,
+  "dry_cli": [
+    "python -S scripts/run_hide_reference.py --variant small",
+    "python -S scripts/run_hide_validation.py --variant tiny"
+  ],
+  "cpu_initialization_exports": {
+    "small": {
+      "schema_version": 1,
+      "seed": 1993,
+      "reference_commit": "0ed433334ff2cfb206c5e2899651c3044ec85f92",
+      "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+      "learned_sha256": {
+        "tii": "263c28a614864e157fc91546e36ca6a3e6a53d5bd90d67a9838b1d71f348dc91",
+        "prompt": "4ee41da7946497229ff46276599cbd990d5cb996c6cfb7fe15c91e0e700d47a7"
+      },
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/small_author_initial_state.pt",
+      "file_sha256": "c7e5e06c4ed7d2615ba78490fb1d48f24ec3a7c3feafe74feee17df98c022dbf",
+      "canonical_pretrained_sha256": {
+        "tii": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+        "prompt": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5"
+      },
+      "origin": "Actual immutable author VisionTransformer constructors + local Small NPZ",
+      "training_executed": false,
+      "image_forwards": 0,
+      "optimizer_steps": 0,
+      "gpu_used": false,
+      "new_data_or_weights_downloaded": false,
+      "variant": "small",
+      "variant_config": {
+        "name": "small",
+        "vit_size": "small",
+        "feature_dim": 384,
+        "num_heads": 6,
+        "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k",
+        "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "checkpoint_sha256": "545815b4e770d2fa6ca4b3ccba7c16b035e474354e52d17ca197ea4efecbf4d3",
+        "canonical_pretrained_sha256": "1bc2129fcd9c44c0104385f3db58a422595d205fcfff592392124b5f2bf7b1a5",
+        "depth": 12,
+        "patch_size": 16
+      },
+      "feature_dim": 384,
+      "num_heads": 6,
+      "checkpoint_tag": "vit_small_patch16_224.augreg_in21k_ft_in1k"
+    },
+    "tiny": {
+      "schema_version": 1,
+      "seed": 1993,
+      "reference_commit": "0ed433334ff2cfb206c5e2899651c3044ec85f92",
+      "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+      "learned_sha256": {
+        "tii": "e5e13f8859ddfd3ee269874de42d6c39e40c33b6e0f093a994fe3f2ba4afaa0e",
+        "prompt": "79167473f10fa7f5f646c835dce86ddd2704d59dda72478c5d2bb8cf242e6389"
+      },
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/.worktrees/hide-sizes/benchmarks/cl_efficiency/hide_sizes/prepared/tiny_author_initial_state.pt",
+      "file_sha256": "421c8ff8c3d1f37025f481b9edd2130c8222f37a39d8737bc6a501875d81fc3c",
+      "canonical_pretrained_sha256": {
+        "tii": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+        "prompt": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb"
+      },
+      "origin": "Actual immutable author VisionTransformer constructors + local Tiny NPZ",
+      "training_executed": false,
+      "image_forwards": 0,
+      "optimizer_steps": 0,
+      "gpu_used": false,
+      "new_data_or_weights_downloaded": false,
+      "variant": "tiny",
+      "variant_config": {
+        "name": "tiny",
+        "vit_size": "tiny",
+        "feature_dim": 192,
+        "num_heads": 3,
+        "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k",
+        "checkpoint_file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+        "checkpoint_sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+        "canonical_pretrained_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb",
+        "depth": 12,
+        "patch_size": 16
+      },
+      "feature_dim": 192,
+      "num_heads": 3,
+      "checkpoint_tag": "vit_tiny_patch16_224.augreg_in21k_ft_in1k"
+    }
+  },
+  "generic_test_limitations": {
+    "root_command": "uv run pytest tests/test_import.py tests/test_module_register.py::test_args_with_choices tests/test_module_register.py::test_register_backbone tests/test_module_register.py::test_register_dataset tests/test_model_config.py::test_best_base -q",
+    "passed": 4,
+    "failed": 2,
+    "reason": "Existing test_import_mammoth/test_best_base call training with local default ./data/ and require CIFAR10/MNIST downloads; sandbox blocks download. Shared CIFAR100/NPZ actual HiDe CPU smoke and approved GPU validation are the targeted smoke checks. Generic failures occurred before model optimizer steps.",
+    "agent_generic_failures": 8,
+    "agent_generic_reason": "Module register/dynamic params generic training tests also require absent default local datasets/HF weights; not rerun."
+  }
+}

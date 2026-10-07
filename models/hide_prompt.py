@@ -33,7 +33,7 @@ class HidePrompt(ContinualModel):
                             optimizer='adam', lr=0.03, optim_wd=0., batch_size=48,
                             n_epochs=70, lr_scheduler=None, enable_other_metrics=False)
         parser.add_argument('--hide_checkpoint', type=str, default=None)
-        parser.add_argument('--hide_vit_size', choices=['base'], default='base')
+        parser.add_argument('--hide_vit_size', choices=['base', 'small', 'tiny'], default='base')
         parser.add_argument('--hide_pool_size', type=int, default=10)
         parser.add_argument('--hide_prompt_length', type=int, default=5)
         parser.add_argument('--hide_prompt_layers', type=int, nargs='+', default=[0, 1, 2, 3, 4])

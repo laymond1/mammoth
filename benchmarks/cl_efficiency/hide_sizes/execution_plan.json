@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "stage": "hide_size_validation_and_first_task_efficiency",
+  "status": "ready_for_small_reference",
+  "training_authorized": true,
+  "executed": false,
+  "immutable_plan": "validation_plan.json",
+  "variant_order": [
+    "small",
+    "tiny"
+  ],
+  "variants": {
+    "small": {
+      "reference": "pending",
+      "native_validation": "pending",
+      "efficiency": "pending"
+    },
+    "tiny": {
+      "reference": "pending",
+      "native_validation": "pending",
+      "efficiency": "pending"
+    }
+  },
+  "full_cl_authorized": false,
+  "ease_author_full10_skipped": true,
+  "cpu_preflight": "pass"
+}

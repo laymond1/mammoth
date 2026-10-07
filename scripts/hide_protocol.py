@@ -44,7 +44,10 @@ def file_hash(path):
     return result.hexdigest()
 
 
-def protocol(mode='validation'):
+def protocol(mode='validation', variant=None):
+    if variant is not None:
+        from scripts.hide_size_protocol import size_protocol
+        return size_protocol(mode, variant)
     if mode not in ('validation', 'smoke', 'efficiency', 'full_cl'):
         raise ValueError('HiDe mode must be validation, smoke, efficiency or full_cl')
     validation = mode in ('validation', 'full_cl')
@@ -107,11 +110,11 @@ def configure_epoch_loader(loader, seed, task_id, phase, epoch=0):
     return selected
 
 
-def native_command(mode, checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', output=None):
-    settings = protocol(mode)
+def native_command(mode, checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', output=None, variant=None):
+    settings = protocol(mode) if variant is None else protocol(mode, variant=variant)
     command = ['--model', 'hide-prompt', '--dataset', settings['dataset'], '--model_config', 'default',
                '--dataset_config', settings['dataset_config'], '--hide_checkpoint', str(checkpoint),
-               '--hide_vit_size', 'base', '--hide_tii_epochs', str(settings['tii_epochs']),
+               '--hide_vit_size', settings['vit_size'], '--hide_tii_epochs', str(settings['tii_epochs']),
                '--hide_prompt_epochs', str(settings['prompt_epochs']), '--hide_ca_epochs', str(settings['ca_epochs']),
                '--n_epochs', str(settings['n_epochs']), '--stop_after', str(settings['tasks']),
                '--batch_size', str(settings['batch_size']), '--num_workers', str(settings['num_workers']),
@@ -126,20 +129,21 @@ def native_command(mode, checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data
     return command
 
 
-def dataset_args(mode='validation', checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data'):
+def dataset_args(mode='validation', checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', variant=None):
     """Share parser/dataset configuration only; never initialize a native model."""
     import main as mammoth
-    return mammoth.parse_args(cmd=native_command(mode, checkpoint, data_root))
+    command = native_command(mode, checkpoint, data_root) if variant is None else native_command(mode, checkpoint, data_root, variant=variant)
+    return mammoth.parse_args(cmd=command)
 
 
-def create_dataset(mode='validation', checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data'):
+def create_dataset(mode='validation', checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', variant=None):
     # Parsing alone does not call main.extend_args, which normally sets this
     # process-wide path before dataset/class-name construction.
     validate_shared_data(data_root)
     from utils.conf import base_path
     base_path(str(Path(data_root).resolve()))
     from datasets import get_dataset
-    args = dataset_args(mode, checkpoint, data_root)
+    args = dataset_args(mode, checkpoint, data_root) if variant is None else dataset_args(mode, checkpoint, data_root, variant=variant)
     with forbid_cifar_download():
         return get_dataset(args)
 
@@ -183,18 +187,28 @@ def forbid_cifar_download():
 no_cifar_downloads = forbid_cifar_download
 
 
-def source_hashes():
-    return {source: file_hash(ROOT / source) for source in SOURCE_FILES}
+def source_hashes(variant=None):
+    sources = SOURCE_FILES
+    if variant is not None:
+        from scripts.hide_size_protocol import SOURCE_FILES as size_sources, load_variant
+        load_variant(variant, verify_checkpoint=False)
+        sources = (*sources, *size_sources)
+    return {source: file_hash(ROOT / source) for source in sources}
 
 
-def validate_efficiency_acceptance(path, plan=None, initial_state=None):
+def validate_efficiency_acceptance(path, plan=None, initial_state=None, variant=None):
     """Fail closed before credentials or workers; reviewed accuracy cannot pass."""
     import json
     record = json.loads(Path(path).read_text())
     from scripts.hide_acceptance import REQUIRED_STRUCTURAL_CHECKS
+    expected_protocol = protocol('validation') if variant is None else protocol('validation', variant=variant)
+    expected_sha256 = CHECKPOINT_SHA256
+    if variant is not None:
+        from scripts.hide_size_protocol import load_variant
+        expected_sha256 = load_variant(variant)['checkpoint_sha256']
     if (record.get('status') != 'completed' or record.get('acceptance_status') != 'pass'
             or record.get('mode') != 'validation' or record.get('model') != 'hide-prompt'
-            or record.get('protocol') != protocol('validation')
+            or record.get('protocol') != expected_protocol
             or record.get('wandb_logging_status') != 'uploaded'):
         raise ValueError('HiDe efficiency requires completed, uploaded, passing full validation')
     checks = record.get('structural_checks', {})
@@ -203,7 +217,9 @@ def validate_efficiency_acceptance(path, plan=None, initial_state=None):
     pins = record.get('execution_source_sha256', {})
     if not pins or any(file_hash(ROOT / source) != pin for source, pin in pins.items()):
         raise ValueError('HiDe accepted execution sources have changed')
-    if record.get('checkpoint_sha256') != CHECKPOINT_SHA256 or file_hash(record['checkpoint_file']) != CHECKPOINT_SHA256:
+    if variant is not None and set(pins) != set(source_hashes(variant=variant)):
+        raise ValueError('HiDe size acceptance sources are incomplete')
+    if record.get('checkpoint_sha256') != expected_sha256 or file_hash(record['checkpoint_file']) != expected_sha256:
         raise ValueError('HiDe accepted checkpoint differs from the approved pretrained file')
     selected = Path(initial_state or record['initial_state'])
     if file_hash(selected) != record.get('initial_state_sha256'):

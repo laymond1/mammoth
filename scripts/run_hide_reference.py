@@ -30,20 +30,44 @@ from scripts.hide_reference_utils import (REFERENCE_COMMIT, PairLoader, build_au
 from scripts.hide_protocol import CHECKPOINT, CHECKPOINT_SHA256, CANONICAL_PRETRAINED_SHA256, phase_seed, protocol
 
 
+def reference_variant(options, verify_checkpoint=False):
+    """Select explicit Small/Tiny pins; the historical Base path is unchanged."""
+    selected = getattr(options, 'variant', None)
+    if selected is None:
+        return None
+    from scripts.hide_size_protocol import load_variant
+    variant = load_variant(selected, verify_checkpoint=verify_checkpoint)
+    if Path(options.checkpoint).resolve() != Path(variant['checkpoint_file']).resolve():
+        raise ValueError('Author reference checkpoint path differs from the selected size pin')
+    return variant
+
+
+def checkpoint_pins(options, variant=None):
+    if variant is None:
+        return CHECKPOINT_SHA256, CANONICAL_PRETRAINED_SHA256
+    return variant['checkpoint_sha256'], variant['canonical_pretrained_sha256']
+
+
+def author_geometry(variant=None):
+    return {} if variant is None else {'embed_dim': variant['feature_dim'], 'num_heads': variant['num_heads']}
+
+
 def source_spec(options):
     """Validate all local pins before any training, credentials or network writes."""
-    settings = protocol(options.mode)
+    variant = reference_variant(options, verify_checkpoint=True)
+    settings = protocol(options.mode, variant=getattr(options, 'variant', None))
+    checkpoint_sha256, canonical_sha256 = checkpoint_pins(options, variant)
     source = options.reference_source.resolve()
     hashes = verify_author_source(source)
-    if file_hash(options.checkpoint) != CHECKPOINT_SHA256:
+    if file_hash(options.checkpoint) != checkpoint_sha256:
         raise ValueError('Reference pretrained NPZ differs from the approved local pin')
     if options.initial_state is None or not options.initial_state.is_file():
         raise ValueError('Reference execution requires the exported matched learned initialization')
-    return {'schema_version': 1, 'model': 'hide-prompt', 'implementation': 'pinned_author_reference',
+    spec = {'schema_version': 1, 'model': 'hide-prompt', 'implementation': 'pinned_author_reference',
             'mode': options.mode, 'protocol': settings, 'reference_commit': REFERENCE_COMMIT,
             'reference_source': str(source), 'reference_source_sha256': hashes,
-            'checkpoint_file': str(options.checkpoint.resolve()), 'checkpoint_sha256': CHECKPOINT_SHA256,
-            'canonical_pretrained_sha256': CANONICAL_PRETRAINED_SHA256,
+            'checkpoint_file': str(options.checkpoint.resolve()), 'checkpoint_sha256': checkpoint_sha256,
+            'canonical_pretrained_sha256': canonical_sha256,
             'initial_state': str(options.initial_state.resolve()), 'initial_state_sha256': file_hash(options.initial_state),
             'training_authorized': True, 'accuracy_acceptance_eligible': settings['accuracy_acceptance_eligible'],
             'paper_reproduction': False,
@@ -52,6 +76,14 @@ def source_spec(options):
             'execution_source_sha256': {
                 name: file_hash(ROOT / name) for name in ('scripts/run_hide_reference.py',
                     'scripts/hide_reference_utils.py', 'scripts/hide_protocol.py', 'scripts/cl_efficiency.py')}}
+    if variant is not None:
+        spec.update(variant=variant['vit_size'], variant_config=variant,
+                    feature_dim=variant['feature_dim'], num_heads=variant['num_heads'],
+                    checkpoint_tag=variant['checkpoint_tag'])
+        from scripts.hide_size_protocol import SOURCE_FILES
+        for name in SOURCE_FILES:
+            spec['execution_source_sha256'][name] = file_hash(ROOT / name)
+    return spec
 
 
 def prepare_initial(options):
@@ -61,8 +93,10 @@ def prepare_initial(options):
     from scripts.cl_runtime import configure_native_environment
     configure_native_environment()
     verify_author_source(options.reference_source)
-    if file_hash(options.checkpoint) != CHECKPOINT_SHA256:
-        raise ValueError('Initialization requires the approved local Base NPZ')
+    variant = reference_variant(options, verify_checkpoint=True)
+    checkpoint_sha256, canonical_sha256 = checkpoint_pins(options, variant)
+    if file_hash(options.checkpoint) != checkpoint_sha256:
+        raise ValueError('Initialization requires the approved local NPZ')
     import torch
     import numpy as np
     import random
@@ -72,17 +106,23 @@ def prepare_initial(options):
     np.random.seed(1993)
     random.seed(1993)
     code = load_author_code(options.reference_source)
-    branches = build_author_branches(code, options.checkpoint)
+    branches = build_author_branches(code, options.checkpoint, **author_geometry(variant))
     canonical = {name: canonical_pretrained_digest(module) for name, module in branches.items()}
-    if any(value != CANONICAL_PRETRAINED_SHA256 for value in canonical.values()):
+    if any(value != canonical_sha256 for value in canonical.values()):
         raise RuntimeError('Author CPU pretrained tensors differ from the canonical pin')
-    saved = save_initial_state(branches, options.prepare_initial_state, CHECKPOINT_SHA256)
-    write_json(options.prepare_initial_state.with_suffix('.json'), {
+    saved = save_initial_state(branches, options.prepare_initial_state, checkpoint_sha256)
+    metadata = {
         **saved, 'file': str(options.prepare_initial_state.resolve()),
         'file_sha256': file_hash(options.prepare_initial_state), 'canonical_pretrained_sha256': canonical,
-        'origin': 'Actual immutable author VisionTransformer constructors + local Base NPZ',
+        'origin': 'Actual immutable author VisionTransformer constructors + local Base NPZ' if variant is None else
+                  f'Actual immutable author VisionTransformer constructors + local {variant["vit_size"].title()} NPZ',
         'training_executed': False, 'image_forwards': 0, 'optimizer_steps': 0,
-        'gpu_used': False, 'new_data_or_weights_downloaded': False})
+        'gpu_used': False, 'new_data_or_weights_downloaded': False}
+    if variant is not None:
+        metadata.update(variant=variant['vit_size'], variant_config=variant,
+                        feature_dim=variant['feature_dim'], num_heads=variant['num_heads'],
+                        checkpoint_tag=variant['checkpoint_tag'])
+    write_json(options.prepare_initial_state.with_suffix('.json'), metadata)
     print(json.dumps({'initial_state': str(options.prepare_initial_state), 'learned_sha256': saved['learned_sha256']}))
     return 0
 
@@ -142,7 +182,7 @@ def author_args(settings, branch):
         epochs=settings['tii_epochs'] if branch == 'tii' else settings['prompt_epochs'],
         train_mask=True, task_inc=False, prompt_momentum=.01, reg=.1,
         ca_storage_efficient_method='multi-centroid', n_centroids=10, crct_epochs=settings['ca_epochs'],
-        model='vit_base_patch16_224', ca_lr=.005 * (settings['batch_size'] / 256 if branch == 'tii' else 1.),
+        model=f'vit_{settings.get("vit_size", "base")}_patch16_224', ca_lr=.005 * (settings['batch_size'] / 256 if branch == 'tii' else 1.),
         weight_decay=0.)
 
 
@@ -190,7 +230,7 @@ def evaluate_author(branches, dataset, task_id, recorder, output):
             'routing_correct': int((routing == labels // 10).sum()), 'routing_samples': len(labels)}
 
 
-def checkpoint_round_trip(branches, code, task_id, output):
+def checkpoint_round_trip(branches, code, task_id, output, *, checkpoint_sha256=CHECKPOINT_SHA256):
     """Serialize sufficient learned/statistical state and restore actual modules."""
     import torch
     state = {name: learned_state(module, name) for name, module in branches.items()}
@@ -199,10 +239,10 @@ def checkpoint_round_trip(branches, code, task_id, output):
                   for name, engine in code.engines.items()}
     path = output / f'task{task_id + 1}_checkpoint.pt'
     torch.save({'schema_version': 1, 'task_id': task_id, 'class_to_task': torch.arange(100) // 10,
-                'checkpoint_sha256': CHECKPOINT_SHA256, 'reference_commit': REFERENCE_COMMIT,
+                'checkpoint_sha256': checkpoint_sha256, 'reference_commit': REFERENCE_COMMIT,
                 'branches': state, 'statistics': statistics}, path)
     saved = torch.load(path, map_location='cpu', weights_only=True)
-    if saved['task_id'] != task_id or saved['checkpoint_sha256'] != CHECKPOINT_SHA256:
+    if saved['task_id'] != task_id or saved['checkpoint_sha256'] != checkpoint_sha256:
         raise RuntimeError('Author checkpoint metadata did not survive serialization')
     for name, module in branches.items():
         module.load_state_dict(saved['branches'][name], strict=False)
@@ -220,9 +260,12 @@ def checkpoint_round_trip(branches, code, task_id, output):
 
 def run(options, profile):
     spec = source_spec(options)
+    variant = spec.get('variant_config')
+    dimension = spec.get('feature_dim', 768)
     if profile['gpu'] != '1':
         raise ValueError('Author HiDe reference requires the approved physical GPU1')
-    name = 'hide-author-' + options.mode + '-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    prefix = 'hide-author-' if variant is None else f'hide-author-{variant["vit_size"]}-'
+    name = prefix + options.mode + '-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     output = (options.output / name).resolve()
     output.mkdir(parents=True, exist_ok=False)
     spec.update(name=name, output=str(output), gpu='1', data_root=profile['data_root'],
@@ -238,7 +281,8 @@ def run(options, profile):
     def notify(message):
         notifications.append({'message': message, 'status': notify_slack(message)})
         write_json(output / 'notifications.json', notifications)
-    notify(f'HiDe-Prompt author {options.mode} started: Base; 2 tasks; batch{spec["protocol"]["batch_size"]}; GPU1')
+    size = 'Base' if variant is None else variant['vit_size'].title()
+    notify(f'HiDe-Prompt author {options.mode} started: {size}; 2 tasks; batch{spec["protocol"]["batch_size"]}; GPU1')
     wandb = None
     code_status = 1
     download_guard = ExitStack()
@@ -268,17 +312,20 @@ def run(options, profile):
         seed_phase(1993, 0, 'tii_train')
         author = load_author_code(options.reference_source)
         author.adaptations.append('Class-IL evaluation restricts final prompt logits to seen classes, matching Mammoth; pinned author default evaluates all 100 logits')
+        if variant is not None:
+            author.adaptations.append(f'Explicit {variant["vit_size"]} geometry: width{dimension}, heads{variant["num_heads"]}; original author constructors/functions retained')
         with recorder.phase('initialize'):
-            branches = build_author_branches(author, options.checkpoint)
+            branches = build_author_branches(author, options.checkpoint, **author_geometry(variant))
             initial = load_initial_state(branches, options.initial_state)
-            if initial['checkpoint_sha256'] != CHECKPOINT_SHA256:
+            if initial['checkpoint_sha256'] != spec['checkpoint_sha256']:
                 raise ValueError('Matched initialization uses a different pretrained NPZ')
             canonical = {name: canonical_pretrained_digest(module) for name, module in branches.items()}
-            if any(value != CANONICAL_PRETRAINED_SHA256 for value in canonical.values()):
+            if any(value != spec['canonical_pretrained_sha256'] for value in canonical.values()):
                 raise RuntimeError('Author pretrained weights differ from the approved canonical tensors')
             for module in branches.values():
                 module.to(device)
-            dataset = create_dataset(options.mode, options.checkpoint, profile['data_root'])
+            dataset = create_dataset(options.mode, options.checkpoint, profile['data_root'],
+                                     variant=getattr(options, 'variant', None))
         record.update(initialization=initial, initial_learned_sha256=initial['learned_sha256'],
                       initial_canonical_pretrained_sha256=canonical,
                       runtime_adaptations=author.adaptations,
@@ -291,7 +338,8 @@ def run(options, profile):
         write_json(output / 'runtime_adaptations.json', {'adaptations': author.adaptations,
                                                         'source_files_sha256': spec['reference_source_sha256']})
         wandb.init(entity=profile['wandb_entity'], project=profile['wandb_project'], name=name,
-                   group='hide-base-validation', job_type='author-reference-' + options.mode,
+                   group='hide-base-validation' if variant is None else f'hide-{variant["vit_size"]}-validation',
+                   job_type='author-reference-' + options.mode,
                    config=spec, dir=str(output))
         record['wandb_url'] = wandb.run.url
         checks = record['structural_checks']
@@ -396,7 +444,7 @@ def run(options, profile):
                 means, variances = author.engines[branch]['cls_mean'], author.engines[branch]['cls_cov']
                 if set(means) != set(range((task_id + 1) * 10)) or any(len(means[key]) != 10 for key in means):
                     raise RuntimeError('Author centroid statistics have incorrect class or centroid counts')
-                if any(value.shape != torch.Size([768]) or not bool(torch.isfinite(value).all())
+                if any(value.shape != torch.Size([dimension]) or not bool(torch.isfinite(value).all())
                        for values in (*means.values(), *variances.values()) for value in values):
                     raise RuntimeError('Author centroid statistics have invalid shape or values')
                 set_author_phase(branches, branch + '_alignment')
@@ -435,7 +483,8 @@ def run(options, profile):
                 row = evaluate_author(branches, dataset, task_id, recorder, output)
             record['task_results'].append(row)
             with recorder.phase('checkpoint'):
-                record['checkpoints'].append(checkpoint_round_trip(branches, author, task_id, output))
+                record['checkpoints'].append(checkpoint_round_trip(branches, author, task_id, output,
+                    checkpoint_sha256=spec['checkpoint_sha256']))
             recorder.tasks_completed += 1
             wandb.log(flatten({'task': row, 'alignment': record['alignment_results'][-1]}))
             write_json(output / 'task_results.json', record['task_results'])
@@ -497,18 +546,27 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--execute', action='store_true')
     parser.add_argument('--mode', choices=('validation', 'smoke'), default='validation')
+    parser.add_argument('--variant', choices=('small', 'tiny'), default=None,
+                        help='Explicit architecture extension; absent preserves historical Base reference')
     parser.add_argument('--reference-source', type=Path, default=Path('/tmp/cl-hide-official-20261007'))
-    parser.add_argument('--checkpoint', type=Path, default=Path(CHECKPOINT))
+    parser.add_argument('--checkpoint', type=Path)
     parser.add_argument('--initial-state', type=Path)
     parser.add_argument('--prepare-initial-state', type=Path)
     parser.add_argument('--output', type=Path, default=ROOT / 'benchmarks/cl_efficiency/hide_prompt/runs')
     options = parser.parse_args(argv)
+    if options.checkpoint is None:
+        if options.variant is None:
+            options.checkpoint = Path(CHECKPOINT)
+        else:
+            from scripts.hide_size_protocol import load_variant
+            options.checkpoint = Path(load_variant(options.variant, verify_checkpoint=False)['checkpoint_file'])
     if options.prepare_initial_state is not None:
         if options.execute:
             raise ValueError('Prepare learned initialization separately from execution')
         return prepare_initial(options)
     if not options.execute:
-        print(json.dumps({'prepared': True, 'executed': False, 'protocol': protocol(options.mode)}))
+        print(json.dumps({'prepared': True, 'executed': False,
+                          'protocol': protocol(options.mode, variant=options.variant)}))
         return 0
     from scripts.cl_runtime import configure_environment
     profile = configure_environment()

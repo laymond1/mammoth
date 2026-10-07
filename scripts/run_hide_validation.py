@@ -35,17 +35,37 @@ from scripts.hide_protocol import (CHECKPOINT, CHECKPOINT_SHA256, CANONICAL_PRET
 
 
 def native_command(spec, output):
+    if spec.get('variant') is not None:
+        return _native_command(spec['mode'], spec['checkpoint_file'], spec['data_root'], output,
+                               variant=spec['variant'])
     return _native_command(spec['mode'], spec['checkpoint_file'], spec['data_root'], output)
 
 
+def checkpoint_info(variant=None):
+    if variant is None:
+        return {'checkpoint_file': CHECKPOINT, 'checkpoint_sha256': CHECKPOINT_SHA256,
+                'canonical_pretrained_sha256': CANONICAL_PRETRAINED_SHA256,
+                'checkpoint_tag': 'vit_base_patch16_224.augreg_in21k_ft_in1k',
+                'vit_size': 'base', 'feature_dim': 768, 'num_heads': 12}
+    from scripts.hide_size_protocol import load_variant
+    return load_variant(variant, verify_checkpoint=False)
+
+
 def validate_spec(spec):
+    variant = spec.get('variant')
+    if variant is not None and spec.get('mode') == 'full_cl':
+        raise ValueError('HiDe size expansion excludes full_cl execution')
+    info = checkpoint_info(variant)
     if (spec.get('mode') not in ('validation', 'smoke', 'efficiency', 'full_cl')
-            or spec.get('protocol') != protocol(spec['mode']) or spec.get('gpu') != '1'
+            or spec.get('protocol') != protocol(spec['mode'], variant=variant) or spec.get('gpu') != '1'
             or spec.get('model') != 'hide-prompt'
-            or spec.get('checkpoint_sha256') != CHECKPOINT_SHA256
+            or spec.get('checkpoint_sha256') != info['checkpoint_sha256']
             or spec.get('pass') not in ('measurement', 'flops')
             or (spec['pass'] == 'flops' and spec['mode'] != 'efficiency')):
         raise ValueError('Native HiDe settings differ from the approved GPU1 protocol')
+    if variant is not None and any(type(spec.get(key)) is not type(info[key]) or spec[key] != info[key] for key in
+                                  ('canonical_pretrained_sha256', 'checkpoint_tag', 'vit_size', 'feature_dim', 'num_heads')):
+        raise ValueError('Native HiDe variant checkpoint or geometry differs from its pinned recipe')
 
 
 def reference_record(path):
@@ -53,13 +73,17 @@ def reference_record(path):
     return document.get('official_reference', document)
 
 
-def validate_reference(reference, initial_state_hash):
+def validate_reference(reference, initial_state_hash, variant=None):
+    info = checkpoint_info(variant)
     if (reference.get('status') != 'completed' or reference.get('mode') != 'validation'
-            or reference.get('protocol') != protocol('validation')
+            or reference.get('protocol') != protocol('validation', variant=variant)
             or reference.get('reference_commit') != REFERENCE_COMMIT
-            or reference.get('checkpoint_sha256') != CHECKPOINT_SHA256
+            or reference.get('checkpoint_sha256') != info['checkpoint_sha256']
             or reference.get('initial_state_sha256') != initial_state_hash):
         raise ValueError('HiDe requires a completed reference with identical full protocol and learned initialization')
+    if variant is not None and (reference.get('variant') != variant
+            or reference.get('canonical_pretrained_sha256') != info['canonical_pretrained_sha256']):
+        raise ValueError('HiDe reference must use the same variant and canonical pretrained tensors')
     from scripts.hide_acceptance import reference_policy
     reference_policy(reference.get('task_results', reference.get('tasks_results', [])))
 
@@ -68,38 +92,46 @@ def build_spec(options, profile):
     if profile['gpu'] != '1':
         raise ValueError('Approved HiDe execution requires physical GPU1')
     mode = options.mode
+    variant = getattr(options, 'variant', None)
+    settings = protocol(mode, variant=variant)
+    info = checkpoint_info(variant)
     initial = Path(options.initial_state).resolve() if options.initial_state else None
     if initial is None or not initial.is_file():
         raise ValueError('Native HiDe requires --initial-state exported by the independent reference')
-    checkpoint = Path(getattr(options, 'checkpoint', CHECKPOINT) or CHECKPOINT).resolve()
-    if file_hash(checkpoint) != CHECKPOINT_SHA256:
-        raise ValueError('Native HiDe requires the pinned local Base checkpoint')
+    checkpoint = Path(getattr(options, 'checkpoint', None) or info['checkpoint_file']).resolve()
+    if file_hash(checkpoint) != info['checkpoint_sha256']:
+        raise ValueError('Native HiDe requires the pinned local checkpoint for the selected size')
     validate_shared_data(profile['data_root'])
-    name = 'hide-native-' + mode + '-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    name = 'hide-native-' + (variant + '-' if variant is not None else '') + mode + '-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     output = (options.result_dir or options.output / name).resolve()
     spec = {'schema_version': 1, 'name': name, 'model': 'hide-prompt', 'mode': mode,
-            'pass': options.pass_kind, 'protocol': protocol(mode), 'tasks': protocol(mode)['tasks'],
+            'pass': options.pass_kind, 'protocol': settings, 'tasks': settings['tasks'],
             'output': str(output), 'gpu': profile['gpu'], 'data_root': profile['data_root'],
-            'checkpoint_file': str(checkpoint), 'checkpoint_sha256': CHECKPOINT_SHA256,
-            'canonical_pretrained_sha256': CANONICAL_PRETRAINED_SHA256,
+            'checkpoint_file': str(checkpoint), 'checkpoint_sha256': info['checkpoint_sha256'],
+            'canonical_pretrained_sha256': info['canonical_pretrained_sha256'],
             'initial_state': str(initial), 'initial_state_sha256': file_hash(initial),
             'wandb_entity': profile['wandb_entity'], 'wandb_project': profile['wandb_project'],
             'paper_reproduction': False, 'reference_commit': REFERENCE_COMMIT,
-            'execution_source_sha256': source_hashes(),
+            'execution_source_sha256': source_hashes(variant=variant) if variant is not None else source_hashes(),
             'git_commit': subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, capture_output=True,
                                          text=True, check=True).stdout.strip()}
+    if variant is not None:
+        spec.update(variant=variant, **{key: info[key] for key in ('vit_size', 'feature_dim', 'num_heads', 'checkpoint_tag')})
     if mode == 'validation':
         if options.reference_summary is None:
             raise ValueError('Full HiDe validation requires --reference-summary')
         path = Path(options.reference_summary).resolve()
         reference = reference_record(path)
-        validate_reference(reference, spec['initial_state_sha256'])
+        validate_reference(reference, spec['initial_state_sha256'], variant=variant)
         spec.update(reference_summary=str(path), reference_summary_sha256=file_hash(path))
     if mode in ('efficiency', 'full_cl'):
         if options.acceptance_summary is None:
             raise ValueError(f'HiDe {mode} requires --acceptance-summary')
         path = Path(options.acceptance_summary).resolve()
-        prerequisite = (validate_full_cl_acceptance if mode == 'full_cl' else validate_efficiency_acceptance)(path, initial_state=initial)
+        if variant is not None:
+            prerequisite = validate_efficiency_acceptance(path, initial_state=initial, variant=variant)
+        else:
+            prerequisite = (validate_full_cl_acceptance if mode == 'full_cl' else validate_efficiency_acceptance)(path, initial_state=initial)
         spec.update(acceptance_summary=str(path), acceptance_summary_sha256=file_hash(path))
         if mode == 'full_cl':
             spec['protected_prerequisite_sources'] = {source: prerequisite['execution_source_sha256'][source]
@@ -124,7 +156,8 @@ def execute(options, profile):
     environment.pop('MAMMOTH_DEVICE', None)
     environment.update(CUDA_VISIBLE_DEVICES=profile['gpu'], CL_HIDE_NATIVE_EXECUTE='1',
                        HF_HUB_OFFLINE='1', WANDB_MODE='online', WANDB_DIR=str(output))
-    notify(f'HiDe native {spec["mode"]}/{spec["pass"]} started: GPU1; TII{spec["protocol"]["tii_epochs"]}+prompt{spec["protocol"]["prompt_epochs"]}; tasks{spec["tasks"]}')
+    label = 'HiDe native' + (' ' + spec['variant'] if spec.get('variant') is not None else '')
+    notify(f'{label} {spec["mode"]}/{spec["pass"]} started: GPU1; TII{spec["protocol"]["tii_epochs"]}+prompt{spec["protocol"]["prompt_epochs"]}; tasks{spec["tasks"]}')
     started, heartbeat = time.monotonic(), time.monotonic()
     timed_out = False
     from scripts.benchmark_cl import stop_worker
@@ -141,7 +174,7 @@ def execute(options, profile):
                 if time.monotonic() - heartbeat >= 600:
                     path = output / 'progress.json'
                     progress = json.loads(path.read_text()) if path.exists() else {}
-                    notify(f'HiDe native {spec["mode"]}: task{progress.get("task", "?")}/{spec["tasks"]}, {progress.get("phase", "initializing")} epoch{progress.get("epoch", "?")}; W&B {progress.get("wandb_url") or "initializing"}')
+                    notify(f'{label} {spec["mode"]}: task{progress.get("task", "?")}/{spec["tasks"]}, {progress.get("phase", "initializing")} epoch{progress.get("epoch", "?")}; W&B {progress.get("wandb_url") or "initializing"}')
                     heartbeat = time.monotonic()
                 time.sleep(1)
         except BaseException:
@@ -156,7 +189,7 @@ def execute(options, profile):
         record['status'] = 'failed'
     write_json(path, record)
     write_json(output / 'metrics.json', record)
-    notify(f'HiDe native {record["status"]}: acceptance={record.get("acceptance_status", "not_evaluated")}; W&B {record.get("wandb_url") or "unavailable"}')
+    notify(f'{label} {record["status"]}: acceptance={record.get("acceptance_status", "not_evaluated")}; W&B {record.get("wandb_url") or "unavailable"}')
     write_json(output / 'completion.json', {'status': record['status'], 'exit_code': process.returncode,
                'timeout': timed_out, 'wall_s': time.monotonic() - started,
                'acceptance_status': record.get('acceptance_status')})
@@ -206,6 +239,17 @@ def audit_finite_learned_state(module):
         if parameter.requires_grad and (not bool(torch.isfinite(parameter).all())
                 or (parameter.grad is not None and not bool(torch.isfinite(parameter.grad).all()))):
             raise FloatingPointError('HiDe classifier alignment state or gradient is nonfinite')
+
+
+def audit_statistics(stats, seen_classes, feature_dim=768):
+    """Check each branch's actual geometry and prohibit future-class statistics."""
+    import torch
+    if (list(stats.means.shape) != [100, 10, feature_dim] or stats.variances.shape != stats.means.shape
+            or list(stats.valid.shape) != [100, 10] or list(stats.class_tasks.shape) != [100]
+            or not bool(stats.valid[:seen_classes].all())
+            or bool(stats.valid[seen_classes:].any()) or bool((stats.class_tasks[seen_classes:] != -1).any())
+            or not bool(torch.isfinite(stats.means).all()) or not bool(torch.isfinite(stats.variances).all())):
+        raise RuntimeError('HiDe statistics shapes/seen-class state are invalid')
 
 
 def compare_prefix_predictions(actual, expected):
@@ -304,6 +348,7 @@ def worker(spec_path):
         raise ValueError('HiDe worker requires explicit --execute')
     spec = json.loads(Path(spec_path).read_text())
     validate_spec(spec)
+    variant = spec.get('variant')
     if file_hash(spec['checkpoint_file']) != spec['checkpoint_sha256'] or file_hash(spec['initial_state']) != spec['initial_state_sha256']:
         raise ValueError('HiDe pinned local initial states changed')
     if any(file_hash(ROOT / source) != pin for source, pin in spec['execution_source_sha256'].items()):
@@ -313,12 +358,15 @@ def worker(spec_path):
         if file_hash(spec['reference_summary']) != spec['reference_summary_sha256']:
             raise ValueError('HiDe reference summary changed')
         reference = reference_record(spec['reference_summary'])
-        validate_reference(reference, spec['initial_state_sha256'])
+        validate_reference(reference, spec['initial_state_sha256'], variant=variant)
     if spec['mode'] in ('efficiency', 'full_cl'):
         if file_hash(spec['acceptance_summary']) != spec['acceptance_summary_sha256']:
             raise ValueError('HiDe acceptance summary changed')
-        accepted = (validate_full_cl_acceptance if spec['mode'] == 'full_cl' else validate_efficiency_acceptance)(
-            spec['acceptance_summary'], initial_state=spec['initial_state'])
+        if variant is not None:
+            accepted = validate_efficiency_acceptance(spec['acceptance_summary'], initial_state=spec['initial_state'], variant=variant)
+        else:
+            accepted = (validate_full_cl_acceptance if spec['mode'] == 'full_cl' else validate_efficiency_acceptance)(
+                spec['acceptance_summary'], initial_state=spec['initial_state'])
     output = Path(spec['output'])
     settings = spec['protocol']
     recorder = Recorder(output, spec['gpu'])
@@ -357,7 +405,7 @@ def worker(spec_path):
         sys.argv = ['main.py', *command]
         args = mammoth.parse_args(cmd=command)
         wandb.init(entity=spec['wandb_entity'], project=spec['wandb_project'], name=spec['name'],
-                   group={'efficiency': 'hide-base-efficiency', 'full_cl': 'hide-base-full-cl'}.get(spec['mode'], 'hide-base-validation'),
+                   group='hide-' + settings['vit_size'] + '-' + {'efficiency': 'efficiency', 'full_cl': 'full-cl'}.get(spec['mode'], 'validation'),
                    job_type=f'native-{spec["mode"]}-{spec["pass"]}', config=spec, dir=str(output))
         record['wandb_url'] = wandb.run.url
         with recorder.phase('initialize'):
@@ -368,6 +416,7 @@ def worker(spec_path):
         expected = {'stop_after': settings['tasks'], 'n_epochs': settings['n_epochs'],
                     'batch_size': settings['batch_size'], 'seed': settings['seed'],
                     'num_workers': settings['num_workers'], 'hide_tii_epochs': settings['tii_epochs'],
+                    'hide_vit_size': settings['vit_size'],
                     'hide_prompt_epochs': settings['prompt_epochs'], 'hide_ca_epochs': settings['ca_epochs'],
                     'dataset_config': settings['dataset_config'], 'optimizer': 'adam', 'optim_wd': 0.,
                     'permute_classes': 0, 'noise_rate': 0, 'validation': 0, 'label_perc': 1,
@@ -386,7 +435,7 @@ def worker(spec_path):
             raise ValueError('Full CL learned tensors differ from the accepted validation initialization')
         record['initial_canonical_pretrained_sha256'] = {name: canonical_pretrained_digest(module) for name, module in
                                                         (('tii', model.net.tii), ('prompt', model.net.prompt))}
-        if any(value != CANONICAL_PRETRAINED_SHA256 for value in record['initial_canonical_pretrained_sha256'].values()):
+        if any(value != spec['canonical_pretrained_sha256'] for value in record['initial_canonical_pretrained_sha256'].values()):
             raise ValueError('Both native pretrained branches must match the pinned canonical tensors')
         checks = record['structural_checks']
         checks.update({name: True for name in REQUIRED_STRUCTURAL_CHECKS})
@@ -566,11 +615,11 @@ def worker(spec_path):
                     result = original(current_dataset, branch)
                 stats = model.tii_statistics if branch == 'tii' else model.prompt_statistics
                 seen = model.n_seen_classes
-                if (list(stats.means.shape) != [100, 10, 768] or not bool(stats.valid[:seen].all())
-                        or bool(stats.valid[seen:].any()) or bool((stats.class_tasks[seen:] != -1).any())
-                        or not bool(torch.isfinite(stats.means).all()) or not bool(torch.isfinite(stats.variances).all())):
+                try:
+                    audit_statistics(stats, seen, settings.get('feature_dim', 768))
+                except RuntimeError:
                     checks['statistics_shapes_and_seen_classes'] = False
-                    raise RuntimeError('HiDe statistics shapes/seen-class state are invalid')
+                    raise
                 return result
             return wrapped
 
@@ -694,7 +743,7 @@ def worker(spec_path):
                         state = {name: value.detach().cpu().clone() if torch.is_tensor(value) else value for name, value in model.state_dict().items()}
                         before = tensor_digest(state)
                         torch.save({'model': state, 'task': task, 'protocol': settings,
-                                    'checkpoint_sha256': CHECKPOINT_SHA256}, output / f'task{task}_state.pt')
+                                    'checkpoint_sha256': spec['checkpoint_sha256']}, output / f'task{task}_state.pt')
                         loaded = torch.load(output / f'task{task}_state.pt', map_location='cpu', weights_only=True)
                         model.load_state_dict(loaded['model'], strict=True)
                         if tensor_digest(model.state_dict()) != before:
@@ -830,18 +879,21 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--execute', action='store_true')
     parser.add_argument('--mode', choices=('validation', 'smoke', 'efficiency', 'full_cl'), default='validation')
+    parser.add_argument('--variant', choices=('small', 'tiny'), default=None)
     parser.add_argument('--pass', dest='pass_kind', choices=('measurement', 'flops'), default='measurement')
     parser.add_argument('--initial-state', type=Path)
     parser.add_argument('--reference-summary', type=Path)
     parser.add_argument('--acceptance-summary', type=Path)
     parser.add_argument('--result-dir', type=Path)
     parser.add_argument('--output', type=Path, default=ROOT / 'benchmarks/cl_efficiency/hide_prompt/runs')
-    parser.add_argument('--checkpoint', type=Path, default=Path(CHECKPOINT))
+    parser.add_argument('--checkpoint', type=Path, default=None)
     parser.add_argument('--timeout', type=float, default=21600.)
     parser.add_argument('--worker', type=Path, help=argparse.SUPPRESS)
     options = parser.parse_args(argv)
+    if options.variant is not None and options.mode == 'full_cl':
+        raise ValueError('HiDe size expansion excludes full_cl execution')
     if not options.execute and options.worker is None:
-        print(f'Prepared HiDe native {options.mode}; execution=False; protocol={json.dumps(protocol(options.mode))}')
+        print(f'Prepared HiDe native {options.mode}; execution=False; protocol={json.dumps(protocol(options.mode, variant=options.variant))}')
         return 0
     if options.worker is not None:
         return worker(options.worker)

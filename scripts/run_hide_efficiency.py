@@ -57,8 +57,8 @@ def file_hash(path):
     return digest.hexdigest()
 
 
-def require_approved_scope(plan, acceptance):
-    """Keep execution inside the user's conditional, Base-only approval."""
+def require_approved_scope(plan, acceptance, variant=None):
+    """Require the selected size's acceptance before any pilot worker."""
     common = plan.get('common', {})
     expected_common = {
         'dataset': 'seq-cifar100-224', 'dataset_total_tasks': 10,
@@ -75,8 +75,20 @@ def require_approved_scope(plan, acceptance):
         if any(type(actual.get(key)) is not type(value) or actual.get(key) != value
                for key, value in desired.items()):
             raise ValueError('Pilot differs from the authorized TII1/prompt1 three-measurement/one-FLOPs protocol')
-    if common.get('checkpoint_tag') != 'vit_base_patch16_224.augreg_in21k_ft_in1k':
-        raise ValueError('The approved HiDe-Prompt efficiency pilot uses the Base checkpoint')
+    if variant is None:
+        if common.get('checkpoint_tag') != 'vit_base_patch16_224.augreg_in21k_ft_in1k':
+            raise ValueError('The approved HiDe-Prompt efficiency pilot uses the Base checkpoint')
+    else:
+        from scripts.hide_size_protocol import load_variant
+        from scripts.hide_protocol import protocol
+        info = load_variant(variant, verify_checkpoint=False)
+        if any(common.get(key) != info[key] for key in ('vit_size', 'feature_dim', 'num_heads',
+                    'checkpoint_file', 'checkpoint_sha256', 'canonical_pretrained_sha256', 'checkpoint_tag')):
+            raise ValueError('Pilot differs from the selected size checkpoint and geometry')
+        if (acceptance.get('variant') != variant or acceptance.get('protocol') != protocol('validation', variant=variant)
+                or acceptance.get('checkpoint_sha256') != info['checkpoint_sha256']
+                or acceptance.get('canonical_pretrained_sha256') != info['canonical_pretrained_sha256']):
+            raise ValueError('The selected size must have its own matched two-task acceptance')
     checks = acceptance.get('structural_checks', {})
     if (acceptance.get('status') != 'completed' or acceptance.get('acceptance_status') != 'pass'
             or not checks or any(value is not True for value in checks.values())):
@@ -98,7 +110,7 @@ def distribution(values, *, allow_missing=False):
     return result
 
 
-def validate_record(record, pass_name):
+def validate_record(record, pass_name, variant=None):
     if record.get('pass') != pass_name or record.get('status') != 'completed':
         raise ValueError('Only completed workers from the requested pass may enter aggregation')
     if any(type(record.get('metrics', {}).get(key)) is not int or record['metrics'][key] != value
@@ -115,16 +127,41 @@ def validate_record(record, pass_name):
             or any(row.get('task_id') != 0 or row.get('status') != 'not_applicable'
                    or row.get('steps') != 0 for row in alignment)):
         raise ValueError('Both first-task classifier alignments must be recorded as not applicable')
+    variant = variant if variant is not None else record.get('variant')
+    if variant is not None:
+        from scripts.hide_size_protocol import load_variant
+        from scripts.hide_protocol import protocol, FULL_CL_PRECISION
+        info = load_variant(variant, verify_checkpoint=False)
+        if (record.get('variant') != variant or record.get('protocol') != protocol('efficiency', variant=variant)
+                or record.get('model') != 'hide-prompt' or record.get('gpu') != '1'
+                or record.get('checkpoint_sha256') != info['checkpoint_sha256']
+                or record.get('canonical_pretrained_sha256') != info['canonical_pretrained_sha256']
+                or record.get('precision') != FULL_CL_PRECISION
+                or any(type(record.get('precision', {}).get(key)) is not type(value) for key, value in FULL_CL_PRECISION.items())
+                or record.get('wandb_logging_status') != 'uploaded'
+                or record.get('wandb_artifact', {}).get('state') != 'COMMITTED'):
+            raise ValueError('Size pilot worker differs from the selected recipe or uploaded result')
+        if any(type(record.get(key)) is not type(info[key]) or record[key] != info[key]
+               for key in ('vit_size', 'feature_dim', 'num_heads', 'checkpoint_tag')):
+            raise ValueError('Size pilot worker checkpoint and geometry metadata disagree')
     return record
 
 
-def summarize(measurements, flops):
+def summarize(measurements, flops, variant=None):
     """Aggregate measurement costs only, preserving missing phase energy."""
     if len(measurements) != 3:
         raise ValueError('A complete pilot requires exactly three measurements and one FLOPs pass')
+    variant = variant if variant is not None else measurements[0].get('variant')
+    if any(record.get('variant') != variant for record in [*measurements, flops]):
+        raise ValueError('Mixed backbone sizes cannot enter one pilot aggregation')
     for record in measurements:
-        validate_record(record, 'measurement')
-    validate_record(flops, 'flops')
+        validate_record(record, 'measurement', variant=variant)
+    validate_record(flops, 'flops', variant=variant)
+    if variant is not None:
+        for key in ('initial_state_sha256', 'initial_learned_sha256', 'acceptance_summary_sha256', 'execution_source_sha256'):
+            identity = measurements[0].get(key)
+            if not identity or any(record.get(key) != identity for record in [*measurements[1:], flops]):
+                raise ValueError('Size pilot workers must share accepted initialization and execution source pins')
     resources = {key: distribution(record['metrics'].get(key) for record in measurements)
                  for key in RESOURCE_KEYS}
     if any(record.get('sensor_errors') for record in measurements):
@@ -144,7 +181,7 @@ def summarize(measurements, flops):
     if (isinstance(estimate, bool) or not isinstance(estimate, (int, float))
             or not math.isfinite(estimate) or estimate <= 0):
         raise ValueError('The separate FLOPs pass must provide a positive partial operator estimate')
-    return {
+    result = {
         'status': 'pass', 'measurement_count': 3, 'flops_count': 1,
         'resources': resources, 'phases': phases,
         'accuracy': [record.get('accuracy', record.get('task_results')) for record in measurements],
@@ -164,6 +201,10 @@ def summarize(measurements, flops):
         'wandb_urls': [record.get('wandb_url') for record in measurements],
         'flops_wandb_url': flops.get('wandb_url'),
     }
+    if variant is not None:
+        result['variant'] = variant
+        result['protocol'] = measurements[0]['protocol']
+    return result
 
 
 def run_native(arguments):
@@ -173,8 +214,10 @@ def run_native(arguments):
     return run_hide_validation.main(arguments)
 
 
-def check_acceptance(path, initial_state):
+def check_acceptance(path, initial_state, variant=None):
     from scripts.hide_protocol import validate_efficiency_acceptance
+    if variant is not None:
+        return validate_efficiency_acceptance(path, initial_state=initial_state, variant=variant)
     return validate_efficiency_acceptance(path, initial_state=initial_state)
 
 
@@ -183,17 +226,23 @@ def execute(options):
         raise ValueError('Efficiency execution requires --acceptance-summary and --initial-state')
     acceptance_path = options.acceptance_summary.expanduser().resolve()
     initial_state = options.initial_state.expanduser().resolve()
+    variant = getattr(options, 'variant', None)
     # Check the condition before reading credentials or creating output folders.
-    acceptance = check_acceptance(acceptance_path, initial_state)
-    plan = json.loads(PLAN_PATH.read_text())
-    require_approved_scope(plan, acceptance)
+    if variant is None:
+        acceptance = check_acceptance(acceptance_path, initial_state)
+        plan = json.loads(PLAN_PATH.read_text())
+    else:
+        from scripts.hide_size_protocol import load_plan
+        acceptance = check_acceptance(acceptance_path, initial_state, variant=variant)
+        plan = load_plan(variant)
+    require_approved_scope(plan, acceptance, variant=variant)
     profile = configure_environment()
     if profile['gpu'] != '1':
         raise ValueError('The approved HiDe-Prompt efficiency pilot uses physical GPU1')
     checkpoint = Path(plan['common']['checkpoint_file'])
     if file_hash(checkpoint) != plan['common']['checkpoint_sha256']:
         raise ValueError('The pinned pretrained checkpoint changed after native acceptance')
-    name = 'hide-efficiency-pilot-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    name = 'hide-efficiency-pilot-' + (variant + '-' if variant is not None else '') + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     output = (options.result_dir if options.result_dir is not None else options.output / name).resolve()
     output.mkdir(parents=True, exist_ok=False)
     execution = {
@@ -205,6 +254,11 @@ def execute(options):
         'measurements': [], 'flops': None, 'workers': [],
         'execution_source_sha256': {str(Path(__file__).relative_to(ROOT)): file_hash(__file__)},
     }
+    if variant is not None:
+        from scripts.hide_size_protocol import SOURCE_FILES
+        execution.update(variant=variant, checkpoint_tag=plan['common']['checkpoint_tag'],
+                         canonical_pretrained_sha256=plan['common']['canonical_pretrained_sha256'])
+        execution['execution_source_sha256'].update({source: file_hash(ROOT / source) for source in SOURCE_FILES})
     write_json(output / 'execution.json', execution)
     try:
         for index, pass_name in enumerate(('measurement', 'measurement', 'measurement', 'flops'), start=1):
@@ -212,6 +266,8 @@ def execute(options):
             arguments = ['--execute', '--mode', 'efficiency', '--pass', pass_name,
                          '--result-dir', str(directory), '--initial-state', str(initial_state),
                          '--acceptance-summary', str(acceptance_path), '--timeout', str(options.timeout)]
+            if variant is not None:
+                arguments.extend(['--variant', variant, '--checkpoint', str(checkpoint)])
             code = run_native(arguments)
             result = directory / 'result.json'
             record = json.loads(result.read_text()) if result.is_file() else {'status': 'failed', 'pass': pass_name}
@@ -227,9 +283,14 @@ def execute(options):
             write_json(output / 'execution.json', execution)
             if code != 0:
                 raise RuntimeError('Native efficiency worker failed; partial local results are preserved')
-            validate_record(record, pass_name)
+            validate_record(record, pass_name, variant=variant)
+            if variant is not None and (record.get('initial_state_sha256') != execution['initial_state_sha256']
+                    or record.get('acceptance_summary_sha256') != execution['acceptance_summary_sha256']
+                    or record.get('initial_learned_sha256') != acceptance.get('initial_learned_sha256')
+                    or record.get('execution_source_sha256') != acceptance.get('execution_source_sha256')):
+                raise ValueError('Size pilot worker changed accepted initialization or source pins')
             print(f'HiDe-Prompt {pass_name} saved: {record.get("wandb_url") or directory}', flush=True)
-        execution['summary'] = summarize(execution['measurements'], execution['flops'])
+        execution['summary'] = summarize(execution['measurements'], execution['flops'], variant=variant)
         execution['summary']['launcher_wall_s_including_logging'] = distribution(
             (worker['completion'].get('wall_s') for worker in execution['workers'][:3]), allow_missing=True)
         execution['summary']['launcher_wall_scope'] = (
@@ -250,6 +311,7 @@ def execute(options):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--execute', action='store_true')
+    parser.add_argument('--variant', choices=('small', 'tiny'), default=None)
     parser.add_argument('--acceptance-summary', type=Path)
     parser.add_argument('--initial-state', type=Path)
     parser.add_argument('--output', type=Path, default=ROOT / 'benchmarks/cl_efficiency/hide_prompt/runs')
@@ -257,7 +319,7 @@ def main(argv=None):
     parser.add_argument('--timeout', type=float, default=7200., help='Timeout in seconds per fresh worker')
     options = parser.parse_args(argv)
     if not options.execute:
-        print('Prepared HiDe-Prompt Base: seed1993, task1, TII1+prompt1, ease transforms, batch64; '
+        print(f'Prepared HiDe-Prompt {options.variant.capitalize() if options.variant is not None else "Base"}: seed1993, task1, TII1+prompt1, ease transforms, batch64; '
               'measurement=3, partial-FLOPs=1; execution=False')
         return 0
     if not math.isfinite(options.timeout) or options.timeout <= 0:
