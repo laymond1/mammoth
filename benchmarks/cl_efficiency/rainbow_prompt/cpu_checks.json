@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "stage": "native_implementation_cpu_verification_gpu_plan_preparation",
+  "cifar_training_executed": false,
+  "gpu_computation_executed": false,
+  "external_writes_executed": false,
+  "source_mode": "official-active-path",
+  "paper_equivalent": false,
+  "learned_gate_active": false,
+  "focused_pytest": {
+    "passed": 78,
+    "failed": 0,
+    "skipped": 0,
+    "pinned_source_oracle_checks": 14,
+    "duration_seconds": 5.36
+  },
+  "checks": {
+    "native_import_and_registration": "passed",
+    "cli_help_rainbow_and_sgd": "passed",
+    "cli_config_precedence": "passed",
+    "synthetic_meta_wrapper_smoke": "passed",
+    "local_base_checkpoint_150_tensors_per_encoder": "passed",
+    "no_execute_preparer_and_local_npz_sha": "passed",
+    "skill_wiring": "passed",
+    "ruff": "unavailable_in_existing_uv_environment"
+  },
+  "source_sha256": {
+    "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+    "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+    "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+    "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+    "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+    "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+    "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+    "scripts/prepare_rainbow_prompt.py": "5a69a3a270991f4e4415d5df717209de7dfdebd326706b7d0ba672c0fa083b26",
+    "scripts/rainbow_cpu_preflight.py": "834902938c8e87f23f1cb372a6ec9f68b8da2ba01f2f2002568c6fc36766d7cc",
+    "tests/test_rainbow_components.py": "16c4861b962696755cddaf1a36f6b6a9242afbbaff1530fb1ae2ef07606b28b5",
+    "tests/test_rainbow_prompt.py": "400df2e11ccc9aee7f04be4ef78e5040ae54a5223c5b0cf40c50bb480bfafbe3",
+    "tests/test_prepare_rainbow_prompt.py": "eaaaa3efc0b546f65bbee963b8f47c42d80b0088e15d42f07800df8a163a11be"
+  },
+  "limitations": [
+    "No CIFAR accuracy or GPU efficiency measurements",
+    "No generic framework start_from/loadcheck/inference_only support",
+    "Independent author GPU runner not yet implemented",
+    "Pilot recipe is pending",
+    "Full learning initial state and phase RNG must be matched in future author/native experiments"
+  ]
+}

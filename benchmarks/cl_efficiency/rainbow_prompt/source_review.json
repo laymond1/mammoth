@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-08",
+  "status": "source_active_path_audited",
+  "audit_type": "static_source_and_primary_paper_review",
+  "repo_url": "https://github.com/Kiseong0753/RainbowPrompt",
+  "reference_source": "/tmp/cl-rainbow-official-20261008",
+  "reference_commit": "0b84d3e3738669fe4bb516ccc1c526a535576ad3",
+  "worktree_clean_at_audit": true,
+  "tracked_file_count": 21,
+  "reference_source_sha256": {
+    "Overview.png": "eacd3b699c37934628d9604b25e0e70906563c4d155532bdd2f868b1644af6ea",
+    "README.md": "23e16eb91232c2f9fb82e362dab5ca8d69cbdb136cc3712061c74b0dc7bc8405",
+    "adaptive_prompting.py": "a875ed0de97054400d019e3808caefe675bb4fcec8a7dae0af87ef8978c162c6",
+    "attention.py": "bed8a5f1dbc13717e7c0ae29ae9bab16d15592428d91e9547a4a25cf22f67e5c",
+    "configs/cifar100_10task_RainbowPrompt.py": "8f25a9d3f59a6881976c9a45c2cd50420411c2bb65d28434db056113e8b01c22",
+    "configs/cifar100_20task_RainbowPrompt.py": "dd960c76e1c2cc05af3d00c957739c3ab4abf09ca3445e9b9de181aa2e2ad855",
+    "configs/cub200_RainbowPrompt.py": "c6c79fd570a5f583e5f035245f8aea779ce64301d6e092ce804fe8e45b6b35cb",
+    "configs/imr_RainbowPrompt.py": "aec1de26a76d6197b6e53547434fb680984e358fef9fe5068410c428b3ad4d7a",
+    "continual_datasets/continual_datasets.py": "49cd5da131896e83581dcaaa076de91d6e8779a34e14df406dacc6f315782184",
+    "continual_datasets/dataset_utils.py": "c7ae781c2417be27a3b84fcc9c946c4215711b92405c26722020bd1a8a86bf2d",
+    "datasets.py": "1dde2adcf555343d7e4323e5d2b93cb559639a354b7b59492328e3499a293424",
+    "engine.py": "269c612f134fb705e633abb6cee7b29e96b5315652c7c3df0cf10aca0cf3b4d7",
+    "main.py": "c2f713737b643177c7f27533696ee6fd6e05e3d9b5e1ccfea5e3fc5b84f70da3",
+    "models.py": "9a6f7e1ea649de8d0fcce772f1197eaa065fbf0540d0a3a4b17d7d0592f50e37",
+    "prompt.py": "f0411c0ae36af03baeeafc10971db7fc109494ee82e15baede3d7de118d92303",
+    "requirements.txt": "e315faf78444a91bb9ebc4d5009cd962d12cc46bfc1d737f2250a19b2584b082",
+    "run_cifar100.sh": "fb82c0ff8c29689051b1fc334a6ba73436635a39261a7aea93782e486f78e5a9",
+    "run_cubs.sh": "ce43de62def802526a0244de76d8e902e6bcf7c361c051419b150bbe82ccf653",
+    "run_imr.sh": "f9e48eab3e6ad316f8598ef568d216f996e7fc09b67d5ef3b0741654db36f4e5",
+    "utils.py": "7f4c402e074590068c5440c501f6f8b571d1e9ed564a1559dbd8737264ef4e6d",
+    "vision_transformer.py": "59c16c8929654768bdaf109024d710cbb7c306dbfc2f865e2f617041a6c09df8"
+  },
+  "source_mode": "official-active-path",
+  "paper_equivalent": false,
+  "paper_url": "https://arxiv.org/html/2507.22553v1",
+  "paper_sections_reviewed": [
+    "3.2 prompt evolution",
+    "3.3 adaptive prompting",
+    "3.4 optimization",
+    "4.1 setup"
+  ],
+  "primary_pdf_fetch": "CVF PDF returned403; primary arXiv HTML read successfully",
+  "runtime_path": [
+    "main.py",
+    "models.py",
+    "vision_transformer.py",
+    "prompt.py",
+    "attention.py",
+    "engine.py",
+    "datasets.py"
+  ],
+  "source_method_settings": {
+    "source_mode": "official-active-path",
+    "source_commit": "0b84d3e3738669fe4bb516ccc1c526a535576ad3",
+    "prompt_length": 20,
+    "key_prefix_length": 10,
+    "value_prefix_length": 10,
+    "pool_size": 10,
+    "top_k": 1,
+    "D1": 56,
+    "D2": 96,
+    "KI_iter": 10,
+    "prompt_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "self_attn_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "relation_type": "attention",
+    "use_linear": true,
+    "balancing": 0.01,
+    "optimizer": "adam",
+    "weight_decay": 0.0,
+    "optimizer_eps": 1e-08,
+    "optimizer_betas": [
+      0.9,
+      0.999
+    ],
+    "clip_grad_norm": 1.0,
+    "scheduler": "constant",
+    "reinitialize_optimizer_each_task": true,
+    "nominal_lr": 0.03,
+    "lr_scaling": "nominal_lr * single_gpu_batch_size / 256",
+    "effective_lr": 0.0075,
+    "warmup_epochs": 5,
+    "n_epochs_per_task": 20,
+    "evolution_dropout": 0.1,
+    "learned_gate_active": false,
+    "gate_sparsity_loss_active": false,
+    "task_routing": "single_task_selected_by_mean_cosine_over_current_evaluation_minibatch",
+    "class_il_evaluation": "seen-class mask in native and independently adapted author worker"
+  },
+  "findings": [
+    {
+      "id": "learned_gate_not_connected",
+      "severity": "scope_difference",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/adaptive_prompting.py#L74",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/vision_transformer.py#L24",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/vision_transformer.py#L522",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/engine.py#L66"
+      ],
+      "observed": "Gate helpers exist only as standalone definitions; active ViT imports attention.py PreT_Attention without probability inputs; no soft_gate_dict is initialized and no gate helper is called.",
+      "preserve": "Do not invent or wire a learned gate or sparse loss in this source-active-path variant.",
+      "paper_difference": "Paper sections3.3/3.4 describe joint learned gate and sparsity loss; that full method remains a separate followup."
+    },
+    {
+      "id": "task_conditioning_uniform_attention",
+      "severity": "source_semantics",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/prompt.py#L100"
+      ],
+      "observed": "Task key is broadcast identically across prompt length, producing constant logits along each softmax row. Algebraically the result is the token mean repeated at every position.",
+      "preserve": "Keep the exact matrix multiplication/softmax axes rather than implementing a corrected task-conditioned attention.",
+      "evidence_kind": "static tensor-shape algebra; CPU source oracle checks tracked separately"
+    },
+    {
+      "id": "stored_prompt_pre_optimizer_update",
+      "severity": "source_semantics",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/prompt.py#L209",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/engine.py#L57",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/engine.py#L79"
+      ],
+      "observed": "Rainbow forward writes its evolved prompt buffer before loss.backward/optimizer.step. Evaluation uses the final training forward cache, not a fresh computation after the last update.",
+      "preserve": "Preserve buffer timing; no task-end prompt refresh."
+    },
+    {
+      "id": "warmup_only_zero_cache",
+      "severity": "gpu_plan_decision",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/vision_transformer.py#L505",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/prompt.py#L241",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/prompt.py#L232"
+      ],
+      "observed": "Unique warmup does not populate stored_rainbow_prompts while evaluation always requests Rainbow/cache. One epoch with warmup5 yields an untouched zero cache.",
+      "preserve": "Keep original20epoch/warmup5 recipe; block a1epoch/warmup5 Rainbow efficiency plan.",
+      "future_options": [
+        "one_epoch_warmup0_changed_recipe_with_matched_reference",
+        "six_epochs_warmup5_include_full_warmup_cost",
+        "pilot_deferred"
+      ]
+    },
+    {
+      "id": "functional_dropout_always_training",
+      "severity": "source_semantics",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/prompt.py#L135"
+      ],
+      "observed": "Evolution uses functional dropout p=.1/training=True. Active evaluation bypasses evolution and uses stored prompt.",
+      "preserve": "Preserve evolution randomness and cached evaluation; do not describe this as stochastic evaluation dropout."
+    },
+    {
+      "id": "batch_mean_task_routing",
+      "severity": "evaluation_protocol",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/prompt.py#L217"
+      ],
+      "observed": "Mean cosine over all query CLS samples determines one task for the entire minibatch; task_id input does not select inference prompt.",
+      "preserve": "Keep unknown-task inference and fixed batch membership/order in author/native comparison."
+    },
+    {
+      "id": "unused_freeze_components",
+      "severity": "source_semantics",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/prompt.py#L81",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/engine.py#L190"
+      ],
+      "observed": "freeze_components is never called by active trainer. Projection/alignment modules remain trainable on later tasks.",
+      "preserve": "Detach previous base prompts as implemented; do not activate the unused helper."
+    },
+    {
+      "id": "loss_and_last_layer_similarity",
+      "severity": "source_semantics",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/engine.py#L66",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/vision_transformer.py#L528",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/vision_transformer.py#L539"
+      ],
+      "observed": "Loss is masked CE minus balancing times similarity. Only the last active prompt layer return dictionary survives; no gate sparse term is present.",
+      "preserve": "Preserve active loss instead of averaging all layer losses or introducing paper sparse loss."
+    },
+    {
+      "id": "actual_source_data_transforms",
+      "severity": "metadata_distinction",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/datasets.py#L202",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/vision_transformer.py#L33"
+      ],
+      "observed": "Dataset transform contains no Normalize, despite pretrained metadata Inception mean/std. Common identity Normalize is numerically equivalent but has a different transform repr.",
+      "preserve": "Pin actual transforms; apply common identity recipe to both later matched workers and record the adaptation."
+    },
+    {
+      "id": "future_logits_source_class_il",
+      "severity": "native_adaptation",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/engine.py#L117"
+      ],
+      "observed": "Official task_inc=False evaluator does not mask future classifier outputs. Native seen-class accuracy has different masking semantics.",
+      "preserve": "Apply the same explicitly documented seen-class mask in both native and independent author comparison."
+    },
+    {
+      "id": "source_lr_batch_scaling",
+      "severity": "protocol_pin",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/main.py#L174",
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/run_cifar100.sh#L1"
+      ],
+      "observed": "The source always scales nominal LR.03 by per-device batch/256, yielding .0075 at common batch64 and .00375 at original batch32.",
+      "preserve": "Record both nominal and effective LR; do not reuse nominal .03 as the actual optimizer LR."
+    },
+    {
+      "id": "parameter_count_exclusion",
+      "severity": "efficiency_accounting",
+      "evidence": [
+        "https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/main.py#L155"
+      ],
+      "observed": "The source logs a secondary trainable parameter count excluding query/key/value/dense/fc1/fc2 modules.",
+      "preserve": "Report complete trainable/optimizer/storage counts including all evolution modules and frozen query encoder."
+    }
+  ],
+  "structural_estimates_not_measurements": {
+    "stored_prompt_buffer_bytes_fp32": 7372800,
+    "base_prompt_pool_bytes_fp32": 7372800,
+    "evolution_trainable_parameters": 4593696,
+    "includes_gpu_measurements": false
+  },
+  "authorization": {
+    "native_implementation": true,
+    "cpu_toy_tests": true,
+    "gpu_plan_preparation": true,
+    "gpu_training": false,
+    "real_data_learning": false,
+    "wandb_writes": false,
+    "slack_notifications": false
+  },
+  "experiment_executed": false,
+  "paper_reproduction_claim": false
+}

@@ -1,0 +1,64 @@
+{
+  "status": "passed",
+  "scope": "CPU weight loading and structure only",
+  "source_commit": "0b84d3e3738669fe4bb516ccc1c526a535576ad3",
+  "checkpoint": {
+    "file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz",
+    "sha256": "ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124",
+    "canonical_pretrained_sha256": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+  },
+  "canonical_encoder_sha256": {
+    "query": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300",
+    "prompt": "cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300"
+  },
+  "canonical_tensors_per_encoder": 150,
+  "parameters": {
+    "trainable": 6521476,
+    "frozen": 171674212
+  },
+  "cached_prompt_bytes": 7372800,
+  "runtime_efficiency_measurement": false,
+  "cifar_training_executed": false,
+  "real_image_inference_executed": false,
+  "gpu_computation_executed": false,
+  "downloads_executed": false,
+  "wandb_messages_sent": false,
+  "slack_messages_sent": false,
+  "protocol": {
+    "version": 1,
+    "source_commit": "0b84d3e3738669fe4bb516ccc1c526a535576ad3",
+    "source_mode": "official-active-path",
+    "learned_gate_active": false,
+    "paper_equivalent": false,
+    "feature_dim": 768,
+    "num_classes": 100,
+    "n_tasks": 10,
+    "warmup": 5,
+    "length": 20,
+    "D1": 56,
+    "D2": 96,
+    "KI_iter": 10,
+    "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "self_attn_layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}

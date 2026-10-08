@@ -1,6 +1,10 @@
 # CL 알고리즘 검토와 효율성 실험 준비
 
-2026-10-08 기준 AST 목록은 **76개 소스 엔트리**입니다. 기존 71개 목록에 HiDe-Prompt와 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA가 추가됐으며, 당시의 `inventory.csv`·`manifest.json`·실행 계획은 71개 스냅샷으로 보존합니다. 소스 수를 import 성공이나 완료한 실험 수로 해석하지 않습니다.
+2026-10-08 기준 AST 목록은 **77개 소스 엔트리**입니다. 기존 71개 목록에 HiDe-Prompt와 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA, RainbowPrompt가 추가됐으며, 당시의 `inventory.csv`·`manifest.json`·실행 계획은 71개 스냅샷으로 보존합니다. 소스 수를 import 성공이나 완료한 실험 수로 해석하지 않습니다.
+
+RainbowPrompt의 **공식 활성 경로 구현·CPU 검사·GPU 계획 준비**를 완료했습니다. 사용자 선택대로 learned gate 복원은 후속으로 분리하며 이번 구현을 논문 전체 알고리즘과 동일하다고 표시하지 않습니다. [구현과 다음 결정](rainbow_prompt/README.md), [CPU 검증](rainbow_prompt/CPU_VALIDATION.md)을 기록했고 실제 CIFAR 학습·GPU 실험·W&B·Slack 전송은 이번 단계에서 실행하지 않았습니다. PROL은 다음 구현 대상입니다.
+
+이전 SD-LoRA 회복 단계는 완료됐습니다. LR 0.001·classifier LR 0.008 조건에서 첫 태스크 저자/native 99.0%와 13구조 검사를 확인하고 측정3회·부분 FLOPs1회로 [9방법 비교 보고서](sd_recovery/RESULTS.md)를 작성했습니다. 기존 10.0% 실패 기록과 당시 부분 보고서는 보존합니다.
 
 네 LoRA 방법의 Base ViT 첫 2개 태스크는 독립 저자 코드·native 총 8회 검증을 완료했습니다. 각 방법의 네 정확도 지표·14개 구조 검사·첫 배치 입력 검사가 모두 pass입니다. Native 태스크2 전체 정확도는 EWC 96.05%·SD 94.80%·Inf 96.40%·CL 97.25%입니다. EWC·SD·CL의 네 정답 수는 저자 실행과 같고, Inf의 저자−native 차이는 전체 −0.15%p·과거 −0.40%p·신규 +0.10%p로 보존합니다. [LoRA 결과](low_rank/RESULTS.md), [구현·검증 범위](low_rank/README.md)에 조건과 실패·복구 이력을 기록합니다. 공통 저자 저장소 변형에 대한 검증이며 논문 수치 재현·효율성 pilot·전체10태스크 결과로 확대하지 않습니다. LoRA Small·Tiny는 CPU 생성·forward 확인만 수행했습니다.
 
@@ -26,7 +30,8 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 
 ## 검토 자료
 
-- [현재 76개 소스 엔트리의 특징과 장단점](algorithms.md)
+- [현재 77개 소스 엔트리의 특징과 장단점](algorithms.md)
+- [RainbowPrompt 공식 활성 경로 구현·CPU 검사·GPU 준비안](rainbow_prompt/README.md)
 - [초기 후보 14개 검토와 현재 구현 현황: 방법 13개·예산 프로토콜 1개](recommendations.md)
 - [BudgetCL·aL-SAR의 추가 가능성 및 이식 범위](budgeted_cl_review.md)
 - [공통 환경·worktree 사용법과 10월 6일 연결 검증](foundation.md)
@@ -45,7 +50,7 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 - [71개 모델의 데이터셋·인자·외부 요구사항 스냅샷](manifest.json)
 - [당시 생성한 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)
 
-현재 76개는 정적 추론 기준선 3개·Joint 기준선 2개·학습 방법과 변형 71개로 구성합니다. EASE 추가 당시의 71개 스냅샷은 학습 방법과 변형 66개를 포함합니다. CaSpeR·CSCCT·LiDER·STAR 변형도 독립 실행 엔트리로 기록합니다. STAR 정규화 변형과 STARPrompt는 서로 다른 방법입니다. 전체76개의 공통 실행·효율성 비교는 완료하지 않았습니다.
+현재 77개는 정적 추론 기준선 3개·Joint 기준선 2개·학습 방법과 변형 72개로 구성합니다. EASE 추가 당시의 71개 스냅샷은 학습 방법과 변형 66개를 포함합니다. CaSpeR·CSCCT·LiDER·STAR 변형도 독립 실행 엔트리로 기록합니다. STAR 정규화 변형과 STARPrompt는 서로 다른 방법입니다. 전체77개의 공통 실행·효율성 비교는 완료하지 않았습니다.
 
 ## EASE 준비·측정 당시 상태 (10월 7일)
 
