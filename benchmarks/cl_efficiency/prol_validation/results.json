@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "status": "stopped",
+  "publication_gate": "blocked",
+  "method": "prol-prompt",
+  "generated_at_utc": "2026-10-08T07:21:34.614984+00:00",
+  "run_root": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/prol_validation_20261008",
+  "new_gpu_training_runs": 1,
+  "new_validation_runs": 1,
+  "new_measurement_runs": 0,
+  "new_flops_runs": 0,
+  "sources": [
+    {
+      "name": "validation_author",
+      "method": "prol-prompt",
+      "pass": "validation",
+      "mode": "validation",
+      "side": "author",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/prol_validation_20261008/validation_author/result.json",
+      "sha256": "f077b107bbec8f1d26ec7d0b85680c00a499cc360cb4bcad8a233a03c2568630",
+      "bytes": 67027,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/2qvxzkht",
+      "execution_source_sha256": {
+        "backbone/prol_vit.py": "31b0ed877e5db8425c3294d64a321b599be305111ee1f1d1f89aef82d8a7eeb2",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/prol_prompt/run_plan.json": "1c63424af576bff842e2d03e3a188434ca07895b7eec591d6837aea91ce829d0",
+        "benchmarks/cl_efficiency/prol_prompt/source_review.json": "9fc862421e4214b813c03ae5a3b5aa2b49c7c167e4cd04881879f0f0720043ae",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/prol_prompt.yaml": "f560ff88174ff3f1d0b71d58043273ff594ea14c83b226822b81054718e1c96a",
+        "models/prol_prompt.py": "b008591cedf205a177d85e3c922584c36e644c502861faec9064639ab9751d1b",
+        "models/prol_prompt_utils/__init__.py": "1a2cd836214fb77999f038e8a7ccd144c4750132c88809015760a349b74396fb",
+        "models/prol_prompt_utils/head.py": "36bd9c67ef3c118c41e0ce9bf7f67002ce48378c6c9ccff5ddf4f4c0988f3267",
+        "models/prol_prompt_utils/losses.py": "a80441185d0d7a3bac55f6c7ddd8779b7efb5a82a84d521a7a20f4d05c0bd32d",
+        "models/prol_prompt_utils/network.py": "edb7186801baf9410564b070d6f2df72a9fc8af08e6ae3915cb2716dce1149a4",
+        "models/prol_prompt_utils/prompt.py": "0ba6783e0667de4ff84a0e04e1bc9f6c465b0e0661b5a961e45eda20276ce541",
+        "models/prol_prompt_utils/vit.py": "09059627c525b69bc982e318a23edab4aff4de0c1aa1bd8002366743170767cd",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/prol_protocol.py": "428e21dbaa56c5ee4e25e85ca6fdb30508db4297901e1a03cb5a8bde3a5621c5",
+        "scripts/prol_reference_utils.py": "56d5ad8410a0a6ffd46480019a5f2ae87a1ede6a4c23b8b58af51bd7c5b1c4ba",
+        "scripts/publish_low_rank_results.py": "daed09ebdf37673e5b5d22f350f471bd94ff8dadca6cf296f4bd29472640f40b",
+        "scripts/publish_peft_partial.py": "25c594aa56391004fabe813ad0d23751aabb3915e7e979e8099a40436f54bfd6",
+        "scripts/publish_prol_validation.py": "ed8434869cd0d927d4ce51300fde31b355e5bb70a6ddea8fbafe6f1536ced8e3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_low_rank_results.py": "546618511b964f7e63eb4cfa3721d3346d934e1d98a54fa7dc27f0d9e35d6f77",
+        "scripts/report_prol_validation.py": "475a6f86517a8331f0ce6c8d99810c426b12129acd9f9f10d30fce2e95d584bc",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_prol_suite.py": "8d0ce4b44c5d9989fb0f3d8ce2a4a8f12920895a843cf435ad1ff1251a42819a",
+        "scripts/run_prol_worker.py": "c96256318b41722c700c00a7cbf2fc543df66ce6d09f7edb0da13ba44a937ddd",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    }
+  ],
+  "validation": {},
+  "pilot": null,
+  "diagnostics": [
+    {
+      "name": "validation_author",
+      "status": "failed",
+      "computation_status": "failed",
+      "accuracy_pct": {
+        "task1_seen_accuracy": 99.3,
+        "task1_new_accuracy": 99.3
+      },
+      "structural_checks": {
+        "finite_loss_and_gradients": false,
+        "frozen_non_norm_encoder_gradients_absent": false,
+        "frozen_non_norm_encoder_unchanged": false,
+        "query_frozen_and_unchanged": false,
+        "allowed_trainable_norms_match_source": true,
+        "canonical_pretrained_matches_pin": true,
+        "initial_learned_state_and_phase_rng_match": true,
+        "dataset_transforms_ids_match": true,
+        "first_actual_batch_inputs_gradients_lr_audited": true,
+        "complete_stream_and_optimizer_updates": false,
+        "generator_frozen_from_task2": true,
+        "previous_classifier_heads_frozen": true,
+        "source_routing_and_clamps_preserved": true,
+        "scheduler_trigger_and_all_groups_match": true,
+        "checkpoint_round_trip": false,
+        "seen_class_counts_and_predictions_match": true,
+        "no_future_or_replay_samples": true
+      },
+      "error_type": "RuntimeError",
+      "error_context": {
+        "error_type": "RuntimeError",
+        "phase": "framework",
+        "task": 1,
+        "epoch": 1,
+        "frames": [
+          {
+            "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/scripts/run_prol_worker.py",
+            "line": 994,
+            "function": "worker"
+          },
+          {
+            "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/scripts/run_prol_worker.py",
+            "line": 867,
+            "function": "train_author"
+          },
+          {
+            "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/scripts/run_prol_worker.py",
+            "line": 629,
+            "function": "end_evaluation"
+          },
+          {
+            "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/scripts/run_prol_worker.py",
+            "line": 684,
+            "function": "finalized"
+          }
+        ]
+      },
+      "metrics": {
+        "process_wall_s": 35.31144190399209,
+        "outer_training_stream_examples": 5000,
+        "evaluation_examples": 1000,
+        "outer_observe_steps": 79,
+        "tasks_completed": 1,
+        "cuda_peak_allocated_mib": 6551.47265625,
+        "cuda_peak_reserved_mib": 7140.0,
+        "peak_process_tree_rss_mib": 10197.65234375,
+        "peak_gpu_device_memory_mib": 7633.0,
+        "peak_gpu_utilization_percent": 98.0,
+        "peak_gpu_power_w": 416.51,
+        "gpu_board_energy_j": 9966.060226267417,
+        "gpu_energy_coverage_s": 35.278066455968656,
+        "gpu_energy_coverage_fraction": 0.9990548262482688,
+        "gpu_board_energy_wh": 2.7683500628520603,
+        "outer_training_examples_per_s": 217.16301474089596,
+        "evaluation_examples_per_s": 356.46721554466757,
+        "process_tree_cpu_s": 46.20482799999999
+      },
+      "phases": {
+        "begin_task": {
+          "wall_s": 0.003982566995546222,
+          "calls": 1,
+          "gpu_board_energy_j": 0.28099090042520214,
+          "gpu_energy_coverage_s": 0.003982566995546222
+        },
+        "checkpoint": {
+          "wall_s": 0.05031587299890816,
+          "calls": 1,
+          "gpu_board_energy_j": 10.003712537156751,
+          "gpu_energy_coverage_s": 0.05031587299890816
+        },
+        "checkpoint_probe": {
+          "wall_s": 0.10013448097743094,
+          "calls": 1,
+          "gpu_board_energy_j": 16.89248730458342,
+          "gpu_energy_coverage_s": 0.10013448097743094
+        },
+        "data_loading": {
+          "wall_s": 0.8288488649995998,
+          "calls": 1,
+          "gpu_board_energy_j": 58.893419562982224,
+          "gpu_energy_coverage_s": 0.8288488649995998
+        },
+        "end_task": {
+          "wall_s": 0.0002986879553645849,
+          "calls": 1,
+          "gpu_board_energy_j": 0.11502262729607737,
+          "gpu_energy_coverage_s": 0.0002986879553645849
+        },
+        "evaluation": {
+          "wall_s": 2.805307070026174,
+          "calls": 1,
+          "gpu_board_energy_j": 1069.5128400680835,
+          "gpu_energy_coverage_s": 2.805307070026174
+        },
+        "initialize": {
+          "wall_s": 1.6933238680358045,
+          "calls": 1,
+          "gpu_board_energy_j": 25.71873798132775,
+          "gpu_energy_coverage_s": 1.6933238680358045
+        },
+        "state_audit": {
+          "wall_s": 1.222540284972638,
+          "calls": 2,
+          "gpu_board_energy_j": 292.17605315095153,
+          "gpu_energy_coverage_s": 1.222540284972638
+        },
+        "train_epoch": {
+          "wall_s": 23.02417843096191,
+          "calls": 1,
+          "gpu_board_energy_j": 8375.240475100907,
+          "gpu_energy_coverage_s": 23.02417843096191
+        }
+      },
+      "sensor_errors": [],
+      "cost_audit": {
+        "status": "raw_power_verified",
+        "failed_or_incomplete_run": true,
+        "complete_measurement_eligible": false
+      },
+      "epoch_results": [
+        {
+          "task": 1,
+          "epoch": 1,
+          "seed": 2993,
+          "steps": 79,
+          "samples": 5000,
+          "loss_sum": 35.41219058632851,
+          "loss_mean": 0.448255577042133,
+          "inner_scheduler_steps": 66,
+          "cpu_cuda_rng_after_epoch_sha256": "9b5b11c66015525a1ab257f74c306991b6fdbe6a40c129c496425558d3e3d55a"
+        }
+      ],
+      "measurement_aggregate_eligible": false
+    }
+  ],
+  "receipts": {},
+  "execution": {
+    "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/prol_validation_20261008/execution.json",
+    "sha256": "699bfd8c4e0e61526979e3690cc0d9708c4ab355feb6cee303ce06dded6155c2",
+    "bytes": 24810
+  },
+  "report_generator": {
+    "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/scripts/report_prol_validation.py",
+    "sha256": "475a6f86517a8331f0ce6c8d99810c426b12129acd9f9f10d30fce2e95d584bc",
+    "bytes": 57217
+  },
+  "structural_check_count": 17,
+  "scope": {
+    "source_mode": "official-active-path",
+    "source_commit": "bfff8418a4f603a24ae578f1e108bfac89af1e18",
+    "paper_reproduction": false,
+    "broad_comparison": false,
+    "prior_nine_method_report_changed": false,
+    "failed_results_are_not_efficiency_averages": true,
+    "stop_reason": "RuntimeError"
+  }
+}

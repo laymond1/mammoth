@@ -1,0 +1,139 @@
+{
+  "status": "pass",
+  "worker_count": 1,
+  "workers": [
+    {
+      "name": "validation_author",
+      "method": "prol-prompt",
+      "pass": "validation",
+      "mode": "validation",
+      "side": "author",
+      "source_sha256": "f077b107bbec8f1d26ec7d0b85680c00a499cc360cb4bcad8a233a03c2568630",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/2qvxzkht",
+      "run_state": "failed",
+      "local_status": "failed",
+      "remote_status": "failed",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/prol-author-validation-validation-20261008T071742Z:v1",
+      "artifact_digest": "d0d8ecd4a4afd28e0baa4e9923308ffc",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "02072aa61fb167497e91d7397bfdd89980982a7a726554cf6503ba6774a74a5e",
+          "wandb_manifest_digest": "ADJuEYFGgwJA0S1rFjxpSw==",
+          "bytes": 16077,
+          "matches": true
+        },
+        "artifact_metrics.json": {
+          "sha256": "f077b107bbec8f1d26ec7d0b85680c00a499cc360cb4bcad8a233a03c2568630",
+          "wandb_manifest_digest": "66Q17ncK09aws3sIUgmzBg==",
+          "bytes": 67027,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "b6cd9c635c4bb8291a01ad5c61168af9aa83bb7304c9a31494d5561c0c63cea7",
+          "wandb_manifest_digest": "JZerVBgcsstP2Ttb2hEukA==",
+          "bytes": 4571,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "c66531fd25079d883c790dcab016bd8a1fcfd58c62907797493dd9d8a7fc787d",
+          "wandb_manifest_digest": "ZeyjaQEiI8fOQJCM/LBICw==",
+          "bytes": 1371,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "99d1e8f8463c37c9aa8ad56cd1b4f135363dff29677573751f181f61b2a74e80",
+          "wandb_manifest_digest": "merLXT0kw8YX/hdKpqVh+Q==",
+          "bytes": 309,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "eff67c9374a3a8fb379eb1113de204ff4d4e6462306c388199dc0f4a8a6d05c7",
+          "wandb_manifest_digest": "PMBag+lUYYnD/7aj0kGwUw==",
+          "bytes": 261,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "d6aa8cac836729a5c044081196d1c43e5f92de66c8e9a847256647da96b7ba34",
+          "wandb_manifest_digest": "baWtewn2zXpfPyls3KaBdw==",
+          "bytes": 856,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+          "wandb_manifest_digest": "WOBJTFHTDrNJT3yRmJhruQ==",
+          "bytes": 3,
+          "matches": true
+        },
+        "method_audits.json": {
+          "sha256": "c8eda52b5bf7a014b06f825c36d786f5bf40b4c8cf3115687f477ac17cc47dc4",
+          "wandb_manifest_digest": "pGq/ACPX3h2UdH3nkh2KXw==",
+          "bytes": 1121,
+          "matches": true
+        },
+        "lr_audits.json": {
+          "sha256": "c06ff4dcd3a9c56a90815205adc29bc4e3e0e54f102e3fdca27d2d3b87ca21ce",
+          "wandb_manifest_digest": "73PaGW3SEOqb5P+2DNxTZw==",
+          "bytes": 27749,
+          "matches": true
+        },
+        "routing_audits.json": {
+          "sha256": "23aeac116c24d6f2e1d2e97505adbc5bcd98d7e54979217d36ebbd92b2cc0408",
+          "wandb_manifest_digest": "igCB2iuwwc8zPgLvjEgX3A==",
+          "bytes": 6342,
+          "matches": true
+        },
+        "sample_stream_audits.json": {
+          "sha256": "bac3ec3eda500a1a2d88ed60bd328ac25729c7f0796ec2f8b57e8868ef4216a6",
+          "wandb_manifest_digest": "rQeGhfamKH/DARO8QXV0NA==",
+          "bytes": 263,
+          "matches": true
+        },
+        "effective_args.json": {
+          "sha256": "61173db3ab5ab67851cf732736a0a78b711c10d80a67fa31103c3c54099e9cc9",
+          "wandb_manifest_digest": "1cgFgL7dsuJ6bi5c3gk/2A==",
+          "bytes": 2538,
+          "matches": true
+        },
+        "shared_data.json": {
+          "sha256": "f8daf1d582bd5e90e1de635748388fa598ecc174719b6a84519e35fd31401b68",
+          "wandb_manifest_digest": "rGKDdfUzSqdq5VnaHIHj2Q==",
+          "bytes": 6522,
+          "matches": true
+        },
+        "source_adaptations.json": {
+          "sha256": "77420239585de8916eed1f79171eddbfa2029cd458c7d952ef7af2fe24f9a050",
+          "wandb_manifest_digest": "U1k24X25r6gPPnSyxnX1Jg==",
+          "bytes": 411,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "8afda9bbc6859863811de0e86c4280403eab5ad4f8930905518137f24ff4c797",
+          "wandb_manifest_digest": "T6e0URXxJIdqOcsl2OY6ZA==",
+          "bytes": 6073,
+          "matches": true
+        },
+        "task1_first_gradients.npz": {
+          "sha256": "8f0a9b6547c9ec4a79e6e5fe01585444836c48b0507c4c8345550ac1fb1a6492",
+          "wandb_manifest_digest": "JD4SHA0GJgAB0A2jIDqEtA==",
+          "bytes": 309571,
+          "matches": true
+        },
+        "error_context.json": {
+          "sha256": "d527d96383f8ad2d633665927dc9490db6d90f31bc7b85440fd1e3107446b393",
+          "wandb_manifest_digest": "FmWJJsBwC2zHktOIUT6uyw==",
+          "bytes": 801,
+          "matches": true
+        }
+      }
+    }
+  ]
+}

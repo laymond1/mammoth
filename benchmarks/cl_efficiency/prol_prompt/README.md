@@ -1,6 +1,6 @@
 # PROL 공식 활성 코드의 Mammoth 이식
 
-Base 구현·독립 저자 코드와의 CPU 대조를 마쳤으며, 사용자가 후속 GPU 검증·조건부 효율성 측정을 승인했습니다. 승인한 범위는 [run_plan.json](run_plan.json), 이번 실행·검사 기록은 [RUN_VALIDATION.md](RUN_VALIDATION.md)에 기록합니다. 초기 CPU 검사 기록은 [CPU_VALIDATION.md](CPU_VALIDATION.md), 가중치 점검은 [cpu_weights.json](cpu_weights.json)에 보관합니다. CPU 검사는 실제 데이터 정확도나 효율성 측정 결과가 아닙니다.
+Base 구현·독립 저자 코드와의 CPU 대조를 마쳤으며, 승인한 GPU 단계에서 저자 첫 태스크를 실행했습니다. 정확도는 **99.3%**였지만 checkpoint probe의 출력/RNG 일치 검사에서 실패하여 **1/6회 시도 후 중단**했습니다. native 대조·효율성3회·FLOPs는 실행하지 않았습니다. [부분 결과](../prol_validation/RESULTS.md), [실행·원인 점검 기록](RUN_VALIDATION.md), [승인 범위](run_plan.json)를 보관합니다. 초기 CPU 검사 기록은 [CPU_VALIDATION.md](CPU_VALIDATION.md), 가중치 점검은 [cpu_weights.json](cpu_weights.json)에 보관합니다. CPU 검사는 실제 데이터 정확도나 효율성 측정 결과가 아닙니다.
 
 구현 기준은 [공식 저장소](https://github.com/anwarmaxsum/PROL)의 commit `bfff8418a4f603a24ae578f1e108bfac89af1e18`입니다. 전체 tracked 파일 22개의 SHA-256과 활성 경로를 [source_review.json](source_review.json)에 고정했습니다. 소스는 `/tmp/cl-prol-official-20261008`에 보관하며, 비교 도구는 파일·commit 변경을 거절합니다. 논문식 수정은 이번에 포함하지 않습니다.
 
