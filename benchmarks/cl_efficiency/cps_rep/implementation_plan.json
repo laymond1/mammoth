@@ -3,9 +3,9 @@
   "stage": "CPS-Prompt and REP-CODA implementation and CPU validation",
   "branch": "codex/cps-rep",
   "worktree": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl",
-  "approval_scope": "Implement CPS, then native paper-based REP-CODA and a separate frozen-CODA control; CPU validation only",
+  "approval_scope": "Implementation and CPU validation completed; next five-run Tiny GPU implementation verification authorized by user",
   "cpu_validation_authorized": true,
-  "gpu_experiments_authorized": false,
+  "gpu_experiments_authorized": true,
   "gpu_experiments_executed": false,
   "wandb_or_slack_sent_in_this_stage": false,
   "combined_comparison_launch_authorized": false,
@@ -385,5 +385,6 @@
   ],
   "scope_boundary": "Do not append these methods to or launch the held multi-method experiment batch in this implementation stage",
   "cpu_validation_complete": true,
-  "validation_report": "benchmarks/cl_efficiency/cps_rep/validation.json"
+  "validation_report": "benchmarks/cl_efficiency/cps_rep/validation.json",
+  "gpu_verification_plan": "benchmarks/cl_efficiency/cps_rep/gpu_verification_plan.json"
 }
