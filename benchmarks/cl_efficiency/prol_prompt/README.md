@@ -1,6 +1,6 @@
 # PROL 공식 활성 코드의 Mammoth 이식
 
-이번 단계의 **Base 구현·독립 저자 코드와의 CPU 대조·GPU 계획 준비**를 완료했습니다. GPU 또는 실제 CIFAR 학습은 실행하지 않았습니다. 로컬 CPU 검사 기록은 [CPU_VALIDATION.md](CPU_VALIDATION.md), 가중치 점검은 [cpu_weights.json](cpu_weights.json)에 기록합니다. CPU 검사는 실제 데이터 정확도나 효율성 측정 결과가 아닙니다.
+Base 구현·독립 저자 코드와의 CPU 대조를 마쳤으며, 사용자가 후속 GPU 검증·조건부 효율성 측정을 승인했습니다. 승인한 범위는 [run_plan.json](run_plan.json), 이번 실행·검사 기록은 [RUN_VALIDATION.md](RUN_VALIDATION.md)에 기록합니다. 초기 CPU 검사 기록은 [CPU_VALIDATION.md](CPU_VALIDATION.md), 가중치 점검은 [cpu_weights.json](cpu_weights.json)에 보관합니다. CPU 검사는 실제 데이터 정확도나 효율성 측정 결과가 아닙니다.
 
 구현 기준은 [공식 저장소](https://github.com/anwarmaxsum/PROL)의 commit `bfff8418a4f603a24ae578f1e108bfac89af1e18`입니다. 전체 tracked 파일 22개의 SHA-256과 활성 경로를 [source_review.json](source_review.json)에 고정했습니다. 소스는 `/tmp/cl-prol-official-20261008`에 보관하며, 비교 도구는 파일·commit 변경을 거절합니다. 논문식 수정은 이번에 포함하지 않습니다.
 
@@ -25,23 +25,23 @@ PROL은 별도 query ViT의 특징으로 경량 K/V prompt를 생성하고, clas
 
 [공식 main](https://github.com/anwarmaxsum/PROL/blob/bfff8418a4f603a24ae578f1e108bfac89af1e18/main_prol.py), [활성 학습 engine](https://github.com/anwarmaxsum/PROL/blob/bfff8418a4f603a24ae578f1e108bfac89af1e18/engine_prol.py), [classifier](https://github.com/anwarmaxsum/PROL/blob/bfff8418a4f603a24ae578f1e108bfac89af1e18/linears.py)에 근거합니다. 위 동작을 보존한 구현은 `official-active-path`이며 논문의 전체 수학적 정의나 발표 정확도 재현을 의미하지 않습니다.
 
-## 준비한 조건과 후속 결정
+## 승인한 실행 조건
 
-[validation_plan.json](validation_plan.json)과 [execution_plan.json](execution_plan.json)은 **미실행 제안**입니다. 준비 도구에는 실행 옵션이 없으며 credentials를 읽거나 W&B·Slack에 쓰지 않습니다.
+[validation_plan.json](validation_plan.json)과 [execution_plan.json](execution_plan.json)은 초기 CPU 준비 단계의 미실행 제안 기록입니다. 이번 승인 범위는 별도의 [run_plan.json](run_plan.json)에 고정합니다. 준비 도구에는 실행 옵션이 없으며 credentials를 읽거나 W&B·Slack에 쓰지 않습니다. 실제 worker·suite·publication은 명시적인 `--execute`로 실행합니다.
 
-| 항목 | 제안 |
+| 항목 | 승인 조건 |
 |---|---|
 | 데이터 | seq-cifar100-224/ease, 원래 class0–99, 10tasks×10classes, task별 train5000/test1000 |
 | 가중치 | 공통 로컬 AugReg ViT-B/16 IN21K→IN1K fine-tuned NPZ. 양쪽 encoder의 초기 canonical150 tensors hash 대조 |
 | Training | batch64, seed1993, workers4, FP32, CPUthreads2, 물리 GPU1 |
 | LR | source config 기본 nominal0.01 → initial effective0.0025. README의 nominal0.05→0.0125는 대안이며 추가 실험으로 준비하지 않음 |
 | Source/native 검증 | 각 첫2tasks×1epoch 1회. task1/seen2/old2/new2 accuracy, gradient·state·입력·LR·count·checkpoint 대조 |
-| 효율성 | 검증 통과 후 native 첫task×1epoch 3회. 별도 FLOPs1회. 총 GPU6회 제안 |
+| 효율성 | 구현 검증과 성능 정상성 점검 통과 후 native 첫task×1epoch 3회. 별도 FLOPs1회. 총 GPU 최대6회 |
 | Accuracy gate | native 감소≤1.5%p 통과, >1.5–3%p 점검, >3%p 실패. 비정상적으로 낮은 성능은 양쪽이 같아도 실패 처리 |
-| Absolute floor | 기존 Base pilot의 task1≥90%, task2 seen≥20% collapse guard를 제안으로 기록. PROL online1epoch에는 실측이 없어 GPU 단계 전에 확정 필요. task2 20%는 적정 성능 기준이 아님 |
+| Absolute floor | task1<90%면 해당 worker에서 즉시 중단. task2 seen<20%도 중단. 20%는 붕괴 방지선이며 적정 성능 기준이 아니므로 old/new 정확도·loss·LR 추세를 별도 점검하고 근거를 저장한 뒤 pilot을 진행 |
 | 저장·알림 | local + laymond1/cl-efficiency, 기존 Slack webhook. weights는 local에 두고 metric/config/원자료/검증 evidence만 업로드 |
 
-실험 승인 후에는 instrumented author/native worker·suite·report·publication을 만들고 CPU 검사한 다음 GPU를 실행합니다. 이번 CPU oracle를 독립 GPU 기준선 runner의 완성으로 표시하지 않습니다. 원형 검증도 pilot도 같은 1epoch recipe여서 별도 단축 검증을 반복할 필요가 없습니다.
+instrumented author/native worker·suite·report·publication을 CPU 검사한 뒤 GPU에서 검증합니다. `--through validation_native`로 첫 두 실행을 마친 후 입력·gradient·정수 기반 정확도를 비교하고, 정상성 검토 receipt를 저장해야 효율성 실행을 재개할 수 있습니다. 원형 검증과 pilot은 같은 1epoch recipe이며 별도 단축 검증을 반복하지 않습니다. 실패한 실행·디렉터리를 자동 재시도하거나 덮어쓰지 않으며 LR·seed도 자동 변경하지 않습니다. 중단 시 관측된 원자료를 부분 보고서로 저장·게시하고 효율성 평균은 만들지 않습니다.
 
 모든 worktree는 data `/mnt/sdab1/share/data`, cache `/mnt/sdab1/userHome/wslim/.cache`와 기존 torch/HF/CLIP 하위 경로를 공유합니다. 로컬 NPZ만 로드하며 가중치·데이터를 내려받지 않습니다. CLI의 `--nowand 1` 명령은 training core 점검용이며 최종 계측 worker가 online W&B와 Slack을 관리합니다. 명령만 실행하면 예정한 효율성 자료가 자동 생성된다는 의미가 아닙니다.
 

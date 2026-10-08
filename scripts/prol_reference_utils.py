@@ -229,3 +229,79 @@ def run_author_epoch(code, branches, batches, optimizer, args, task_id=0, *, cla
         device=next(branches['prompt'].parameters()).device, epoch=epoch, max_norm=args.clip_grad,
         optimizer=optimizer, set_training_mode=True, task_id=task_id, class_mask=class_mask,
         args=args, old_num_k=old_num_k)
+
+
+def state_digest(state):
+    """Deterministic tensor catalogue hash; excludes Python lifecycle objects."""
+    digest = hashlib.sha256()
+    for name, value in sorted(state.items()):
+        cpu = value.detach().cpu().contiguous()
+        digest.update(name.encode())
+        digest.update(str(tuple(cpu.shape)).encode())
+        digest.update(str(cpu.dtype).encode())
+        digest.update(cpu.numpy().tobytes())
+    return digest.hexdigest()
+
+
+def learned_name(branch, name):
+    """Include both heads and every initially trainable prompted tensor."""
+    if name.startswith('head.'):
+        return True
+    if branch != 'prompt':
+        return False
+    return (name.startswith(('e_prompt.', 'norm.', 'fc_norm.'))
+            or name.startswith('blocks.') and ('.norm1.' in name or '.norm2.' in name))
+
+
+def learned_state(branches):
+    import torch
+    return {f'{branch}.{name}': value.detach().cpu().clone()
+            for branch, module in branches.items() for name, value in module.state_dict().items()
+            if isinstance(value, torch.Tensor) and learned_name(branch, name)}
+
+
+def save_initial_state(branches, path, checkpoint_sha256, seed=1993):
+    import torch
+    path = Path(path)
+    if path.exists():
+        raise FileExistsError('PROL initialization already exists; no overwrite')
+    if branches['prompt'].e_prompt.lmax_list or len(branches['prompt'].head.heads) != 1:
+        raise ValueError('PROL initial catalogue must precede the first task')
+    state = learned_state(branches)
+    record = {'schema_version': 1, 'seed': seed, 'reference_commit': REFERENCE_COMMIT,
+              'checkpoint_sha256': checkpoint_sha256, 'state': state, 'learned_sha256': state_digest(state)}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(record, path)
+    return {key: record[key] for key in ('schema_version', 'seed', 'reference_commit', 'checkpoint_sha256', 'learned_sha256')}
+
+
+def load_initial_state(branches, path, checkpoint_sha256):
+    import torch
+    saved = torch.load(path, map_location='cpu', weights_only=True)
+    expected = learned_state(branches)
+    state = saved.get('state', {})
+    if (saved.get('schema_version') != 1 or saved.get('seed') != 1993
+            or saved.get('reference_commit') != REFERENCE_COMMIT or saved.get('checkpoint_sha256') != checkpoint_sha256
+            or set(state) != set(expected) or state_digest(state) != saved.get('learned_sha256')
+            or any(value.shape != expected[name].shape or value.dtype != expected[name].dtype
+                   or not bool(torch.isfinite(value).all()) for name, value in state.items())):
+        raise ValueError('PROL matched initialization differs from the complete pinned catalogue')
+    for branch, module in branches.items():
+        selected = {key[len(branch) + 1:]: value for key, value in state.items() if key.startswith(branch + '.')}
+        result = module.load_state_dict(selected, strict=False)
+        if result.unexpected_keys or any(branch + '.' + key in expected for key in result.missing_keys):
+            raise ValueError('PROL did not load every matched learned, norm or query-head tensor')
+    return saved['learned_sha256']
+
+
+class PairLoader:
+    """Adapt the standard Mammoth train triple to the source input/label pair."""
+    def __init__(self, loader, callback=None):
+        self.loader, self.callback = loader, callback
+    def __len__(self):
+        return len(self.loader)
+    def __iter__(self):
+        for batch in self.loader:
+            if self.callback is not None:
+                self.callback(batch[0], batch[1])
+            yield batch[0], batch[1]
