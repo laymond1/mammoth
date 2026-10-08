@@ -1,0 +1,22 @@
+default:
+  backbone: prol-vit
+  prol_vit_size: base
+  prol_num_tasks: 10
+  prol_prompt_length: 5
+  prol_prompt_layers: [0, 1, 2, 3, 4, 5, 6]
+  prol_top_k_l: 1
+  prol_clip_grad: 1.0
+  prol_intertask_coeff: 0.001
+  prol_pull_coeff: 1.0
+  prol_pull_coeff2: 1.0
+  prol_loss_threshold: 0.3
+  prol_norm_lr_ratio: 0.0005
+  prol_cos_tmax: 20
+  prol_cos_eta_min: 0.0005
+  optimizer: adam
+  lr: 0.01
+  optim_wd: 0.0
+  n_epochs: 1
+  batch_size: 64
+  lr_scheduler: null
+  enable_other_metrics: false

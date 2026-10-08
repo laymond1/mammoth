@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "method": "prol-prompt",
+  "training_authorized": false,
+  "experiment_executed": false,
+  "local_pins_checked": true,
+  "jobs": [
+    {
+      "name": "validation_author",
+      "side": "author",
+      "tasks": 2,
+      "n_epochs_per_task": 1,
+      "status": "proposed_not_executed",
+      "aggregate_eligible": false,
+      "profile_flops": false,
+      "native_training_core_command": null,
+      "runner_status": "independent_cpu_oracle_only_gpu_worker_pending"
+    },
+    {
+      "name": "validation_native",
+      "side": "native",
+      "tasks": 2,
+      "n_epochs_per_task": 1,
+      "status": "proposed_not_executed",
+      "aggregate_eligible": false,
+      "profile_flops": false,
+      "native_training_core_command": "uv run --no-sync --offline python main.py --model prol-prompt --model_config default --dataset seq-cifar100-224 --dataset_config ease --backbone prol-vit --prol_checkpoint /mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz --prol_vit_size base --batch_size 64 --num_workers 4 --seed 1993 --n_epochs 1 --lr 0.01 --stop_after 2 --permute_classes 0 --enable_other_metrics 0 --nowand 1 --non_verbose 1",
+      "runner_status": "Mammoth_core_available_instrumented_gpu_worker_pending"
+    },
+    {
+      "name": "measurement1",
+      "side": "native",
+      "tasks": 1,
+      "n_epochs_per_task": 1,
+      "status": "proposed_not_executed",
+      "aggregate_eligible": true,
+      "profile_flops": false,
+      "native_training_core_command": "uv run --no-sync --offline python main.py --model prol-prompt --model_config default --dataset seq-cifar100-224 --dataset_config ease --backbone prol-vit --prol_checkpoint /mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz --prol_vit_size base --batch_size 64 --num_workers 4 --seed 1993 --n_epochs 1 --lr 0.01 --stop_after 1 --permute_classes 0 --enable_other_metrics 0 --nowand 1 --non_verbose 1",
+      "runner_status": "Mammoth_core_available_instrumented_gpu_worker_pending"
+    },
+    {
+      "name": "measurement2",
+      "side": "native",
+      "tasks": 1,
+      "n_epochs_per_task": 1,
+      "status": "proposed_not_executed",
+      "aggregate_eligible": true,
+      "profile_flops": false,
+      "native_training_core_command": "uv run --no-sync --offline python main.py --model prol-prompt --model_config default --dataset seq-cifar100-224 --dataset_config ease --backbone prol-vit --prol_checkpoint /mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz --prol_vit_size base --batch_size 64 --num_workers 4 --seed 1993 --n_epochs 1 --lr 0.01 --stop_after 1 --permute_classes 0 --enable_other_metrics 0 --nowand 1 --non_verbose 1",
+      "runner_status": "Mammoth_core_available_instrumented_gpu_worker_pending"
+    },
+    {
+      "name": "measurement3",
+      "side": "native",
+      "tasks": 1,
+      "n_epochs_per_task": 1,
+      "status": "proposed_not_executed",
+      "aggregate_eligible": true,
+      "profile_flops": false,
+      "native_training_core_command": "uv run --no-sync --offline python main.py --model prol-prompt --model_config default --dataset seq-cifar100-224 --dataset_config ease --backbone prol-vit --prol_checkpoint /mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz --prol_vit_size base --batch_size 64 --num_workers 4 --seed 1993 --n_epochs 1 --lr 0.01 --stop_after 1 --permute_classes 0 --enable_other_metrics 0 --nowand 1 --non_verbose 1",
+      "runner_status": "Mammoth_core_available_instrumented_gpu_worker_pending"
+    },
+    {
+      "name": "flops",
+      "side": "native",
+      "tasks": 1,
+      "n_epochs_per_task": 1,
+      "status": "proposed_not_executed",
+      "aggregate_eligible": false,
+      "profile_flops": true,
+      "native_training_core_command": "uv run --no-sync --offline python main.py --model prol-prompt --model_config default --dataset seq-cifar100-224 --dataset_config ease --backbone prol-vit --prol_checkpoint /mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz --prol_vit_size base --batch_size 64 --num_workers 4 --seed 1993 --n_epochs 1 --lr 0.01 --stop_after 1 --permute_classes 0 --enable_other_metrics 0 --nowand 1 --non_verbose 1",
+      "runner_status": "Mammoth_core_available_instrumented_gpu_worker_pending"
+    }
+  ],
+  "environment": {
+    "gpu": "1",
+    "gpu_uuid": "GPU-1fb8c05f-24e7-75d1-5cf9-0f47df8e46ad",
+    "data_root": "/mnt/sdab1/share/data",
+    "cache_root": "/mnt/sdab1/userHome/wslim/.cache",
+    "torch_checkpoints": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints",
+    "huggingface_hub": "/mnt/sdab1/userHome/wslim/.cache/huggingface/hub",
+    "clip_cache": "/mnt/sdab1/userHome/wslim/.cache/clip"
+  },
+  "services": {
+    "wandb_entity": "laymond1",
+    "wandb_project": "cl-efficiency",
+    "slack": "existing SLACK_WEBHOOK_URL / private wandb.conf via cl_runtime",
+    "credentials_read": false,
+    "remote_writes_executed": false
+  },
+  "next_stage": "review recipe; authorize GPU stage; implement and CPU-test instrumented workers before running",
+  "cost_scope": {
+    "native_measurement_repeats": 3,
+    "separate_flops_runs": 1,
+    "tasks": 1,
+    "n_epochs": 1,
+    "pilot_recipe_same_as_validation": true,
+    "extra_short_validation_required": false,
+    "include": [
+      "model_and_dataset_setup",
+      "query_transformer_forward",
+      "prompted_transformer_forward_and_backward",
+      "trainable_norms",
+      "generalization_matrix",
+      "optimizer_reset_and_head_growth",
+      "source_eval_time_clamps",
+      "task_end_evaluation",
+      "instrumentation_and_checkpoint_probe_if_enabled"
+    ],
+    "whole_process_gpu_board_energy": true,
+    "cpu_ram_energy_measured": false,
+    "training_and_whole_process_walltime": true,
+    "process_tree_rss_and_cpu_time": true,
+    "cuda_peak_allocated_reserved": true,
+    "power_raw_csv": true,
+    "flops_partial_supported_operators_only": true,
+    "flops_mixed_into_timing_mean": false,
+    "repeats_are_accuracy_seeds": false,
+    "resource_measurements_executed": false
+  }
+}

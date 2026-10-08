@@ -1,8 +1,8 @@
 # CL 알고리즘 검토와 효율성 실험 준비
 
-2026-10-08 기준 AST 목록은 **77개 소스 엔트리**입니다. 기존 71개 목록에 HiDe-Prompt와 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA, RainbowPrompt가 추가됐으며, 당시의 `inventory.csv`·`manifest.json`·실행 계획은 71개 스냅샷으로 보존합니다. 소스 수를 import 성공이나 완료한 실험 수로 해석하지 않습니다.
+2026-10-08 기준 AST 목록은 **78개 소스 엔트리**입니다. 기존 71개 목록에 HiDe-Prompt와 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA, RainbowPrompt와 PROL이 추가됐으며, 당시의 `inventory.csv`·`manifest.json`·실행 계획은 71개 스냅샷으로 보존합니다. 소스 수를 import 성공이나 완료한 실험 수로 해석하지 않습니다.
 
-RainbowPrompt의 **공식 활성 경로 구현·독립 저자/native 검증·효율성 pilot**을 완료했습니다. 첫2태스크 20epochs/warm-up5와 첫태스크 1epoch/warm-up0 대조가 모두0.0%p 차이로 통과했고, native 최종2태스크 정확도는 전체97.3%·과거98.9%·신규95.7%입니다. 단축 pilot3회 정확도98.4%, 학습 구간 평균22.7150초·전체 관측34.4969초·CUDA peak12.0928GiB·GPU 보드2.7852Wh, 별도 지원 연산603.753TFLOPs를 기록했습니다. CPU172검사와 GPU8실행·W&B 원격 내용 검증·Slack 완료 알림을 마쳤습니다. [검증·효율성 결과](rainbow_validation/RESULTS.md), [측정 범위와 최종 W&B](rainbow_validation/README.md), [실행 도구 검증](rainbow_prompt/RUN_VALIDATION.md)을 참고합니다. 사용자 선택대로 learned gate는 미포함이며 논문 전체 재현을 주장하지 않습니다. 기존9방법 비교 확대는 보류하고 PROL을 다음 구현 대상으로 유지합니다.
+RainbowPrompt의 **공식 활성 경로 구현·독립 저자/native 검증·효율성 pilot**을 완료했습니다. 첫2태스크 20epochs/warm-up5와 첫태스크 1epoch/warm-up0 대조가 모두0.0%p 차이로 통과했고, native 최종2태스크 정확도는 전체97.3%·과거98.9%·신규95.7%입니다. 단축 pilot3회 정확도98.4%, 학습 구간 평균22.7150초·전체 관측34.4969초·CUDA peak12.0928GiB·GPU 보드2.7852Wh, 별도 지원 연산603.753TFLOPs를 기록했습니다. CPU172검사와 GPU8실행·W&B 원격 내용 검증·Slack 완료 알림을 마쳤습니다. [검증·효율성 결과](rainbow_validation/RESULTS.md), [측정 범위와 최종 W&B](rainbow_validation/README.md), [실행 도구 검증](rainbow_prompt/RUN_VALIDATION.md)을 참고합니다. 사용자 선택대로 learned gate는 미포함이며 논문 전체 재현을 주장하지 않습니다. 기존9방법 비교 확대는 보류합니다.
 
 이전 SD-LoRA 회복 단계는 완료됐습니다. LR 0.001·classifier LR 0.008 조건에서 첫 태스크 저자/native 99.0%와 13구조 검사를 확인하고 측정3회·부분 FLOPs1회로 [9방법 비교 보고서](sd_recovery/RESULTS.md)를 작성했습니다. 기존 10.0% 실패 기록과 당시 부분 보고서는 보존합니다.
 
@@ -28,9 +28,12 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 
 2026-10-08 사용자 결정: **EASE·HiDe-Prompt의 Small·Tiny 전체10태스크 실험은 후속 계획에서 제외합니다.** 크기 확장은 완료한 첫2태스크 구현 검증과 첫 태스크 효율성 pilot 범위에서 마무리합니다. 기존 Base 전체10태스크 결과와 Small·Tiny 단기 결과는 각 실행 범위로 구분해 해석합니다.
 
+PROL의 공식 활성 경로를 Mammoth에 이식하고 독립 저자 코드와의 CPU 대조 및 90개 검사를 완료했습니다. 공식 코드의 0이 되는 비대각 손실 항·학습 가능한 LayerNorm·배치 간 similarity assignment·평가 중 clamp·두 cosine scheduler를 보존합니다. [구현·활성 경로와 GPU6회 제안](prol_prompt/README.md), [CPU 검증 기록](prol_prompt/CPU_VALIDATION.md)을 참고합니다. **PROL GPU·실제 CIFAR 실험은 아직 실행하지 않았습니다.** 후속 GPU recipe 검토와 runner 준비가 남아 있으며 비교 확대는 계속 보류합니다.
+
 ## 검토 자료
 
-- [현재 77개 소스 엔트리의 특징과 장단점](algorithms.md)
+- [현재 78개 소스 엔트리의 특징과 장단점](algorithms.md)
+- [PROL 공식 활성 경로 구현·CPU 검증과 후속 계획](prol_prompt/README.md)
 - [RainbowPrompt 공식 활성 경로 구현·검증 조건](rainbow_prompt/README.md), [GPU 검증·효율성 결과](rainbow_validation/RESULTS.md)
 - [초기 후보 14개 검토와 현재 구현 현황: 방법 13개·예산 프로토콜 1개](recommendations.md)
 - [BudgetCL·aL-SAR의 추가 가능성 및 이식 범위](budgeted_cl_review.md)
@@ -50,7 +53,7 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 - [71개 모델의 데이터셋·인자·외부 요구사항 스냅샷](manifest.json)
 - [당시 생성한 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)
 
-현재 77개는 정적 추론 기준선 3개·Joint 기준선 2개·학습 방법과 변형 72개로 구성합니다. EASE 추가 당시의 71개 스냅샷은 학습 방법과 변형 66개를 포함합니다. CaSpeR·CSCCT·LiDER·STAR 변형도 독립 실행 엔트리로 기록합니다. STAR 정규화 변형과 STARPrompt는 서로 다른 방법입니다. 전체77개의 공통 실행·효율성 비교는 완료하지 않았습니다.
+현재 78개는 정적 추론 기준선 3개·Joint 기준선 2개·학습 방법과 변형 73개로 구성합니다. EASE 추가 당시의 71개 스냅샷은 학습 방법과 변형 66개를 포함합니다. CaSpeR·CSCCT·LiDER·STAR 변형도 독립 실행 엔트리로 기록합니다. STAR 정규화 변형과 STARPrompt는 서로 다른 방법입니다. 전체78개의 공통 실행·효율성 비교는 완료하지 않았습니다.
 
 ## EASE 준비·측정 당시 상태 (10월 7일)
 

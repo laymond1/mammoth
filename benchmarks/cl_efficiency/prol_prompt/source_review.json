@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "reference_repository": "https://github.com/anwarmaxsum/PROL",
+  "reference_commit": "bfff8418a4f603a24ae578f1e108bfac89af1e18",
+  "reference_source": "/tmp/cl-prol-official-20261008",
+  "source_mode": "official-active-path",
+  "paper_equivalent": false,
+  "reference_source_sha256": {
+    "LICENSE": "06dcddbb6908a0c6dd4a9e8ec822eea41d5a460a53089fecccc8a68049e99241",
+    "README.md": "ccd4e950f53a6f01a4e70d29e663bed24bb0b0c14cff0a061cd8f57362052f90",
+    "attention.py": "25a138c9fe27785301442f0ce35245ca785a810e8dbffdca1b08f2591840d8c7",
+    "configs/__pycache__/imr_prol.cpython-38.pyc": "acf894038550fad86d5b766fa623384d72a139ab767203d582fb4d93cc0801d2",
+    "configs/cifar100_prol.py": "cee2085030cade383957e4a4106964fdf99b7c9d1517c75785e22f8c40f48f7b",
+    "configs/cifar10_prol.py": "63d12cec0f1bd8e7831be071f0ce6de4002e88170f4c748b60a7456ddf184e7d",
+    "configs/cub_prol.py": "098e0e8c57858c4f663f071272abfc7f3dc802334c2d71317891264d3c071b90",
+    "configs/ima_prol.py": "876f67f2c36763ff0fc61c50b32f52d186ff7d8e98ac4eaec054abf8e8d18bd6",
+    "configs/imr_prol.py": "2e1ce58fd0bf61de95ff7bff7d541d0e33418ca95d39faa7129611a8e0961353",
+    "continual_datasets/__pycache__/continual_datasets.cpython-38.pyc": "086b433be287daa078a49673c2ece76ec292815632a743152601ec85c94efb68",
+    "continual_datasets/__pycache__/dataset_utils.cpython-38.pyc": "ba9adc84fdba8d4337157ee7f14ea7178df2ae7960339ed1ec0b66c83b96acdc",
+    "continual_datasets/continual_datasets.py": "ef894ecf7872d57fe8bb9e730da7a0ab053a23747f55c74c6992d57059cdecc8",
+    "continual_datasets/dataset_utils.py": "c7ae781c2417be27a3b84fcc9c946c4215711b92405c26722020bd1a8a86bf2d",
+    "datasets.py": "2cef9039a8e76de783fe9569f461e20bd78f49bc716a494b294a609b9deb4c8e",
+    "engine_prol.py": "bd7dea9709eb585db320a5844393fa98f863bf5b3a9e10157c9afec98c0c838c",
+    "linears.py": "8217380c2e4513b5cfbd9f7f7bbad38d6166d9f605561dfcf04d1d0796cb0ddb",
+    "main_prol.py": "928954560a9f4f378e47ed25a1eaf22ef0128f271e894c62000c4daf9013ca7b",
+    "modelsL.py": "c81870cbd6365137fbe451094f4ae9a75de4b0e589bdc4cb12953c25ac69a980",
+    "promptL.py": "7d7ef40a76f32abd8b2ed86c5eb75fe1790e125208ffada605f88f87e3be965d",
+    "requirements.txt": "ae8e1ebc5228c1316535a1a18ca7ba65aa3b3177335cd6a77af5b628d58d108f",
+    "utils.py": "fc291f42f4a418812694bac8e334ef57286d08e5491435457f36b89733997ed6",
+    "vision_transformerL.py": "e67f54d8bb729453ec79baa8759e05f2dde29c60d46fd363669c6e4038d14578"
+  },
+  "active_entrypoint": "main_prol.py cifar100_prol",
+  "active_training": "engine_prol.train_and_evaluate -> train_one_epoch_with_aux -> VisionTransformerL.forwardA1",
+  "inactive_features": [
+    "g_prompt",
+    "dualopt",
+    "classifier_alignment",
+    "non_prefix_prompt_tuning",
+    "paper_offdiagonal_correction"
+  ],
+  "adaptations": [
+    "Mammoth train and meta_* wrappers",
+    "shared seq-cifar100-224/ease preprocessing and original class order",
+    "common local AugReg IN21K -> IN1K fine-tuned encoder",
+    "batch64 in author and native",
+    "FP32 deterministic common runtime",
+    "portable CPU/device-aware head expansion in place of .cuda()",
+    "strict seen-class inference with no test-task label",
+    "validated checkpoint task metadata (not present in source state_dict)"
+  ],
+  "source_discrepancies": [
+    "NonD = GM - GM @ I gives zero, not off-diagonal GM",
+    "backbone block LayerNorm and final LayerNorm remain trainable",
+    "cross-batch advanced similarity assignment, not row-wise scatter",
+    "scaler/shifter indexing remains current-task-local during training",
+    "scaler/shifter clamp executes during evaluation as well",
+    "old prompt-key rows receive gradients in the orthogonality loss",
+    "both batch-triggered and task-epoch cosine schedulers operate on the same optimizer"
+  ],
+  "paper_corrections_authorized": false
+}
