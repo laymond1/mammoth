@@ -7,6 +7,7 @@ reviewed author classes and numerical epoch engine without importing the port.
 from __future__ import annotations
 
 import argparse
+from collections import OrderedDict
 import copy
 from contextlib import ExitStack, nullcontext
 import datetime
@@ -153,7 +154,9 @@ def canonical_hashes(branches):
 
 def error_context(error, recorder, audit):
     """Keep code locations, never exception messages, environment or locals."""
+    proof = audit.record.get('checkpoint_probe_audits', [])[-1:] if audit is not None else []
     return {'error_type': type(error).__name__, 'phase': recorder.active_phase,
+            'last_checkpoint_check_phase': proof[0].get('phase') if proof else None,
             'task': audit.task + 1 if audit is not None and audit.task >= 0 else None,
             'epoch': audit.epoch.get('epoch') if audit is not None else None,
             'frames': [{'file': frame.filename, 'line': frame.lineno, 'function': frame.name}
@@ -225,11 +228,11 @@ def compact_clone(branches, saved, native=None):
         for branch, module in branches.items():
             cloned = copy.copy(module)
             cloned._modules = dict(module._modules)
-            cloned._forward_hooks = dict()
-            cloned._forward_pre_hooks = dict()
+            cloned._forward_hooks = OrderedDict()
+            cloned._forward_pre_hooks = OrderedDict()
             if branch == 'prompt':
-                cloned.e_prompt = copy.deepcopy(module.e_prompt, {id(module.e_prompt._forward_hooks): {},
-                                                                  id(module.e_prompt._forward_pre_hooks): {}})
+                cloned.e_prompt = copy.deepcopy(module.e_prompt, {id(module.e_prompt._forward_hooks): OrderedDict(),
+                                                                  id(module.e_prompt._forward_pre_hooks): OrderedDict()})
                 # Hooks belong to live audits, not the deterministic probe.
                 cloned.e_prompt._forward_hooks.clear()
                 cloned.e_prompt._forward_pre_hooks.clear()
@@ -638,19 +641,38 @@ class ProlAudit:
             raise RuntimeError('PROL accuracy below the approved absolute floor; later jobs are blocked')
 
     def finalized(self):
+        proof = {'task': self.task + 1, 'checks': {}}
+        self.record.setdefault('checkpoint_probe_audits', []).append(proof)
+        def save_proof():
+            proof['phase'] = self.recorder.active_phase
+            write_json(self.recorder.output / 'checkpoint_probe_audits.json', self.record['checkpoint_probe_audits'])
         with self.recorder.phase('state_audit'):
             frozen = frozen_encoder_hashes(self.branches)
-            if (frozen != self.initial_frozen_encoder or reference.state_digest(self.initial_frozen) != self.initial_frozen_digest):
+            proof['checks'].update(frozen_encoder_unchanged=frozen == self.initial_frozen_encoder,
+                initial_frozen_parameters_unchanged=reference.state_digest(self.initial_frozen) == self.initial_frozen_digest)
+            save_proof()
+            if not all(proof['checks'].values()):
                 raise RuntimeError('PROL frozen query or nonnorm encoder tensors changed')
-            self.assert_old_unchanged()
+            try:
+                self.assert_old_unchanged()
+                proof['checks']['old_heads_and_frozen_generator_unchanged'] = True
+            except RuntimeError:
+                proof['checks']['old_heads_and_frozen_generator_unchanged'] = False
+                save_proof()
+                raise
             state = reference.learned_state(self.branches)
-            if any(not bool(self.torch.isfinite(value).all()) for value in state.values()):
+            proof['checks']['learned_state_finite'] = all(bool(self.torch.isfinite(value).all()) for value in state.values())
+            save_proof()
+            if not proof['checks']['learned_state_finite']:
                 raise FloatingPointError('Finalized PROL learned state is nonfinite')
             if self.native is not None and (int(self.native.net.active_task) != self.task
                     or not bool(self.native.net.task_finalized) or self.native.net.task_updates[:self.task + 1].tolist() != [79] * (self.task + 1)):
                 raise RuntimeError('Finalized PROL Mammoth lifecycle counters are invalid')
             lifecycle = {name: copy.deepcopy(getattr(self.prompt, name)) for name in
                 ('old_num_k', 'new_num_k', 'old_num_c', 'new_num_c', 'kmax_list', 'lmax_list')}
+            proof.update(frozen_encoder=frozen, learned_sha256=reference.state_digest(state))
+            proof['checks']['learned_state_finite'] = True
+            save_proof()
         with self.recorder.phase('checkpoint'):
             path = self.recorder.output / f'task{self.task + 1}_state.pt'
             payload = {'schema_version': 1, 'state': state, 'learned_sha256': reference.state_digest(state),
@@ -663,13 +685,24 @@ class ProlAudit:
                 payload['network_extra'] = self.native.net.get_extra_state()
             self.torch.save(payload, path)
             saved = self.torch.load(path, map_location='cpu', weights_only=True)
-            if reference.state_digest(saved['state']) != payload['learned_sha256'] or saved['protocol'] != payload['protocol']:
+            proof['checks']['disk_catalogue_matches'] = reference.state_digest(saved['state']) == payload['learned_sha256'] and saved['protocol'] == payload['protocol']
+            save_proof()
+            if not proof['checks']['disk_catalogue_matches']:
                 raise RuntimeError('PROL compact checkpoint changed on disk')
+            proof['checks']['disk_catalogue_matches'] = True
+            proof['checkpoint_sha256'] = shared.file_hash(path)
+            save_proof()
             rng = rng_digest(self.torch)
             clones, native_clone = compact_clone(self.branches, saved, self.native)
-            if reference.state_digest(reference.learned_state(clones)) != payload['learned_sha256']:
+            restored_digest = reference.state_digest(reference.learned_state(clones))
+            proof['checks']['clone_catalogue_matches'] = restored_digest == payload['learned_sha256']
+            proof.update(clone_learned_sha256=restored_digest, clone_rng_before_sha256=rng,
+                         clone_rng_after_sha256=rng_digest(self.torch))
+            proof['checks']['clone_rng_unchanged'] = proof['clone_rng_after_sha256'] == rng
+            save_proof()
+            if not proof['checks']['clone_catalogue_matches']:
                 raise RuntimeError('PROL checkpoint clone did not restore every learned norm, prompt or head')
-            if rng_digest(self.torch) != rng:
+            if not proof['checks']['clone_rng_unchanged']:
                 raise RuntimeError('PROL dynamic checkpoint restoration advanced experiment RNG')
         with self.recorder.phase('checkpoint_probe'), self.torch.no_grad():
             inputs, before = self.last_probe
@@ -680,7 +713,22 @@ class ProlAudit:
                 clones['prompt'].eval()
                 features = clones['query'](inputs)['pre_logits']
                 after = clones['prompt'].forwardA1(inputs, None, task_id=-1, cls_features=features, train=False)['logits'][:, :(self.task + 1) * 10]
-            if not self.torch.equal(before, after) or rng_digest(self.torch) != rng:
+            proof.update(checkpoint_probe_examples=len(inputs), input_sha256=reference.state_digest({'inputs': inputs}),
+                probe_rng_before_sha256=rng, probe_rng_after_sha256=rng_digest(self.torch),
+                before_logits_sha256=reference.state_digest({'logits': before}),
+                after_logits_sha256=reference.state_digest({'logits': after}),
+                max_absolute_logit_difference=float((before - after).abs().max()),
+                predictions_changed=int((before.argmax(1) != after.argmax(1)).sum()))
+            proof['checks'].update(probe_outputs_bitexact=self.torch.equal(before, after),
+                                   probe_rng_unchanged=proof['probe_rng_after_sha256'] == rng)
+            save_proof()
+            if not proof['checks']['probe_outputs_bitexact'] or not proof['checks']['probe_rng_unchanged']:
+                # Preserve each failure condition independently. Raw images are
+                # identified by a digest; small logits/predictions are uploadable.
+                self.np.savez_compressed(self.recorder.output / f'task{self.task + 1}_checkpoint_probe_failure.npz',
+                    before_logits=before.detach().cpu().numpy(), after_logits=after.detach().cpu().numpy(),
+                    before_predictions=before.argmax(1).detach().cpu().numpy(),
+                    after_predictions=after.argmax(1).detach().cpu().numpy())
                 raise RuntimeError('PROL checkpoint clone changed clamped outputs or RNG')
         del clones, native_clone
         self.record['state_audits'].append({'task': self.task + 1, 'frozen_encoder': frozen,
@@ -896,8 +944,10 @@ def upload_record(wandb, output, record):
     names = ('spec.json', 'result.json', 'metrics.json', 'artifact_metrics.json', 'effective_args.json', 'shared_data.json',
         'epoch_results.json', 'task_results.json', 'first_batch_audits.json', 'state_audits.json', 'method_audits.json',
         'routing_audits.json', 'sample_stream_audits.json', 'lr_audits.json', 'source_adaptations.json', 'telemetry.csv', 'phases.json', 'flops_ops.json')
+    names += ('checkpoint_probe_audits.json', 'error_context.json')
     names += tuple(f'task{task}_predictions.npz' for task in range(1, record['protocol']['tasks'] + 1))
     names += tuple(f'task{task}_first_gradients.npz' for task in range(1, record['protocol']['tasks'] + 1))
+    names += tuple(f'task{task}_checkpoint_probe_failure.npz' for task in range(1, record['protocol']['tasks'] + 1))
     for name in names:
         if (output / name).is_file():
             artifact.add_file(str(output / name))
