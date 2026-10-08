@@ -4,6 +4,8 @@
 
 2026-10-08 현재 EASE·HiDe-Prompt와 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA, RainbowPrompt와 PROL이 구현되어 소스 엔트리는 **78개**입니다. CL-LoRA는 초기 14개 검토 이후 사용자 결정으로 추가했습니다. 네 LoRA 방법은 고정한 공통 저자 저장소 변형의 Base 첫2태스크 구현 검증을 통과했고, RainbowPrompt는 learned gate가 없는 공식 활성 경로의 CPU172검사·첫2태스크 및 단축 GPU 검증·효율성 pilot을 완료했습니다. [현재 알고리즘 목록](algorithms.md), [LoRA 검증 결과](low_rank/RESULTS.md), [RainbowPrompt 결과](rainbow_validation/RESULTS.md), [방법별 실행 이력](README.md)을 참고합니다. **PROL은 공식 활성 코드 이식·CPU 대조 후 GPU checkpoint 검증에서 실패했고, 추론 진단의 반복 출력 변동을 확인한 뒤 사용자 결정으로 추가 작업을 보류하고 이번 비교에서 제외했습니다.** [PROL 실패·진단과 보류 결정](prol_diagnostic/README.md)을 보존합니다. 아래 후보 표는 당시 논문의 특징·이식 제안을 보존하며 실제 구현·측정 완료 범위는 최신 문서로 확인합니다.
 
+사용자 결정에 따라 **LW2G는 이번 구현 확장 범위에서 제외**하며 아래 후보 검토 내용은 보존합니다. 현재 구현 확장은 마무리하며, 후속 비교 방안을 검토 중이고 재측정·GPU 실행 범위는 아직 확정하지 않았습니다.
+
 우선 **EWC-LoRA, SD-LoRA, InfLoRA, PROL, RainbowPrompt, ProbPrompt, EASE, HiDe-Prompt**의 8개 방법을 함께 검토합니다. 기존 `second_order`의 LoRA와 Fisher 코드, L2P·DualPrompt·CODA-Prompt, RanPAC 구현을 참고할 수 있고, 정규화·고정 용량·prompt 생성·prompt 다양성·확장형 adapter·task routing이라는 서로 다른 설계 선택을 비교할 수 있습니다. BudgetCL과 aL-SAR은 아래의 계산 예산 비교 항목으로 추가했습니다.
 
 ## 우선 검토할 후보

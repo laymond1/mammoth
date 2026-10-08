@@ -30,6 +30,8 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 
 2026-10-08 사용자 결정: **PROL 추가 작업을 보류하고 이번 비교에서 제외합니다.** 공식 활성 경로 이식과 CPU 대조 후 저자 첫 태스크 GPU 검증에서 정확도99.3%를 관측했지만 checkpoint probe가 실패했습니다. 별도 추론 진단40회에서 RNG·파라미터·query features가 유지된 상태의 logits 변동을 확인했으며 구현 통과 판정은 보류합니다. [구현·활성 경로](prol_prompt/README.md), [GPU 실패 기록](prol_prompt/RUN_VALIDATION.md), [출력/RNG 진단과 W&B·Slack 검증](prol_diagnostic/README.md)을 보존합니다. 제안한 추가 연산 진단·결정론 교정·학습 재실행은 진행하지 않습니다. 소스 엔트리78개 집계에는 보존한 PROL 코드가 포함되며 검증된 비교 방법 수와 구별합니다.
 
+사용자 결정에 따라 **LW2G는 이번 구현 확장 범위에서 제외**하고 [후보 검토 기록](recommendations.md)은 보존합니다. 현재 구현 확장은 여기서 마무리하며, 후속 비교 방안을 검토 중이고 재측정·GPU 실행 범위는 아직 확정하지 않았습니다.
+
 ## 검토 자료
 
 - [현재 78개 소스 엔트리의 특징과 장단점](algorithms.md)
