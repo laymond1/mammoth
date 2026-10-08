@@ -1,0 +1,37 @@
+{
+  "status": "pass",
+  "focused_tests": {
+    "command": "UV_CACHE_DIR=/tmp/cl-peft-uv uv run --no-sync --offline pytest -q tests/test_peft_efficiency.py tests/test_low_rank_efficiency.py tests/test_ranpac_efficiency.py tests/test_low_rank_protocol.py tests/test_low_rank_execution.py tests/test_baseline_efficiency.py tests/test_baseline_audit.py tests/test_hide_efficiency.py tests/test_import.py::test_import_after_register tests/test_module_register.py::test_args_with_choices tests/test_module_register.py::test_register_backbone",
+    "passed": 421,
+    "duration_s": 7.99
+  },
+  "stdlib_dry_run": {
+    "status": "pass",
+    "ml_imports": false,
+    "source_pins": 54
+  },
+  "actual_parser_and_transforms": {
+    "lora_all_four": "passed",
+    "ranpac": "passed",
+    "gpu_training_started": false
+  },
+  "independent_review": "Worker lifecycle, publisher schema, input fingerprints, schedule uniqueness, cancellation and separate profiler aggregation reviewed before launch.",
+  "other_attempts": [
+    {
+      "command": "uv offline pytest same focused files plus full tests/test_import.py",
+      "passed": 420,
+      "failed": 1,
+      "failure": "tests/test_import.py::test_import_mammoth tried downloading default local CIFAR10; sandbox DNS restricted. No implementation assertion failed."
+    },
+    {
+      "command": "uv run --no-sync --offline ruff check selected files",
+      "status": "unavailable",
+      "reason": "ruff executable is not installed"
+    }
+  ],
+  "syntax_checks": {
+    "files": 8,
+    "status": "pass"
+  },
+  "diff_check": "passed"
+}
