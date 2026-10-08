@@ -1,6 +1,6 @@
-# RainbowPrompt의 공식 활성 경로 이식 준비
+# RainbowPrompt의 공식 활성 경로 구현·검증
 
-이번 단계의 승인 범위는 **Mammoth 구현·CPU 검증·GPU 실행 계획 준비**입니다. 실제 CIFAR 학습·GPU 실험·W&B 업로드·Slack 알림은 실행하지 않습니다. 향후 실행안은 별도 결정이 필요한 준비안입니다.
+Mammoth 구현과 CPU 검증을 완료했고, 다음 **GPU 8회 실행과 로컬·W&B 저장·Slack 알림**을 승인받았습니다. [run_plan.json](run_plan.json)이 현재 승인된 실행 조건입니다. 원형 저자/native 첫 2태스크 검증 2회, 단축 저자/native 첫 태스크 검증 2회가 각각 통과하면 native 효율성 측정 3회와 별도 FLOPs 측정 1회를 진행합니다. 실제 완료 여부와 결과는 실행 기록 및 검증 보고서로 확인합니다.
 
 구현 기준은 [공식 저장소](https://github.com/Kiseong0753/RainbowPrompt)의 commit `0b84d3e3738669fe4bb516ccc1c526a535576ad3`입니다. 로컬 원본은 `/tmp/cl-rainbow-official-20261008`에 있으며, [source_review.json](source_review.json)에 전체 tracked 파일의 SHA-256과 활성 경로를 기록합니다. 사용자가 선택한 **공식 코드의 활성 경로 보존**을 따릅니다. 논문의 학습 가능한 gate를 새로 연결하는 작업은 후속 범위입니다.
 
@@ -38,20 +38,18 @@ Frozen ViT의 CLS 특징을 얻는 별도 query forward와 prefix prompt를 삽�
 | LR | 공개 nominal LR 0.03을 batch/256으로 조정. 공통 batch 64에서는 실제 LR 0.0075. 공개 shell의 batch 32에서는 0.00375 |
 | 공통 실행 | batch 64, workers 4, seed 1993, FP32, Torch CPU threads 2, 물리 GPU 1 |
 | 데이터·캐시 | /mnt/sdab1/share/data, /mnt/sdab1/userHome/wslim/.cache 및 기존 torch/HF/CLIP 하위 경로 재사용 |
-| 향후 저장 | 로컬 기록과 laymond1/cl-efficiency의 W&B, 기존 Slack 설정 재사용. 이번 단계에 외부 쓰기 없음 |
+| 저장·알림 | 로컬 기록과 laymond1/cl-efficiency의 W&B, 기존 Slack webhook 설정 재사용 |
 
 공식 실제 train transform은 RRC224(scale 0.05–1.0, bilinear)·HFlip0.5·ToTensor이며 test는 Resize256 bicubic·CenterCrop224·ToTensor입니다. `pretrained_cfg`의 mean/std 메타데이터와 달리 loader는 Normalize를 적용하지 않습니다. 공통 EASE의 identity Normalize는 수치적으로 같지만 transform repr이 다르므로 향후 기준선에도 같은 공통 transform을 적용하여 실제 fingerprint를 확인합니다. [공식 데이터 전처리](https://github.com/Kiseong0753/RainbowPrompt/blob/0b84d3e3738669fe4bb516ccc1c526a535576ad3/datasets.py#L202)
 
 Base 10태스크 설정에서 저장 prompt buffer는 구조상 7,372,800bytes(7.031MiB)이며 base prompt pool도 같은 크기입니다. Q/K/V/dense와 FFN의 학습 파라미터는 12layer 합계 4,593,696개입니다. 공개 `main.py`의 일부 parameter 출력은 이 변환기들을 제외합니다. 실제 parameter/optimizer/query backbone 저장량을 함께 계측할 계획이며 위 숫자는 구조 계산으로 실제 메모리 측정값이 아닙니다.
 
-## 향후 GPU 결정 사항
+## 승인된 GPU 검증·측정
 
-[validation_plan.json](validation_plan.json)은 저자 활성 코드와 native의 첫 2태스크를 같은 조건으로 대조하는 준비안입니다. 전체 10태스크·Small/Tiny·추가 seed·계산 예산 비교는 이번 계획에서 제외합니다. 기존 기준인 하락≤1.5%p pass, 1.5–3.0%p review, 3.0%p 초과 fail 및 구조 검사를 유지합니다.
+[validation_plan.json](validation_plan.json)은 이전 준비안을 보존한 문서입니다. 현재 [run_plan.json](run_plan.json)에 따라 저자 활성 코드와 native의 첫 2태스크를 같은 조건으로 대조합니다. 전체 10태스크·Small/Tiny·추가 seed·계산 예산 비교는 이번 계획에서 제외합니다. 기존 기준인 하락≤1.5%p pass, 1.5–3.0%p review, 3.0%p 초과 fail 및 구조 검사를 유지합니다. 비정상적으로 낮은 정확도나 구조 실패는 상대 정확도 차이와 별도로 후속 실행을 중단합니다.
 
-**1epoch와 warm-up 5를 함께 두면 저장 RainbowPrompt가 갱신되지 않습니다.** 학습은 Unique 경로만 실행하지만 평가가 초기 zero buffer를 읽으므로, 이를 유효한 RainbowPrompt 효율성 pilot으로 준비하지 않습니다. GPU 실행 전 다음 중 하나를 선택해야 합니다.
+**1epoch와 warm-up 5를 함께 두면 저장 RainbowPrompt가 갱신되지 않습니다.** 효율성 pilot은 사용자가 선택한 **1epoch/warm-up 0**을 사용합니다. 원형 20epoch/warm-up 5 검증과 구분하며, 단축 조건의 독립 저자/native 대조가 통과해야 측정을 시작합니다.
 
-1. **1epoch/warm-up 0**: 공통 첫 태스크 1epoch 조건을 유지하는 별도 recipe입니다. 원형 20epoch 검증과 구분하고, 같은 단축 조건의 독립 저자/native 대조를 추가한 뒤 측정 3회·별도 FLOPs 1회를 준비합니다.
-2. **6epochs/warm-up 5**: 5epochs Unique 학습과 최소 1epoch Rainbow evolution 비용을 모두 포함합니다. 기존 1epoch pilot과 학습 예산 차이를 명시합니다.
-3. **효율성 pilot 보류**: 원형 첫 2태스크 검증까지만 먼저 진행하고 pilot 조건은 이후 선택합니다.
+모든 실행은 GPU 1에서 새 모델과 같은 초기 상태로 시작하며, 데이터 순서·전처리·phase RNG·평가 batch를 공유합니다. 실제 Mammoth trainer와 `meta_*` 경로를 사용하고, 독립 기준선은 고정한 저자 코드의 수치 학습 경로를 사용합니다. 현재 클래스 CE와 seen-class 평가 범위 적응은 결과에 기록합니다. 학습 중 저장 cache와 optimizer update의 순서, warm-up cache, 이전 태스크 상태, 배치 평균 routing, frozen backbone, checkpoint 복원을 검사합니다.
 
-[execution_plan.json](execution_plan.json)의 모든 GPU 실행안은 `training_authorized=false`입니다. 독립 저자 GPU runner는 후속 구현 대상이며 준비 완료한 실행 도구처럼 표시하지 않습니다. 검증 통과 이전에는 기존 9방법 보고서에 RainbowPrompt 결과를 추가하지 않습니다.
+[execution_plan.json](execution_plan.json)의 `training_authorized=false`는 이전 준비 단계의 기록으로 유지합니다. 이번 승인·실행 계획은 별도 [run_plan.json](run_plan.json)에 기록하며, [run_rainbow_suite.py](../../../scripts/run_rainbow_suite.py)가 두 검증을 통과한 경우에만 측정을 진행합니다. 효율성 평균에는 native 측정 3회만 포함하며 검증 실행과 FLOPs 실행은 제외합니다. GPU board energy는 전체 시스템 에너지가 아니며, FLOPs는 지원되는 연산만의 부분 추정입니다. 이번 단계의 결과는 별도 보고서로 저장하고 기존 9방법 비교 확대는 진행하지 않습니다.
