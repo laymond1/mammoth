@@ -131,6 +131,12 @@ def test_recovery_worker_routes_to_original_native_worker_with_scoped_overrides(
 
 
 def test_saved_author_evidence_is_pinned_including_source_and_predictions():
+    if not runner.AUTHOR_REFERENCE.is_file() or not runner.AUTHOR_DRIVER.is_file():
+        pytest.skip('Optional local author evidence is not present in this checkout')
+    evidence = json.loads(runner.AUTHOR_REFERENCE.read_text())
+    if any(not (Path(evidence['reference_source']) / relative).is_file()
+           for relative in evidence['reference_source_sha256']):
+        pytest.skip('Optional immutable author source checkout is not present')
     pins = runner.author_reference_pins()
     assert pins[str(runner.AUTHOR_REFERENCE)] == runner.AUTHOR_RESULT_SHA256
     assert pins[str(runner.AUTHOR_DRIVER)] == runner.AUTHOR_DRIVER_SHA256
@@ -178,14 +184,34 @@ def test_build_spec_preserves_old_acceptance_provenance_and_adds_separate_recove
 
 
 def record_fixture(tmp_path):
+    """Small synthetic evidence keeps core unit tests independent of raw runs."""
     import numpy as np
-    source = json.loads(runner.AUTHOR_REFERENCE.read_text())
-    with np.load(runner.AUTHOR_REFERENCE.parent / 'task1_predictions.npz', allow_pickle=False) as archive:
-        predictions = {key: archive[key] for key in archive.files}
+    labels = np.repeat(np.arange(10, dtype=np.int64), 100)
+    predicted = labels.copy()
+    predicted[:10] = 1
+    predictions = {'predictions': predicted, 'labels': labels, 'global_ids': np.arange(1000, dtype=np.int64)}
+    reference_path = tmp_path / 'reference.json'
+    np.savez_compressed(tmp_path / 'task1_predictions.npz', **predictions)
+    fingerprints = {}
+    for split, samples, digest in [('task1_train', 5000, 'd'), ('task1_test', 1000, 'e')]:
+        fingerprints[split] = {'n_samples': samples,
+            'class_counts': {str(label): samples // 10 for label in range(10)},
+            'samples_ordered_sha256': digest * 64, 'samples_unordered_sha256': digest * 64,
+            'global_ids_ordered_sha256': digest * 64, 'transform_repr_sha256': 'f' * 64}
+    source = {'initial_state_sha256': 'a' * 64, 'initial_learned_sha256': 'b' * 64,
+        'counts': {'observe_calls': 79, 'optimizer_updates': 79, 'task_begin_extra_samples': 0, 'task_end_extra_samples': 0},
+        'epoch_results': [{'task': 1, 'epoch': 1, 'steps': 79, 'samples': 5000, 'loss_mean': .63}],
+        'task_results': [{'task': 1, 'seen_correct': 990, 'seen_samples': 1000, 'old_correct': 0,
+                         'old_samples': 0, 'new_correct': 990, 'new_samples': 1000}],
+        'first_batch_audits': [{'task': 1, 'epoch': 1, 'seed': 2993, 'samples': 64, 'optimizer_update_index': 1,
+            'input_sha256': 'a' * 64, 'labels_sha256': 'b' * 64, 'gradient_sha256': 'c' * 64}],
+        'accuracy': {'mean_accuracy_pct': 99.}, 'common_reference_data_snapshots': deepcopy(fingerprints),
+        'common_transform_snapshots': deepcopy(fingerprints), 'data_snapshots': deepcopy(fingerprints)}
+    reference_path.write_text(json.dumps(source))
     path = tmp_path / 'predictions.npz'
     np.savez_compressed(path, **predictions)
     record = spec()
-    record.update(status='completed', computation_status='completed', wandb_logging_status='uploaded',
+    record.update(author_reference=str(reference_path), status='completed', computation_status='completed', wandb_logging_status='uploaded',
         precision=runner.base.PRECISION, structural_checks={key: True for key in runner.base.REQUIRED_CHECKS},
         initial_state_sha256=source['initial_state_sha256'], initial_learned_sha256=source['initial_learned_sha256'],
         initial_canonical_pretrained_sha256=runner.base.CANONICAL_PRETRAINED_SHA256,
