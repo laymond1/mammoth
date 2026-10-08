@@ -1,0 +1,20 @@
+default:
+  dataset_config: unified
+  rep_vit_size: tiny
+  optimizer: adam
+  lr: 0.001
+  optim_wd: 0.0
+  lr_scheduler: null
+  n_epochs: 20
+  batch_size: 16
+  pool_size: 100
+  prompt_len: 8
+  rep_swift: 1
+  rep_atom: 1
+  rep_ald: 1
+  rep_merge_max: 16
+  rep_ald_minimum: 0.5
+  rep_ald_gamma: 0.001
+  rep_ald_alpha: 0.9
+seq-cifar100-224:
+  dataset_config: unified

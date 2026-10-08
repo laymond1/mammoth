@@ -1,0 +1,45 @@
+{
+  "implementation_basis": "Native reconstruction from REP arXiv v6, applied to the existing CODA host",
+  "paper": "https://arxiv.org/html/2406.04772v6",
+  "public_repository": "https://github.com/omnia-postech/REP",
+  "reviewed_commit": "753f022a62655a7712456a25a88d1967e783af6a",
+  "bundled_upstream_executable_code": false,
+  "upstream_license_observation": "REP repository code is CC BY-NC4.0; this native paper reconstruction does not relabel or bundle that code as MIT",
+  "independent_author_training_reference_available": false,
+  "paper_accuracy_reproduced": false,
+  "host_contract": {
+    "pool": 100,
+    "prefix_length": 8,
+    "prefix_layers": [0, 1, 2, 3, 4],
+    "tasks": 10,
+    "query": "Frozen Tiny with the same pinned IN21K-to-IN1K AugReg family",
+    "backbone": "Frozen canonical150 Tiny/Small/Base encoder",
+    "optimizer_scheduler": "Existing CODA Adam and task-wise cosine; common20-epoch recipe, not paper1875 iterations",
+    "evaluation": "All blocks execute, merging remains deterministic, query/projection remain enabled"
+  },
+  "explicit_reconstruction_choices": [
+    "Gaussian fixed query projection192->D, divided by sqrt192; registered persistent buffer initialized with seed+1",
+    "Progressive local merge maximum16 is a configurable engineering default; the missing author runner does not establish r_max",
+    "ALD minimum=.5 and gamma=.001 follow public component defaults; alpha=.9 follows paper",
+    "Tiny spatial threshold8 and Base12 follow the paper; Small10 is an explicit adaptation",
+    "ALD uses the local planned merge count capped by currently available image tokens, then skips the whole block before execution",
+    "Use >= at the spatial threshold as Eq6; Algorithm2 prints >",
+    "First optimizer update executes every block, following full-keep initialization text; this is an explicit exception to Eq5 at t=0",
+    "Time is absolute optimizer-update count within the task, advanced once by observe and reset at a new task; gamma is not silently rescaled across batch sizes",
+    "AToM excludes CLS from matching and CODA prefix K/V are never in the image-token sequence",
+    "Weighted token masses become additive log attention biases; prefix keys have mass1",
+    "Native SDPA attention returns image-only mean-key metrics for merging",
+    "Checkpoint includes query weights, fixed projection, task/update counters and separate CPU ALD RNG state",
+    "No automatic sweep, auxiliary teacher, replay buffer, GPU run or inferred energy savings"
+  ],
+  "source_issues_addressed": [
+    "Replace hardcoded1024 projection width with the host encoder dimension",
+    "Persist projection instead of a lazy plain Tensor",
+    "Advance ALD timestep once per optimizer update, rather than per block or with a probability as the timestep",
+    "Explicitly activate progressive merging without an unavailable runner",
+    "Keep prefix keys separate from image tokens and align metrics/masses correctly",
+    "Use explicit native classes rather than source isinstance patching",
+    "Avoid source per-forward CUDA event/synchronize instrumentation"
+  ],
+  "accuracy_gate": "CPU structural tests and paired host controls; the1.5/3pp independent-author accuracy gate remains pending a complete independent reference"
+}
