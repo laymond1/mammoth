@@ -1,0 +1,126 @@
+{
+  "review_date": "2026-10-08",
+  "status": "feasibility_review_only",
+  "implementation_authorized_by_this_report": false,
+  "training_executed": false,
+  "existing_11_method_review_plan": "Preserved; awaiting final confirmation and new implementation scope",
+  "methods": [
+    {
+      "paper": "Smart Replay: Adaptive Scheduling of Memory Rehearsal for Computational Resource-Aware Incremental Learning",
+      "venue": "CVPR 2026",
+      "paper_url": "https://openaccess.thecvf.com/content/CVPR2026/papers/Chen_Smart_Replay_Adaptive_Scheduling_of_Memory_Rehearsal_for_Computational_Resource-Aware_CVPR_2026_paper.pdf",
+      "official_page": "https://openaccess.thecvf.com/content/CVPR2026/html/Chen_Smart_Replay_Adaptive_Scheduling_of_Memory_Rehearsal_for_Computational_Resource-Aware_CVPR_2026_paper.html",
+      "official_repository": null,
+      "repository_status": "Not found in reviewed official page/paper, exact-title web searches and public GitHub repository searches; absence of a public repo is not proven",
+      "kind": "Adaptive replay-ratio learning method and CRIL setting",
+      "proposed_native_entry": "smart-replay, initially ER with adaptive total-batch composition",
+      "feasibility": "Paper-based implementation possible; official-code port and matched author accuracy gate unavailable until source is identified",
+      "paper_settings": {
+        "cifar100_tasks": 5,
+        "cifar100_backbone": "ResNet18 at32x32",
+        "total_batch_size": 200,
+        "base_epochs": 20,
+        "interval_z": 50,
+        "gamma": 1,
+        "limited_memory": "Random10percent of every prior task, growing across tasks",
+        "unlimited_memory": "All prior-task samples",
+        "gradient_statistics": "Top-layer parameters only",
+        "compute_definition": "Average cost q times processed-sample visits; budget growth theta"
+      },
+      "port_requirements": [
+        "Separate memory/new-sample head gradient statistics, moving window and closed-form lambda update",
+        "Explicit clipping, integer sample-count rounding, empty-memory/zero-gradient policies and saved schedule state",
+        "Treat total mixed batch size separately from current+replay batch sizes in existing ER",
+        "Separate growing per-task memory from fixed500 variant",
+        "Calibrate scheduler overhead and distinguish modelled sample cost from actual FLOPs/time/energy"
+      ],
+      "difficulty_estimate": "Medium to high, depending on official-source availability and gradient collection"
+    },
+    {
+      "paper": "Budgeted Online Continual Learning by Adaptive Layer Freezing and Frequency-based Sampling",
+      "venue": "ICLR 2025",
+      "paper_url": "https://arxiv.org/abs/2410.15143",
+      "official_repository": "https://github.com/snumprlab/budgeted-cl",
+      "verified_commit": "fb4d79cd928d5f00b013d3a2c525a5a1e374b337",
+      "kind": "aL-SAR: adaptive prefix freezing and frequency/similarity-aware memory retrieval",
+      "proposed_native_entry": "alsar plus standalone aL/SAR validation variants",
+      "feasibility": "ResNet native port possible; full ViT Tiny/Small support is a separate adaptation",
+      "static_findings": [
+        "Active CIL source path main_new.py->method_manager_new.py->ours_new.Ours",
+        "ViT skips similarity-aware retrieval and gradient selection is CNN/ResNet-specific",
+        "Token Linear per-example gradients and Tiny/Small block maps need adaptation",
+        "Paper and active code defaults differ",
+        "Freeze flags set after forward: actual kernel savings must be measured",
+        "Unfreeze-all would undo pre-existing PEFT trainability masks",
+        "Duplicate per-example gradient calls add potential statistics cost"
+      ],
+      "budget_definition": "Learning FLOPs plus additional persistent storage bytes, not buffer image count or GPU peak alone",
+      "license_observation": "README states GPL; top-level full license/version not identified; vendored counter MIT",
+      "difficulty_estimate": "ResNet medium-high; complete ViT high"
+    },
+    {
+      "paper": "Computationally Budgeted Continual Learning: What Does Matter?",
+      "venue": "CVPR 2023",
+      "paper_url": "https://arxiv.org/abs/2303.11165",
+      "official_repository": "https://github.com/drimpossible/BudgetCL",
+      "verified_commit": "7b5057feeb25fb58b3d507f2a878c134a698d678",
+      "kind": "Compute-limited chunk/timestep evaluation protocol and uniform-history CE baseline",
+      "proposed_native_entry": "budgetcl-uniform plus independent budget protocol",
+      "feasibility": "Possible with revealed-history manifest, sampler and per-timestep budget controller",
+      "paper_settings": {
+        "backbone": "ResNet50",
+        "datasets": [
+          "ImageNet2K",
+          "Continual Google Landmarks V2"
+        ],
+        "memory": "All revealed history",
+        "cost_definition": "Iteration and additional-forward relative cost approximation"
+      },
+      "static_findings": [
+        "Distillation CLI lowercase options differ from uppercase loss dispatch",
+        "ImageNet2K sampling outputs not used to build actual loader",
+        "Post-step i>total_steps can permit C+2 updates",
+        "CGLM time-incremental constructor conflicts with later loader checks"
+      ],
+      "license_observation": "GPL-3.0",
+      "difficulty_estimate": "Medium for protocol/uniform baseline; additional source variants require separate fixes and validation"
+    },
+    {
+      "paper": "Real-Time Evaluation in Online Continual Learning: A New Hope",
+      "venue": "CVPR 2023",
+      "paper_url": "https://openaccess.thecvf.com/content/CVPR2023/papers/Ghunaim_Real-Time_Evaluation_in_Online_Continual_Learning_A_New_Hope_CVPR_2023_paper.pdf",
+      "official_repository": "https://github.com/Yasir-Ghunaim/RealtimeOCL",
+      "verified_commit": "0bc8bb434a2db675a5083881ee6e6ae3638e6669",
+      "kind": "Online real-time evaluation protocol with FIFO-window ER and compute-equivalent ER variants",
+      "proposed_native_entry": "realtime-er baseline plus stream/test-before-train/delay evaluator",
+      "feasibility": "Possible as separate online runner, initially online-compatible SGD/ER variants",
+      "static_findings": [
+        "Delay is prescribed relative-cost skip scheduling, not live wall-clock deadline control",
+        "Predict every incoming batch before training; skipped updates use an older frozen model snapshot",
+        "Replay samples drawn with replacement from last eligible sample-index window; skipped samples excluded",
+        "ER++ denotes extra-update ER, not DER++",
+        "Stream sample registration must occur once even if multiple optimizer updates occur",
+        "Prediction/snapshot/loader overhead is separate from delay training-FLOPs model"
+      ],
+      "online_compatibility": "Existing task-wide begin-task feature/SVD passes and task-end routing/prototype requirements need audits; n_epochs=1 alone does not make all selected PEFT methods faithful online methods",
+      "license_observation": "MIT",
+      "difficulty_estimate": "Medium-high for accurate streaming and delayed evaluation semantics"
+    }
+  ],
+  "shared_infrastructure": [
+    "Explicit chunk vs sample arrival and visible-original-ID scope",
+    "Budget ledger for actual learning/teacher/statistics/selection/internal updates and budget-safe stopping",
+    "Persistent bytes with deduplicated storage, separate from peak GPU/CPU memory",
+    "Original-ID and augmentation RNG streams",
+    "Checkpoint for budget, sampling, frequency, freezing and delay state",
+    "Reuse existing local/WandB/Slack outputs after implementation approval"
+  ],
+  "comparison_tracks": [
+    "Existing multi-epoch task efficiency track, preserved",
+    "Separate chunk-budget track for BudgetCL/CRIL",
+    "Separate online budget and real-time track for aL-SAR/RealtimeOCL"
+  ],
+  "recommendation": "Prepare shared resource/arrival infrastructure and protocol baselines; prioritize Smart Replay+ER after source availability decision; port aL-SAR ResNet before treating complete ViT as reproduced",
+  "new_gpu_jobs": 0,
+  "external_notifications_sent": 0
+}

@@ -256,10 +256,17 @@ def checkpoint_filter_fn(state_dict, model, adapt_layer_scale=False):
     return out_dict
 
 
-def vit_base_patch16_224_dualprompt(pretrained=False, pretrained_checkpoint=None, **kwargs):
+DUALPROMPT_VIT_SIZES = {'base': (768, 12), 'small': (384, 6), 'tiny': (192, 3)}
+
+
+def vit_base_patch16_224_dualprompt(pretrained=False, pretrained_checkpoint=None, vit_size='base', **kwargs):
     """ ViT-Base (ViT-B/16) from original paper (https://arxiv.org/abs/2010.11929).
     ImageNet-1k weights fine-tuned from in21k @ 224x224, source https://github.com/google-research/vision_transformer.
     """
+    if vit_size not in DUALPROMPT_VIT_SIZES:
+        raise ValueError('DualPrompt ViT size must be base, small or tiny')
+    if vit_size != 'base' and pretrained and not pretrained_checkpoint:
+        raise ValueError('Small/Tiny DualPrompt requires explicit local NPZ loading')
     checkpoint = None
     if pretrained_checkpoint:
         checkpoint = Path(pretrained_checkpoint).expanduser().resolve()
@@ -267,8 +274,10 @@ def vit_base_patch16_224_dualprompt(pretrained=False, pretrained_checkpoint=None
             raise FileNotFoundError(f'DualPrompt checkpoint does not exist: {checkpoint}')
         if checkpoint.suffix != '.npz':
             raise ValueError('DualPrompt pretrained_checkpoint must be a local ViT NPZ file')
-    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
-    model = create_vision_transformer('vit_base_patch16_224_in21k_fn_in1k_old', base_class=VisionTransformer, filter_fn=checkpoint_filter_fn,
+    width, heads = DUALPROMPT_VIT_SIZES[vit_size]
+    model_kwargs = dict(patch_size=16, embed_dim=width, depth=12, num_heads=heads, **kwargs)
+    variant = 'vit_base_patch16_224_in21k_fn_in1k_old' if vit_size == 'base' else f'vit_{vit_size}_patch16_224.augreg_in21k_ft_in1k'
+    model = create_vision_transformer(variant, base_class=VisionTransformer, filter_fn=checkpoint_filter_fn,
                                       pretrained=pretrained if checkpoint is None else False, **model_kwargs)
     if checkpoint is not None:
         # Prefix prompts augment attention K/V, so the image position table stays

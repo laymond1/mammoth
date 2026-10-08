@@ -17,6 +17,10 @@ class RanPACNet(MammothBackbone):
 
         self.fc = None
         self.device = backbone.device
+        dimension = getattr(backbone, 'embed_dim', 768)
+        heads = getattr(backbone, 'num_heads', 12)
+        if (dimension, heads) not in ((192, 3), (384, 6), (768, 12)):
+            raise ValueError('RanPAC requires Tiny, Small or Base ViT/16 geometry')
 
         tuning_config = Namespace(ffn_adapt=True,
                                   ffn_option="parallel",
@@ -24,12 +28,12 @@ class RanPACNet(MammothBackbone):
                                   ffn_adapter_init_option="lora",
                                   ffn_adapter_scalar="0.1",
                                   ffn_num=64,
-                                  d_model=768,
+                                  d_model=dimension,
                                   vpt_on=False,
                                   vpt_num=0,
                                   )
 
-        self.convnet = VisionTransformer(patch_size=16, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, qkv_bias=True,
+        self.convnet = VisionTransformer(patch_size=16, embed_dim=dimension, depth=12, num_heads=heads, mlp_ratio=4, qkv_bias=True,
                                          norm_layer=partial(nn.LayerNorm, eps=1e-6), num_classes=0, global_pool=False, drop_path_rate=0.0, tuning_config=tuning_config)
 
         backbone.head = nn.Identity()
@@ -38,17 +42,21 @@ class RanPACNet(MammothBackbone):
         for key in list(state_dict.keys()):
             if 'qkv.weight' in key:
                 qkv_weight = state_dict.pop(key)
-                q_weight = qkv_weight[:768]
-                k_weight = qkv_weight[768:768 * 2]
-                v_weight = qkv_weight[768 * 2:]
+                if qkv_weight.shape[0] != 3 * dimension:
+                    raise ValueError('RanPAC QKV weight does not match the encoder dimension')
+                q_weight = qkv_weight[:dimension]
+                k_weight = qkv_weight[dimension:dimension * 2]
+                v_weight = qkv_weight[dimension * 2:]
                 state_dict[key.replace('qkv.weight', 'q_proj.weight')] = q_weight
                 state_dict[key.replace('qkv.weight', 'k_proj.weight')] = k_weight
                 state_dict[key.replace('qkv.weight', 'v_proj.weight')] = v_weight
             elif 'qkv.bias' in key:
                 qkv_bias = state_dict.pop(key)
-                q_bias = qkv_bias[:768]
-                k_bias = qkv_bias[768:768 * 2]
-                v_bias = qkv_bias[768 * 2:]
+                if qkv_bias.shape[0] != 3 * dimension:
+                    raise ValueError('RanPAC QKV bias does not match the encoder dimension')
+                q_bias = qkv_bias[:dimension]
+                k_bias = qkv_bias[dimension:dimension * 2]
+                v_bias = qkv_bias[dimension * 2:]
                 state_dict[key.replace('qkv.bias', 'q_proj.bias')] = q_bias
                 state_dict[key.replace('qkv.bias', 'k_proj.bias')] = k_bias
                 state_dict[key.replace('qkv.bias', 'v_proj.bias')] = v_bias
@@ -70,6 +78,10 @@ class RanPACNet(MammothBackbone):
                 p.requires_grad = False
 
         self.convnet.eval()
+        self.convnet.vit_size = {192: 'tiny', 384: 'small', 768: 'base'}[dimension]
+        for name in ('pretrained_checkpoint', 'pretrained_sha256', 'canonical_pretrained_sha256', 'pretrained_model'):
+            if hasattr(backbone, name):
+                setattr(self.convnet, name, getattr(backbone, name))
 
     def _apply(self, fn, recurse=True):
         result = super()._apply(fn, recurse=recurse)

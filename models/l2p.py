@@ -2,8 +2,8 @@
 L2P: Learning to Prompt for Continual Learning
 
 Note:
-    L2P USES A CUSTOM BACKBONE: `vit_base_patch16_224`.
-    The backbone is a ViT-B/16 pretrained on Imagenet 21k and finetuned on ImageNet 1k.
+    L2P uses internal ViTs. Base is the default; Tiny/Small require a pinned local NPZ.
+    The shared checkpoint family is pretrained on ImageNet 21k and finetuned on ImageNet 1k.
 """
 
 import logging
@@ -50,7 +50,9 @@ class L2P(ContinualModel):
 
         parser.add_argument('--use_original_ckpt', type=binary_to_boolean_type, default=0, help='Use original checkpoint from `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz`')
         parser.add_argument('--pretrained_checkpoint', type=str, default=None,
-                            help='Local ViT-B/16 NPZ checkpoint for both query and prompt backbones; disables pretrained downloads.')
+                            help='Local ViT NPZ checkpoint for both query and prompt backbones; disables pretrained downloads.')
+        parser.add_argument('--l2p_vit_size', choices=['base', 'small', 'tiny'], default='base',
+                            help='Size of both internal ViTs; Small/Tiny require a local pretrained_checkpoint.')
         return parser
 
     def __init__(self, backbone, loss, args, transform, dataset=None):
@@ -64,7 +66,8 @@ class L2P(ContinualModel):
         del backbone
         logging.warning("-" * 20)
         if getattr(args, 'pretrained_checkpoint', None):
-            logging.warning("L2P uses a local ViT-B/16 checkpoint for both backbones: %s", args.pretrained_checkpoint)
+            logging.warning("L2P uses a local ViT-%s/16 checkpoint for both backbones: %s",
+                            getattr(args, 'l2p_vit_size', 'base'), args.pretrained_checkpoint)
         else:
             logging.warning("L2P USES A CUSTOM BACKBONE: `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz` (vit_base_patch16_224_in21k_fn_in1k_old).")
             logging.warning("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")

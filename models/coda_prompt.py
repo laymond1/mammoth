@@ -2,8 +2,8 @@
 CODA-Prompt: COntinual Decomposed Attention-based Prompting
 
 Note:
-    CODA-Prompt USES A CUSTOM BACKBONE: `vit_base_patch16_224`.
-    The backbone is a ViT-B/16 pretrained on Imagenet 21k and finetuned on ImageNet 1k.
+    CODA-Prompt uses an internal ViT-B/16 by default, with optional Small/Tiny
+    geometry and an explicit, pinned local AugReg IN21K-to-IN1K checkpoint.
 """
 
 import logging
@@ -28,6 +28,10 @@ class CodaPrompt(ContinualModel):
         parser.add_argument('--pool_size', type=int, default=100, help='pool size')
         parser.add_argument('--prompt_len', type=int, default=8, help='prompt length')
         parser.add_argument('--ortho_mu', type=float, default=0, help='weight of ortho penalty')
+        parser.add_argument('--coda_vit_size', choices=('tiny', 'small', 'base'), default='base',
+                            help='Size of the internal ViT/16 encoder; legacy default is Base')
+        parser.add_argument('--coda_checkpoint', type=str, default=None,
+                            help='Pinned local AugReg IN21K-to-IN1K NPZ for the selected encoder size')
         parser.add_argument('--virtual_bs_iterations', '--virtual_bs_n', dest='virtual_bs_iterations',
                             type=int, default=1, help="virtual batch size iterations")
         return parser
@@ -35,16 +39,19 @@ class CodaPrompt(ContinualModel):
     def __init__(self, backbone, loss, args, transform, dataset=None):
         del backbone
         logging.info("-" * 20)
-        logging.info("CODA-Prompt USES A CUSTOM BACKBONE: `vit_base_patch16_224.augreg_in21k_ft_in1k`.")
+        vit_size = getattr(args, 'coda_vit_size', 'base')
+        logging.info("CODA-Prompt USES A CUSTOM BACKBONE: `vit_%s_patch16_224.augreg_in21k_ft_in1k`.", vit_size)
         logging.info("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")
         logging.info("-" * 20)
 
         assert args.lr_scheduler is None, "CODA-Prompt uses a custom scheduler: cosine. Ignoring --lr_scheduler."
 
-        self.dataset = get_dataset(args)
+        self.dataset = dataset if dataset is not None else get_dataset(args)
         self.n_classes = self.dataset.N_CLASSES
         self.n_tasks = self.dataset.N_TASKS
-        backbone = Model(num_classes=self.n_classes, pt=True, prompt_param=[self.n_tasks, [args.pool_size, args.prompt_len, args.ortho_mu]])
+        backbone = Model(num_classes=self.n_classes, pt=True,
+                         prompt_param=[self.n_tasks, [args.pool_size, args.prompt_len, args.ortho_mu]],
+                         vit_size=vit_size, checkpoint=getattr(args, 'coda_checkpoint', None))
         super().__init__(backbone, loss, args, transform, dataset=dataset)
         self.net.task_id = 0
         self.opt = self.get_optimizer()
@@ -71,6 +78,8 @@ class CodaPrompt(ContinualModel):
             self.opt = self.get_optimizer()
 
         self.custom_scheduler = CosineSchedule(self.opt, K=self.args.n_epochs)
+        # Mammoth dispatches custom schedulers by the presence of this marker.
+        self.scheduler = self.custom_scheduler
 
     def observe(self, inputs, labels, not_aug_inputs, epoch=0):
         labels = labels.long()

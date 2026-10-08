@@ -1,0 +1,33 @@
+# Common input recipe for the approved two-task comparison; retain ten tasks.
+N_TASKS: 10
+N_CLASSES_PER_TASK: 10
+N_CLASSES: 100
+SIZE: [224, 224]
+MEAN: [0.5, 0.5, 0.5]
+STD: [0.5, 0.5, 0.5]
+TRANSFORM:
+  - RandomResizedCrop:
+      size: 224
+      scale: [0.08, 1.0]
+      ratio: [0.75, 1.3333333333333333]
+      interpolation: 3
+      antialias: true
+  - RandomHorizontalFlip:
+      p: 0.5
+  - ToTensor
+  - Normalize:
+      mean: [0.5, 0.5, 0.5]
+      std: [0.5, 0.5, 0.5]
+TEST_TRANSFORM:
+  - Resize:
+      size: 256
+      interpolation: 3
+      antialias: true
+  - CenterCrop:
+      size: 224
+  - ToTensor
+  - Normalize:
+      mean: [0.5, 0.5, 0.5]
+      std: [0.5, 0.5, 0.5]
+n_epochs: 20
+batch_size: 64

@@ -150,17 +150,36 @@ def tensor_prompt(a, b, c=None, ortho=False):
 
 
 class Model(nn.Module):
-    def __init__(self, num_classes=10, pt=False, prompt_param=None):
+    def __init__(self, num_classes=10, pt=False, prompt_param=None, vit_size='base', checkpoint=None):
         super().__init__()
+
+        from models.low_rank_utils.factory import SIZES, checkpoint_spec
+        from models.low_rank_utils.pretrained import canonical_pretrained_digest, load_pretrained_encoder
+
+        if vit_size not in SIZES:
+            raise ValueError('CODA-Prompt vit_size must be tiny, small or base')
+        # Validate the file before allocating the encoder or consuming its RNG.
+        spec = checkpoint_spec(vit_size, checkpoint) if checkpoint is not None else None
+        dimension, heads = SIZES[vit_size]
+        self.vit_size = vit_size
 
         self.task_id = None
 
         # get feature encoder
-        vit_model = VisionTransformer(img_size=224, patch_size=16, embed_dim=768, depth=12,
-                                      num_heads=12, drop_path_rate=0)
+        vit_model = VisionTransformer(img_size=224, patch_size=16, embed_dim=dimension, depth=12,
+                                      num_heads=heads, drop_path_rate=0)
 
-        if pt:
-            load_dict = create_vision_transformer('vit_base_patch16_224.augreg_in21k_ft_in1k', base_class=VisionTransformer, pretrained=True, num_classes=0).state_dict()
+        if spec is not None:
+            load_pretrained_encoder(vit_model, spec['file'])
+            actual = canonical_pretrained_digest(vit_model)
+            if actual != spec['canonical_sha256']:
+                raise ValueError('CODA-Prompt encoder differs from the pinned AugReg tensors')
+            self.pretrained_checkpoint = spec['file']
+            self.pretrained_sha256 = spec['sha256']
+            self.canonical_pretrained_sha256 = actual
+        elif pt:
+            load_dict = create_vision_transformer(f'vit_{vit_size}_patch16_224.augreg_in21k_ft_in1k', base_class=VisionTransformer,
+                                                 pretrained=True, num_classes=0, embed_dim=dimension, depth=12, num_heads=heads, patch_size=16).state_dict()
             if 'head.weight' in load_dict:
                 del load_dict['head.weight']
                 del load_dict['head.bias']
@@ -169,9 +188,9 @@ class Model(nn.Module):
             assert len(unexpected) == 0, f"Unexpected keys: {unexpected}"
 
         # classifier
-        self.last = nn.Linear(768, num_classes)
+        self.last = nn.Linear(dimension, num_classes)
 
-        self.prompt = CodaPrompt(768, prompt_param[0], prompt_param[1])
+        self.prompt = CodaPrompt(dimension, prompt_param[0], prompt_param[1], key_dim=dimension)
 
         # feature encoder changes if transformer vs resnet
         self.feat = vit_model

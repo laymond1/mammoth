@@ -38,7 +38,15 @@ class NoForwardViT(nn.Module):
 
 
 @pytest.fixture
-def constructors(monkeypatch):
+def mock_pretrained_verification(monkeypatch):
+    monkeypatch.setattr(l2p_model, 'checkpoint_spec', lambda size, path: {
+        'file': str(path), 'sha256': 'a' * 64, 'canonical_sha256': 'b' * 64})
+    monkeypatch.setattr(l2p_model, 'verify_pretrained_branches', lambda *args, **kwargs: {
+        'query': 'b' * 64, 'prompt': 'b' * 64})
+
+
+@pytest.fixture
+def constructors(monkeypatch, mock_pretrained_verification):
     created = []
     calls = []
 
@@ -83,7 +91,7 @@ def test_default_path_preserves_existing_pretrained_behavior(constructors, legac
     assert all(not model.load_pretrained.called for model in created)
 
 
-def test_local_loader_failure_propagates_without_pretrained_fallback(tmp_path, monkeypatch):
+def test_local_loader_failure_propagates_without_pretrained_fallback(tmp_path, monkeypatch, mock_pretrained_verification):
     checkpoint = tmp_path / 'malformed.npz'
     checkpoint.touch()
     created = [NoForwardViT(), NoForwardViT()]

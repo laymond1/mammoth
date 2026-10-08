@@ -2,16 +2,29 @@ from argparse import Namespace
 import torch
 from torch import nn
 from models.dualprompt_utils.vision_transformer import vit_base_patch16_224_dualprompt
+from models.l2p_utils.pretrained import checkpoint_spec, verify_pretrained_branches
 
 
 class Model(nn.Module):
     def __init__(self, args: Namespace, n_classes: int):
         super().__init__()
         self.n_classes = n_classes
+        size = getattr(args, 'dualprompt_vit_size', 'base')
+        if size not in ('base', 'small', 'tiny'):
+            raise ValueError('DualPrompt ViT size must be base, small or tiny')
+        if size != 'base' and not getattr(args, 'pretrained_checkpoint', None):
+            raise ValueError('Small/Tiny DualPrompt requires a local pretrained_checkpoint')
+        self.vit_size = size
+        checkpoint = getattr(args, 'pretrained_checkpoint', None)
+        if checkpoint:
+            spec = checkpoint_spec(size, checkpoint)
+            checkpoint = spec['file']
+        self.pretrained_checkpoint = checkpoint
 
         self.original_model = vit_base_patch16_224_dualprompt(
+            vit_size=size,
             pretrained=args.pretrained,
-            pretrained_checkpoint=getattr(args, 'pretrained_checkpoint', None),
+            pretrained_checkpoint=checkpoint,
             num_classes=n_classes,
             drop_rate=0,
             drop_path_rate=0,
@@ -20,8 +33,9 @@ class Model(nn.Module):
         self.original_model.eval()
 
         self.model = vit_base_patch16_224_dualprompt(
+            vit_size=size,
             pretrained=args.pretrained,
-            pretrained_checkpoint=getattr(args, 'pretrained_checkpoint', None),
+            pretrained_checkpoint=checkpoint,
             num_classes=n_classes,
             drop_rate=0,
             drop_path_rate=0,
@@ -46,6 +60,12 @@ class Model(nn.Module):
             same_key_value=args.same_key_value,
             args=args
         )
+
+        if checkpoint:
+            self.initial_canonical_pretrained_branches = verify_pretrained_branches(
+                self.original_model, self.model, spec)
+            self.initial_canonical_pretrained_sha256 = spec['canonical_sha256']
+            self.pretrained_sha256 = spec['sha256']
 
         if args.freeze:
             for p in self.original_model.parameters():

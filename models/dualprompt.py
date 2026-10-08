@@ -2,8 +2,8 @@
 DualPrompt: Complementary Prompting for Rehearsal-free Continual Learning
 
 Note:
-    WARNING: DualPrompt USES A CUSTOM BACKBONE: `vit_base_patch16_224`.
-    The backbone is a ViT-B/16 pretrained on Imagenet 21k and finetuned on ImageNet 1k.
+    DualPrompt uses internal ViTs. Base is the default; Tiny/Small require a pinned local NPZ.
+    The shared checkpoint family is pretrained on ImageNet 21k and finetuned on ImageNet 1k.
 """
 
 import logging
@@ -29,6 +29,8 @@ class DualPrompt(ContinualModel):
         parser.add_argument('--pretrained', default=1, type=binary_to_boolean_type, help='Load pretrained model or not')
         parser.add_argument('--pretrained_checkpoint', default=None, type=str,
                             help='Local ViT NPZ checkpoint for both query and prompt backbones; overrides --pretrained without downloading')
+        parser.add_argument('--dualprompt_vit_size', choices=['base', 'small', 'tiny'], default='base',
+                            help='Size of both internal ViTs; Small/Tiny require a local pretrained_checkpoint.')
         parser.add_argument('--use_permute_fix', type=binary_to_boolean_type, default=0, help='Apply fix to reshape issue from original implementation (ref: issue #56)')
 
         # Optimizer parameters
@@ -68,7 +70,8 @@ class DualPrompt(ContinualModel):
         logging.info("-" * 20)
         checkpoint = getattr(args, 'pretrained_checkpoint', None)
         if checkpoint:
-            logging.info("DualPrompt uses a local ViT-B/16 checkpoint for both backbones: %s", checkpoint)
+            logging.info("DualPrompt uses a local ViT-%s/16 checkpoint for both backbones: %s",
+                         getattr(args, 'dualprompt_vit_size', 'base'), checkpoint)
         else:
             logging.info("DualPrompt USES A CUSTOM BACKBONE: `https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz` (vit_base_patch16_224_in21k_fn_in1k_old).")
         logging.info("Pretrained on Imagenet 21k and finetuned on ImageNet 1k.")

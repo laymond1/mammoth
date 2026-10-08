@@ -114,6 +114,11 @@ def test_native_parser_preserves_explicit_checkpoint_and_protocol(monkeypatch, p
 def test_query_and_prompt_backbones_receive_same_checkpoint(monkeypatch, has_checkpoint_argument):
     calls = []
 
+    monkeypatch.setattr(network_module, 'checkpoint_spec', lambda size, path: {
+        'file': str(path), 'sha256': 'a' * 64, 'canonical_sha256': 'b' * 64})
+    monkeypatch.setattr(network_module, 'verify_pretrained_branches', lambda *args, **kwargs: {
+        'query': 'b' * 64, 'prompt': 'b' * 64})
+
     def factory(**kwargs):
         calls.append(kwargs)
         return CheckpointModel()

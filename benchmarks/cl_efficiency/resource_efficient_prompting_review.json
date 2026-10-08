@@ -1,0 +1,144 @@
+{
+  "review_date": "2026-10-08",
+  "status": "feasibility_review_only",
+  "implementation_authorized_by_this_report": false,
+  "training_executed": false,
+  "new_gpu_jobs": 0,
+  "external_notifications_sent": 0,
+  "existing_11_method_review_plan_changed": false,
+  "related_review": "benchmarks/cl_efficiency/resource_aware_methods_review.json",
+  "methods": [
+    {
+      "name": "CPS-Prompt",
+      "paper": "Critical Patch-Aware Sparse Prompting with Decoupled Training for Continual Learning on the Edge",
+      "venue": "CVPR 2026",
+      "paper_url": "https://arxiv.org/html/2604.07399v1",
+      "official_repository": "https://github.com/laymond1/CPS-Prompt",
+      "verified_commit": "7ec2be108f4f032f2bb10a6647304076f406ef6b",
+      "commit_date": "2026-04-10",
+      "kind": "CODA-based rehearsal-free prompt method targeting training efficiency",
+      "recommendation": "Prioritize native port into the existing task-based efficiency track",
+      "difficulty_estimate": "Medium; estimate from static inspection, not measured engineering time",
+      "mechanisms": [
+        "Full-token frozen query: CLS attention times value norm gives patch importance",
+        "Temperature softmax and multinomial sampling without replacement reduce patches in the joint prompt/head training phase",
+        "Full-patch no-grad features and classifier-only backward in the second phase"
+      ],
+      "proposed_cifar_recipe": {
+        "original_total_tasks": 10,
+        "stop_after_tasks": 2,
+        "patch_drop_ratio": 0.4,
+        "temperature": 0.1,
+        "phase_ratio": 0.4,
+        "native_and_reference_minimum_validation_epochs_per_task": 3,
+        "validation_phase_epochs": [1, 2],
+        "measurement_total_epochs_per_task": 20,
+        "measurement_phase_epochs": [8, 12],
+        "batch_sizes": [16, 64],
+        "backbones": ["Tiny", "Small", "Base"],
+        "recipe_status": "Proposed only; no executable plan or config changed"
+      },
+      "static_findings": [
+        "E2 with phase_ratio=.4 yields zero sparse/prompt epochs; E3 is the minimum to exercise both phases",
+        "README prompt-only phase description differs from actual joint prompt/head training and paper Algorithm 2",
+        "Source parser defaults differ from paper CIFAR values; all three mechanism arguments must be explicit",
+        "Source supports Tiny/Small/Base geometry, but Base default timm weights are AugReg2 rather than the existing common AugReg checkpoint",
+        "Encoder is explicitly frozen; existing CODA may compute encoder gradients even though its optimizer excludes encoder parameters",
+        "Classifier phase retains prompt requires_grad flags and optimizer state despite no prompt gradients",
+        "Full-token query remains in training and evaluation; classifier phase and prompted inference also use full patches",
+        "Source scheduler marker differs from current Mammoth custom_scheduler integration",
+        "Source Jetson fallback adds current and average power readings; reuse the existing common measurement path instead"
+      ],
+      "port_requirements": [
+        "Keep meta_* lifecycle, class masking, original ten-task prompt allocation and task-boundary orthogonalization",
+        "Pin common local checkpoint path and SHA for each size; verify all canonical150 encoder tensors before training",
+        "Apply identical common preprocessing and checkpoint choices to native and independent source reference",
+        "Preserve positional indices and separate patch-sampling RNG/checkpoint state",
+        "Measure query, importance/sampling, both training phases, task boundaries and evaluation",
+        "Report actual gradients, optimizer membership and parameter storage separately",
+        "Use a separate frozen-CODA control if attributing gains specifically to CPS/DPCT; preserve existing CODA source behavior"
+      ],
+      "checkpoint_digest_verified": false,
+      "paper_accuracy_reproduced": false,
+      "license_observation": "MIT for CPS; retain notices/licenses of inherited Mammoth/CODA files",
+      "dependencies_observed": "Python3.12, torch2.6.0, torchvision0.21, timm0.9.8; do not replace current environment wholesale",
+      "source_evidence": [
+        "https://github.com/laymond1/CPS-Prompt/blob/7ec2be108f4f032f2bb10a6647304076f406ef6b/models/cps_prompt.py#L43-L62",
+        "https://github.com/laymond1/CPS-Prompt/blob/7ec2be108f4f032f2bb10a6647304076f406ef6b/models/cps_prompt.py#L103-L129",
+        "https://github.com/laymond1/CPS-Prompt/blob/7ec2be108f4f032f2bb10a6647304076f406ef6b/models/cps_prompt_utils/model.py#L30-L110",
+        "https://github.com/laymond1/CPS-Prompt/blob/7ec2be108f4f032f2bb10a6647304076f406ef6b/models/cps_prompt_utils/cps.py#L97-L116",
+        "https://github.com/laymond1/CPS-Prompt/blob/7ec2be108f4f032f2bb10a6647304076f406ef6b/utils/stats.py#L80-L99"
+      ]
+    },
+    {
+      "name": "REP",
+      "paper": "REP: Resource-Efficient Prompting for Rehearsal-Free Continual Learning",
+      "venue": "NeurIPS 2025",
+      "paper_url": "https://arxiv.org/html/2406.04772v6",
+      "official_repository": "https://github.com/omnia-postech/REP",
+      "verified_commit": "753f022a62655a7712456a25a88d1967e783af6a",
+      "commit_date": "2026-02-26",
+      "kind": "Efficiency components composed with a host prompt method, rather than an independent prompt-pool algorithm",
+      "recommendation": "Conditional candidate; obtain a complete reference or explicitly approve paper-based reconstruction before implementing",
+      "difficulty_estimate": "High with the currently published source; estimate, not measured engineering time",
+      "mechanisms": [
+        "Swift prompt selection using a compact pretrained query model and fixed random projection",
+        "Prompt-aware adaptive token merging (AToM)",
+        "Adaptive layer dropping (ALD), which skips layer computation rather than merely freezing weights"
+      ],
+      "static_findings": [
+        "Official GitHub tree has twelve files; no main/trainer/config/checkpoint pipeline is published there",
+        "Swift projection in Prompt/EPrompt uses a fixed1024 output and a lazily created plain tensor; HiDePrompt path omits that projection",
+        "HiDe/Dual ALD global_step is not advanced in the published path and update_state receives keep probability as its step argument",
+        "L2P ALD increments the counter per block and separates the updated theta from the schedule controller theta",
+        "AToM patch starts with r=0 and length=0; the published repository contains no runner that sets these values",
+        "Prefix patch treats the first five x tokens as prompts although prefix K/V are outside the x sequence",
+        "AToM block sends attn_size while Attention reads size",
+        "Source isinstance-based patching does not automatically match current Mammoth CODA/HiDe block classes",
+        "REP ALD model registrations are Large-only in the published file; generic Tiny/Small/Base constructors are not complete REP registrations",
+        "L2P Prompt.forward includes CUDA events and per-call synchronize; source measurement side effects require explicit handling"
+      ],
+      "static_findings_scope": "Observed contracts in the public source; no failing forward/training run was performed and undisclosed author code was not assessed",
+      "full_reference_available": false,
+      "full_reference_availability_scope": "Not obtained from current official GitHub HEAD; paper checklist mentions a code attachment, but public OpenReview attachment access was not verified",
+      "suggested_host": "REP-CODA if a faithful implementation/reference is secured; REP-HiDe is an alternative with additional TII/classifier adaptation accounting",
+      "host_selection_status": "Proposal only; excluded L2P/DualPrompt have not been restored",
+      "size_support": {
+        "paper_main_backbones": ["Tiny", "Base", "Large"],
+        "current_target_backbones": ["Tiny", "Small", "Base"],
+        "small_status": "Additional adaptation requiring an explicit ALD threshold and common checkpoint choice",
+        "tiny_query_savings": "Expected to be smaller when both query and main encoders are Tiny; an architecture-based inference, not a measurement"
+      },
+      "port_requirements": [
+        "Choose one retained host method before adding experiment combinations",
+        "Define and verify query model construction, weights, feature dimensions and host prompt-key mapping",
+        "Register the fixed random projection as a persistent buffer and preserve its seed/checkpoint state",
+        "Resolve ALD step units, feedback state, keep schedule and deterministic evaluation behavior",
+        "Handle prefix K/V separately from x sequence tokens and validate prompt preservation and attention size semantics",
+        "Count auxiliary query parameters/storage, merging overhead and actual skipped blocks",
+        "Use matched host vs host+REP settings and distinguish source-behavior validation from paper-correct reconstruction",
+        "Do not claim the existing author/native accuracy gate has passed without an independent complete reference"
+      ],
+      "paper_accuracy_reproduced": false,
+      "license_observation": "Repository LICENSE is CC BY-NC4.0; preserve the separate conditions and attribution instead of assuming Mammoth MIT covers copied REP code",
+      "dependencies_observed": "README lists Python3.8.8, torch1.12.1/cu113, torchvision0.13.1, timm0.6.7; use isolated source references and native adaptation",
+      "source_evidence": [
+        "https://github.com/omnia-postech/REP/tree/753f022a62655a7712456a25a88d1967e783af6a",
+        "https://github.com/omnia-postech/REP/blob/753f022a62655a7712456a25a88d1967e783af6a/prompt.py#L79",
+        "https://github.com/omnia-postech/REP/blob/753f022a62655a7712456a25a88d1967e783af6a/vision_transformer.py#L800",
+        "https://github.com/omnia-postech/REP/blob/753f022a62655a7712456a25a88d1967e783af6a/vision_transformer.py#L2023",
+        "https://github.com/omnia-postech/REP/blob/753f022a62655a7712456a25a88d1967e783af6a/atom/atom.py#L151",
+        "https://github.com/omnia-postech/REP/blob/753f022a62655a7712456a25a88d1967e783af6a/atom/atom_dual.py#L34",
+        "https://github.com/omnia-postech/REP/blob/753f022a62655a7712456a25a88d1967e783af6a/atom/atom_dual.py#L85",
+        "https://github.com/omnia-postech/REP/blob/753f022a62655a7712456a25a88d1967e783af6a/LICENSE#L1"
+      ]
+    }
+  ],
+  "comparison_notes": [
+    "Prioritize CPS in the existing multi-epoch task-efficiency track; keep online/chunk budget protocols as separate tracks",
+    "Retain CODA as a matched host/control; REP variants must identify their host",
+    "Two-task pilots exercise mechanisms but do not reproduce full ten-task long-term retention",
+    "Reuse shared data/cache, local artifacts, WandB and Slack only when later implementation/experiment work is authorized",
+    "Jetson device energy and RTX4090 GPU-board energy are different measurement scopes; paper speedups are not local predictions"
+  ]
+}

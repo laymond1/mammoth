@@ -5,12 +5,18 @@ import torch
 import torch.nn as nn
 from datasets import get_dataset
 from models.l2p_utils.vit_prompt import vit_base_patch16_224_l2p
+from models.l2p_utils.pretrained import checkpoint_spec, verify_pretrained_branches
 
 
 class L2PModel(nn.Module):
     def __init__(self, args):
         super().__init__()
         checkpoint = getattr(args, 'pretrained_checkpoint', None)
+        size = getattr(args, 'l2p_vit_size', 'base')
+        if size not in ('base', 'small', 'tiny'):
+            raise ValueError('L2P ViT size must be base, small or tiny')
+        if size != 'base' and (checkpoint is None or args.use_original_ckpt):
+            raise ValueError('Small/Tiny L2P requires a local pretrained_checkpoint without use_original_ckpt')
         if checkpoint is not None:
             if args.use_original_ckpt:
                 raise ValueError('L2P pretrained_checkpoint cannot be combined with use_original_ckpt')
@@ -19,12 +25,16 @@ class L2PModel(nn.Module):
                 raise FileNotFoundError(f'L2P checkpoint does not exist: {checkpoint}')
             if checkpoint.suffix != '.npz':
                 raise ValueError('L2P pretrained_checkpoint must be a local NPZ file')
+            spec = checkpoint_spec(size, checkpoint)
+            checkpoint = Path(spec['file'])
         self.pretrained_checkpoint = str(checkpoint) if checkpoint is not None else None
+        self.vit_size = size
         dataset = get_dataset(args)
         n_classes = dataset.N_CLASSES
 
         self.original_model = vit_base_patch16_224_l2p(
             pretrained=checkpoint is None,
+            vit_size=size,
             num_classes=n_classes,
             drop_rate=0.0,
             drop_path_rate=0.0,
@@ -33,6 +43,7 @@ class L2PModel(nn.Module):
 
         self.model = vit_base_patch16_224_l2p(
             pretrained=checkpoint is None,
+            vit_size=size,
             num_classes=n_classes,
             prompt_length=args.length,
             embedding_key=args.embedding_key,
@@ -51,6 +62,10 @@ class L2PModel(nn.Module):
             # Retain the custom loader's class/prompt-prefix position expansion.
             self.original_model.load_pretrained(str(checkpoint))
             self.model.load_pretrained(str(checkpoint))
+            self.initial_canonical_pretrained_branches = verify_pretrained_branches(
+                self.original_model, self.model, spec, l2p=True)
+            self.initial_canonical_pretrained_sha256 = spec['canonical_sha256']
+            self.pretrained_sha256 = spec['sha256']
 
         if args.use_original_ckpt:
             # download ckpt from https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz

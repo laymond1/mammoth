@@ -197,11 +197,20 @@ def checkpoint_filter_fn(state_dict, model, adapt_layer_scale=False):
     return out_dict
 
 
-def vit_base_patch16_224_l2p(pretrained=False, **kwargs):
+L2P_VIT_SIZES = {'base': (768, 12), 'small': (384, 6), 'tiny': (192, 3)}
+
+
+def vit_base_patch16_224_l2p(pretrained=False, vit_size='base', **kwargs):
     """ ViT-Base (ViT-B/16) from original paper (https://arxiv.org/abs/2010.11929).
     ImageNet-1k weights fine-tuned from in21k @ 224x224, source https://github.com/google-research/vision_transformer.
     """
-    model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12, **kwargs)
-    model = create_vision_transformer('vit_base_patch16_224_in21k_fn_in1k_old', base_class=VisionTransformer,
+    if vit_size not in L2P_VIT_SIZES:
+        raise ValueError('L2P ViT size must be base, small or tiny')
+    if vit_size != 'base' and pretrained:
+        raise ValueError('Small/Tiny L2P requires explicit local NPZ loading')
+    width, heads = L2P_VIT_SIZES[vit_size]
+    model_kwargs = dict(patch_size=16, embed_dim=width, depth=12, num_heads=heads, **kwargs)
+    variant = 'vit_base_patch16_224_in21k_fn_in1k_old' if vit_size == 'base' else f'vit_{vit_size}_patch16_224.augreg_in21k_ft_in1k'
+    model = create_vision_transformer(variant, base_class=VisionTransformer,
                                       pretrained=pretrained, filter_fn=checkpoint_filter_fn, **model_kwargs)
     return model

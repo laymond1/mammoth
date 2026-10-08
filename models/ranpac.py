@@ -2,7 +2,7 @@
 Random Projections and Pre-trained Models for Continual Learning.
 
 Note:
-    RanPAC adapts the supplied ViT-B/16 backbone with bottleneck-64 adapters.
+    RanPAC adapts the supplied Tiny/Small/Base ViT/16 with bottleneck-64 adapters.
 
 Arguments:
     --pretrain_type: defaults to ImageNet-21k without ImageNet-1k finetuning.
@@ -37,7 +37,9 @@ class RanPAC(ContinualModel):
                             help='Load pretrained weights when constructing the supplied backbone')
         parser.set_defaults(optim_mom=0.9, optim_wd=0.0005, batch_size=48)
         parser.add_argument('--rp_size', type=int, default=10000, help='size of the random projection layer (L in the paper)')
-        parser.add_argument('--pretrained_checkpoint', type=str, default=None,
+        parser.add_argument('--ranpac_vit_size', choices=('tiny', 'small', 'base'), default='base',
+                            help='Expected supplied ViT/16 size; select the same size in the backbone')
+        parser.add_argument('--pretrained_checkpoint', '--ranpac_checkpoint', dest='pretrained_checkpoint', type=str, default=None,
                             help='Optional local ViT NPZ checkpoint, loaded before the RanPAC backbone conversion')
         return parser
 
@@ -46,6 +48,15 @@ class RanPAC(ContinualModel):
         logging.warning("-" * 20)
         logging.warning(f"RanPAC USES `in21k` AS DEFAULT PRETRAIN. CHANGE IT WITH `--pretrain_type` IF NEEDED.")
         logging.warning("-" * 20)
+        from models.low_rank_utils.factory import SIZES, checkpoint_spec
+        from models.low_rank_utils.pretrained import canonical_pretrained_digest, load_pretrained_encoder
+
+        vit_size = getattr(args, 'ranpac_vit_size', 'base')
+        if vit_size not in SIZES:
+            raise ValueError('RanPAC vit_size must be tiny, small or base')
+        dimension, heads = SIZES[vit_size]
+        if hasattr(backbone, 'embed_dim') and (backbone.embed_dim != dimension or backbone.num_heads != heads):
+            raise ValueError('RanPAC selected size does not match the supplied backbone; select matching --vit_size and --ranpac_vit_size')
         checkpoint = getattr(args, 'pretrained_checkpoint', None)
         if checkpoint is not None:
             checkpoint_path = Path(checkpoint).expanduser()
@@ -53,7 +64,18 @@ class RanPAC(ContinualModel):
                 raise FileNotFoundError(f'RanPAC pretrained checkpoint does not exist: {checkpoint_path}')
             if not callable(getattr(backbone, 'load_pretrained', None)):
                 raise TypeError('RanPAC local checkpoints require a ViT backbone with load_pretrained()')
-            backbone.load_pretrained(str(checkpoint_path))
+            if hasattr(backbone, 'embed_dim'):
+                spec = checkpoint_spec(vit_size, checkpoint_path)
+                load_pretrained_encoder(backbone, spec['file'])
+                actual = canonical_pretrained_digest(backbone)
+                if actual != spec['canonical_sha256']:
+                    raise ValueError('RanPAC encoder differs from the pinned AugReg tensors')
+                backbone.pretrained_checkpoint = spec['file']
+                backbone.pretrained_sha256 = spec['sha256']
+                backbone.canonical_pretrained_sha256 = actual
+            else:
+                # Preserve the legacy custom-backbone loader contract.
+                backbone.load_pretrained(str(checkpoint_path))
         backbone = RanPAC_Model(backbone, args)
 
         super().__init__(backbone, loss, args, transform, dataset=dataset)
@@ -138,6 +160,8 @@ class RanPAC(ContinualModel):
         if self.current_task == 0:
             self.opt = self.get_optimizer()
             self.custom_scheduler = self.get_scheduler()
+            # Mammoth dispatches custom schedulers by the presence of this marker.
+            self.scheduler = self.custom_scheduler
             self.opt.zero_grad()
 
     def freeze_backbone(self, is_first_session=False):

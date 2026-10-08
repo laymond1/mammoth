@@ -135,7 +135,12 @@ class VisionTransformer(MammothVP):
             if prompt is not None:
                 if train:
                     p_list, loss, x = prompt.forward(q, i, x, train=True, task_id=task_id)
-                    prompt_loss += loss
+                    # On CPU .to() retains the initial leaf; CUDA's existing
+                    # non-leaf accumulation path remains unchanged.
+                    if prompt_loss.is_leaf:
+                        prompt_loss = prompt_loss + loss
+                    else:
+                        prompt_loss += loss
                 else:
                     p_list, _, x = prompt.forward(q, i, x, train=False, task_id=task_id)
             else:
