@@ -95,6 +95,10 @@ def get_device(avail_devices: Optional[str] = None) -> torch.device:
     """
     Returns the least used GPU device if available else MPS or CPU.
     """
+    if avail_devices is not None and avail_devices.strip().lower() == 'cpu':
+        get_device.device = torch.device('cpu')
+        return get_device.device
+
     def _get_device(avail_devices: List[int] = []) -> torch.device:
         # get least used gpu by used memory
         if torch.cuda.is_available() and torch.cuda.device_count() > 0 and len(avail_devices) > 0:
