@@ -28,12 +28,12 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 
 2026-10-08 사용자 결정: **EASE·HiDe-Prompt의 Small·Tiny 전체10태스크 실험은 후속 계획에서 제외합니다.** 크기 확장은 완료한 첫2태스크 구현 검증과 첫 태스크 효율성 pilot 범위에서 마무리합니다. 기존 Base 전체10태스크 결과와 Small·Tiny 단기 결과는 각 실행 범위로 구분해 해석합니다.
 
-PROL의 공식 활성 경로를 Mammoth에 이식하고 독립 저자 코드와의 CPU 대조 및 90개 검사를 완료했습니다. 공식 코드의 0이 되는 비대각 손실 항·학습 가능한 LayerNorm·배치 간 similarity assignment·평가 중 clamp·두 cosine scheduler를 보존합니다. [구현·활성 경로와 GPU6회 제안](prol_prompt/README.md), [CPU 검증 기록](prol_prompt/CPU_VALIDATION.md)을 참고합니다. **PROL GPU·실제 CIFAR 실험은 아직 실행하지 않았습니다.** 후속 GPU recipe 검토와 runner 준비가 남아 있으며 비교 확대는 계속 보류합니다.
+2026-10-08 사용자 결정: **PROL 추가 작업을 보류하고 이번 비교에서 제외합니다.** 공식 활성 경로 이식과 CPU 대조 후 저자 첫 태스크 GPU 검증에서 정확도99.3%를 관측했지만 checkpoint probe가 실패했습니다. 별도 추론 진단40회에서 RNG·파라미터·query features가 유지된 상태의 logits 변동을 확인했으며 구현 통과 판정은 보류합니다. [구현·활성 경로](prol_prompt/README.md), [GPU 실패 기록](prol_prompt/RUN_VALIDATION.md), [출력/RNG 진단과 W&B·Slack 검증](prol_diagnostic/README.md)을 보존합니다. 제안한 추가 연산 진단·결정론 교정·학습 재실행은 진행하지 않습니다. 소스 엔트리78개 집계에는 보존한 PROL 코드가 포함되며 검증된 비교 방법 수와 구별합니다.
 
 ## 검토 자료
 
 - [현재 78개 소스 엔트리의 특징과 장단점](algorithms.md)
-- [PROL 공식 활성 경로 구현·CPU 검증과 후속 계획](prol_prompt/README.md)
+- [PROL 구현·GPU 검증 실패 및 사용자 보류 결정](prol_diagnostic/README.md)
 - [RainbowPrompt 공식 활성 경로 구현·검증 조건](rainbow_prompt/README.md), [GPU 검증·효율성 결과](rainbow_validation/RESULTS.md)
 - [초기 후보 14개 검토와 현재 구현 현황: 방법 13개·예산 프로토콜 1개](recommendations.md)
 - [BudgetCL·aL-SAR의 추가 가능성 및 이식 범위](budgeted_cl_review.md)
