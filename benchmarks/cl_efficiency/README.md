@@ -2,7 +2,7 @@
 
 2026-10-08 기준 AST 목록은 **77개 소스 엔트리**입니다. 기존 71개 목록에 HiDe-Prompt와 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA, RainbowPrompt가 추가됐으며, 당시의 `inventory.csv`·`manifest.json`·실행 계획은 71개 스냅샷으로 보존합니다. 소스 수를 import 성공이나 완료한 실험 수로 해석하지 않습니다.
 
-RainbowPrompt의 **공식 활성 경로 구현·CPU 검사·GPU 계획 준비**를 완료했습니다. 사용자 선택대로 learned gate 복원은 후속으로 분리하며 이번 구현을 논문 전체 알고리즘과 동일하다고 표시하지 않습니다. [구현과 다음 결정](rainbow_prompt/README.md), [CPU 검증](rainbow_prompt/CPU_VALIDATION.md)을 기록했고 실제 CIFAR 학습·GPU 실험·W&B·Slack 전송은 이번 단계에서 실행하지 않았습니다. PROL은 다음 구현 대상입니다.
+RainbowPrompt의 **공식 활성 경로 구현·독립 저자/native 검증·효율성 pilot**을 완료했습니다. 첫2태스크 20epochs/warm-up5와 첫태스크 1epoch/warm-up0 대조가 모두0.0%p 차이로 통과했고, native 최종2태스크 정확도는 전체97.3%·과거98.9%·신규95.7%입니다. 단축 pilot3회 정확도98.4%, 학습 구간 평균22.7150초·전체 관측34.4969초·CUDA peak12.0928GiB·GPU 보드2.7852Wh, 별도 지원 연산603.753TFLOPs를 기록했습니다. CPU172검사와 GPU8실행·W&B 원격 내용 검증·Slack 완료 알림을 마쳤습니다. [검증·효율성 결과](rainbow_validation/RESULTS.md), [측정 범위와 최종 W&B](rainbow_validation/README.md), [실행 도구 검증](rainbow_prompt/RUN_VALIDATION.md)을 참고합니다. 사용자 선택대로 learned gate는 미포함이며 논문 전체 재현을 주장하지 않습니다. 기존9방법 비교 확대는 보류하고 PROL을 다음 구현 대상으로 유지합니다.
 
 이전 SD-LoRA 회복 단계는 완료됐습니다. LR 0.001·classifier LR 0.008 조건에서 첫 태스크 저자/native 99.0%와 13구조 검사를 확인하고 측정3회·부분 FLOPs1회로 [9방법 비교 보고서](sd_recovery/RESULTS.md)를 작성했습니다. 기존 10.0% 실패 기록과 당시 부분 보고서는 보존합니다.
 
@@ -31,7 +31,7 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 ## 검토 자료
 
 - [현재 77개 소스 엔트리의 특징과 장단점](algorithms.md)
-- [RainbowPrompt 공식 활성 경로 구현·CPU 검사·GPU 준비안](rainbow_prompt/README.md)
+- [RainbowPrompt 공식 활성 경로 구현·검증 조건](rainbow_prompt/README.md), [GPU 검증·효율성 결과](rainbow_validation/RESULTS.md)
 - [초기 후보 14개 검토와 현재 구현 현황: 방법 13개·예산 프로토콜 1개](recommendations.md)
 - [BudgetCL·aL-SAR의 추가 가능성 및 이식 범위](budgeted_cl_review.md)
 - [공통 환경·worktree 사용법과 10월 6일 연결 검증](foundation.md)

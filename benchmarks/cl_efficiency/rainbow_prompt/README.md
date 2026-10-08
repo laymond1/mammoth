@@ -2,6 +2,8 @@
 
 Mammoth 구현과 CPU 검증을 완료했고, 다음 **GPU 8회 실행과 로컬·W&B 저장·Slack 알림**을 승인받았습니다. [run_plan.json](run_plan.json)이 현재 승인된 실행 조건입니다. 원형 저자/native 첫 2태스크 검증 2회, 단축 저자/native 첫 태스크 검증 2회가 각각 통과하면 native 효율성 측정 3회와 별도 FLOPs 측정 1회를 진행합니다. 실제 완료 여부와 결과는 실행 기록 및 검증 보고서로 확인합니다.
 
+**8회 실행을 모두 완료했습니다.** 원형·단축 저자/native 정확도 차이는 모두0.0%p이며 예측·gradient·학습 상태도 동일했습니다. [최종 검증·효율성 보고서](../rainbow_validation/RESULTS.md), [측정 범위·W&B 및 원격 내용 검증](../rainbow_validation/README.md), [실행 도구 CPU 검사](RUN_VALIDATION.md)를 기록했습니다. 실행 도구·수치 경로는 commit `08f07ae`로 고정했고, 기존 공통 데이터와 가중치를 재사용했습니다.
+
 구현 기준은 [공식 저장소](https://github.com/Kiseong0753/RainbowPrompt)의 commit `0b84d3e3738669fe4bb516ccc1c526a535576ad3`입니다. 로컬 원본은 `/tmp/cl-rainbow-official-20261008`에 있으며, [source_review.json](source_review.json)에 전체 tracked 파일의 SHA-256과 활성 경로를 기록합니다. 사용자가 선택한 **공식 코드의 활성 경로 보존**을 따릅니다. 논문의 학습 가능한 gate를 새로 연결하는 작업은 후속 범위입니다.
 
 [논문](https://arxiv.org/html/2507.22553v1#S3.SS3)은 task별 Gumbel-Softmax gate와 sparsity loss를 포함합니다. 고정한 공개 코드의 실행 경로에는 그 두 기능이 연결되어 있지 않습니다. 따라서 이번 구현의 의미는 `official-active-path`이며 논문의 전체 알고리즘이나 발표 성능을 재현했다는 뜻이 아닙니다. [논문 최적화 정의](https://arxiv.org/html/2507.22553v1#S3.SS4)

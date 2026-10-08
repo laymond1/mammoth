@@ -4,7 +4,7 @@
 
 표의 장단점과 비용 영향은 코드 구조에 근거한 분석입니다. EASE·RanPAC·L2P·DualPrompt의 [공통 첫 태스크 pilot](baselines/efficiency_pilot_report.md), [EASE 크기별 검증·측정](ease_sizes/report.md), [HiDe-Prompt Base 전체10태스크](hide_prompt/full_cl/report.md)와 [Small/Tiny 단기 결과](hide_sizes/report/report.md)는 각 보고서의 조건으로 해석합니다. 전체77개 엔트리의 공통 정확도·효율성 비교는 완료하지 않았습니다. 기존 실행 인자·외부 요구사항은 71개 `manifest.json` 스냅샷에, 추가 방법의 조건은 각 구현·검증 문서에 기록합니다.
 
-RainbowPrompt는 공식 활성 경로를 구현하고 CPU 검증을 완료했습니다. learned gate는 포함하지 않으며 CIFAR 정확도·GPU 효율성은 아직 검증하지 않았습니다. [구현 범위와 계획](rainbow_prompt/README.md), [CPU 검사](rainbow_prompt/CPU_VALIDATION.md)를 참고합니다.
+RainbowPrompt는 learned gate가 없는 공식 활성 경로의 CPU172검사와 독립 저자/native GPU 검증을 완료했습니다. 첫2태스크 최종97.3%, 단축 첫태스크98.4%로 저자/native 차이는 모두0.0%p입니다. 측정3회와 별도 부분 FLOPs1회의 [검증·효율성 결과](rainbow_validation/RESULTS.md), [측정 범위](rainbow_validation/README.md), [구현 조건](rainbow_prompt/README.md)을 참고합니다.
 
 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA는 Base ViT 첫2태스크의 저자·native 총8회 검증에서 네 정확도 지표·14개 구조 검사·첫 배치 입력 검사가 모두 pass입니다. EWC·SD·CL의 네 정답 수는 저자 실행과 같으며, Inf의 태스크2 저자−native 차이는 전체 −0.15%p·과거 −0.40%p·신규 +0.10%p입니다. [검증 결과](low_rank/RESULTS.md)와 [구현·실행 범위](low_rank/README.md)를 참고합니다. 공통 저자 저장소 변형을 검증했으며 논문 수치 재현·효율성 순위·전체10태스크 성능은 평가하지 않았습니다. LoRA Small·Tiny는 CPU 생성·forward 확인 범위입니다.
 
@@ -66,7 +66,7 @@ EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA는 Base ViT 첫2태스크의 저자·native 
 | [pnn](../../models/pnn.py) | 모델 확장 | 태스크마다 column을 추가하고 이전 column 고정 | 과거 column의 가중치 망각 방지 | 태스크별 모델 증가; 이 구현은 task-il 전용 |
 | [puridiver](../../models/puridiver.py) | 노이즈 CL | 손실과 feature 다양성으로 replay 샘플 정제 | 노이즈/blurred stream에 맞는 선택 | 매 batch feature 선택과 buffer fitting; true_labels 필요 |
 | [ranpac](../../models/ranpac.py) | 사전학습과 해석적 분류기 | 첫 태스크 적응 후 frozen feature의 random projection와 ridge | 후속 태스크의 backbone backward 제거 | 첫 태스크는 실제 학습; rp_size=10000의 Gram/solve가 무거움 |
-| [rainbow-prompt](../../models/rainbow_prompt.py) | Prompt 변환·정렬 | 현재/이전 base prompt를 변환하여 결합하고 저장 prompt를 batch 평균 key로 선택 | 원본 replay 없이 prompt 간 지식 결합; 전체 gate 복원과 분리된 공식 활성 경로 대조 가능 | query·prompt 두 ViT forward와 반복 attention/FFN, 태스크별 cache 증가, batch 구성에 따른 routing 변화. 공식 활성 코드의 learned gate 미포함; CPU 검증만 완료 |
+| [rainbow-prompt](../../models/rainbow_prompt.py) | Prompt 변환·정렬 | 현재/이전 base prompt를 변환하여 결합하고 저장 prompt를 batch 평균 key로 선택 | 원본 replay 없이 prompt 간 지식 결합; 독립 저자/native 첫2태스크 및 단축 검증 통과 | query·prompt 두 ViT forward와 반복 attention/FFN, 10태스크 cache 선할당, batch 구성에 따른 routing 변화. 공식 활성 코드의 learned gate 미포함; Base 첫태스크 pilot CUDA peak12.09GiB |
 | [rpc](../../models/rpc.py) | 리플레이 | Regular Polytope Classifier로 클래스 표현 구조 고정 | 클래스 간 기하 구조를 제어 | buffer 필요 및 기하 가정의 데이터 의존성 |
 | [second-order](../../models/second_order.py) | LoRA와 정규화 | LoRA/IA3/full tuning 및 ITA/IEL second-order 제약 | 기존 LoRA/IA3 기반과 model composition 비교 가능 | pre-tuning, Fisher, 분포 및 정렬 비용을 포함해야 함 |
 | [second-stage-starprompt](../../models/second_stage_starprompt.py) | Prompt와 CLIP | STARPrompt의 ViT residual prompt 단계만 사용 | 시각 prompt 단계의 ablation | 키 checkpoint 또는 CLIP template에 성능 의존 |

@@ -1,0 +1,2010 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "publication_gate": "pass",
+  "method": "rainbow-prompt",
+  "generated_at_utc": "2026-10-08T05:59:29.602388+00:00",
+  "run_root": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008",
+  "new_gpu_training_runs": 8,
+  "new_validation_runs": 4,
+  "new_measurement_runs": 3,
+  "new_flops_runs": 1,
+  "sources": [
+    {
+      "name": "full_author",
+      "method": "rainbow-prompt",
+      "pass": "validation",
+      "mode": "full_validation",
+      "side": "author",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_author/result.json",
+      "sha256": "cfbf42a6a6a663b904c1af6e67c2fe931c9541980ed2416c4534efdc46f3f9a3",
+      "bytes": 116140,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/re2bv0bf",
+      "execution_source_sha256": {
+        "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+        "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+        "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+        "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+        "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+        "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+        "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+        "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+        "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+        "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+        "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    },
+    {
+      "name": "full_native",
+      "method": "rainbow-prompt",
+      "pass": "validation",
+      "mode": "full_validation",
+      "side": "native",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_native/result.json",
+      "sha256": "22895a1f3fb28ca0d9a7ea378751293c05054f123238427269736d596e582071",
+      "bytes": 119004,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/l4jra261",
+      "execution_source_sha256": {
+        "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+        "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+        "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+        "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+        "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+        "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+        "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+        "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+        "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+        "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+        "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    },
+    {
+      "name": "short_author",
+      "method": "rainbow-prompt",
+      "pass": "validation",
+      "mode": "short_validation",
+      "side": "author",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_author/result.json",
+      "sha256": "8d2f1f5807df26a9684e62e2908eb7c7f8ef0fa6c5ef01d29f2579d7f129ba08",
+      "bytes": 31098,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/4ahxenl5",
+      "execution_source_sha256": {
+        "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+        "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+        "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+        "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+        "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+        "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+        "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+        "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+        "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+        "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+        "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    },
+    {
+      "name": "short_native",
+      "method": "rainbow-prompt",
+      "pass": "validation",
+      "mode": "short_validation",
+      "side": "native",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_native/result.json",
+      "sha256": "c9648cfb3aa3c4ace4789a7a44fb239b0f1f09bfdca3cff44e30bd66609fd6b4",
+      "bytes": 33935,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/kuyl4nxq",
+      "execution_source_sha256": {
+        "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+        "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+        "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+        "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+        "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+        "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+        "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+        "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+        "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+        "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+        "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    },
+    {
+      "name": "measurement1",
+      "method": "rainbow-prompt",
+      "pass": "measurement",
+      "mode": "efficiency",
+      "side": "native",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/measurement1/result.json",
+      "sha256": "86709e0c1180ea0bb2a82dc6ff230cba0c964e145362e7464b4dd73987ca7170",
+      "bytes": 33913,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/hfwbbdy0",
+      "execution_source_sha256": {
+        "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+        "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+        "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+        "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+        "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+        "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+        "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+        "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+        "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+        "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+        "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    },
+    {
+      "name": "measurement2",
+      "method": "rainbow-prompt",
+      "pass": "measurement",
+      "mode": "efficiency",
+      "side": "native",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/measurement2/result.json",
+      "sha256": "6fcbdfc4109ccd98ec4a160bcf43fa9e391652adf8a478cef20c71d9e4a51520",
+      "bytes": 33936,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/7o1yjgdh",
+      "execution_source_sha256": {
+        "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+        "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+        "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+        "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+        "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+        "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+        "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+        "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+        "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+        "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+        "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    },
+    {
+      "name": "measurement3",
+      "method": "rainbow-prompt",
+      "pass": "measurement",
+      "mode": "efficiency",
+      "side": "native",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/measurement3/result.json",
+      "sha256": "75b3f4112d341f0cf83d996d8cac28c688b36a73fdf73e710291892d0b5e287e",
+      "bytes": 33917,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/dzh6il94",
+      "execution_source_sha256": {
+        "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+        "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+        "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+        "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+        "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+        "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+        "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+        "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+        "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+        "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+        "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    },
+    {
+      "name": "flops",
+      "method": "rainbow-prompt",
+      "pass": "flops",
+      "mode": "efficiency",
+      "side": "native",
+      "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/flops/result.json",
+      "sha256": "208a11c819ec5bc33dfdb7f5ce7b1271c63049513a2daaba40de77dd0c9e52e2",
+      "bytes": 34414,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/hiic8qut",
+      "execution_source_sha256": {
+        "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+        "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+        "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+        "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+        "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+        "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+        "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+        "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+        "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+        "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+        "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+        "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+        "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+        "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+        "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+        "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+        "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+        "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+        "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+        "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+        "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+        "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+        "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+        "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+        "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+        "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+        "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+        "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+        "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+        "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+        "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+        "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+        "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+        "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+        "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+        "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+        "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+        "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+      }
+    }
+  ],
+  "validation": {
+    "full": {
+      "acceptance": {
+        "status": "pass",
+        "accuracy_metrics": [
+          {
+            "metric": "task1_seen_accuracy",
+            "reference_pct": 99.2,
+            "native_pct": 99.2,
+            "drop_pp": 0.0,
+            "status": "pass"
+          },
+          {
+            "metric": "task2_seen_accuracy",
+            "reference_pct": 97.3,
+            "native_pct": 97.3,
+            "drop_pp": 0.0,
+            "status": "pass"
+          },
+          {
+            "metric": "task2_old_accuracy",
+            "reference_pct": 98.9,
+            "native_pct": 98.9,
+            "drop_pp": 0.0,
+            "status": "pass"
+          },
+          {
+            "metric": "task2_new_accuracy",
+            "reference_pct": 95.7,
+            "native_pct": 95.7,
+            "drop_pp": 0.0,
+            "status": "pass"
+          }
+        ],
+        "thresholds": {
+          "pass_max_drop_pp": 1.5,
+          "review_max_drop_pp": 3.0,
+          "first_task_minimum_accuracy_pct": 90.0,
+          "task2_collapse_floor_pct": 20.0
+        },
+        "structural_checks_pass": true,
+        "input_checks": {
+          "initial_state_sha256_matches": true,
+          "initial_learned_sha256_matches": true,
+          "data_files_matches": true,
+          "sample_stream_audits_matches": true,
+          "all_epoch_first_batch_inputs_match": true,
+          "initial_first_batch_gradient_matches": true,
+          "task1_train_matches": true,
+          "task1_test_matches": true,
+          "task2_train_matches": true,
+          "task2_test_matches": true,
+          "task1_prediction_inputs_match": true,
+          "task2_prediction_inputs_match": true
+        },
+        "prediction_checks": {
+          "task1": {
+            "labels_match": true,
+            "global_ids_match": true,
+            "evaluation_global_ids_match": true,
+            "prediction_arrays_match": true,
+            "reference_predictions": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_author/task1_predictions.npz",
+              "sha256": "bd4ada20c945939cc870dbc7df66a38caaebb54886a23d54ca127c59428db1ab",
+              "bytes": 6271
+            },
+            "native_predictions": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_native/task1_predictions.npz",
+              "sha256": "bd4ada20c945939cc870dbc7df66a38caaebb54886a23d54ca127c59428db1ab",
+              "bytes": 6271
+            }
+          },
+          "task2": {
+            "labels_match": true,
+            "global_ids_match": true,
+            "evaluation_global_ids_match": true,
+            "prediction_arrays_match": true,
+            "reference_predictions": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_author/task2_predictions.npz",
+              "sha256": "f81004b708b86e5b6ce3ae35d7bbdcbf3d498eed67411d6074445a4869923d02",
+              "bytes": 11691
+            },
+            "native_predictions": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_native/task2_predictions.npz",
+              "sha256": "f81004b708b86e5b6ce3ae35d7bbdcbf3d498eed67411d6074445a4869923d02",
+              "bytes": 11691
+            }
+          }
+        },
+        "reference_result": {
+          "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_author/result.json",
+          "sha256": "cfbf42a6a6a663b904c1af6e67c2fe931c9541980ed2416c4534efdc46f3f9a3",
+          "bytes": 116140
+        },
+        "native_result": {
+          "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_native/result.json",
+          "sha256": "22895a1f3fb28ca0d9a7ea378751293c05054f123238427269736d596e582071",
+          "bytes": 119004
+        },
+        "gradient_diagnostics": [
+          {
+            "task": 1,
+            "epoch": 1,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 2,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 3,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 4,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 5,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 6,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 7,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 8,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 9,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 10,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 11,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 12,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 13,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 14,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 15,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 16,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 17,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 18,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 19,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 1,
+            "epoch": 20,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 1,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 2,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 3,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 4,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 5,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 6,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 7,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 8,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 9,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 10,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 11,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 12,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 13,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 14,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 15,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 16,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 17,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 18,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 19,
+            "gradient_sha256_matches": true
+          },
+          {
+            "task": 2,
+            "epoch": 20,
+            "gradient_sha256_matches": true
+          }
+        ],
+        "final_learned_state_matches": [
+          true,
+          true
+        ],
+        "measurement_aggregate_eligible": false
+      },
+      "acceptance_file": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_acceptance.json",
+        "sha256": "e192f49c81e1699607120224d64d8dc0dfbd9fb6f04c2479a648f648bea7e610",
+        "bytes": 7068
+      },
+      "reference": {
+        "name": "full_author",
+        "method": "rainbow-prompt",
+        "pass": "validation",
+        "mode": "full_validation",
+        "side": "author",
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_author/result.json",
+        "sha256": "cfbf42a6a6a663b904c1af6e67c2fe931c9541980ed2416c4534efdc46f3f9a3",
+        "bytes": 116140,
+        "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/re2bv0bf",
+        "execution_source_sha256": {
+          "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+          "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+          "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+          "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+          "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+          "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+          "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+          "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+          "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+          "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+          "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+          "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+          "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+          "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+          "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+          "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+          "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+          "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+          "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+          "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+          "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+          "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+          "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+          "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+          "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+          "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+          "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+          "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+          "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+          "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+          "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+          "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+          "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+          "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+          "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+          "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+          "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+          "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+        }
+      },
+      "native": {
+        "name": "full_native",
+        "method": "rainbow-prompt",
+        "pass": "validation",
+        "mode": "full_validation",
+        "side": "native",
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/full_native/result.json",
+        "sha256": "22895a1f3fb28ca0d9a7ea378751293c05054f123238427269736d596e582071",
+        "bytes": 119004,
+        "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/l4jra261",
+        "execution_source_sha256": {
+          "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+          "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+          "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+          "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+          "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+          "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+          "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+          "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+          "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+          "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+          "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+          "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+          "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+          "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+          "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+          "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+          "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+          "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+          "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+          "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+          "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+          "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+          "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+          "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+          "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+          "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+          "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+          "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+          "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+          "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+          "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+          "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+          "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+          "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+          "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+          "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+          "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+          "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+        }
+      },
+      "aggregate_excluded": true
+    },
+    "short": {
+      "acceptance": {
+        "status": "pass",
+        "accuracy_metrics": [
+          {
+            "metric": "task1_seen_accuracy",
+            "reference_pct": 98.4,
+            "native_pct": 98.4,
+            "drop_pp": 0.0,
+            "status": "pass"
+          }
+        ],
+        "thresholds": {
+          "pass_max_drop_pp": 1.5,
+          "review_max_drop_pp": 3.0,
+          "first_task_minimum_accuracy_pct": 90.0,
+          "task2_collapse_floor_pct": 20.0
+        },
+        "structural_checks_pass": true,
+        "input_checks": {
+          "initial_state_sha256_matches": true,
+          "initial_learned_sha256_matches": true,
+          "data_files_matches": true,
+          "sample_stream_audits_matches": true,
+          "all_epoch_first_batch_inputs_match": true,
+          "initial_first_batch_gradient_matches": true,
+          "task1_train_matches": true,
+          "task1_test_matches": true,
+          "task1_prediction_inputs_match": true
+        },
+        "prediction_checks": {
+          "task1": {
+            "labels_match": true,
+            "global_ids_match": true,
+            "evaluation_global_ids_match": true,
+            "prediction_arrays_match": true,
+            "reference_predictions": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_author/task1_predictions.npz",
+              "sha256": "a551675b216b1ee0adb698d11a9326e6cb1f34bd9502318c612b07ef8933d076",
+              "bytes": 6277
+            },
+            "native_predictions": {
+              "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_native/task1_predictions.npz",
+              "sha256": "a551675b216b1ee0adb698d11a9326e6cb1f34bd9502318c612b07ef8933d076",
+              "bytes": 6277
+            }
+          }
+        },
+        "reference_result": {
+          "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_author/result.json",
+          "sha256": "8d2f1f5807df26a9684e62e2908eb7c7f8ef0fa6c5ef01d29f2579d7f129ba08",
+          "bytes": 31098
+        },
+        "native_result": {
+          "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_native/result.json",
+          "sha256": "c9648cfb3aa3c4ace4789a7a44fb239b0f1f09bfdca3cff44e30bd66609fd6b4",
+          "bytes": 33935
+        },
+        "gradient_diagnostics": [
+          {
+            "task": 1,
+            "epoch": 1,
+            "gradient_sha256_matches": true
+          }
+        ],
+        "final_learned_state_matches": [
+          true
+        ],
+        "measurement_aggregate_eligible": false
+      },
+      "acceptance_file": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_acceptance.json",
+        "sha256": "e511e617767384992c2a7c2ed6370457adf98ad11522308855a7a64cd2fb46d8",
+        "bytes": 2348
+      },
+      "reference": {
+        "name": "short_author",
+        "method": "rainbow-prompt",
+        "pass": "validation",
+        "mode": "short_validation",
+        "side": "author",
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_author/result.json",
+        "sha256": "8d2f1f5807df26a9684e62e2908eb7c7f8ef0fa6c5ef01d29f2579d7f129ba08",
+        "bytes": 31098,
+        "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/4ahxenl5",
+        "execution_source_sha256": {
+          "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+          "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+          "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+          "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+          "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+          "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+          "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+          "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+          "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+          "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+          "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+          "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+          "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+          "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+          "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+          "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+          "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+          "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+          "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+          "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+          "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+          "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+          "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+          "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+          "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+          "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+          "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+          "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+          "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+          "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+          "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+          "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+          "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+          "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+          "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+          "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+          "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+          "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+        }
+      },
+      "native": {
+        "name": "short_native",
+        "method": "rainbow-prompt",
+        "pass": "validation",
+        "mode": "short_validation",
+        "side": "native",
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/short_native/result.json",
+        "sha256": "c9648cfb3aa3c4ace4789a7a44fb239b0f1f09bfdca3cff44e30bd66609fd6b4",
+        "bytes": 33935,
+        "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/kuyl4nxq",
+        "execution_source_sha256": {
+          "backbone/rainbow_vit.py": "93b85710bc75c63a33b271a79aef86d7fa2243b4f67deb732f9c7267d42df5d0",
+          "benchmarks/cl_efficiency/ease/execution_results.json": "927a1197637f0395f60a93219bc5b997f3678324d8d47d5d7b9c2ec9c57fb706",
+          "benchmarks/cl_efficiency/ease/native_validation_results.json": "5d657819cd37682b6aa66a72a09f4c530657bff4f853d115366e90e1ed4437f0",
+          "benchmarks/cl_efficiency/ease/validation_plan.json": "6df82df64f799e45f5d526417cf8a1271c1ce65508a031e9ca5b3de72ee158f0",
+          "benchmarks/cl_efficiency/rainbow_prompt/run_plan.json": "349398caeb6bee1ea7a4060d5879e8b521bf72e84d236de33476354ccd72a4ca",
+          "benchmarks/cl_efficiency/rainbow_prompt/source_review.json": "e5bd12109b4e2e2c2385a76baf1e0a3a50f4495e7748b73a1c2de6fde2743547",
+          "benchmarks/cl_efficiency/rainbow_prompt/validation_plan.json": "875430a86d2e7892d29688073087c95624253edd63132ebe9cf3707d9b78333e",
+          "datasets/configs/seq-cifar100-224/ease.yaml": "f2e664215989aeda4ba8853c82c22e2bce944e545ae9be87853a509ea1a37732",
+          "datasets/seq_cifar100.py": "53c012c88ee8e7ee1dad5b175fd92a1b3fe94074c240fe1adb5251267150664d",
+          "datasets/seq_cifar100_224.py": "1d606b05951b50c82677bb19b74083f00d7f69d9047793d9eb0cd6be22831f41",
+          "datasets/utils/continual_dataset.py": "65a12ec2c0c75428eb70e4dc6afb7b32a3a10eb9b3aacdc59328b9c034188975",
+          "main.py": "6c71d4772b6cb43c6e87357930ff97bb00577095d1bc2534d40ab488c827a576",
+          "models/config/rainbow_prompt.yaml": "8cfd002990d2ed1222813bdc3528694797da199e9ba79a7779bfb7bd28e084e0",
+          "models/hide_prompt_utils/vit.py": "a2a496647a15da5b207b3bb3e3294745d879f85b24cb3e587f31923c6ab2f399",
+          "models/rainbow_prompt.py": "a4e665757fe2ac727eae79777a34d3f4b920f854f84bd577a880d2c2ce9ef94a",
+          "models/rainbow_prompt_utils/__init__.py": "9e8ccbe10965b9e4383eb014dd3ec0167781ad422950f9fa98aa1f2329aa233d",
+          "models/rainbow_prompt_utils/network.py": "d351eaab8da364de0aba7aceb7bd6c89db527edaa953f3b666ce3afb4b15ccbc",
+          "models/rainbow_prompt_utils/prompt.py": "98d325fd6619811a288f9b1ddaa575accc52ffbdc887eb714aa9c326fb7245f7",
+          "models/rainbow_prompt_utils/vit.py": "41b76d2d0239c60eb87e59e145620d6b11a52601cae447abbf7c7790e3e8fb9a",
+          "models/utils/continual_model.py": "b1cccd9fa23875ef92b754bfb4b3a16e69c3a408fb003803edfe9bec9ba85b28",
+          "scripts/benchmark_cl.py": "0cbd3afde140d9ac387633a0d80828124fe2ab451466179000e572757ed659e8",
+          "scripts/cl_efficiency.py": "c4637a4a85e4d204eb11cf3d1b296d0c9d953f73db4c3be32e0040b1bca818f0",
+          "scripts/cl_runtime.py": "9ea8004f89c97321b4fcd5c0ec96621f699f625beb5f0d4e1d33636541f79bbe",
+          "scripts/ease_reference_utils.py": "acf2f27b729c2c9f4ffae9dc4ecbcef70bac4f6da259f5a3f7d99a91fb3c9b64",
+          "scripts/ease_size_protocol.py": "339194b58c77e7b863f86f8c090a31dd0a29cb1584488ef47d7425336dde8576",
+          "scripts/hide_protocol.py": "532f16f4760a404e5f3b5239107bf91805aff4fd7fcf87f2a8db0ccaff3c6631",
+          "scripts/low_rank_protocol.py": "4def8395a0f25bb5c42f80afaf2d9b33a2924869bf89c77a0b9877fd9345f9f7",
+          "scripts/rainbow_protocol.py": "00070e6e78fe07e6a09fa76e20d5d9e33508076a0289921bc39bf9192398e943",
+          "scripts/rainbow_reference_utils.py": "34ea954dbb5f8e79cf87895565ceaca269e1c1e111a19bd3d333b89b3984c1b3",
+          "scripts/report_hide_results.py": "83d68b3c19d01a9e22a1787a32fbe8783c2779ebf5f8d9190caa668d6278bed3",
+          "scripts/report_rainbow_validation.py": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+          "scripts/run_low_rank_efficiency.py": "f45368a6110d3e6b79a3f92df237f89b8b6b67ca4d826e603f3f2f8dab8722d8",
+          "scripts/run_peft_efficiency.py": "266827beff655d82a5a84392f105fceb0976070c3d77b0e6cb4b541a96582588",
+          "scripts/run_rainbow_suite.py": "61f09e644caebeae454f8b878d55ea0dc4479bd8e6f36b09385623f559556b24",
+          "scripts/run_rainbow_worker.py": "2bafaedb7f145d9a1d4e5f8539f8d79bc9d59a9dbdc60c40e60f1d5e0a10be07",
+          "utils/evaluate.py": "24bc49704b682ac14a332bd8f955ace9d4411a24779928067c0ff3f27e4bdc76",
+          "utils/training.py": "b10f39116065ba33843090431af3c8fb03d64fe7f22a5e29acaf03e73507ef76",
+          "uv.lock": "6c9179255d5064da3b813ec9cae00206661094da41107db1bc8d7d270fe48506"
+        }
+      },
+      "aggregate_excluded": true
+    }
+  },
+  "pilot": {
+    "model": "rainbow-prompt",
+    "label": "RainbowPrompt (official active path; warm-up 0)",
+    "historical_reuse": false,
+    "protocol": {
+      "method": "rainbow-prompt",
+      "source_mode": "official-active-path",
+      "learned_gate_active": false,
+      "paper_equivalent": false,
+      "dataset": "seq-cifar100-224",
+      "dataset_config": "ease",
+      "dataset_total_tasks": 10,
+      "classes_per_task": 10,
+      "tasks": 1,
+      "n_epochs": 1,
+      "warmup_epochs": 0,
+      "batch_size": 64,
+      "num_workers": 4,
+      "seed": 1993,
+      "vit_size": "base",
+      "prompt_length": 20,
+      "pool_size": 10,
+      "D1": 56,
+      "D2": 96,
+      "KI_iter": 10,
+      "prompt_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "self_attn_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "balancing": 0.01,
+      "optimizer": "adam",
+      "nominal_lr": 0.03,
+      "effective_lr": 0.0075,
+      "weight_decay": 0.0,
+      "clip_grad": 1.0,
+      "backward_retain_graph": true,
+      "seen_class_evaluation": true,
+      "batch_mean_routing": true,
+      "measurement_aggregate_eligible": true
+    },
+    "measurement_count": 3,
+    "resources": {
+      "process_wall_s": {
+        "values": [
+          34.413785159995314,
+          34.55231336696306,
+          34.52462999796262
+        ],
+        "available_count": 3,
+        "mean": 34.496909508307,
+        "std_sample": 0.0733064471345148,
+        "median": 34.52462999796262,
+        "min": 34.413785159995314,
+        "max": 34.55231336696306
+      },
+      "process_tree_cpu_s": {
+        "values": [
+          44.917982,
+          45.152801000000004,
+          45.213129
+        ],
+        "available_count": 3,
+        "mean": 45.09463733333334,
+        "std_sample": 0.1559333094381487,
+        "median": 45.152801000000004,
+        "min": 44.917982,
+        "max": 45.213129
+      },
+      "gpu_board_energy_wh": {
+        "values": [
+          2.753890336612148,
+          2.8001615082079985,
+          2.801643538143806
+        ],
+        "available_count": 3,
+        "mean": 2.7852317943213176,
+        "std_sample": 0.027152611875920822,
+        "median": 2.8001615082079985,
+        "min": 2.753890336612148,
+        "max": 2.801643538143806
+      },
+      "gpu_board_energy_j": {
+        "values": [
+          9914.005211803733,
+          10080.581429548794,
+          10085.9167373177
+        ],
+        "available_count": 3,
+        "mean": 10026.834459556743,
+        "std_sample": 97.74940275331497,
+        "median": 10080.581429548794,
+        "min": 9914.005211803733,
+        "max": 10085.9167373177
+      },
+      "gpu_energy_coverage_fraction": {
+        "values": [
+          0.9986639980381488,
+          0.9986292838787463,
+          0.9986746600632177
+        ],
+        "available_count": 3,
+        "mean": 0.9986559806600376,
+        "std_sample": 2.3726742151618707e-05,
+        "median": 0.9986639980381488,
+        "min": 0.9986292838787463,
+        "max": 0.9986746600632177
+      },
+      "cuda_peak_allocated_mib": {
+        "values": [
+          12383.0400390625,
+          12383.0400390625,
+          12383.0400390625
+        ],
+        "available_count": 3,
+        "mean": 12383.0400390625,
+        "std_sample": 0.0,
+        "median": 12383.0400390625,
+        "min": 12383.0400390625,
+        "max": 12383.0400390625
+      },
+      "cuda_peak_reserved_mib": {
+        "values": [
+          13380.0,
+          13380.0,
+          13380.0
+        ],
+        "available_count": 3,
+        "mean": 13380.0,
+        "std_sample": 0.0,
+        "median": 13380.0,
+        "min": 13380.0,
+        "max": 13380.0
+      },
+      "peak_process_tree_rss_mib": {
+        "values": [
+          15675.25390625,
+          15653.0078125,
+          15976.296875
+        ],
+        "available_count": 3,
+        "mean": 15768.186197916666,
+        "std_sample": 180.57204271106318,
+        "median": 15675.25390625,
+        "min": 15653.0078125,
+        "max": 15976.296875
+      },
+      "peak_gpu_device_memory_mib": {
+        "values": [
+          13871.0,
+          13871.0,
+          13871.0
+        ],
+        "available_count": 3,
+        "mean": 13871.0,
+        "std_sample": 0.0,
+        "median": 13871.0,
+        "min": 13871.0,
+        "max": 13871.0
+      },
+      "outer_training_examples_per_s": {
+        "values": [
+          220.35274748517966,
+          220.21977734254517,
+          219.78404500825397
+        ],
+        "available_count": 3,
+        "mean": 220.11885661199292,
+        "std_sample": 0.29748003665246636,
+        "median": 220.21977734254517,
+        "min": 219.78404500825397,
+        "max": 220.35274748517966
+      },
+      "evaluation_examples_per_s": {
+        "values": [
+          374.0365116784093,
+          373.6550928557977,
+          373.6857341497426
+        ],
+        "available_count": 3,
+        "mean": 373.7924462279832,
+        "std_sample": 0.21192140121380504,
+        "median": 373.6857341497426,
+        "min": 373.6550928557977,
+        "max": 374.0365116784093
+      }
+    },
+    "phases": {
+      "begin_epoch": {
+        "wall_s": {
+          "values": [
+            0.00023120397236198187,
+            0.0002208310179412365,
+            0.00022387399803847075
+          ],
+          "available_count": 3,
+          "mean": 0.00022530299611389637,
+          "std_sample": 5.332079564146886e-06,
+          "median": 0.00022387399803847075,
+          "min": 0.0002208310179412365,
+          "max": 0.00023120397236198187
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            0.013507560975558948,
+            0.015296999111770375,
+            0.015721771665294943
+          ],
+          "available_count": 3,
+          "mean": 0.014842110584208089,
+          "std_sample": 0.0011751063458326342,
+          "median": 0.015296999111770375,
+          "min": 0.013507560975558948,
+          "max": 0.015721771665294943
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            0.00023120397236198187,
+            0.0002208310179412365,
+            0.00022387399803847075
+          ],
+          "available_count": 3,
+          "mean": 0.00022530299611389637,
+          "std_sample": 5.332079564146886e-06,
+          "median": 0.00022387399803847075,
+          "min": 0.0002208310179412365,
+          "max": 0.00023120397236198187
+        }
+      },
+      "begin_task": {
+        "wall_s": {
+          "values": [
+            0.007241829007398337,
+            0.007176774030085653,
+            0.007158440013881773
+          ],
+          "available_count": 3,
+          "mean": 0.007192347683788587,
+          "std_sample": 4.382162796120883e-05,
+          "median": 0.007176774030085653,
+          "min": 0.007158440013881773,
+          "max": 0.007241829007398337
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            0.4232428364609905,
+            0.49398093410706445,
+            0.49937487702091526
+          ],
+          "available_count": 3,
+          "mean": 0.4721995491963234,
+          "std_sample": 0.042483449088167285,
+          "median": 0.49398093410706445,
+          "min": 0.4232428364609905,
+          "max": 0.49937487702091526
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            0.007241829007398337,
+            0.007176774030085653,
+            0.007158440013881773
+          ],
+          "available_count": 3,
+          "mean": 0.007192347683788587,
+          "std_sample": 4.382162796120883e-05,
+          "median": 0.007176774030085653,
+          "min": 0.007158440013881773,
+          "max": 0.007241829007398337
+        }
+      },
+      "checkpoint": {
+        "wall_s": {
+          "values": [
+            0.09380458202213049,
+            0.09489914501318708,
+            0.09408790001180023
+          ],
+          "available_count": 3,
+          "mean": 0.0942638756823726,
+          "std_sample": 0.000568104403100992,
+          "median": 0.09408790001180023,
+          "min": 0.09380458202213049,
+          "max": 0.09489914501318708
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            31.301040663720777,
+            31.42267703167721,
+            31.683253547999815
+          ],
+          "available_count": 3,
+          "mean": 31.468990414465935,
+          "std_sample": 0.19526999077233176,
+          "median": 31.42267703167721,
+          "min": 31.301040663720777,
+          "max": 31.683253547999815
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            0.09380458202213049,
+            0.09489914501318708,
+            0.09408790001180023
+          ],
+          "available_count": 3,
+          "mean": 0.0942638756823726,
+          "std_sample": 0.000568104403100992,
+          "median": 0.09408790001180023,
+          "min": 0.09380458202213049,
+          "max": 0.09489914501318708
+        }
+      },
+      "checkpoint_probe": {
+        "wall_s": {
+          "values": [
+            0.0960526029812172,
+            0.0961245620273985,
+            0.09604950697394088
+          ],
+          "available_count": 3,
+          "mean": 0.09607555732751887,
+          "std_sample": 4.246753787287051e-05,
+          "median": 0.0960526029812172,
+          "min": 0.09604950697394088,
+          "max": 0.0961245620273985
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            29.52925573964521,
+            29.670847584181093,
+            30.486575642576387
+          ],
+          "available_count": 3,
+          "mean": 29.895559655467565,
+          "std_sample": 0.5167078336675676,
+          "median": 29.670847584181093,
+          "min": 29.52925573964521,
+          "max": 30.486575642576387
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            0.0960526029812172,
+            0.0961245620273985,
+            0.09604950697394088
+          ],
+          "available_count": 3,
+          "mean": 0.09607555732751887,
+          "std_sample": 4.246753787287051e-05,
+          "median": 0.0960526029812172,
+          "min": 0.09604950697394088,
+          "max": 0.0961245620273985
+        }
+      },
+      "data_loading": {
+        "wall_s": {
+          "values": [
+            0.8029707730165683,
+            0.7966025510104373,
+            0.7974126079934649
+          ],
+          "available_count": 3,
+          "mean": 0.7989953106734902,
+          "std_sample": 0.003466593963801068,
+          "median": 0.7974126079934649,
+          "min": 0.7966025510104373,
+          "max": 0.8029707730165683
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            46.99489898902301,
+            52.23146757407462,
+            50.58497192646314
+          ],
+          "available_count": 3,
+          "mean": 49.93711282985359,
+          "std_sample": 2.6777236028541433,
+          "median": 50.58497192646314,
+          "min": 46.99489898902301,
+          "max": 52.23146757407462
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            0.8029707730165683,
+            0.7966025510104373,
+            0.7974126079934649
+          ],
+          "available_count": 3,
+          "mean": 0.7989953106734902,
+          "std_sample": 0.003466593963801068,
+          "median": 0.7974126079934649,
+          "min": 0.7966025510104373,
+          "max": 0.8029707730165683
+        }
+      },
+      "end_epoch": {
+        "wall_s": {
+          "values": [
+            5.776097532361746e-05,
+            3.413599915802479e-05,
+            3.494700649753213e-05
+          ],
+          "available_count": 3,
+          "mean": 4.228132699305812e-05,
+          "std_sample": 1.3411900221613824e-05,
+          "median": 3.494700649753213e-05,
+          "min": 3.413599915802479e-05,
+          "max": 5.776097532361746e-05
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            0.02175501979235147,
+            0.012992877703581054,
+            0.0129695912499533
+          ],
+          "available_count": 3,
+          "mean": 0.01590582958196194,
+          "std_sample": 0.00506556069480153,
+          "median": 0.012992877703581054,
+          "min": 0.0129695912499533,
+          "max": 0.02175501979235147
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            5.776097532361746e-05,
+            3.413599915802479e-05,
+            3.494700649753213e-05
+          ],
+          "available_count": 3,
+          "mean": 4.228132699305812e-05,
+          "std_sample": 1.3411900221613824e-05,
+          "median": 3.494700649753213e-05,
+          "min": 3.413599915802479e-05,
+          "max": 5.776097532361746e-05
+        }
+      },
+      "end_task": {
+        "wall_s": {
+          "values": [
+            0.000122225028462708,
+            0.00011098803952336311,
+            0.0001279159914702177
+          ],
+          "available_count": 3,
+          "mean": 0.00012037635315209627,
+          "std_sample": 8.61406347676888e-06,
+          "median": 0.000122225028462708,
+          "min": 0.00011098803952336311,
+          "max": 0.0001279159914702177
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            0.0459498298001779,
+            0.042171811363226584,
+            0.047389331843326325
+          ],
+          "available_count": 3,
+          "mean": 0.04517032433557694,
+          "std_sample": 0.002694689512183571,
+          "median": 0.0459498298001779,
+          "min": 0.042171811363226584,
+          "max": 0.047389331843326325
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            0.000122225028462708,
+            0.00011098803952336311,
+            0.0001279159914702177
+          ],
+          "available_count": 3,
+          "mean": 0.00012037635315209627,
+          "std_sample": 8.61406347676888e-06,
+          "median": 0.000122225028462708,
+          "min": 0.00011098803952336311,
+          "max": 0.0001279159914702177
+        }
+      },
+      "evaluation": {
+        "wall_s": {
+          "values": [
+            2.67353578802431,
+            2.6762648739968427,
+            2.676045426982455
+          ],
+          "available_count": 3,
+          "mean": 2.675282029667869,
+          "std_sample": 0.0015162648701022318,
+          "median": 2.676045426982455,
+          "min": 2.67353578802431,
+          "max": 2.6762648739968427
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            1039.192067922907,
+            1038.3169906708022,
+            1052.0631947925986
+          ],
+          "available_count": 3,
+          "mean": 1043.1907511287693,
+          "std_sample": 7.696208967742275,
+          "median": 1039.192067922907,
+          "min": 1038.3169906708022,
+          "max": 1052.0631947925986
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            2.67353578802431,
+            2.6762648739968427,
+            2.676045426982455
+          ],
+          "available_count": 3,
+          "mean": 2.675282029667869,
+          "std_sample": 0.0015162648701022318,
+          "median": 2.676045426982455,
+          "min": 2.67353578802431,
+          "max": 2.6762648739968427
+        }
+      },
+      "initialize": {
+        "wall_s": {
+          "values": [
+            1.9258995080017485,
+            1.9352852620068006,
+            1.941360899945721
+          ],
+          "available_count": 3,
+          "mean": 1.9341818899847567,
+          "std_sample": 0.007789527108596313,
+          "median": 1.9352852620068006,
+          "min": 1.9258995080017485,
+          "max": 1.941360899945721
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            50.756445919152554,
+            50.447364640993094,
+            43.578894640805885
+          ],
+          "available_count": 3,
+          "mean": 48.26090173365051,
+          "std_sample": 4.057681064624561,
+          "median": 50.447364640993094,
+          "min": 43.578894640805885,
+          "max": 50.756445919152554
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            1.9258995080017485,
+            1.9352852620068006,
+            1.941360899945721
+          ],
+          "available_count": 3,
+          "mean": 1.9341818899847567,
+          "std_sample": 0.007789527108596313,
+          "median": 1.9352852620068006,
+          "min": 1.9258995080017485,
+          "max": 1.941360899945721
+        }
+      },
+      "state_audit": {
+        "wall_s": {
+          "values": [
+            0.8695795229868963,
+            0.9998707229970023,
+            0.8701932129915804
+          ],
+          "available_count": 3,
+          "mean": 0.9132144863251597,
+          "std_sample": 0.07504712965497258,
+          "median": 0.8701932129915804,
+          "min": 0.8695795229868963,
+          "max": 0.9998707229970023
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            197.87405750273211,
+            249.22170982908256,
+            189.24125290246957
+          ],
+          "available_count": 3,
+          "mean": 212.11234007809475,
+          "std_sample": 32.426228909683985,
+          "median": 197.87405750273211,
+          "min": 189.24125290246957,
+          "max": 249.22170982908256
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            0.8695795229868963,
+            0.9998707229970023,
+            0.8701932129915804
+          ],
+          "available_count": 3,
+          "mean": 0.9132144863251597,
+          "std_sample": 0.07504712965497258,
+          "median": 0.8701932129915804,
+          "min": 0.8695795229868963,
+          "max": 0.9998707229970023
+        }
+      },
+      "train_epoch": {
+        "wall_s": {
+          "values": [
+            22.69089020701358,
+            22.704591115005314,
+            22.74960404797457
+          ],
+          "available_count": 3,
+          "mean": 22.715028456664488,
+          "std_sample": 0.030716971787285312,
+          "median": 22.704591115005314,
+          "min": 22.69089020701358,
+          "max": 22.74960404797457
+        },
+        "gpu_board_energy_j": {
+          "values": [
+            8345.455811445161,
+            8434.151212923303,
+            8482.532084516914
+          ],
+          "available_count": 3,
+          "mean": 8420.713036295127,
+          "std_sample": 69.51916716365336,
+          "median": 8434.151212923303,
+          "min": 8345.455811445161,
+          "max": 8482.532084516914
+        },
+        "gpu_energy_coverage_s": {
+          "values": [
+            22.69089020701358,
+            22.704591115005314,
+            22.74960404797457
+          ],
+          "available_count": 3,
+          "mean": 22.715028456664488,
+          "std_sample": 0.030716971787285312,
+          "median": 22.704591115005314,
+          "min": 22.69089020701358,
+          "max": 22.74960404797457
+        }
+      }
+    },
+    "parameters": {
+      "after_begin_task": {
+        "parameters_total": {
+          "values": [
+            178195688,
+            178195688,
+            178195688
+          ],
+          "available_count": 3,
+          "mean": 178195688,
+          "std_sample": 0.0,
+          "median": 178195688,
+          "min": 178195688,
+          "max": 178195688
+        },
+        "parameters_trainable": {
+          "values": [
+            6521476,
+            6521476,
+            6521476
+          ],
+          "available_count": 3,
+          "mean": 6521476,
+          "std_sample": 0.0,
+          "median": 6521476,
+          "min": 6521476,
+          "max": 6521476
+        },
+        "parameters_in_optimizer": {
+          "values": [
+            6521476,
+            6521476,
+            6521476
+          ],
+          "available_count": 3,
+          "mean": 6521476,
+          "std_sample": 0.0,
+          "median": 6521476,
+          "min": 6521476,
+          "max": 6521476
+        },
+        "parameter_storage_bytes": {
+          "values": [
+            712782752,
+            712782752,
+            712782752
+          ],
+          "available_count": 3,
+          "mean": 712782752,
+          "std_sample": 0.0,
+          "median": 712782752,
+          "min": 712782752,
+          "max": 712782752
+        },
+        "registered_buffer_storage_bytes": {
+          "values": [
+            7372979,
+            7372979,
+            7372979
+          ],
+          "available_count": 3,
+          "mean": 7372979,
+          "std_sample": 0.0,
+          "median": 7372979,
+          "min": 7372979,
+          "max": 7372979
+        },
+        "optimizer_state_storage_bytes": {
+          "values": [
+            0,
+            0,
+            0
+          ],
+          "available_count": 3,
+          "mean": 0,
+          "std_sample": 0.0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "after_end_task": {
+        "parameters_total": {
+          "values": [
+            178195688,
+            178195688,
+            178195688
+          ],
+          "available_count": 3,
+          "mean": 178195688,
+          "std_sample": 0.0,
+          "median": 178195688,
+          "min": 178195688,
+          "max": 178195688
+        },
+        "parameters_trainable": {
+          "values": [
+            6521476,
+            6521476,
+            6521476
+          ],
+          "available_count": 3,
+          "mean": 6521476,
+          "std_sample": 0.0,
+          "median": 6521476,
+          "min": 6521476,
+          "max": 6521476
+        },
+        "parameters_in_optimizer": {
+          "values": [
+            6521476,
+            6521476,
+            6521476
+          ],
+          "available_count": 3,
+          "mean": 6521476,
+          "std_sample": 0.0,
+          "median": 6521476,
+          "min": 6521476,
+          "max": 6521476
+        },
+        "parameter_storage_bytes": {
+          "values": [
+            712782752,
+            712782752,
+            712782752
+          ],
+          "available_count": 3,
+          "mean": 712782752,
+          "std_sample": 0.0,
+          "median": 712782752,
+          "min": 712782752,
+          "max": 712782752
+        },
+        "registered_buffer_storage_bytes": {
+          "values": [
+            7372979,
+            7372979,
+            7372979
+          ],
+          "available_count": 3,
+          "mean": 7372979,
+          "std_sample": 0.0,
+          "median": 7372979,
+          "min": 7372979,
+          "max": 7372979
+        },
+        "optimizer_state_storage_bytes": {
+          "values": [
+            52172444,
+            52172444,
+            52172444
+          ],
+          "available_count": 3,
+          "mean": 52172444,
+          "std_sample": 0.0,
+          "median": 52172444,
+          "min": 52172444,
+          "max": 52172444
+        }
+      },
+      "after_task1": {
+        "parameters_total": {
+          "values": [
+            178195688,
+            178195688,
+            178195688
+          ],
+          "available_count": 3,
+          "mean": 178195688,
+          "std_sample": 0.0,
+          "median": 178195688,
+          "min": 178195688,
+          "max": 178195688
+        },
+        "parameters_trainable": {
+          "values": [
+            6521476,
+            6521476,
+            6521476
+          ],
+          "available_count": 3,
+          "mean": 6521476,
+          "std_sample": 0.0,
+          "median": 6521476,
+          "min": 6521476,
+          "max": 6521476
+        },
+        "parameters_in_optimizer": {
+          "values": [
+            6521476,
+            6521476,
+            6521476
+          ],
+          "available_count": 3,
+          "mean": 6521476,
+          "std_sample": 0.0,
+          "median": 6521476,
+          "min": 6521476,
+          "max": 6521476
+        },
+        "parameter_storage_bytes": {
+          "values": [
+            712782752,
+            712782752,
+            712782752
+          ],
+          "available_count": 3,
+          "mean": 712782752,
+          "std_sample": 0.0,
+          "median": 712782752,
+          "min": 712782752,
+          "max": 712782752
+        },
+        "registered_buffer_storage_bytes": {
+          "values": [
+            7372979,
+            7372979,
+            7372979
+          ],
+          "available_count": 3,
+          "mean": 7372979,
+          "std_sample": 0.0,
+          "median": 7372979,
+          "min": 7372979,
+          "max": 7372979
+        },
+        "optimizer_state_storage_bytes": {
+          "values": [
+            52172444,
+            52172444,
+            52172444
+          ],
+          "available_count": 3,
+          "mean": 52172444,
+          "std_sample": 0.0,
+          "median": 52172444,
+          "min": 52172444,
+          "max": 52172444
+        }
+      }
+    },
+    "not_applicable_phases": [],
+    "accuracy_pct": {
+      "values": [
+        98.4,
+        98.4,
+        98.4
+      ],
+      "available_count": 3,
+      "mean": 98.4,
+      "std_sample": 0.0,
+      "median": 98.4,
+      "min": 98.4,
+      "max": 98.4
+    },
+    "counts": [
+      {
+        "observe_calls": 79,
+        "optimizer_updates": 79,
+        "task_begin_extra_samples": 0,
+        "task_end_extra_samples": 0
+      },
+      {
+        "observe_calls": 79,
+        "optimizer_updates": 79,
+        "task_begin_extra_samples": 0,
+        "task_end_extra_samples": 0
+      },
+      {
+        "observe_calls": 79,
+        "optimizer_updates": 79,
+        "task_begin_extra_samples": 0,
+        "task_end_extra_samples": 0
+      }
+    ],
+    "flops": {
+      "supported_ops_total": 603752957284142,
+      "partial": true,
+      "includes_backward_only_if_supported": true,
+      "scope": "Supported operators across initialization, full training, evaluation, live audits and checkpoint probes in this separate pass",
+      "limitations": "Unsupported or fused operators, optimizer, CPU/PIL transforms and serialization may be omitted; no backward multiplier or phase attribution",
+      "measurement_aggregate_eligible": false
+    },
+    "flops_wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/hiic8qut",
+    "wandb_urls": [
+      "https://wandb.ai/laymond1/cl-efficiency/runs/hfwbbdy0",
+      "https://wandb.ai/laymond1/cl-efficiency/runs/7o1yjgdh",
+      "https://wandb.ai/laymond1/cl-efficiency/runs/dzh6il94"
+    ],
+    "changed_recipe": true,
+    "n_epochs": 1,
+    "warmup_epochs": 0,
+    "broad_comparison": false
+  },
+  "execution": {
+    "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/rainbow_validation_20261008/execution.json",
+    "sha256": "cc032dfa62df152d4d18899d039c4cb20415040507b5247ff17335fc7e61afb7",
+    "bytes": 31467
+  },
+  "report_generator": {
+    "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/scripts/report_rainbow_validation.py",
+    "sha256": "f6fdb826c5ac9779ac5686e6cd3b1d6afda738171c4ca39f9784c14f107d652b",
+    "bytes": 37757
+  },
+  "structural_check_count": 17,
+  "scope": {
+    "source_mode": "official-active-path",
+    "source_commit": "0b84d3e3738669fe4bb516ccc1c526a535576ad3",
+    "learned_gate_active": false,
+    "gate_sparsity_loss_active": false,
+    "paper_reproduction": false,
+    "validation_tasks": 2,
+    "validation_epochs_per_task": 20,
+    "validation_warmup_epochs": 5,
+    "pilot_tasks": 1,
+    "pilot_epochs": 1,
+    "pilot_warmup_epochs": 0,
+    "changed_pilot_recipe": true,
+    "reference_recipe_adaptations": {
+      "batch_size": 64,
+      "seed": 1993,
+      "seen_class_evaluation": true,
+      "common_actual_transforms": true
+    },
+    "broad_comparison": false,
+    "prior_nine_method_report_changed": false,
+    "equal_compute_budget": false,
+    "full_ten_tasks": false,
+    "same_seed_repeats": true,
+    "seed_uncertainty_estimated": false,
+    "validation_and_profiler_costs_excluded": true,
+    "full_machine_energy_measured": false,
+    "flops": "partial supported-operator estimates"
+  }
+}
