@@ -1,0 +1,44 @@
+{
+  "status": "pass",
+  "frozen_training_commit": "bdad261",
+  "prelaunch_focused_tests": {
+    "passed": 265,
+    "duration_s": 5.03,
+    "command": "UV_CACHE_DIR=/tmp/cl-sd-recovery-uv uv run --no-sync --offline pytest -q tests/test_sd_recovery.py tests/test_sd_recovery_suite.py tests/test_sd_recovery_publication.py tests/test_low_rank_efficiency.py tests/test_low_rank_protocol.py tests/test_peft_efficiency.py tests/test_import.py::test_import_after_register tests/test_module_register.py::test_args_with_choices tests/test_module_register.py::test_register_backbone"
+  },
+  "termination_handler_recheck": {
+    "passed": 15,
+    "duration_s": 3.97,
+    "command": "UV_CACHE_DIR=/tmp/cl-sd-recovery-uv uv run --no-sync --offline pytest -q tests/test_sd_recovery_suite.py"
+  },
+  "final_focused_tests": {
+    "passed": 307,
+    "duration_s": 20.28,
+    "command": "UV_CACHE_DIR=/tmp/cl-sd-recovery-uv uv run --no-sync --offline pytest -q tests/test_sd_recovery.py tests/test_sd_recovery_suite.py tests/test_sd_recovery_report.py tests/test_sd_recovery_publication.py tests/test_low_rank_efficiency.py tests/test_low_rank_protocol.py tests/test_peft_efficiency.py tests/test_import.py::test_import_after_register tests/test_module_register.py::test_args_with_choices tests/test_module_register.py::test_register_backbone"
+  },
+  "native_smoke_and_measurements": {
+    "command": "uv run --no-sync --offline python scripts/run_sd_recovery_suite.py --execute",
+    "status": "completed",
+    "gpu_runs": 5,
+    "complete_updates_per_run": 79,
+    "train_examples_per_run": 5000,
+    "test_examples_per_run": 1000,
+    "all_accuracy_pct": 99.0,
+    "native_author_drop_pp": 0.0,
+    "native_network_and_predictions_identical_to_author": true,
+    "structural_checks_per_run": 13
+  },
+  "report_audit": {
+    "command": "UV_CACHE_DIR=/tmp/cl-sd-recovery-uv uv run --no-sync --offline python scripts/report_sd_recovery.py --write",
+    "method_count": 9,
+    "old_54_source_pins_unchanged": true,
+    "prior_8_method_summaries_unchanged": true,
+    "plot_visually_checked": true
+  },
+  "publication_dry_audit": {
+    "command": "UV_CACHE_DIR=/tmp/cl-sd-recovery-uv uv run --no-sync --offline python scripts/publish_sd_recovery.py",
+    "status": "pass"
+  },
+  "source_author_retrained": false,
+  "full_suite_run": false
+}
