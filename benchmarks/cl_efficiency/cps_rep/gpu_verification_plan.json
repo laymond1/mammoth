@@ -211,5 +211,19 @@
   "result_report": "benchmarks/cl_efficiency/cps_rep/gpu_validation/RESULTS.md",
   "report_artifact": "laymond1/cl-efficiency/cps-rep-validation-report-20261009:v0",
   "initial_learned_payload": "local only; report includes initialization hashes",
-  "next_stage_held": true
+  "next_stage_held": true,
+  "subsequent_rep_side_diagnostic": {
+    "status": "diagnostic_pass",
+    "minimum": 0.95,
+    "alpha": 0.99,
+    "accuracy_reference": "Swift ON / AToM ON / ALD OFF",
+    "max_decline_pp": 1.3,
+    "report": "benchmarks/cl_efficiency/cps_rep/rep_recovery/RESULTS.md",
+    "independent_confirmation_completed": false,
+    "historical_five_run_acceptance_changed": false,
+    "additional_training_executed_by_evidence_review": false,
+    "wandb_report": "https://wandb.ai/laymond1/cl-efficiency/runs/ow0evcva",
+    "artifact": "laymond1/cl-efficiency/rep-ald-recovery-evidence-20261009:v0",
+    "slack_completion_sent": true
+  }
 }

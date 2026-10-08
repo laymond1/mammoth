@@ -1,0 +1,527 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-09",
+  "status": "diagnostic_pass",
+  "selected_case": "minimum095-alpha099",
+  "source": "results/rep_ald_recovery_20261009_side",
+  "protocol": {
+    "dataset": "seq-cifar100-224",
+    "dataset_config": "unified",
+    "original_tasks": 10,
+    "tasks": 2,
+    "epochs_per_task": 3,
+    "batch_size": 64,
+    "seed": 1993,
+    "vit_size": "tiny",
+    "precision": "fp32",
+    "amp": false,
+    "tf32": false,
+    "optimizer": "adam",
+    "lr": 0.001,
+    "weight_decay": 0.0,
+    "scheduler": "CosineSchedule(K=3)",
+    "class_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99
+    ],
+    "num_workers": 2,
+    "cpu_threads": 2,
+    "pool_size": 100,
+    "prompt_length": 8,
+    "prompt_layers": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "ortho_mu": 0.0,
+    "cps": {
+      "reduction_ratio": 0.4,
+      "temperature": 0.1,
+      "phase_ratio": 0.4,
+      "joint_epochs": 1,
+      "head_epochs": 2,
+      "clip_grad": 1.0,
+      "pull_constraint_coeff": 1.0
+    },
+    "rep": {
+      "merge_max": 16,
+      "minimum": 0.95,
+      "gamma": 0.001,
+      "alpha": 0.99,
+      "threshold": 8
+    },
+    "comparison_scope": "implementation verification; not paper accuracy reproduction or efficiency pilot"
+  },
+  "component_flags": {
+    "swift": 1,
+    "atom": 1,
+    "ald": 1
+  },
+  "gate_reference": "Swift ON / AToM ON / ALD OFF",
+  "allowed_decline_pp": 1.5,
+  "reference_accuracies": [
+    {
+      "task": 1,
+      "seen_accuracy_pct": 94.6,
+      "old_accuracy_pct": null,
+      "new_accuracy_pct": 94.6
+    },
+    {
+      "task": 2,
+      "seen_accuracy_pct": 81.0,
+      "old_accuracy_pct": 81.39999999999999,
+      "new_accuracy_pct": 80.60000000000001
+    }
+  ],
+  "original_rep_on_accuracies": [
+    {
+      "task": 1,
+      "seen_accuracy_pct": 91.0,
+      "old_accuracy_pct": null,
+      "new_accuracy_pct": 91.0
+    },
+    {
+      "task": 2,
+      "seen_accuracy_pct": 74.8,
+      "old_accuracy_pct": 74.9,
+      "new_accuracy_pct": 74.7
+    }
+  ],
+  "frozen_coda_accuracies": [
+    {
+      "task": 1,
+      "seen_accuracy_pct": 94.3,
+      "old_accuracy_pct": null,
+      "new_accuracy_pct": 94.3
+    },
+    {
+      "task": 2,
+      "seen_accuracy_pct": 80.35,
+      "old_accuracy_pct": 80.60000000000001,
+      "new_accuracy_pct": 80.10000000000001
+    }
+  ],
+  "trials": {
+    "minimum075-alpha090": {
+      "parameters": {
+        "minimum": 0.75,
+        "alpha": 0.9
+      },
+      "accuracies": [
+        {
+          "task": 1,
+          "seen_accuracy_pct": 91.4,
+          "old_accuracy_pct": null,
+          "new_accuracy_pct": 91.4
+        },
+        {
+          "task": 2,
+          "seen_accuracy_pct": 76.75,
+          "old_accuracy_pct": 76.5,
+          "new_accuracy_pct": 77.0
+        }
+      ],
+      "comparisons_vs_ald_off": [
+        {
+          "task": 1,
+          "metric": "seen_accuracy_pct",
+          "decline_pp": 3.1999999999999886
+        },
+        {
+          "task": 1,
+          "metric": "new_accuracy_pct",
+          "decline_pp": 3.1999999999999886
+        },
+        {
+          "task": 2,
+          "metric": "seen_accuracy_pct",
+          "decline_pp": 4.25
+        },
+        {
+          "task": 2,
+          "metric": "old_accuracy_pct",
+          "decline_pp": 4.8999999999999915
+        },
+        {
+          "task": 2,
+          "metric": "new_accuracy_pct",
+          "decline_pp": 3.6000000000000085
+        }
+      ],
+      "max_decline_pp": 4.8999999999999915,
+      "recovery_gate": "hold",
+      "trace": {
+        "updates": 474,
+        "training_image_visits": 30000,
+        "block_decisions": 5688,
+        "skipped_block_decisions": 435,
+        "skip_fraction": 0.07647679324894514,
+        "mean_executed_blocks": 11.082278481012658,
+        "probability_decision_and_token_checks_passed": true,
+        "task_step_reset_verified": true
+      },
+      "train_phase": {
+        "wall_s": 71.32636773999548,
+        "calls": 6,
+        "gpu_board_energy_j": 9956.022477389322,
+        "gpu_energy_coverage_s": 71.32636773999548
+      },
+      "cuda_peak_allocated_mib": 1350.73095703125
+    },
+    "minimum075-alpha098": {
+      "parameters": {
+        "minimum": 0.75,
+        "alpha": 0.98
+      },
+      "accuracies": [
+        {
+          "task": 1,
+          "seen_accuracy_pct": 93.7,
+          "old_accuracy_pct": null,
+          "new_accuracy_pct": 93.7
+        },
+        {
+          "task": 2,
+          "seen_accuracy_pct": 78.8,
+          "old_accuracy_pct": 78.3,
+          "new_accuracy_pct": 79.3
+        }
+      ],
+      "comparisons_vs_ald_off": [
+        {
+          "task": 1,
+          "metric": "seen_accuracy_pct",
+          "decline_pp": 0.8999999999999915
+        },
+        {
+          "task": 1,
+          "metric": "new_accuracy_pct",
+          "decline_pp": 0.8999999999999915
+        },
+        {
+          "task": 2,
+          "metric": "seen_accuracy_pct",
+          "decline_pp": 2.200000000000003
+        },
+        {
+          "task": 2,
+          "metric": "old_accuracy_pct",
+          "decline_pp": 3.0999999999999943
+        },
+        {
+          "task": 2,
+          "metric": "new_accuracy_pct",
+          "decline_pp": 1.3000000000000114
+        }
+      ],
+      "max_decline_pp": 3.0999999999999943,
+      "recovery_gate": "hold",
+      "trace": {
+        "updates": 474,
+        "training_image_visits": 30000,
+        "block_decisions": 5688,
+        "skipped_block_decisions": 215,
+        "skip_fraction": 0.03779887482419128,
+        "mean_executed_blocks": 11.546413502109704,
+        "probability_decision_and_token_checks_passed": true,
+        "task_step_reset_verified": true
+      },
+      "train_phase": {
+        "wall_s": 71.31784741411684,
+        "calls": 6,
+        "gpu_board_energy_j": 10000.960932104621,
+        "gpu_energy_coverage_s": 71.31784741411684
+      },
+      "cuda_peak_allocated_mib": 1350.73095703125
+    },
+    "minimum090-alpha098": {
+      "parameters": {
+        "minimum": 0.9,
+        "alpha": 0.98
+      },
+      "accuracies": [
+        {
+          "task": 1,
+          "seen_accuracy_pct": 93.7,
+          "old_accuracy_pct": null,
+          "new_accuracy_pct": 93.7
+        },
+        {
+          "task": 2,
+          "seen_accuracy_pct": 79.75,
+          "old_accuracy_pct": 79.80000000000001,
+          "new_accuracy_pct": 79.7
+        }
+      ],
+      "comparisons_vs_ald_off": [
+        {
+          "task": 1,
+          "metric": "seen_accuracy_pct",
+          "decline_pp": 0.8999999999999915
+        },
+        {
+          "task": 1,
+          "metric": "new_accuracy_pct",
+          "decline_pp": 0.8999999999999915
+        },
+        {
+          "task": 2,
+          "metric": "seen_accuracy_pct",
+          "decline_pp": 1.25
+        },
+        {
+          "task": 2,
+          "metric": "old_accuracy_pct",
+          "decline_pp": 1.59999999999998
+        },
+        {
+          "task": 2,
+          "metric": "new_accuracy_pct",
+          "decline_pp": 0.9000000000000057
+        }
+      ],
+      "max_decline_pp": 1.59999999999998,
+      "recovery_gate": "hold",
+      "trace": {
+        "updates": 474,
+        "training_image_visits": 30000,
+        "block_decisions": 5688,
+        "skipped_block_decisions": 118,
+        "skip_fraction": 0.020745428973277073,
+        "mean_executed_blocks": 11.751054852320674,
+        "probability_decision_and_token_checks_passed": true,
+        "task_step_reset_verified": true
+      },
+      "train_phase": {
+        "wall_s": 71.36913843400544,
+        "calls": 6,
+        "gpu_board_energy_j": 10046.920917811696,
+        "gpu_energy_coverage_s": 71.36913843400544
+      },
+      "cuda_peak_allocated_mib": 1350.73095703125
+    },
+    "minimum095-alpha099": {
+      "parameters": {
+        "minimum": 0.95,
+        "alpha": 0.99
+      },
+      "accuracies": [
+        {
+          "task": 1,
+          "seen_accuracy_pct": 93.89999999999999,
+          "old_accuracy_pct": null,
+          "new_accuracy_pct": 93.89999999999999
+        },
+        {
+          "task": 2,
+          "seen_accuracy_pct": 80.10000000000001,
+          "old_accuracy_pct": 80.10000000000001,
+          "new_accuracy_pct": 80.10000000000001
+        }
+      ],
+      "comparisons_vs_ald_off": [
+        {
+          "task": 1,
+          "metric": "seen_accuracy_pct",
+          "decline_pp": 0.7000000000000028
+        },
+        {
+          "task": 1,
+          "metric": "new_accuracy_pct",
+          "decline_pp": 0.7000000000000028
+        },
+        {
+          "task": 2,
+          "metric": "seen_accuracy_pct",
+          "decline_pp": 0.8999999999999915
+        },
+        {
+          "task": 2,
+          "metric": "old_accuracy_pct",
+          "decline_pp": 1.299999999999983
+        },
+        {
+          "task": 2,
+          "metric": "new_accuracy_pct",
+          "decline_pp": 0.5
+        }
+      ],
+      "max_decline_pp": 1.299999999999983,
+      "recovery_gate": "pass",
+      "trace": {
+        "updates": 474,
+        "training_image_visits": 30000,
+        "block_decisions": 5688,
+        "skipped_block_decisions": 49,
+        "skip_fraction": 0.008614627285513361,
+        "mean_executed_blocks": 11.896624472573839,
+        "probability_decision_and_token_checks_passed": true,
+        "task_step_reset_verified": true
+      },
+      "train_phase": {
+        "wall_s": 71.61165562894894,
+        "calls": 6,
+        "gpu_board_energy_j": 9964.624963028582,
+        "gpu_energy_coverage_s": 71.61165562894894
+      },
+      "cuda_peak_allocated_mib": 1350.73095703125
+    }
+  },
+  "selected_task2_seen_improvement_vs_original_pp": 5.300000000000011,
+  "selected_max_decline_vs_ald_off_pp": 1.299999999999983,
+  "selected_max_decline_vs_frozen_coda_pp": 0.5,
+  "reference_train_phase": {
+    "wall_s": 71.54076138301753,
+    "calls": 6,
+    "gpu_board_energy_j": 10078.341712838126,
+    "gpu_energy_coverage_s": 71.54076138301753
+  },
+  "reference_cuda_peak_allocated_mib": 1350.73095703125,
+  "selected_metrics": {
+    "process_wall_s": 110.17802326398669,
+    "outer_training_stream_examples": 30000,
+    "evaluation_examples": 3000,
+    "outer_observe_steps": 474,
+    "tasks_completed": 2,
+    "cuda_peak_allocated_mib": 1350.73095703125,
+    "cuda_peak_reserved_mib": 1708.0,
+    "peak_process_tree_rss_mib": 7395.140625,
+    "peak_gpu_device_memory_mib": 2223.0,
+    "peak_gpu_utilization_percent": 66.0,
+    "peak_gpu_power_w": 249.89,
+    "gpu_board_energy_j": 13119.574216997822,
+    "gpu_energy_coverage_s": 110.13252834399464,
+    "gpu_energy_coverage_fraction": 0.999587078088313,
+    "gpu_board_energy_wh": 3.644326171388284,
+    "outer_training_examples_per_s": 418.926217199097,
+    "evaluation_examples_per_s": 135.03602018662002,
+    "process_tree_cpu_s": 157.75529500000002
+  },
+  "selected_phases": {
+    "evaluation": {
+      "wall_s": 22.21629455499351,
+      "calls": 2,
+      "gpu_board_energy_j": 1953.087392333032,
+      "gpu_energy_coverage_s": 22.21629455499351
+    },
+    "train_epoch": {
+      "wall_s": 71.61165562894894,
+      "calls": 6,
+      "gpu_board_energy_j": 9964.624963028582,
+      "gpu_energy_coverage_s": 71.61165562894894
+    }
+  },
+  "attribution": "The short 2x2 ablation implicates ALD and its interaction with AToM; this does not identify the internal mechanism of accuracy loss.",
+  "limitations": [
+    "Four candidates selected using test accuracy; this is diagnostic tuning, not independent validation.",
+    "One seed, Tiny, batch64 and three epochs per task; no evidence for Small/Base, batch16 or twenty epochs.",
+    "Both temporal minimum and spatial alpha changed, so their effects are not isolated individually.",
+    "Only 49 of 5688 block decisions are skipped; an additional ALD speed or memory benefit is not established.",
+    "Timing includes input hashing and structural checks. Energy is GPU board energy only, not whole-system energy.",
+    "Independent full author-code parity and paper accuracy reproduction remain unavailable."
+  ],
+  "new_training_executed_during_review": false,
+  "method_defaults_changed": false,
+  "side_workers_published_to_wandb": false,
+  "historical_report": "benchmarks/cl_efficiency/cps_rep/gpu_validation/RESULTS.md"
+}

@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ow0evcva",
+  "artifact": "laymond1/cl-efficiency/rep-ald-recovery-evidence-20261009:v0",
+  "artifact_state": "COMMITTED",
+  "run_state": "finished",
+  "remote_summary_verified": true,
+  "report_files": {
+    "RESULTS.md": {
+      "sha256": "7f6f772a2e9e404a4d7b8db730a82da9f9b121ddb4cb5dc795c2ce067f04f7af",
+      "bytes": 3112,
+      "remote_digest": "fQD3gJUqJC1erciir1xxiQ==",
+      "matches": true
+    },
+    "results.json": {
+      "sha256": "d512bd83c6210133cb5d822dd098a999e31e330982d91a4e6b03aff94952d20f",
+      "bytes": 13139,
+      "remote_digest": "tETLUXcQ8jV14KiypptDmA==",
+      "matches": true
+    },
+    "evidence.json": {
+      "sha256": "1d6babc989b402a5f859fe860a8165309bb186a56976eff97884baf8ada302c2",
+      "bytes": 18314,
+      "remote_digest": "125OD/s32LsVjqg4fyQA6g==",
+      "matches": true
+    },
+    "recommended_overrides.json": {
+      "sha256": "b2c73a4bb94faca5db4e6d8bffd2e65cade096ae457fa5ee6f69a697a9e75ed9",
+      "bytes": 2906,
+      "remote_digest": "z4TMtZUmT+eGUUMRmxgCWA==",
+      "matches": true
+    }
+  },
+  "slack_status": "sent",
+  "new_training": false,
+  "side_workers_published_online": false,
+  "uploaded_payload": "four Markdown/JSON metric and provenance files only",
+  "completed_at_utc": "2026-10-08T18:01:57.245851+00:00"
+}
