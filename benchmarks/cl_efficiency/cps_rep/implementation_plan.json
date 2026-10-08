@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "stage": "CPS-Prompt and REP-CODA implementation and CPU validation",
+  "stage": "CPS-Prompt and REP-CODA implementation with CPU and bounded GPU verification",
   "branch": "codex/cps-rep",
   "worktree": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl",
-  "approval_scope": "Implementation and CPU validation completed; next five-run Tiny GPU implementation verification authorized by user",
+  "approval_scope": "CPU implementation completed; approved five Tiny/batch64 first-two-task three-epoch GPU checks completed; broader experiments remain held",
   "cpu_validation_authorized": true,
   "gpu_experiments_authorized": true,
-  "gpu_experiments_executed": false,
-  "wandb_or_slack_sent_in_this_stage": false,
+  "gpu_experiments_executed": true,
+  "wandb_or_slack_sent_in_this_stage": true,
   "combined_comparison_launch_authorized": false,
   "unified_experiment_runner_ready": false,
   "entrypoint": "main.py",
@@ -190,7 +190,7 @@
           "Own checkpointed sampling RNG, separate from data augmentation",
           "Mammoth custom_scheduler lifecycle and accurate Class-IL compatibility",
           "Joint phase must have at least one epoch; no silent phase skipping",
-          "CPU source operator fixtures are unmodified; source/native GPU accuracy validation remains pending"
+          "Six unmodified author files preserve independent prompt, ViT, sampling, network and observe bodies; Tiny first-two-task GPU source/native accuracy passed"
         ],
         "source_behavior": [
           "Joint prompt/head phase followed by no-grad full-patch features and head-only backward",
@@ -234,7 +234,15 @@
         "prompted_tokens",
         "query_image_visits",
         "prompted_image_visits"
-      ]
+      ],
+      "gpu_validation": {
+        "status": "pass",
+        "tasks": 2,
+        "epochs_per_task": 3,
+        "batch_size": 64,
+        "same_predictions_both_tasks": true,
+        "max_accuracy_gap_pp": 0.0
+      }
     },
     {
       "cli": "rep-prompt",
@@ -277,7 +285,7 @@
           "Weighted token masses become additive log attention biases; prefix keys have mass1",
           "Native SDPA attention returns image-only mean-key metrics for merging",
           "Checkpoint includes query weights, fixed projection, task/update counters and separate CPU ALD RNG state",
-          "No automatic sweep, auxiliary teacher, replay buffer, GPU run or inferred energy savings"
+          "No automatic sweep, auxiliary teacher, replay buffer or inferred energy savings"
         ],
         "source_issues_addressed": [
           "Replace hardcoded1024 projection width with the host encoder dimension",
@@ -288,7 +296,7 @@
           "Use explicit native classes rather than source isinstance patching",
           "Avoid source per-forward CUDA event/synchronize instrumentation"
         ],
-        "accuracy_gate": "CPU structural tests and paired host controls; the1.5/3pp independent-author accuracy gate remains pending a complete independent reference"
+        "accuracy_gate": "CPU structural checks passed; GPU REP OFF matches frozen-CODA exactly; REP ON held after exceeding the gross-decline gate. Independent author-paper reproduction is unavailable."
       },
       "defaults": {
         "epochs": 20,
@@ -343,7 +351,17 @@
         "merged_tokens",
         "prefix_tokens"
       ],
-      "swift_at_tiny_caveat": "A separate frozen Tiny query is retained even with a Tiny host. It gives no smaller-encoder query FLOP saving there, adds storage/projection, and must be counted in efficiency measurements"
+      "swift_at_tiny_caveat": "A separate frozen Tiny query is retained even with a Tiny host. It gives no smaller-encoder query FLOP saving there, adds storage/projection, and must be counted in efficiency measurements",
+      "gpu_validation": {
+        "off_status": "pass",
+        "on_status": "hold",
+        "on_task1_drop_pp": 3.3,
+        "on_task2_seen_drop_pp": 5.55,
+        "on_task2_old_drop_pp": 5.7,
+        "on_task2_new_drop_pp": 5.4,
+        "cause_isolated": false,
+        "next": "Review paper-to-code mapping and separate Swift/AToM/ALD checks before REP acceptance or efficiency pilots"
+      }
     },
     {
       "cli": "coda-frozen",
@@ -386,5 +404,12 @@
   "scope_boundary": "Do not append these methods to or launch the held multi-method experiment batch in this implementation stage",
   "cpu_validation_complete": true,
   "validation_report": "benchmarks/cl_efficiency/cps_rep/validation.json",
-  "gpu_verification_plan": "benchmarks/cl_efficiency/cps_rep/gpu_verification_plan.json"
+  "gpu_verification_plan": "benchmarks/cl_efficiency/cps_rep/gpu_verification_plan.json",
+  "gpu_verification_report": "benchmarks/cl_efficiency/cps_rep/gpu_validation/RESULTS.md",
+  "gpu_verification_results": "benchmarks/cl_efficiency/cps_rep/gpu_validation/results.json",
+  "gpu_verification_status": {
+    "cps-native": "pass",
+    "rep-off": "pass",
+    "rep-on": "hold"
+  }
 }

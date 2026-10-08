@@ -197,5 +197,19 @@
     "Small/Base and batch16/64 expansion",
     "11method unified comparison",
     "REP author-paper accuracy reproduction"
-  ]
+  ],
+  "status": "completed",
+  "completed_runs": 5,
+  "acceptance": {
+    "cps-native": "pass",
+    "rep-off": "pass",
+    "rep-on": "hold"
+  },
+  "wandb_verified": true,
+  "slack_completion_sent": true,
+  "wandb_report": "https://wandb.ai/laymond1/cl-efficiency/runs/jah6w49i",
+  "result_report": "benchmarks/cl_efficiency/cps_rep/gpu_validation/RESULTS.md",
+  "report_artifact": "laymond1/cl-efficiency/cps-rep-validation-report-20261009:v0",
+  "initial_learned_payload": "local only; report includes initialization hashes",
+  "next_stage_held": true
 }

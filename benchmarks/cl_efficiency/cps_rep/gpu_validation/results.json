@@ -1,0 +1,526 @@
+{
+  "schema": "cps-rep-verification-report-v1",
+  "protocol": {
+    "dataset": "seq-cifar100-224",
+    "dataset_config": "unified",
+    "original_tasks": 10,
+    "tasks": 2,
+    "epochs_per_task": 3,
+    "batch_size": 64,
+    "seed": 1993,
+    "vit_size": "tiny",
+    "precision": "fp32",
+    "amp": false,
+    "tf32": false,
+    "optimizer": "adam",
+    "lr": 0.001,
+    "weight_decay": 0.0,
+    "scheduler": "CosineSchedule(K=3)",
+    "class_order": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99
+    ],
+    "num_workers": 2,
+    "cpu_threads": 2,
+    "pool_size": 100,
+    "prompt_length": 8,
+    "prompt_layers": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "ortho_mu": 0.0,
+    "cps": {
+      "reduction_ratio": 0.4,
+      "temperature": 0.1,
+      "phase_ratio": 0.4,
+      "joint_epochs": 1,
+      "head_epochs": 2,
+      "clip_grad": 1.0,
+      "pull_constraint_coeff": 1.0
+    },
+    "rep": {
+      "merge_max": 16,
+      "minimum": 0.5,
+      "gamma": 0.001,
+      "alpha": 0.9,
+      "threshold": 8
+    },
+    "comparison_scope": "implementation verification; not paper accuracy reproduction or efficiency pilot"
+  },
+  "run_root": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/cps_rep_gpu_validation_20261009",
+  "rows": [
+    {
+      "run": "cps-author",
+      "task1_accuracy_pct": 94.39999999999999,
+      "task2_seen_accuracy_pct": 81.15,
+      "task2_old_accuracy_pct": 82.69999999999999,
+      "task2_new_accuracy_pct": 79.60000000000001,
+      "validation_wall_s": 118.1752543420298,
+      "train_epochs_wall_s": 73.76959884696407,
+      "cuda_peak_allocated_mib": 869.72607421875,
+      "cuda_peak_reserved_mib": 1104.0,
+      "gpu_board_energy_j": 11734.427508384993,
+      "gpu_energy_coverage_fraction": 0.9996762730003432,
+      "peak_process_tree_rss_mib": 7544.19921875,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/7274vm2r",
+      "result_pin": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/cps_rep_gpu_validation_20261009/cps-author/result.json",
+        "sha256": "e8aaaaa9706162635126feda8e18653f474b2b0c9b216944faaca0a168e9b74e",
+        "bytes": 196149
+      }
+    },
+    {
+      "run": "cps-native",
+      "task1_accuracy_pct": 94.39999999999999,
+      "task2_seen_accuracy_pct": 81.15,
+      "task2_old_accuracy_pct": 82.69999999999999,
+      "task2_new_accuracy_pct": 79.60000000000001,
+      "validation_wall_s": 117.79172920499695,
+      "train_epochs_wall_s": 73.87329111801228,
+      "cuda_peak_allocated_mib": 872.98828125,
+      "cuda_peak_reserved_mib": 1094.0,
+      "gpu_board_energy_j": 11540.677740868245,
+      "gpu_energy_coverage_fraction": 0.9996780169815138,
+      "peak_process_tree_rss_mib": 7193.25390625,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ls9yzb8s",
+      "result_pin": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/cps_rep_gpu_validation_20261009/cps-native/result.json",
+        "sha256": "95b856a38f5be2690d3d95694a5a33c215ee3efc89000289d743602cdc5c58a7",
+        "bytes": 197175
+      }
+    },
+    {
+      "run": "coda-frozen",
+      "task1_accuracy_pct": 94.3,
+      "task2_seen_accuracy_pct": 80.35,
+      "task2_old_accuracy_pct": 80.60000000000001,
+      "task2_new_accuracy_pct": 80.10000000000001,
+      "validation_wall_s": 120.93890480900882,
+      "train_epochs_wall_s": 76.22107499802951,
+      "cuda_peak_allocated_mib": 1389.64501953125,
+      "cuda_peak_reserved_mib": 1500.0,
+      "gpu_board_energy_j": 14486.722057703157,
+      "gpu_energy_coverage_fraction": 0.9996753044678371,
+      "peak_process_tree_rss_mib": 7081.953125,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/t7w089u5",
+      "result_pin": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/cps_rep_gpu_validation_20261009/coda-frozen/result.json",
+        "sha256": "cf6e7bb47b8095562e044d6212d7171cba108e01fad8339863a5d8c62c1a3968",
+        "bytes": 196093
+      }
+    },
+    {
+      "run": "rep-off",
+      "task1_accuracy_pct": 94.3,
+      "task2_seen_accuracy_pct": 80.35,
+      "task2_old_accuracy_pct": 80.60000000000001,
+      "task2_new_accuracy_pct": 80.10000000000001,
+      "validation_wall_s": 119.40745934197912,
+      "train_epochs_wall_s": 75.91969682701165,
+      "cuda_peak_allocated_mib": 1390.5185546875,
+      "cuda_peak_reserved_mib": 1486.0,
+      "gpu_board_energy_j": 14776.925430806363,
+      "gpu_energy_coverage_fraction": 0.9996007079225055,
+      "peak_process_tree_rss_mib": 7300.60546875,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/e2z7gk0d",
+      "result_pin": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/cps_rep_gpu_validation_20261009/rep-off/result.json",
+        "sha256": "b9c80c28dc1e0e79b0915c03311bc31cbb63952e47d1e0e3c24b0f5a409f016d",
+        "bytes": 197565
+      }
+    },
+    {
+      "run": "rep-on",
+      "task1_accuracy_pct": 91.0,
+      "task2_seen_accuracy_pct": 74.8,
+      "task2_old_accuracy_pct": 74.9,
+      "task2_new_accuracy_pct": 74.7,
+      "validation_wall_s": 113.8328773760004,
+      "train_epochs_wall_s": 71.25622846296756,
+      "cuda_peak_allocated_mib": 1350.73095703125,
+      "cuda_peak_reserved_mib": 1708.0,
+      "gpu_board_energy_j": 13095.02514426116,
+      "gpu_energy_coverage_fraction": 0.9996307326363936,
+      "peak_process_tree_rss_mib": 7471.6640625,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/pcqjet72",
+      "result_pin": {
+        "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/cps_rep_gpu_validation_20261009/rep-on/result.json",
+        "sha256": "d8b052402d1fe1eb347ced762d185d7694a97c269c53fbb2d981ee8c63e5c6e3",
+        "bytes": 197678
+      }
+    }
+  ],
+  "acceptance": {
+    "cps-native": {
+      "status": "pass",
+      "metrics": [
+        {
+          "task": 1,
+          "metric": "seen_accuracy_pct",
+          "actual_pct": 94.39999999999999,
+          "reference_pct": 94.39999999999999,
+          "delta_pp": 0.0,
+          "status": "pass"
+        },
+        {
+          "task": 1,
+          "metric": "new_accuracy_pct",
+          "actual_pct": 94.39999999999999,
+          "reference_pct": 94.39999999999999,
+          "delta_pp": 0.0,
+          "status": "pass"
+        },
+        {
+          "task": 2,
+          "metric": "seen_accuracy_pct",
+          "actual_pct": 81.15,
+          "reference_pct": 81.15,
+          "delta_pp": 0.0,
+          "status": "pass"
+        },
+        {
+          "task": 2,
+          "metric": "old_accuracy_pct",
+          "actual_pct": 82.69999999999999,
+          "reference_pct": 82.69999999999999,
+          "delta_pp": 0.0,
+          "status": "pass"
+        },
+        {
+          "task": 2,
+          "metric": "new_accuracy_pct",
+          "actual_pct": 79.60000000000001,
+          "reference_pct": 79.60000000000001,
+          "delta_pp": 0.0,
+          "status": "pass"
+        }
+      ],
+      "scope": "independent implementation parity"
+    },
+    "rep-off": {
+      "status": "pass",
+      "metrics": [
+        {
+          "task": 1,
+          "metric": "seen_accuracy_pct",
+          "actual_pct": 94.3,
+          "reference_pct": 94.3,
+          "delta_pp": 0.0,
+          "status": "pass"
+        },
+        {
+          "task": 1,
+          "metric": "new_accuracy_pct",
+          "actual_pct": 94.3,
+          "reference_pct": 94.3,
+          "delta_pp": 0.0,
+          "status": "pass"
+        },
+        {
+          "task": 2,
+          "metric": "seen_accuracy_pct",
+          "actual_pct": 80.35,
+          "reference_pct": 80.35,
+          "delta_pp": 0.0,
+          "status": "pass"
+        },
+        {
+          "task": 2,
+          "metric": "old_accuracy_pct",
+          "actual_pct": 80.60000000000001,
+          "reference_pct": 80.60000000000001,
+          "delta_pp": 0.0,
+          "status": "pass"
+        },
+        {
+          "task": 2,
+          "metric": "new_accuracy_pct",
+          "actual_pct": 80.10000000000001,
+          "reference_pct": 80.10000000000001,
+          "delta_pp": 0.0,
+          "status": "pass"
+        }
+      ],
+      "scope": "independent implementation parity"
+    },
+    "rep-on": {
+      "status": "hold",
+      "metrics": [
+        {
+          "task": 1,
+          "metric": "seen_accuracy_pct",
+          "actual_pct": 91.0,
+          "reference_pct": 94.3,
+          "delta_pp": -3.299999999999997,
+          "status": "hold"
+        },
+        {
+          "task": 1,
+          "metric": "new_accuracy_pct",
+          "actual_pct": 91.0,
+          "reference_pct": 94.3,
+          "delta_pp": -3.299999999999997,
+          "status": "hold"
+        },
+        {
+          "task": 2,
+          "metric": "seen_accuracy_pct",
+          "actual_pct": 74.8,
+          "reference_pct": 80.35,
+          "delta_pp": -5.549999999999997,
+          "status": "hold"
+        },
+        {
+          "task": 2,
+          "metric": "old_accuracy_pct",
+          "actual_pct": 74.9,
+          "reference_pct": 80.60000000000001,
+          "delta_pp": -5.700000000000003,
+          "status": "hold"
+        },
+        {
+          "task": 2,
+          "metric": "new_accuracy_pct",
+          "actual_pct": 74.7,
+          "reference_pct": 80.10000000000001,
+          "delta_pp": -5.400000000000006,
+          "status": "hold"
+        }
+      ],
+      "scope": "gross implementation/configuration decline check"
+    }
+  },
+  "paired_prediction_audits": {
+    "cps-native": [
+      {
+        "task": 1,
+        "identical_predictions": true,
+        "maximum_absolute_logit_difference": 1.1444091796875e-05
+      },
+      {
+        "task": 2,
+        "identical_predictions": true,
+        "maximum_absolute_logit_difference": 1.1920928955078125e-05
+      }
+    ],
+    "rep-off": [
+      {
+        "task": 1,
+        "identical_predictions": true,
+        "maximum_absolute_logit_difference": 0.0
+      },
+      {
+        "task": 2,
+        "identical_predictions": true,
+        "maximum_absolute_logit_difference": 0.0
+      }
+    ]
+  },
+  "rep_diagnostic": {
+    "status": "hold",
+    "cause_isolated": false,
+    "facts": [
+      "REP OFF has identical logits and predictions to frozen-CODA on both tasks.",
+      "REP ON uses the same complete input stream, initial prompt/head and canonical host/query weights.",
+      "Finite loss/state/gradient, old prompt row protection and checkpoint assertions passed.",
+      "All three REP components are enabled together, so this stage cannot assign the decline to one component."
+    ],
+    "epoch_observations": [
+      {
+        "task": 1,
+        "epoch": 1,
+        "loss": 2.0190212062835693,
+        "executed_blocks_mean": 11.164556962025317,
+        "merged_tokens_mean": 82.69620253164557,
+        "ald_step_mean": 39.0
+      },
+      {
+        "task": 1,
+        "epoch": 2,
+        "loss": 1.1267896932601928,
+        "executed_blocks_mean": 11.012658227848101,
+        "merged_tokens_mean": 80.89873417721519,
+        "ald_step_mean": 118.0
+      },
+      {
+        "task": 1,
+        "epoch": 3,
+        "loss": 1.6068952982902527,
+        "executed_blocks_mean": 10.316455696202532,
+        "merged_tokens_mean": 75.50632911392405,
+        "ald_step_mean": 197.0
+      },
+      {
+        "task": 2,
+        "epoch": 1,
+        "loss": 1.9219507703781127,
+        "executed_blocks_mean": 11.164556962025317,
+        "merged_tokens_mean": 82.26582278481013,
+        "ald_step_mean": 39.0
+      },
+      {
+        "task": 2,
+        "epoch": 2,
+        "loss": 1.3486736869812013,
+        "executed_blocks_mean": 10.784810126582279,
+        "merged_tokens_mean": 78.9367088607595,
+        "ald_step_mean": 118.0
+      },
+      {
+        "task": 2,
+        "epoch": 3,
+        "loss": 1.4914553115844726,
+        "executed_blocks_mean": 10.430379746835444,
+        "merged_tokens_mean": 76.31645569620254,
+        "ald_step_mean": 197.0
+      }
+    ],
+    "next_recommendation": "Review paper-to-code interpretations and test Swift/AToM/ALD separately on the same Tiny two-task protocol before accepting REP or launching its efficiency pilots.",
+    "additional_training_executed": false
+  },
+  "source_summary": {
+    "file": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/cps_rep_gpu_validation_20261009/summary.json",
+    "sha256": "fb7f9a3953aa31cfc8a6f0057fbb3f7383c738226f7e23c8e577874dd29f4662",
+    "bytes": 11535
+  },
+  "initial_manifest": {
+    "file_sha256": "97e9686694fbabce08f923a3efaf57a09be05e8a10d9d32302eecb75a972968b",
+    "tensor_sha256": "5cba8326f3bb6dd6defe96ca9a6c6879ea13c770b9adf5b8faa1e3f166dad76f",
+    "encoder_pin": {
+      "file": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_224.npz",
+      "sha256": "0c5c4818ecf1049ae34194223c908172a2967334bab6d86670351b59d608b5dd",
+      "canonical_sha256": "3258efdf29eb69379b559f8884b31134e5f299a2e6cd682f08eb9483e9c8e1cb"
+    },
+    "source_commit": "7ec2be108f4f032f2bb10a6647304076f406ef6b",
+    "source_sha256": {
+      "method.py": "b634b7f9be58bda5d836c53949c318ceb2f92950d415224d4218021ed9875919",
+      "model.py": "c278fb69bf0b592883b75d30653fad3ec8601f7228a254bbb4598f40819cec06",
+      "prompt.py": "13b8f68d9d5cfbed63d066e106672f7c34204b646db10cb9dd21b43294ced00f",
+      "vit.py": "cce514180e36646c95c924a789f7633ef87c87a408991113ea5c637c4392c20e",
+      "cps.py": "e9116b2a0b013d5f66487c98bc49656de50d5681bc18f83cce6f512c46ca906b",
+      "cps_vit.py": "df62a3b2fecf5921f3715ab6dbca708281975954f1c960839a61bcf87fc7c62b"
+    },
+    "construction": "CPU pinned author network, seed1993; shared prompt/head initialization only",
+    "task2_initialization": "Independent forked CPU/CUDA RNG seeded by common task coordinate; source Gram-Schmidt preserved"
+  },
+  "structural_checks": [
+    "full two-task sample and update counts",
+    "all six epoch input hashes and raw dataset fingerprints",
+    "same prompt/head initialization and paired physical GPU",
+    "finite loss/state/gradients",
+    "frozen encoders unchanged",
+    "previous prompt rows unchanged",
+    "checkpoint round trip",
+    "saved class-IL logits/predictions equal native evaluation"
+  ],
+  "limitations": [
+    "One seed and three epochs per task; implementation verification, not paper accuracy reproduction.",
+    "Resource costs include loader worker startup, complete input hashing and validation audits; not an efficiency pilot.",
+    "Runs on GPU0 and GPU1 overlap; CPU contention and GPU-board idle power are included.",
+    "GPU board energy excludes CPU/RAM/wall power. No FLOPs profiler or whole-machine energy measurement was performed.",
+    "REP is a documented paper-v6 reconstruction, without an independent full author runner.",
+    "Swift uses a separate Tiny query even for a Tiny host; there is no smaller-query FLOP saving at this size.",
+    "20epoch pilots, Small/Base and batch16/64 expansion, and the held11method comparison were not launched."
+  ]
+}

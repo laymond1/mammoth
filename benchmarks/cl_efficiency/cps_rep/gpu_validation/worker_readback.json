@@ -1,0 +1,385 @@
+{
+  "status": "pass",
+  "workers": [
+    {
+      "run": "cps-author",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/7274vm2r",
+      "run_state": "finished",
+      "artifact": "laymond1/cl-efficiency/cps-rep-cps-author-cps_rep_gpu_validation_20261009:v0",
+      "artifact_state": "COMMITTED",
+      "record_semantics_match": true,
+      "files": {
+        "spec.json": {
+          "sha256": "f09fd8a64429a79f51d79f80fc8000001db7b28386a65893327f74a9d1b8226a",
+          "bytes": 6415,
+          "remote_digest": "9PlNlcKTbDkvLjFy0FNmwg==",
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "e499b006bb3501e89b8a6d566b553b8bacde3ba655bd76c21ed6227262b272f1",
+          "bytes": 1249,
+          "remote_digest": "PiXEJtxXioeUjJMf60XsAg==",
+          "matches": true
+        },
+        "epoch_inputs.json": {
+          "sha256": "03ae9991a0416e295e16dd1276f2b3da7b09197dab0ba9c22555d4059adaca66",
+          "bytes": 1005,
+          "remote_digest": "OxsvvZM/3GjddnH74KmziA==",
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "aa9729e20eaaef8ae69fc7179c98555fdca00d84871f1ac4bce13523fd596554",
+          "bytes": 715,
+          "remote_digest": "7bxPLebtVhCyW6udmKLz8Q==",
+          "matches": true
+        },
+        "data_fingerprints.json": {
+          "sha256": "56c8023bdf22f440e06e27523dfcfa39da579fa61a08a95802a135e04eb3c855",
+          "bytes": 158906,
+          "remote_digest": "cR/V0T31qvXEpq4Ly1YSHA==",
+          "matches": true
+        },
+        "metrics.json": {
+          "sha256": "39da5a9e6d079523be183dfcba79b78c2d425ab68ef41893191b688ea75320ae",
+          "bytes": 198422,
+          "remote_digest": "9Ey9iP2tsgx9cy9cDmfqnw==",
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "5648a46d5ca1c96aa345fb067374acb66b9cc72f26efc33b27529327ba5423b5",
+          "bytes": 1092,
+          "remote_digest": "JfwAIH0yON33/087qjBPEw==",
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "9d9cd104e40c9d0d531dba639a355ed006421a75e044573a706ae01b66f05295",
+          "bytes": 41133,
+          "remote_digest": "66c0JopEPUPh/u62dmerqQ==",
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "41671583d513f3301f35b584c8311ae19c744a2b221bf740ef136060e8c97549",
+          "bytes": 155974,
+          "remote_digest": "OHGgBQrueC2JOGagP21anQ==",
+          "matches": true
+        },
+        "task1_state.pt": {
+          "sha256": "af0b5d344e1e7d71a326f67c8cd464a5423933b3bff381574a99345bef3b1e8e",
+          "bytes": 33930317,
+          "remote_digest": "lL8jSRptcNtaxVeUe9psBA==",
+          "matches": true
+        },
+        "task2_state.pt": {
+          "sha256": "a88686f500885ca9f3db61636c384e713226fea0f7f5fad99d5b7876d686f97a",
+          "bytes": 33930637,
+          "remote_digest": "J+iOofi1lbRqBQpcrXCY6A==",
+          "matches": true
+        }
+      }
+    },
+    {
+      "run": "cps-native",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ls9yzb8s",
+      "run_state": "finished",
+      "artifact": "laymond1/cl-efficiency/cps-rep-cps-native-cps_rep_gpu_validation_20261009:v0",
+      "artifact_state": "COMMITTED",
+      "record_semantics_match": true,
+      "files": {
+        "spec.json": {
+          "sha256": "0a0b80be189c0946468d26ad74a44399703b41b8b0ac8a40788c547afe42ed5a",
+          "bytes": 6415,
+          "remote_digest": "B2pdN/5T07ukM5dvP/TlAQ==",
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "896e384be5bdf41c8d6d9e50aceab2ce47968018108954706f84fec11ccc793f",
+          "bytes": 2220,
+          "remote_digest": "MaDGmvhA/3vxnntqDqRVfg==",
+          "matches": true
+        },
+        "epoch_inputs.json": {
+          "sha256": "03ae9991a0416e295e16dd1276f2b3da7b09197dab0ba9c22555d4059adaca66",
+          "bytes": 1005,
+          "remote_digest": "OxsvvZM/3GjddnH74KmziA==",
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "b78091b5972b6a3e54c7544631f441106be147efb1a02087083fece78141422c",
+          "bytes": 715,
+          "remote_digest": "j/Daehq2u/FRzmuyRI69gQ==",
+          "matches": true
+        },
+        "data_fingerprints.json": {
+          "sha256": "56c8023bdf22f440e06e27523dfcfa39da579fa61a08a95802a135e04eb3c855",
+          "bytes": 158906,
+          "remote_digest": "cR/V0T31qvXEpq4Ly1YSHA==",
+          "matches": true
+        },
+        "metrics.json": {
+          "sha256": "ad8940e488e00ae363278342d3a46cba5d21a8e24113806a29b4333736c2277c",
+          "bytes": 199448,
+          "remote_digest": "R7KfSgGt7OHxtop+MhLfyw==",
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "96b16f58c6f33dfd7fd3bb002b94f50542772f5f77163d59f0487535dd01f6dd",
+          "bytes": 1091,
+          "remote_digest": "g5Z+0/+1bRYmqWlebF9jrg==",
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "e33b854bf68493c1a1612ef57c92adb3eb76b65bbbf1ca5c98330cfb93f819bd",
+          "bytes": 41145,
+          "remote_digest": "JdojcWKfzCeZEqmU1BMcJg==",
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "47e667aa32f723afa5ec98430913798a8cc6565c1cf49b4d61434e47b3744ac4",
+          "bytes": 155984,
+          "remote_digest": "0iXnnvUiQcPF1OCpVczjbQ==",
+          "matches": true
+        },
+        "task1_state.pt": {
+          "sha256": "7f16e1813e47ddc94a501b683fb3858e6da15a106995723830af90d60e6bff77",
+          "bytes": 34704337,
+          "remote_digest": "ZpehoiFhMxwTOT+2HU9E/g==",
+          "matches": true
+        },
+        "task2_state.pt": {
+          "sha256": "00f0078bcc7bc573a189da3e5701ac4ded3a6b03c5875562cd46117ceddceb32",
+          "bytes": 34704657,
+          "remote_digest": "GEEVnLj7MINkRsFr8SvPJQ==",
+          "matches": true
+        }
+      }
+    },
+    {
+      "run": "coda-frozen",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/t7w089u5",
+      "run_state": "finished",
+      "artifact": "laymond1/cl-efficiency/cps-rep-coda-frozen-cps_rep_gpu_validation_20261009:v0",
+      "artifact_state": "COMMITTED",
+      "record_semantics_match": true,
+      "files": {
+        "spec.json": {
+          "sha256": "51fb19658751d0927aca3a536927423ba408a21a09143197be8d448bc1655d5a",
+          "bytes": 6417,
+          "remote_digest": "21e1B62Z2eOF6cHielvg8A==",
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "5ac9e72ba32d704ab4d4277d930f60a7c9ca95f33df5cf7f6a273b1961e37d3d",
+          "bytes": 1247,
+          "remote_digest": "b4CKM4UXfOL+EPX11FmjHA==",
+          "matches": true
+        },
+        "epoch_inputs.json": {
+          "sha256": "03ae9991a0416e295e16dd1276f2b3da7b09197dab0ba9c22555d4059adaca66",
+          "bytes": 1005,
+          "remote_digest": "OxsvvZM/3GjddnH74KmziA==",
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "e568895b6608f51c840b25304d757450982d5a2cd1ec26724539bf8d1ab47377",
+          "bytes": 650,
+          "remote_digest": "mHnu2EOnl9cBQclM+whrcg==",
+          "matches": true
+        },
+        "data_fingerprints.json": {
+          "sha256": "56c8023bdf22f440e06e27523dfcfa39da579fa61a08a95802a135e04eb3c855",
+          "bytes": 158906,
+          "remote_digest": "cR/V0T31qvXEpq4Ly1YSHA==",
+          "matches": true
+        },
+        "metrics.json": {
+          "sha256": "6cbe81c7e8959b4bd2ae63ba712e7d6ca8af40cdc64340d75156dd0736b8a87a",
+          "bytes": 198365,
+          "remote_digest": "qQioNOYEjT41hZxnubnC+g==",
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "af751a314ad3518ac789ad941e552f0f7989629bdf1a0056aaf65b7d921d13fc",
+          "bytes": 1088,
+          "remote_digest": "ZjkwzREydbyFC/vrboAvKQ==",
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "882de7978c7900feeb2f0eaa0c29c216df88305e7b84747793e145f7969aa0ea",
+          "bytes": 41138,
+          "remote_digest": "r7r2wTn9ERqxFZZVaQADbw==",
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "309a238abb40be5660b04f53c2731381b562adb89dfb024b2bbd19d3c12822a0",
+          "bytes": 155989,
+          "remote_digest": "BpRg1CASRfUxzGvZRtizGA==",
+          "matches": true
+        },
+        "task1_state.pt": {
+          "sha256": "feb9ab034e2907f11430617b4b0557f811b7ea1a24f5e5aa9ebe2bccd796bb57",
+          "bytes": 34703567,
+          "remote_digest": "LLogJJ0hIpoaji/4J598xg==",
+          "matches": true
+        },
+        "task2_state.pt": {
+          "sha256": "398605e26316b06e90a615d9b854563f8a75f284e1c6f29fed407866a8271c00",
+          "bytes": 34703887,
+          "remote_digest": "9Qbwyxc48bMTGj7f4GvHag==",
+          "matches": true
+        }
+      }
+    },
+    {
+      "run": "rep-off",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/e2z7gk0d",
+      "run_state": "finished",
+      "artifact": "laymond1/cl-efficiency/cps-rep-rep-off-cps_rep_gpu_validation_20261009:v0",
+      "artifact_state": "COMMITTED",
+      "record_semantics_match": true,
+      "files": {
+        "spec.json": {
+          "sha256": "03fa8d3e81dc1f5910eedaaf7b167c52430a2bc60eb22133bc1fdb39d339e70a",
+          "bytes": 6409,
+          "remote_digest": "ExfwxqkL8RBtp6c2/YZLmg==",
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "733a00338dc0038f8264517ff26794539ea033be15943470607294e716a48dc2",
+          "bytes": 2655,
+          "remote_digest": "99FPiViAwMKLDxUXZappRA==",
+          "matches": true
+        },
+        "epoch_inputs.json": {
+          "sha256": "03ae9991a0416e295e16dd1276f2b3da7b09197dab0ba9c22555d4059adaca66",
+          "bytes": 1005,
+          "remote_digest": "OxsvvZM/3GjddnH74KmziA==",
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "5aa21f7dc59ee22e3e7edf6acc8a44832dc0460cdbd64ba7babfd9ef53b15a7d",
+          "bytes": 650,
+          "remote_digest": "dG86f0MdU9LVBFW+znJtXw==",
+          "matches": true
+        },
+        "data_fingerprints.json": {
+          "sha256": "56c8023bdf22f440e06e27523dfcfa39da579fa61a08a95802a135e04eb3c855",
+          "bytes": 158906,
+          "remote_digest": "cR/V0T31qvXEpq4Ly1YSHA==",
+          "matches": true
+        },
+        "metrics.json": {
+          "sha256": "8f481b62c4c67f980ee57f0016388c965897d6c6c13b08e7f0134ed0d84667dc",
+          "bytes": 199841,
+          "remote_digest": "QvY+TUlZoUP7eW2jGqEfzw==",
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "d5cae64994bb6bb916a3015329baf238d2fe6b14138699d200fc64ee3bec099f",
+          "bytes": 1091,
+          "remote_digest": "gpr738BEdyRAOIPjS3ZNtQ==",
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "882de7978c7900feeb2f0eaa0c29c216df88305e7b84747793e145f7969aa0ea",
+          "bytes": 41138,
+          "remote_digest": "r7r2wTn9ERqxFZZVaQADbw==",
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "309a238abb40be5660b04f53c2731381b562adb89dfb024b2bbd19d3c12822a0",
+          "bytes": 155989,
+          "remote_digest": "BpRg1CASRfUxzGvZRtizGA==",
+          "matches": true
+        },
+        "task1_state.pt": {
+          "sha256": "bc68f04af27ef086054c2b5216834f70f18c08efe52079574580612b8c0c16a1",
+          "bytes": 34703951,
+          "remote_digest": "99cXuQi/PlXXclBzJPNRFA==",
+          "matches": true
+        },
+        "task2_state.pt": {
+          "sha256": "2072b9c48219b54a5d74060fa4b4bd5746165c37754da8ae3cf9dd90495aecc4",
+          "bytes": 34704271,
+          "remote_digest": "VNiRIWe3UG5XshNe9zwXQQ==",
+          "matches": true
+        }
+      }
+    },
+    {
+      "run": "rep-on",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/pcqjet72",
+      "run_state": "finished",
+      "artifact": "laymond1/cl-efficiency/cps-rep-rep-on-cps_rep_gpu_validation_20261009:v0",
+      "artifact_state": "COMMITTED",
+      "record_semantics_match": true,
+      "files": {
+        "spec.json": {
+          "sha256": "6ba20e021e08da6001d39b8dcaa299237104e36651dce0867394098372509bb8",
+          "bytes": 6407,
+          "remote_digest": "PkeQPUK1zV4ROAfcdaGoRQ==",
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "f78ffd8f075a84cd462374819133e3771e301d044aa4b245a8c7fa579b4610b0",
+          "bytes": 2823,
+          "remote_digest": "Be4To3SjOcHIVD7IHRifVQ==",
+          "matches": true
+        },
+        "epoch_inputs.json": {
+          "sha256": "03ae9991a0416e295e16dd1276f2b3da7b09197dab0ba9c22555d4059adaca66",
+          "bytes": 1005,
+          "remote_digest": "OxsvvZM/3GjddnH74KmziA==",
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "5247e59223befa05e8f9f9893a3fe59a9c9f067f6f460749349ab261f15a9eda",
+          "bytes": 596,
+          "remote_digest": "jHY1xKerE4qgXAdVXFHMbw==",
+          "matches": true
+        },
+        "data_fingerprints.json": {
+          "sha256": "56c8023bdf22f440e06e27523dfcfa39da579fa61a08a95802a135e04eb3c855",
+          "bytes": 158906,
+          "remote_digest": "cR/V0T31qvXEpq4Ly1YSHA==",
+          "matches": true
+        },
+        "metrics.json": {
+          "sha256": "85bf7e43cf92a58683e1fed8c89e8dee0e429289b12f6a38e80b2d94c6a13711",
+          "bytes": 199979,
+          "remote_digest": "GP8APMWcxrhtkdjDbXY5vw==",
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "943a41a5293a5b06f8c0b00d658d998d093dc7a394a3b1995d31543aa18ad9b8",
+          "bytes": 1091,
+          "remote_digest": "wWis+NmWuDxzVXzA7MWv2Q==",
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "8f7508796ad23d342388620c574c2361d08f6c21b7c70d730a0da6ebefebd029",
+          "bytes": 41296,
+          "remote_digest": "/6sdY7sdt8F6NV8SvNA1ew==",
+          "matches": true
+        },
+        "task2_predictions.npz": {
+          "sha256": "147f3d6389ba8441d74aaa13b0e78fcb24536a76a74551a30f8a944314b226d1",
+          "bytes": 156296,
+          "remote_digest": "zubekiQ8f/AgHOGu8mcd7Q==",
+          "matches": true
+        },
+        "task1_state.pt": {
+          "sha256": "9690395bf44c0c94a6326d4c0870e8ce6a74cc77f47a280c108a9c418a0fb519",
+          "bytes": 57789123,
+          "remote_digest": "quwpe2ctWzxV/IVD/92Myg==",
+          "matches": true
+        },
+        "task2_state.pt": {
+          "sha256": "aec5a78953c7b704dcd4fd0f1bafffb443601706e3a424a50deb3184576841cb",
+          "bytes": 57789443,
+          "remote_digest": "O9QDc9AymdkVKRuAPdqcew==",
+          "matches": true
+        }
+      }
+    }
+  ]
+}

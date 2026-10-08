@@ -389,7 +389,7 @@ def worker(spec):
                 run.summary[key] = record[key]
             artifact = wandb.Artifact(f'cps-rep-{spec["run"]}-{spec["batch_id"]}', type='validation-results')
             for name in ('spec.json', 'result.json', 'epoch_results.json', 'epoch_inputs.json', 'task_results.json',
-                         'data_fingerprints.json', 'metrics.json', 'samples.csv', 'phases.json',
+                         'data_fingerprints.json', 'metrics.json', 'telemetry.csv', 'phases.json',
                          'task1_predictions.npz', 'task2_predictions.npz', 'task1_state.pt', 'task2_state.pt'):
                 if (output / name).is_file():
                     artifact.add_file(str(output / name))
