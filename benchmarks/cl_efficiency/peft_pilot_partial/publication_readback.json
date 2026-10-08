@@ -1,0 +1,51 @@
+{
+  "status": "pass",
+  "run_state": "finished",
+  "artifact_state": "COMMITTED",
+  "artifact": "laymond1/cl-efficiency/peft-base-task1-partial-report-20261008T024903Z:v0",
+  "artifact_digest": "d5278bcf3cf66450b1b03fb96e02e764",
+  "files": {
+    "RESULTS.md": {
+      "sha256": "18b94641cf07d53c57ecd77cdf198068c0bbb243d63307dc3fc3ca5c2878957d",
+      "wandb_manifest_digest": "JD6wVxuXgS/DV7GtercuYA==",
+      "bytes": 7206,
+      "matches": true
+    },
+    "results.json": {
+      "sha256": "14b088e0fdf5b8b6efea9586b29b4a4dffbda56e585c20047f22aa88256ee262",
+      "wandb_manifest_digest": "QCQy3EUfRUJRJkHd47a7xw==",
+      "bytes": 337974,
+      "matches": true
+    },
+    "results.csv": {
+      "sha256": "7f67c16aa8680ca1031537f123517e42cb23ded53060faf1d466fafc17ecdc2c",
+      "wandb_manifest_digest": "SL4kZrPGffzrAHn44Q8DHA==",
+      "bytes": 2809,
+      "matches": true
+    },
+    "efficiency_comparison.png": {
+      "sha256": "d95fc9d848b72c27aa8b2a8631523e3cce7983d99c4f78a154759b4b762c12a2",
+      "wandb_manifest_digest": "s5mnyZXNpzrRUAuAsXut3Q==",
+      "bytes": 252407,
+      "matches": true
+    },
+    "efficiency_comparison.pdf": {
+      "sha256": "8807bd8157f83a5c1d21b3efa84cef83b2f832e91bcb3f78d40c9d89a3a9c3cc",
+      "wandb_manifest_digest": "Z0KfAzwAQvHKGcBT4sQ6Tg==",
+      "bytes": 27444,
+      "matches": true
+    },
+    "plan.json": {
+      "sha256": "513f89185a0169593b2da44dbc55718b98c6931b83d3029246f2da134ca60b4d",
+      "wandb_manifest_digest": "/4+L+mK60HhQS7RLl6v7Uw==",
+      "bytes": 3416,
+      "matches": true
+    }
+  },
+  "summary_verified": true,
+  "summary_numeric_policy": {
+    "counts_and_booleans": "exact",
+    "float_relative_tolerance": 1e-12,
+    "float_absolute_tolerance": 1e-10
+  }
+}

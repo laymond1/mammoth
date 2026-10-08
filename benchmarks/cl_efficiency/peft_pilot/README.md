@@ -3,6 +3,10 @@
 2026-10-08 사용자 승인: **“RanPAC 재측정까지 포함하여 추천안대로 진행.”**
 승인한 신규 범위는 EWC-LoRA·SD-LoRA·InfLoRA·CL-LoRA·RanPAC 각 측정3회와 별도 부분 FLOPs1회, 합계20실행입니다. 기존 EASE·L2P·DualPrompt·HiDe-Prompt의 기록을 대조해9방법 표로 연결합니다.
 
+**실제 상태는 부분 완료입니다.** EWC·Inf·CL·RanPAC16개는 통과했습니다. SD 첫 측정은10.0%(100/1000)로 격리했고 측정2회·FLOPs1회는 보류했습니다. 원본20개 계획은 유지하며 전체 완료로 표시하지 않습니다. [8방법 부분 보고서](../peft_pilot_partial/RESULTS.md), [JSON](../peft_pilot_partial/results.json), [CSV](../peft_pilot_partial/results.csv), [W&B](https://wandb.ai/laymond1/cl-efficiency/runs/8hyym6hc)에 저장했습니다.
+
+SD 원형 코드의 별도 공통조건1epoch 진단도10.0%였으며 첫 배치·첫 그래디언트·최종 모델의 모든 텐서·1000개 예측이 native와 완전히 같았습니다. 진단1회는20개 계획 및 효율성 평균에 포함하지 않습니다. 공통 전처리/LR0.008의 학습 안정성 원인은 미확정입니다. 임의로 학습률·epoch·통과 기준을 바꾸거나 SD를 재실행하지 않았습니다. [저자 코드 진단](https://wandb.ai/laymond1/cl-efficiency/runs/nm808wp6)과 [후속 결정 사항](../peft_pilot_partial/README.md)을 참고합니다.
+
 [고정 계획](plan.json)은 CIFAR100 첫10클래스(train5000/test1000), 첫태스크1epoch, 공통 `ease` 전처리, ViT-B/16 AugReg IN21K→IN1K의 동일 로컬 NPZ, batch64, workers4, seed1993, GPU1, FP32와 LoRA rank10을 사용합니다. HiDe의 기존 pilot은 TII1+prompt1입니다. 각 방법 고유 학습률·optimizer와 전체 task-begin/end 작업을 유지하므로 동일 계산 예산 비교가 아닙니다.
 
 LoRA의 검증용 원본 전처리와 이번 비교용 전처리를 분리합니다. 실제 loader의 원본 이미지·라벨·global index 순서와 train/test 전처리 hash를 기존 EASE와 대조합니다. RanPAC의 기존 학습 transform hash는 task-end 특징 추출 transform으로 덮어써졌으므로 새 worker는 학습 입력과 태스크 종료 입력을 각각 보존합니다.
@@ -27,6 +31,15 @@ uv run --no-sync python scripts/run_peft_efficiency.py --execute --resume result
 ```
 
 로컬 원본은 `results/peft_pilot/`에 보관합니다. 완료 후 readonly report 도구로 JSON/CSV/Markdown·PNG/PDF를 작성하고, publisher로 W&B의20개 finished run·COMMITTED artifact·예측과 설정 해시·원격 기록을 확인합니다. 최종 보고서도 별도 W&B run에 저장하고 Slack에 완료를 알립니다.
+
+위 원래 전체 보고서 명령은20개 모두 통과해야 동작합니다. 이번 부분 보고서는 원래 검사 기준을 유지하는 별도 도구로 작성·게시했습니다.
+
+```bash
+uv run --no-sync --offline python scripts/report_peft_partial.py --write
+uv run --no-sync --offline python scripts/publish_peft_partial.py
+```
+
+첫 명령은 로컬 보고서를 작성하고 두 번째는 로컬 증거만 검사합니다. 추가 학습과 원격 재게시를 실행하지 않습니다. 실제 게시에는 명시적인 `--execute`가 필요하며 완료 receipt가 있는 출력 디렉터리를 덮어쓰지 않습니다.
 
 ```bash
 uv run --no-sync --offline python scripts/report_peft_efficiency.py --write

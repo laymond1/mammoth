@@ -6,6 +6,8 @@
 
 저자·native 8개 W&B 실행의 finished 상태·정답 수·증거 파일과 최종 보고서 artifact의 COMMITTED 상태를 재검증했고 최종 Slack 알림을 완료했습니다. [최종 W&B 보고서](https://wandb.ai/laymond1/cl-efficiency/runs/ztcuu1oq)에 검증 결과를 저장했습니다.
 
+LoRA·RanPAC의 공통 첫 태스크 효율성 pilot은 **부분 완료**입니다. EWC-LoRA·InfLoRA·CL-LoRA·RanPAC의 측정12회와 별도 부분 FLOPs4회가 통과했고 기존4방법을 재사용한 [8방법 비교 보고서](peft_pilot_partial/RESULTS.md)를 작성했습니다. 신규 정확도는 각각99.30%·98.30%·98.60%·98.10%입니다. SD-LoRA는 첫 측정10.0%로 실패해 관측1개를 격리하고 나머지3회는 보류했습니다. 공통 조건의 독립 저자 코드1epoch에서도10.0%였으며 첫 배치·첫 그래디언트·최종 모델 전체 텐서·1000개 예측이 native와 완전히 일치했습니다. 이 대조를 SD pilot 통과로 취급하지 않으며 학습 안정성 점검이 필요합니다. [고정 계획과 실행 이력](peft_pilot/README.md), [W&B 부분 보고서](https://wandb.ai/laymond1/cl-efficiency/runs/8hyym6hc)에 승인16개·격리1개·보류3개와 별도 진단을 명시했습니다.
+
 EASE Base64·seed1993의 첫 2개 태스크 구현 검증이 통과했습니다. Native 정확도는 Task 1 99.40%, Task 2 전체 97.30%·과거 96.60%·신규 98.00%이며, 네 정확도 지표와 일곱 구조 검사가 모두 통과했습니다. [Native 검증 보고서](ease/native_validation_report.md)와 [JSON 결과](ease/native_validation_results.json)에 결과를 기록합니다. 알고리즘별 특징·장단점, 추가 구현 후보와 첫 태스크 효율성 비교 도구도 준비했습니다. 전체 알고리즘의 공통 효율성 비교는 아직 실행하지 않았으며, 기본 실행은 준비 파일 생성만 수행합니다.
 
 EASE Base64의 공통 조건 첫 태스크 효율성 pilot도 **측정 3회와 별도 부분 FLOPs 진단 1회**를 완료했습니다. 세 측정의 정확도는 모두 96.50%이며 전체 관측 시간 중앙값 29.7629초, CUDA peak allocated 5760.5054 MiB, GPU 보드 에너지 중앙값 2.4432 Wh입니다. [효율성 보고서](ease/efficiency_pilot_report.md), [JSON 결과](ease/efficiency_pilot_results.json), [측정 CSV](ease/efficiency_pilot_results.csv)에 연산 범위와 측정 한계를 함께 기록합니다. W&B 저장·Slack 알림·독립 감사가 통과했고 실행 source `49897a3`을 로컬 공통 기반에 병합했습니다. 이 EASE pilot은 Base64만 대상으로 했으며 Tiny·Small과 원격 push는 수행하지 않았습니다.
@@ -38,6 +40,7 @@ HiDe-Prompt Small→Tiny 크기 확장도 완료했습니다. 각 크기의 독�
 - [EASE Base 전체 CL 공통 입력 단계](ease_full_cl/README.md)
 - [HiDe-Prompt Small/Tiny 검증·효율성 결과](hide_sizes/README.md)
 - [네 LoRA 방법의 Base 첫2태스크 결과](low_rank/RESULTS.md), [구현·검증 이력](low_rank/README.md)
+- [LoRA·RanPAC의 공통 효율성 부분 결과: 8방법·SD 실패 별도](peft_pilot_partial/RESULTS.md), [측정 CSV](peft_pilot_partial/results.csv)
 - [71개 목록 스냅샷](inventory.csv)
 - [71개 모델의 데이터셋·인자·외부 요구사항 스냅샷](manifest.json)
 - [당시 생성한 실행 계획](prepared/plan.json), [환경 점검](prepared/readiness.json)

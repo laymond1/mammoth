@@ -1,0 +1,1132 @@
+{
+  "status": "pass",
+  "accepted_worker_count": 16,
+  "quarantined_worker_count": 1,
+  "diagnostic_worker_count": 1,
+  "workers": [
+    {
+      "method": "ewc-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/4pj2gg6i",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/ewc-lora-efficiency-measurement-20261008T021740Z:v0",
+      "artifact_digest": "191177eea707d95524cf44fb9f90454c",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "5da91ceb261cde6b826f4eb22d6f7185f0810ce45bfc107808017560ac9cfb9f",
+          "wandb_manifest_digest": "CxD7CPl8fKmaufVcGm2cKA==",
+          "bytes": 17304,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "4fb61e48150fdfda4ed06eafa8ad29890f087464e006697056c33ddb2b3e10e1",
+          "wandb_manifest_digest": "0wlRh4mSmL3avkQAWLBxow==",
+          "bytes": 3996,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "13863249319a63e38d319b281ce241d157b58e3eef2f6653be75957dd746894e",
+          "wandb_manifest_digest": "RPeP+7dSkPHHuQCBiTCjaw==",
+          "bytes": 7111,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "c4cfa4ab6e7e4862c5d1c41b7c495ada900509544d4e0ab160e5c7aa793d37ab",
+          "wandb_manifest_digest": "h2TeO9WuoLfAKotiXehHpg==",
+          "bytes": 1787,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "452fd295853f348c133d4e3de7ab19f830426bc8116a9a31d892a229b5419615",
+          "wandb_manifest_digest": "uK+jtvEkKtTkDC6AcBxQ0g==",
+          "bytes": 170,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "10afad30d041c7b7b5e7fdc6b2d8eb87d47eea18984e09199ce516a665457d5d",
+          "wandb_manifest_digest": "VN8DXrxWbapMlOW+FtyYig==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "a3b1d4d05ba6858f7cc4574a10afc9f4eb91832ee5d4e2d0fdde82044fb519c8",
+          "wandb_manifest_digest": "B8SePcOEbljsJzFiTu9gXg==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "7cfcc847f04ee5cff61174af58212a377f03523a33219c899a9774f3333bfbfa",
+          "wandb_manifest_digest": "Sml+IjOoeH1yCnTWJXoSdw==",
+          "bytes": 1629,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "ewc-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/qf742cjd",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/ewc-lora-efficiency-measurement-20261008T021851Z:v0",
+      "artifact_digest": "8b7a7c58bd389c83c32e9d8ddc3b8085",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "fc1ec613ad021cec96432e87df3467992b3c832d75c55c0dc320927729a0f5e8",
+          "wandb_manifest_digest": "R/8Gbs818FrcCzwY8545SA==",
+          "bytes": 17304,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "4fb61e48150fdfda4ed06eafa8ad29890f087464e006697056c33ddb2b3e10e1",
+          "wandb_manifest_digest": "0wlRh4mSmL3avkQAWLBxow==",
+          "bytes": 3996,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "e37e47adf20e1189a1566b4474e5da4f1087ade91d8f858a409caa350914e001",
+          "wandb_manifest_digest": "Sy3Bmjml6jcUUJLtoduf6g==",
+          "bytes": 7030,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "d0b6297ab27546d80952897d6ac3261977ee0df4168315288667f2a47507ea1a",
+          "wandb_manifest_digest": "0jpDQtaJyuKzHW9NS+3dhQ==",
+          "bytes": 1791,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "452fd295853f348c133d4e3de7ab19f830426bc8116a9a31d892a229b5419615",
+          "wandb_manifest_digest": "uK+jtvEkKtTkDC6AcBxQ0g==",
+          "bytes": 170,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "10afad30d041c7b7b5e7fdc6b2d8eb87d47eea18984e09199ce516a665457d5d",
+          "wandb_manifest_digest": "VN8DXrxWbapMlOW+FtyYig==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "a3b1d4d05ba6858f7cc4574a10afc9f4eb91832ee5d4e2d0fdde82044fb519c8",
+          "wandb_manifest_digest": "B8SePcOEbljsJzFiTu9gXg==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "7cfcc847f04ee5cff61174af58212a377f03523a33219c899a9774f3333bfbfa",
+          "wandb_manifest_digest": "Sml+IjOoeH1yCnTWJXoSdw==",
+          "bytes": 1629,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "ewc-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/qff347rm",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/ewc-lora-efficiency-measurement-20261008T022002Z:v0",
+      "artifact_digest": "a7def0edfccd70eb29f525ab36474645",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "642be3205d4bedb8133710101e7b9a841162c4c43edb6859267f5b6132402e12",
+          "wandb_manifest_digest": "lsLXAEwNf9bnX88BmhOsOg==",
+          "bytes": 17304,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "4fb61e48150fdfda4ed06eafa8ad29890f087464e006697056c33ddb2b3e10e1",
+          "wandb_manifest_digest": "0wlRh4mSmL3avkQAWLBxow==",
+          "bytes": 3996,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "21fd3fdb71f21e9131f8162bb04b64ff4c3bf745a870abcd41532dc293b19059",
+          "wandb_manifest_digest": "ua43ihwQieoVgoEc6ZLnXA==",
+          "bytes": 7015,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "5ab226a8f555bb3994de17d41ed06fabd6b217480730cb35a46bca1779970306",
+          "wandb_manifest_digest": "t46BGPLAxzkPY5xQegwCLQ==",
+          "bytes": 1784,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "452fd295853f348c133d4e3de7ab19f830426bc8116a9a31d892a229b5419615",
+          "wandb_manifest_digest": "uK+jtvEkKtTkDC6AcBxQ0g==",
+          "bytes": 170,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "10afad30d041c7b7b5e7fdc6b2d8eb87d47eea18984e09199ce516a665457d5d",
+          "wandb_manifest_digest": "VN8DXrxWbapMlOW+FtyYig==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "a3b1d4d05ba6858f7cc4574a10afc9f4eb91832ee5d4e2d0fdde82044fb519c8",
+          "wandb_manifest_digest": "B8SePcOEbljsJzFiTu9gXg==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "7cfcc847f04ee5cff61174af58212a377f03523a33219c899a9774f3333bfbfa",
+          "wandb_manifest_digest": "Sml+IjOoeH1yCnTWJXoSdw==",
+          "bytes": 1629,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "ewc-lora",
+      "pass": "flops",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/z8rfk6r3",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/ewc-lora-efficiency-flops-20261008T022113Z:v0",
+      "artifact_digest": "72e2234a692994c7b2e29caf36177647",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "3efcac55bcb40c1ba681052a2f7949064ae6a80797fdd5612249c83fa69a9c1d",
+          "wandb_manifest_digest": "YWYUmw/j4caeMsD581u1Vg==",
+          "bytes": 17280,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "4fb61e48150fdfda4ed06eafa8ad29890f087464e006697056c33ddb2b3e10e1",
+          "wandb_manifest_digest": "0wlRh4mSmL3avkQAWLBxow==",
+          "bytes": 3996,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "48c45ff4fe0d121f98ee520339ba7fa8066d2a2556f6ed3d3cb5cd53a6b30446",
+          "wandb_manifest_digest": "SmS7gZFCdO5J9a3zaFv1qA==",
+          "bytes": 7226,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "4129e81b19c93ec3622f04e3ba00c2b82ce30e7b3f8705fd5d48a6590c7e5693",
+          "wandb_manifest_digest": "g4htUPx0odqXuEgfmrah1g==",
+          "bytes": 1795,
+          "matches": true
+        },
+        "flops_ops.json": {
+          "sha256": "622efbafb14669ddc2112293ad41cc7e1554aab99f571bcc3c979f8e9fda732d",
+          "wandb_manifest_digest": "H57gfpuIzyfdcIUr1HCmZA==",
+          "bytes": 521,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "452fd295853f348c133d4e3de7ab19f830426bc8116a9a31d892a229b5419615",
+          "wandb_manifest_digest": "uK+jtvEkKtTkDC6AcBxQ0g==",
+          "bytes": 170,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "10afad30d041c7b7b5e7fdc6b2d8eb87d47eea18984e09199ce516a665457d5d",
+          "wandb_manifest_digest": "VN8DXrxWbapMlOW+FtyYig==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "a3b1d4d05ba6858f7cc4574a10afc9f4eb91832ee5d4e2d0fdde82044fb519c8",
+          "wandb_manifest_digest": "B8SePcOEbljsJzFiTu9gXg==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "7cfcc847f04ee5cff61174af58212a377f03523a33219c899a9774f3333bfbfa",
+          "wandb_manifest_digest": "Sml+IjOoeH1yCnTWJXoSdw==",
+          "bytes": 1629,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "inf-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/0hkqn8x6",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/inf-lora-efficiency-measurement-20261008T023001Z:v0",
+      "artifact_digest": "78a99d31d67db0e176ff9f56a95208ea",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "53a08dfdb604a0610413adb0944b1a65271129f03f2f40b2c8b9a392160e3e29",
+          "wandb_manifest_digest": "+xEnmNbK8pWVdjBBfK2bbQ==",
+          "bytes": 17292,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "9a423c1ce2d48fe14c0a957ce4d7afb5b2d9a061520667c222f2ba1e1c318f38",
+          "wandb_manifest_digest": "QA/SNds4n27tbaj4FWKg9A==",
+          "bytes": 4001,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "455609f48dd2716da538fc07a166907d5c180245e1f432539d64b3b78b9fd0fa",
+          "wandb_manifest_digest": "V+unvlG8yEmNOwZhsvZG6w==",
+          "bytes": 5972,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "ca00c528223ec483773c75cf014f92c7a4eb42ebceffd97ee79b78e1192f455e",
+          "wandb_manifest_digest": "aZdo40lSeLoATBEnmkk+JA==",
+          "bytes": 1789,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "c3a9813df170ed80eef1fb392f180a607254e03d076e9853b3bd95c9b1078924",
+          "wandb_manifest_digest": "WNZyxeMp9GGrDmpRE0GLmw==",
+          "bytes": 171,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "314738b73731cb5b70b76a9a6ca0920591736b5bb366872bfe3d4442a56af121",
+          "wandb_manifest_digest": "gRxuAV5Om6HdCOALRKIGOQ==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "b534db82e4b11bc0b678607bdb9d1c910aa49498320f5ac533ccf8ac0103ab94",
+          "wandb_manifest_digest": "QTwuhdy9VovjyUKuJQWEJQ==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "7b0463765e123f09283a5c2d8edbbe57296ab950722beed51f308b03c6668b16",
+          "wandb_manifest_digest": "AUO6qiXrRSQcyHMG5TmhXw==",
+          "bytes": 1086,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "inf-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/c48mmpgw",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/inf-lora-efficiency-measurement-20261008T023102Z:v0",
+      "artifact_digest": "0b69cb16e5916acee9bb3ad673c98c4b",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "033f6e98e3e7be0a8243a4a8709d16b3ca4fe13790e1ebe16168683c45aa5586",
+          "wandb_manifest_digest": "PH7NLkZ1V0NCrjn3tBwxzA==",
+          "bytes": 17292,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "9a423c1ce2d48fe14c0a957ce4d7afb5b2d9a061520667c222f2ba1e1c318f38",
+          "wandb_manifest_digest": "QA/SNds4n27tbaj4FWKg9A==",
+          "bytes": 4001,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "0abffdadba4e2173f79f2df3cb9327887cc3a17cd65055cbd3fc7e168990d6cc",
+          "wandb_manifest_digest": "h8htVLLrRVuL/l8xuAWelw==",
+          "bytes": 6457,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "2abebe5a9f11687d42e3ae4f57630e1db9cbf87aff9a2a77441a9a76f01e5cb7",
+          "wandb_manifest_digest": "cpQbH+cFnkgmAVbRWy66/A==",
+          "bytes": 1788,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "c3a9813df170ed80eef1fb392f180a607254e03d076e9853b3bd95c9b1078924",
+          "wandb_manifest_digest": "WNZyxeMp9GGrDmpRE0GLmw==",
+          "bytes": 171,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "314738b73731cb5b70b76a9a6ca0920591736b5bb366872bfe3d4442a56af121",
+          "wandb_manifest_digest": "gRxuAV5Om6HdCOALRKIGOQ==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "b534db82e4b11bc0b678607bdb9d1c910aa49498320f5ac533ccf8ac0103ab94",
+          "wandb_manifest_digest": "QTwuhdy9VovjyUKuJQWEJQ==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "7b0463765e123f09283a5c2d8edbbe57296ab950722beed51f308b03c6668b16",
+          "wandb_manifest_digest": "AUO6qiXrRSQcyHMG5TmhXw==",
+          "bytes": 1086,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "inf-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/mdz5wjkl",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/inf-lora-efficiency-measurement-20261008T023207Z:v0",
+      "artifact_digest": "c31f07c7e669acc881c6dd888adbf003",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "bdaae5d4fbcfa4053bf600410da103eb6a775379a16c2a85a9cef9438256c434",
+          "wandb_manifest_digest": "/Ue1h1yrMA55/yEBJ4vHPA==",
+          "bytes": 17292,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "9a423c1ce2d48fe14c0a957ce4d7afb5b2d9a061520667c222f2ba1e1c318f38",
+          "wandb_manifest_digest": "QA/SNds4n27tbaj4FWKg9A==",
+          "bytes": 4001,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "b9377ba64ac6073a9220a72e3659f14a04dcfc81eb340c131a7166afb70f501c",
+          "wandb_manifest_digest": "MzkcS6F/IFtQTlbEYHNkLw==",
+          "bytes": 5981,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "b633f410c4e1d9115954f717164c74f0f9f790897e2d7d9804471e23ac79f87a",
+          "wandb_manifest_digest": "SHp1VYqjcxFxIhhTgJFJUA==",
+          "bytes": 1783,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "c3a9813df170ed80eef1fb392f180a607254e03d076e9853b3bd95c9b1078924",
+          "wandb_manifest_digest": "WNZyxeMp9GGrDmpRE0GLmw==",
+          "bytes": 171,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "314738b73731cb5b70b76a9a6ca0920591736b5bb366872bfe3d4442a56af121",
+          "wandb_manifest_digest": "gRxuAV5Om6HdCOALRKIGOQ==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "b534db82e4b11bc0b678607bdb9d1c910aa49498320f5ac533ccf8ac0103ab94",
+          "wandb_manifest_digest": "QTwuhdy9VovjyUKuJQWEJQ==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "7b0463765e123f09283a5c2d8edbbe57296ab950722beed51f308b03c6668b16",
+          "wandb_manifest_digest": "AUO6qiXrRSQcyHMG5TmhXw==",
+          "bytes": 1086,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "inf-lora",
+      "pass": "flops",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/eq6jy6t4",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/inf-lora-efficiency-flops-20261008T023308Z:v0",
+      "artifact_digest": "6162e35ff574dd23d7e6a377d81ff2f5",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "5018a53d50a0091d4b9efe18562b8cd30a1ac2a541d07dec270fdf8c17ce6073",
+          "wandb_manifest_digest": "BECaSDTPMqiSjo+YXBjLSQ==",
+          "bytes": 17268,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "9a423c1ce2d48fe14c0a957ce4d7afb5b2d9a061520667c222f2ba1e1c318f38",
+          "wandb_manifest_digest": "QA/SNds4n27tbaj4FWKg9A==",
+          "bytes": 4001,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "0b350542355c539025e0067b9bf21cd1369ea671eafd4f54d1161082e4a0212f",
+          "wandb_manifest_digest": "sd+TAugZkb2mROf+b6k6dQ==",
+          "bytes": 6483,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "c7779cd1a9804a2d199f81f42d4e8117a2acc8db6781ac19799b22f9131acdf9",
+          "wandb_manifest_digest": "6lyQkZ5DHRAkXFrlrpUzVQ==",
+          "bytes": 1788,
+          "matches": true
+        },
+        "flops_ops.json": {
+          "sha256": "d85c8879ae5d8d861a8c6ec01c82ad422a3a0c67ae99947fe8ddbd0c6dc1c232",
+          "wandb_manifest_digest": "zBps/txH2sqjXMu1UudE3w==",
+          "bytes": 524,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "c3a9813df170ed80eef1fb392f180a607254e03d076e9853b3bd95c9b1078924",
+          "wandb_manifest_digest": "WNZyxeMp9GGrDmpRE0GLmw==",
+          "bytes": 171,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "314738b73731cb5b70b76a9a6ca0920591736b5bb366872bfe3d4442a56af121",
+          "wandb_manifest_digest": "gRxuAV5Om6HdCOALRKIGOQ==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "b534db82e4b11bc0b678607bdb9d1c910aa49498320f5ac533ccf8ac0103ab94",
+          "wandb_manifest_digest": "QTwuhdy9VovjyUKuJQWEJQ==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "7b0463765e123f09283a5c2d8edbbe57296ab950722beed51f308b03c6668b16",
+          "wandb_manifest_digest": "AUO6qiXrRSQcyHMG5TmhXw==",
+          "bytes": 1086,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "cl-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/pu8aoq3o",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/cl-lora-efficiency-measurement-20261008T023449Z:v0",
+      "artifact_digest": "7be687314c10cf2296084d6a05354d0b",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "c38e97f74ba55f0558865e24870e91b5605dfd47d91719e9ac3b14cfa044df20",
+          "wandb_manifest_digest": "qz+jRstua2q4xmhL2qeluA==",
+          "bytes": 17566,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "44c42e446417a57e133e43c43066f0ff859071f80ddd19d498252cb41cafa805",
+          "wandb_manifest_digest": "+X44HoqiYYOQnL5Nvzr3tQ==",
+          "bytes": 3997,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "6030620ac9d10d8546810810884b17b515eb632ceabe9f930d723d10649bb778",
+          "wandb_manifest_digest": "P3efAHYZGZ04jelNPpiqXA==",
+          "bytes": 4308,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "33b300dbfba7a50fcf04b0a0e8f652074413511c1a7d623b3cd69da9c76a0b57",
+          "wandb_manifest_digest": "3hXZEY+8I2pGRzl1A+afwA==",
+          "bytes": 1797,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "0f7242a2e72add0caa3306349faa245772beca38363a8f635b4abc9c35832fa2",
+          "wandb_manifest_digest": "P50JJhwK7W09WwjVcUMDew==",
+          "bytes": 171,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "e13d0545ff0ca19f05886bd80aebc0b8688f8af872abd0e09c633982f54b1e34",
+          "wandb_manifest_digest": "UOFhzlMLz4AKxmjhMWoMIg==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "745f9ef7694b64e3e2559c750b4990f0610388f3c31846348a8f8d6ffdff7789",
+          "wandb_manifest_digest": "8fLjjVXdHIpEu4uDdt5IWQ==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "86055ca834912dba996330166abe5c7ccf27ca7b08546046f8269360bb594341",
+          "wandb_manifest_digest": "C6vriv56TSG2Zud8UE96tA==",
+          "bytes": 435,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "cl-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/abqwuhpm",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/cl-lora-efficiency-measurement-20261008T023535Z:v0",
+      "artifact_digest": "069b8373b698702bb38931a766df6c98",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "1e39c5574840ec5c723255046fde0c94c9be19068b50c9da0deaaaceca8e7da4",
+          "wandb_manifest_digest": "FntKknsiX6HqtCxh9GE/GQ==",
+          "bytes": 17566,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "44c42e446417a57e133e43c43066f0ff859071f80ddd19d498252cb41cafa805",
+          "wandb_manifest_digest": "+X44HoqiYYOQnL5Nvzr3tQ==",
+          "bytes": 3997,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "3bc07e4a6532a111a87b80f3f21dcc83c0fc2060018f4b54f0ef23618abf19ab",
+          "wandb_manifest_digest": "UzUZcQfX/MJhz/djHglKlg==",
+          "bytes": 4182,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "f2ce7142f305a3f048128f57940edf9dd3c65f675172205c1342944c8481f62c",
+          "wandb_manifest_digest": "5hPfOK/33E3glUnYocKLTA==",
+          "bytes": 1795,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "0f7242a2e72add0caa3306349faa245772beca38363a8f635b4abc9c35832fa2",
+          "wandb_manifest_digest": "P50JJhwK7W09WwjVcUMDew==",
+          "bytes": 171,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "e13d0545ff0ca19f05886bd80aebc0b8688f8af872abd0e09c633982f54b1e34",
+          "wandb_manifest_digest": "UOFhzlMLz4AKxmjhMWoMIg==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "745f9ef7694b64e3e2559c750b4990f0610388f3c31846348a8f8d6ffdff7789",
+          "wandb_manifest_digest": "8fLjjVXdHIpEu4uDdt5IWQ==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "86055ca834912dba996330166abe5c7ccf27ca7b08546046f8269360bb594341",
+          "wandb_manifest_digest": "C6vriv56TSG2Zud8UE96tA==",
+          "bytes": 435,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "cl-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/qfphz277",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/cl-lora-efficiency-measurement-20261008T023621Z:v0",
+      "artifact_digest": "576af7de6116c7151e538c947647dbe3",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "175309882c1d0c6c56626cf61181e373c11750490ff4ff9adb96ac84390c954f",
+          "wandb_manifest_digest": "i/5vdYgQK+z2PAczfaVuyQ==",
+          "bytes": 17566,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "44c42e446417a57e133e43c43066f0ff859071f80ddd19d498252cb41cafa805",
+          "wandb_manifest_digest": "+X44HoqiYYOQnL5Nvzr3tQ==",
+          "bytes": 3997,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "9d82a44388d67348fc06c7b4ada9d92837da3a3d2c0510de2209bb435a034498",
+          "wandb_manifest_digest": "MuDWVahc8In6hzeWvsgkcw==",
+          "bytes": 4289,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "6fb3081942640befe83020d2109466fa4a195dc893c85cbd18953a56bee26136",
+          "wandb_manifest_digest": "usPS0xjuOvZbro2JO7IzgQ==",
+          "bytes": 1794,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "0f7242a2e72add0caa3306349faa245772beca38363a8f635b4abc9c35832fa2",
+          "wandb_manifest_digest": "P50JJhwK7W09WwjVcUMDew==",
+          "bytes": 171,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "e13d0545ff0ca19f05886bd80aebc0b8688f8af872abd0e09c633982f54b1e34",
+          "wandb_manifest_digest": "UOFhzlMLz4AKxmjhMWoMIg==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "745f9ef7694b64e3e2559c750b4990f0610388f3c31846348a8f8d6ffdff7789",
+          "wandb_manifest_digest": "8fLjjVXdHIpEu4uDdt5IWQ==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "86055ca834912dba996330166abe5c7ccf27ca7b08546046f8269360bb594341",
+          "wandb_manifest_digest": "C6vriv56TSG2Zud8UE96tA==",
+          "bytes": 435,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "cl-lora",
+      "pass": "flops",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ajmnni6m",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/cl-lora-efficiency-flops-20261008T023706Z:v0",
+      "artifact_digest": "13d027589c5d226011c2f04f76ddcdb0",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "dc28e04a8a6280704ff97134478ae24e4756f37c5d71e95d8f9afd57c0f7064b",
+          "wandb_manifest_digest": "lSJNGioEHtmTfKQw2dMzOw==",
+          "bytes": 17542,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "44c42e446417a57e133e43c43066f0ff859071f80ddd19d498252cb41cafa805",
+          "wandb_manifest_digest": "+X44HoqiYYOQnL5Nvzr3tQ==",
+          "bytes": 3997,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "9a77ea167e1ef7f8c91a7d19ed22f280bcdedb3c2ceefb3d01bcb6f43401b19e",
+          "wandb_manifest_digest": "AgFGZ8WG54EfO/fHKLvEdg==",
+          "bytes": 4548,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "8b645f0eabceeebc34de4e71055feaa85dd98663385c56a19290877014615443",
+          "wandb_manifest_digest": "L9DhimV9bGvdhmlj2P4YRw==",
+          "bytes": 1785,
+          "matches": true
+        },
+        "flops_ops.json": {
+          "sha256": "aa5aeb02a755a9c097b445e1932443d36651501e46db1f32ca30b2bfc1a77df9",
+          "wandb_manifest_digest": "VOWIJGbdquglclRTu3HOPA==",
+          "bytes": 524,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "0f7242a2e72add0caa3306349faa245772beca38363a8f635b4abc9c35832fa2",
+          "wandb_manifest_digest": "P50JJhwK7W09WwjVcUMDew==",
+          "bytes": 171,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "e13d0545ff0ca19f05886bd80aebc0b8688f8af872abd0e09c633982f54b1e34",
+          "wandb_manifest_digest": "UOFhzlMLz4AKxmjhMWoMIg==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "745f9ef7694b64e3e2559c750b4990f0610388f3c31846348a8f8d6ffdff7789",
+          "wandb_manifest_digest": "8fLjjVXdHIpEu4uDdt5IWQ==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "86055ca834912dba996330166abe5c7ccf27ca7b08546046f8269360bb594341",
+          "wandb_manifest_digest": "C6vriv56TSG2Zud8UE96tA==",
+          "bytes": 435,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "ranpac",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/ot5d5s8o",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/ranpac-common-input-ranpac-ranpac-measurement:v0",
+      "artifact_digest": "cadc33a38ecf468a0cea197d36386712",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "ef0aa1fb2d606f6105cf78b031beb4a3bcc736626f31b332e85b3eca48773107",
+          "wandb_manifest_digest": "y+0LGa6AsVBjv655iTIrPw==",
+          "bytes": 1818,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "79e14305bc4e402e5891e14adca2ac28caf844657b161eea2436a265219e7e10",
+          "wandb_manifest_digest": "BX3D5JUQFUpv6UnQd+SDAg==",
+          "bytes": 24772,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "5514a3781f7e2fcb153cb7d93fa9ed88ed92bd54b8ce4a36225af33700494de8",
+          "wandb_manifest_digest": "AVYsEqGo4Sg551mV+1Vcdw==",
+          "bytes": 9822,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "d5bfeb6680c89851b5c4c20b9fbe9204e52c032d5e068e25be9d3f1eed7b7d71",
+          "wandb_manifest_digest": "+ZSF5/p+f4uiBgjHvblaaQ==",
+          "bytes": 1782,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "ranpac",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/hxuek81z",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/ranpac-common-input-ranpac-ranpac-measurement:v1",
+      "artifact_digest": "ba19189cebd4ffae743891a7920dc20f",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "ef78e754de8657fe2f8041747349040e10514fc7438acc6f18dcb306b10faeb1",
+          "wandb_manifest_digest": "/0B9xPgPa2+bU1lDjHo4xw==",
+          "bytes": 1818,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "79e14305bc4e402e5891e14adca2ac28caf844657b161eea2436a265219e7e10",
+          "wandb_manifest_digest": "BX3D5JUQFUpv6UnQd+SDAg==",
+          "bytes": 24772,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "9715f6c64aea69c4eb3df958b4ec46047f3cc7a62da01b9e17c8a24ada802b87",
+          "wandb_manifest_digest": "jOxklAE8jfMrH7T8uxXxvg==",
+          "bytes": 9823,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "2edc4155eeb049e12c98688cac889e964695d53c04067ebbb776b50c79bf2569",
+          "wandb_manifest_digest": "nKqij2+2/1TyKY/T9cu1cQ==",
+          "bytes": 1777,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "ranpac",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/f2nxrt3p",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/ranpac-common-input-ranpac-ranpac-measurement:v2",
+      "artifact_digest": "8f471d6e88197ad8ba9627bda3abdcab",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "f43a0bc7bb6850e4553ad6122e785a25abdd37a417a61e566c7e6e37fd6b3d6e",
+          "wandb_manifest_digest": "b/cs45lUAbVCnVrJSNfeQQ==",
+          "bytes": 1818,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "79e14305bc4e402e5891e14adca2ac28caf844657b161eea2436a265219e7e10",
+          "wandb_manifest_digest": "BX3D5JUQFUpv6UnQd+SDAg==",
+          "bytes": 24772,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "a2dcf107b45ab3176fa1d35bc187ad111c03f70de78addaef89184315206a98d",
+          "wandb_manifest_digest": "MgurFsQ8YEkaWV5QrvmuSg==",
+          "bytes": 9816,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "9a03fc5d8ec5bb4d77a803f2073c7edd9ca66f834dd9dc5e062a67b193bd51cd",
+          "wandb_manifest_digest": "S7tIra6T/rURTELNep7o1Q==",
+          "bytes": 1782,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "ranpac",
+      "pass": "flops",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/di08hugu",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/ranpac-common-input-ranpac-ranpac-flops:v0",
+      "artifact_digest": "94a50683eb10d4de0ff59006dacbf3e0",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "594caac78d37e62ce246c6c57df012d34136b7374a62a5ede093a682c8a1f1b8",
+          "wandb_manifest_digest": "zE51Y8i98LFuqqaK7nI2IQ==",
+          "bytes": 1805,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "79e14305bc4e402e5891e14adca2ac28caf844657b161eea2436a265219e7e10",
+          "wandb_manifest_digest": "BX3D5JUQFUpv6UnQd+SDAg==",
+          "bytes": 24772,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "0fa8f70518d7eb80c5a7dc832f7d2ebd8e0981babebce88c2517a1dccddf0618",
+          "wandb_manifest_digest": "xzlpWADgMZF80+5PVWSr5w==",
+          "bytes": 10124,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "4b8f7f4cd1ceaed167d90edba364ce948c985dea5c5e9895fbc334e9bdab1634",
+          "wandb_manifest_digest": "Ot0S6IaWVCJZisCsDgh0ZA==",
+          "bytes": 1780,
+          "matches": true
+        },
+        "flops_ops.json": {
+          "sha256": "ad964b706631c68fc384df11a5132674d4fcd32b3097791aaa94dd15888f4041",
+          "wandb_manifest_digest": "f+uYErhJyP/f42oMScuRRA==",
+          "bytes": 519,
+          "matches": true
+        }
+      },
+      "accepted": true
+    },
+    {
+      "method": "sd-lora",
+      "pass": "measurement",
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/v8txpwax",
+      "run_state": "finished",
+      "artifact_state": "COMMITTED",
+      "artifact": "laymond1/cl-efficiency/sd-lora-efficiency-measurement-20261008T022323Z:v0",
+      "artifact_digest": "1b12307aecf8dbf72a2fb2687502e8c0",
+      "count_summary_verified": {
+        "efficiency/tasks_completed": 1,
+        "efficiency/outer_observe_steps": 79,
+        "efficiency/outer_training_stream_examples": 5000,
+        "efficiency/evaluation_examples": 1000
+      },
+      "accuracy_summary_verified": true,
+      "record_semantics_verified": true,
+      "files": {
+        "spec.json": {
+          "sha256": "daef9ac10605ad80403d63d99ebcc6f98db29bd4be3a660540417d5f786cf210",
+          "wandb_manifest_digest": "cQUuOHx+cNY3rCHYK8LZCw==",
+          "bytes": 17242,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "0b73f05f6ec01f62b5914149f9e0241e64ce9deb6b1611403590c507559aebd0",
+          "wandb_manifest_digest": "81TirT2gfDIg0mdL5xNQlg==",
+          "bytes": 3171,
+          "matches": true
+        },
+        "telemetry.csv": {
+          "sha256": "67bc5cd523ae263bd6c96e673ee01d49e11277b19507f54d175a28f12ddead66",
+          "wandb_manifest_digest": "b6TK01uXMv0iPuPZi/970w==",
+          "bytes": 3806,
+          "matches": true
+        },
+        "phases.json": {
+          "sha256": "2133fe7b9342e0e10ddde87ced3a883c2c5c816b46837b4a2b9dd87492749779",
+          "wandb_manifest_digest": "3pOZup/swWAsg1bFMEtg6g==",
+          "bytes": 1791,
+          "matches": true
+        },
+        "epoch_results.json": {
+          "sha256": "740f273d12559292119ef9f2e1e5bf1ab4a32864a88909b83cec458ad1af48ee",
+          "wandb_manifest_digest": "rpEq31kyDztevnB8SfLOrQ==",
+          "bytes": 169,
+          "matches": true
+        },
+        "task_results.json": {
+          "sha256": "1b85390843baf153278dd6856b4d34b49a4af24968f4d65da0c81352372618f3",
+          "wandb_manifest_digest": "JXaDT8BnSalwc75FKA1NKw==",
+          "bytes": 170,
+          "matches": true
+        },
+        "first_batch_audits.json": {
+          "sha256": "dad0f8182c28bf62d7c079f2849037c0231ca47a357ee206e3ab7d94bee27da1",
+          "wandb_manifest_digest": "oi+iqd3dze/4sSHJp4Zkrw==",
+          "bytes": 380,
+          "matches": true
+        },
+        "state_audits.json": {
+          "sha256": "1d764c1c72499c2354e40bd38e16fbaa8708e1dc5d1fe1e6b2d5505318dadc3b",
+          "wandb_manifest_digest": "Oj1BWjawNb3H7BEjVfdJRA==",
+          "bytes": 435,
+          "matches": true
+        }
+      },
+      "accepted": false
+    },
+    {
+      "method": "sd-lora",
+      "kind": "author_diagnostic",
+      "accepted": false,
+      "wandb_url": "https://wandb.ai/laymond1/cl-efficiency/runs/nm808wp6",
+      "run_state": "finished",
+      "artifact": "laymond1/cl-efficiency/sd-author-common-ease-diagnostic-20261008T024548Z:v0",
+      "artifact_state": "COMMITTED",
+      "artifact_digest": "a1bc567f46a1fbeeb3eef2a3dab2accb",
+      "files": {
+        "spec.json": {
+          "sha256": "ac1615aefdc376ca20ac4856fcde319851d80af077a9f6c361ab0353ab358467",
+          "wandb_manifest_digest": "rQxwgsg0o3KWBGFLgnzPWQ==",
+          "bytes": 18610,
+          "matches": true
+        },
+        "comparison.json": {
+          "sha256": "70f303b01348a858b3a3049bf47d182fb856cae582cfe9efe4a9f8d23a31af48",
+          "wandb_manifest_digest": "uQjMbj/qjdojlSnEchvV0w==",
+          "bytes": 420,
+          "matches": true
+        },
+        "task1_predictions.npz": {
+          "sha256": "0b73f05f6ec01f62b5914149f9e0241e64ce9deb6b1611403590c507559aebd0",
+          "wandb_manifest_digest": "81TirT2gfDIg0mdL5xNQlg==",
+          "bytes": 3171,
+          "matches": true
+        },
+        "artifact_manifest.json": {
+          "sha256": "6f1211d669b63db6e982b0431555ccfe5c1b8051518227312a4b264b7a101936",
+          "wandb_manifest_digest": "ihr9wuUrQBJ/MjDyiH/uSQ==",
+          "bytes": 696,
+          "matches": true
+        }
+      },
+      "record_semantics_verified": true,
+      "uploaded_record_sha256": "f75ed3fd6b191f83b86aa8796cae6b10fc1ae0d7c62127de51039828c3d602c5",
+      "uploaded_record_bytes_verified": true,
+      "measurement_aggregate_eligible": false
+    }
+  ]
+}

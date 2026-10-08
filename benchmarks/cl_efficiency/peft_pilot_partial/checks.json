@@ -1,0 +1,88 @@
+{
+  "status": "validation_pass_pilot_partial",
+  "focused_tests": {
+    "command": "UV_CACHE_DIR=/tmp/cl-peft-uv uv run --no-sync --offline pytest -q tests/test_peft_efficiency.py tests/test_peft_partial.py tests/test_peft_partial_publication.py tests/test_sd_author_diagnostic.py tests/test_low_rank_efficiency.py tests/test_ranpac_efficiency.py tests/test_low_rank_protocol.py tests/test_low_rank_execution.py tests/test_baseline_efficiency.py tests/test_baseline_audit.py tests/test_hide_efficiency.py tests/test_import.py::test_import_after_register tests/test_module_register.py::test_args_with_choices tests/test_module_register.py::test_register_backbone",
+    "passed": 512,
+    "duration_s": 9.67
+  },
+  "final_publisher_regression": {
+    "command": "UV_CACHE_DIR=/tmp/cl-peft-uv uv run --no-sync --offline pytest -q tests/test_peft_partial_publication.py",
+    "passed": 18,
+    "duration_s": 4.15,
+    "new_cases": 10
+  },
+  "post_render_regression": {
+    "command": "UV_CACHE_DIR=/tmp/cl-peft-uv uv run --no-sync --offline pytest -q tests/test_peft_partial.py tests/test_peft_partial_publication.py",
+    "passed": 51,
+    "duration_s": 5.3
+  },
+  "actual_gpu_smoke": {
+    "gpu": "1",
+    "approved_scope_jobs": 20,
+    "completed_accepted_workers": 16,
+    "sd_completed_but_accuracy_failed": 1,
+    "sd_unexecuted_deferred": 3,
+    "author_diagnostic_extra_runs": 1,
+    "new_training_after_failure_diagnosis": false
+  },
+  "sd_diagnosis": {
+    "input_sha256_matches": true,
+    "labels_sha256_matches": true,
+    "gradient_sha256_matches": true,
+    "seed_matches": true,
+    "samples_matches": true,
+    "counts_match": true,
+    "network_sha256_matches": true,
+    "loss_mean_abs_difference": 0.0,
+    "seen_accuracy_pp_difference": 0.0,
+    "prediction_arrays_match": true,
+    "all_network_tensors_bitexact": true
+  },
+  "measurement_source_fingerprints": {
+    "count": 54,
+    "unchanged": true,
+    "frozen_commit": "04559dbdc8c7e68adb96da7871d9d31c2fc5365e"
+  },
+  "local_report_smoke": {
+    "report": "scripts/report_peft_partial.py --write",
+    "publisher_dry": "scripts/publish_peft_partial.py",
+    "status": "passed"
+  },
+  "remote_evidence": {
+    "source_runs_verified": 18,
+    "accepted": 16,
+    "quarantined": 1,
+    "diagnostic": 1,
+    "report_run_state": "finished",
+    "report_artifact_state": "COMMITTED",
+    "slack_completion": "sent"
+  },
+  "summary_transport_fix": {
+    "observed_differences": [
+      "95.39999999999999 -> 95.4",
+      "31.606454924001202 -> 31.6064549240012",
+      "46.288067999999996 -> 46.288068"
+    ],
+    "policy": {
+      "counts_and_booleans": "exact",
+      "float_relative_tolerance": 1e-12,
+      "float_absolute_tolerance": 1e-10
+    },
+    "new_run_or_reupload": false
+  },
+  "publisher_sha256": "25c594aa56391004fabe813ad0d23751aabb3915e7e979e8099a40436f54bfd6",
+  "earlier_attempts": [
+    "Preflight full tests/test_import.py reached an unavailable sandbox CIFAR10 download (420 passed/1 environment failure); focused import/register selection passed.",
+    "Strengthened diagnostic fixture and new publisher test namespace were corrected; final respective suites passed."
+  ],
+  "ruff": "not_installed",
+  "unperformed": [
+    "full repository suite",
+    "extra SGD training",
+    "new LR/epoch recipe",
+    "task2 efficiency",
+    "Small/Tiny training",
+    "BudgetCL/aL-SAR implementation",
+    "remote Git push"
+  ]
+}

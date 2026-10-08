@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-08T02:35:29.390199+00:00",
+  "method": "sd-lora",
+  "diagnostic_type": "read_only_existing_artifact_analysis",
+  "gpu_used": false,
+  "training_executed": false,
+  "network_used": false,
+  "measurement_aggregate_eligible": false,
+  "evidence_inputs": {
+    "pilot_result": {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/peft_pilot/base-20261008/sd-lora/measurement1/result.json",
+      "sha256": "914f5657792db62c5678ec43019a62590ff9784eab8a34a83c9c0c5cc825f20c"
+    },
+    "accepted_native_result": {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_native_20261008/result.json",
+      "sha256": "7e9dc46f18f51c502b14948702072f05b9c9123387b8da60424cdf15008fa2d7"
+    },
+    "accepted_author_result": {
+      "path": "/mnt/sdab1/userHome/wslim/.codex/worktrees/aa40/compression-gap-cl/results/low_rank/sd_reference_20261008/summary.json",
+      "sha256": "0ca2a5e020a1892ecfa352865dd5719cdb47acff9ab426dcb6eac7a96024662b"
+    }
+  },
+  "observed": {
+    "pilot_accuracy_pct": 10.0,
+    "pilot_prediction_histogram": {
+      "6": 1000
+    },
+    "pilot_epoch1_loss_mean": 5.321488868963869,
+    "accepted_native_epoch1_loss_mean": 0.9658213340429754,
+    "accepted_author_epoch1_console_loss_rounded": 0.966,
+    "accepted_author_epoch1_training_accuracy_pct": 75.52,
+    "initial_learned_sha256_equal": true,
+    "first_batch_labels_sha256_equal": true,
+    "first_batch_inputs_sha256_equal": false,
+    "protected_algorithm_and_backbone_sha256_equal": true,
+    "pilot_first_batch_audit": {
+      "task": 1,
+      "epoch": 1,
+      "optimizer_update_index": 1,
+      "seed": 2993,
+      "samples": 64,
+      "input_sha256": "9ee3258cb53926547f0b752a92e3df4a7e555ed46a5905742b7e5a20acdd402f",
+      "labels_sha256": "33a750622f549eabeceb8214cdcad607549b42eed02b060d5075403cce329cb0",
+      "gradient_sha256": "d889cb68dfd5dae9017a089267a9b484d5b75397513e6adbfd86c41edca44a84"
+    },
+    "accepted_first_batch_audit": {
+      "task": 1,
+      "epoch": 1,
+      "seed": 2993,
+      "optimizer_update_index": 1,
+      "samples": 64,
+      "input_sha256": "a23bd143b765dbf7a1904de16f7d7b496c13fe618a6035356eec3e8943a94dce",
+      "labels_sha256": "33a750622f549eabeceb8214cdcad607549b42eed02b060d5075403cce329cb0",
+      "gradient_sha256": "a4a3675c5ba9ecda059a0ac4d419c205a83e0bcb1ed10e9b196bdc19802333a2"
+    },
+    "pilot_shared_scaling_factor_after_epoch1": 0.794710099697113,
+    "accepted_shared_scaling_factor_after_epoch20": 0.1501341015100479,
+    "pilot_block0_Bk_norm": 7.171341419219971,
+    "pilot_block0_Bv_norm": 6.472443580627441
+  },
+  "cpu_inference": {
+    "scope": "ten existing raw test images, first original global index of each class0-9; existing checkpoints, inference_mode, fp32, CPUthreads2",
+    "full_dataset_accuracy_estimate": false,
+    "rows": [
+      {
+        "checkpoint": "initial",
+        "test_transform": "common_ease",
+        "predictions_one_image_per_class": [
+          7,
+          2,
+          4,
+          0,
+          0,
+          0,
+          9,
+          7,
+          7,
+          5
+        ],
+        "correct_of_10": 1,
+        "mean_feature_norm": 89.11664581298828,
+        "mean_pairwise_feature_cosine": 0.3250368535518646,
+        "mean_coordinate_variance": 6.9961628913879395
+      },
+      {
+        "checkpoint": "initial",
+        "test_transform": "source",
+        "predictions_one_image_per_class": [
+          7,
+          2,
+          4,
+          0,
+          0,
+          7,
+          7,
+          0,
+          7,
+          7
+        ],
+        "correct_of_10": 0,
+        "mean_feature_norm": 92.95317077636719,
+        "mean_pairwise_feature_cosine": 0.38212913274765015,
+        "mean_coordinate_variance": 6.949304103851318
+      },
+      {
+        "checkpoint": "pilot1epoch",
+        "test_transform": "common_ease",
+        "predictions_one_image_per_class": [
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6
+        ],
+        "correct_of_10": 1,
+        "mean_feature_norm": 34.91436767578125,
+        "mean_pairwise_feature_cosine": 0.9999113082885742,
+        "mean_coordinate_variance": 0.00014157172699924558
+      },
+      {
+        "checkpoint": "pilot1epoch",
+        "test_transform": "source",
+        "predictions_one_image_per_class": [
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6,
+          6
+        ],
+        "correct_of_10": 1,
+        "mean_feature_norm": 34.911773681640625,
+        "mean_pairwise_feature_cosine": 0.99988853931427,
+        "mean_coordinate_variance": 0.00017795240273699164
+      },
+      {
+        "checkpoint": "accepted20epochs",
+        "test_transform": "common_ease",
+        "predictions_one_image_per_class": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "correct_of_10": 10,
+        "mean_feature_norm": 36.827125549316406,
+        "mean_pairwise_feature_cosine": 0.2010503113269806,
+        "mean_coordinate_variance": 1.4542927742004395
+      },
+      {
+        "checkpoint": "accepted20epochs",
+        "test_transform": "source",
+        "predictions_one_image_per_class": [
+          0,
+          1,
+          2,
+          4,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "correct_of_10": 9,
+        "mean_feature_norm": 35.655696868896484,
+        "mean_pairwise_feature_cosine": 0.21871070563793182,
+        "mean_coordinate_variance": 1.3445353507995605
+      }
+    ]
+  },
+  "source_review": {
+    "sd_attention_scale_block_and_vit_methods_ast_exact": true,
+    "optimizer": "Adam encoder/head lr0.008 wd0, original same settings",
+    "epoch1_lr": "0.008 for all79 updates for both T_max1 and T_max20; scheduler stepped after the last batch",
+    "worker_hooks": "read-only hashes, finite checks and counters; no clipping/gradient scaling or loss mutation found",
+    "training_preprocessing_difference": "RandomResizedCrop minimum scale0.08\u21920.05; identity normalization unchanged",
+    "evaluation_preprocessing_difference": "Resize224bilinear\u2192Resize256bicubic+CenterCrop224"
+  },
+  "findings": [
+    "Saved pilot features collapse across different images under both test transforms; evaluation preprocessing alone does not explain it.",
+    "Identical initialization, raw samples, labels, method hyperparameters and source math; no port/worker bug identified.",
+    "Shorter cosine horizon cannot change the first epoch training updates.",
+    "A common-crop-induced learning trajectory instability is a hypothesis; causality is not established by these artifacts."
+  ],
+  "next_diagnostic": "Immutable author SD first-task one epoch with identical common EASE preprocessing, initialization, seed2993, Adam lr0.008 and full counts; compare first input/label/gradient and all final network tensors/predictions."
+}
