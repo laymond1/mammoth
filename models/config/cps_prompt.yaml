@@ -1,0 +1,28 @@
+default:
+  dataset_config: unified
+  vit_type: tiny
+  optimizer: adam
+  lr: 0.001
+  optim_wd: 0.0
+  n_epochs: 20
+  batch_size: 16
+  reduction_ratio: 0.4
+  temperature: 0.1
+  phase_ratio: 0.4
+  lr_scheduler: null
+seq-cifar100-224:
+  dataset_config: unified
+seq-imagenet-r:
+  dataset_config: default
+  optimizer: adam
+  lr: 0.001
+  n_epochs: 50
+  batch_size: 16
+  phase_ratio: 0.2
+seq-cub200:
+  dataset_config: default
+  optimizer: adam
+  lr: 0.001
+  n_epochs: 20
+  batch_size: 16
+  phase_ratio: 0.6

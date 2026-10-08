@@ -1,0 +1,25 @@
+{
+  "repository": "https://github.com/laymond1/CPS-Prompt",
+  "commit": "7ec2be108f4f032f2bb10a6647304076f406ef6b",
+  "paper": "https://arxiv.org/html/2604.07399v1",
+  "license": "MIT",
+  "native_adaptations": [
+    "Reuse Mammoth CODA prompt pool and frozen canonical150 AugReg encoder",
+    "Explicit CIFAR defaults r=.4,temperature=.1,phase_ratio=.4",
+    "Own checkpointed sampling RNG, separate from data augmentation",
+    "Mammoth custom_scheduler lifecycle and accurate Class-IL compatibility",
+    "Joint phase must have at least one epoch; no silent phase skipping",
+    "CPU source operator fixtures are unmodified; source/native GPU accuracy validation remains pending"
+  ],
+  "source_behavior": [
+    "Joint prompt/head phase followed by no-grad full-patch features and head-only backward",
+    "Explicit attention in all source blocks; final query CLS-attention times full-width value norm",
+    "Query and inference remain full-token",
+    "Total20 epochs split8+12 with phase_ratio=.4"
+  ],
+  "unmodified_operator_fixtures": {
+    "cps.py": "e9116b2a0b013d5f66487c98bc49656de50d5681bc18f83cce6f512c46ca906b",
+    "cps_vit.py": "df62a3b2fecf5921f3715ab6dbca708281975954f1c960839a61bcf87fc7c62b"
+  },
+  "fixture_policy": "Preserve upstream bytes, including trailing whitespace; lint and native diff checks exclude these source fixtures"
+}

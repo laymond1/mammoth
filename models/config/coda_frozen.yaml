@@ -1,0 +1,11 @@
+default:
+  dataset_config: unified
+  coda_vit_size: tiny
+  optimizer: adam
+  lr: 0.001
+  optim_wd: 0.0
+  n_epochs: 20
+  batch_size: 16
+  lr_scheduler: null
+seq-cifar100-224:
+  dataset_config: unified
