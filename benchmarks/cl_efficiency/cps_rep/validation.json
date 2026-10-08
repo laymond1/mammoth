@@ -1,0 +1,387 @@
+{
+  "schema_version": 1,
+  "completed_at_utc": "2026-10-08T15:27:02.373604+00:00",
+  "stage": "Implementation and CPU validation",
+  "result": "complete",
+  "branch": "codex/cps-rep",
+  "worktree": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl",
+  "commits": {
+    "shared_foundation": "6fd741e",
+    "explicit_cpu_device": "59b06b2",
+    "cps_with_frozen_coda_control": "0ab4cfe",
+    "rep_coda": "695a658"
+  },
+  "environment": {
+    "python": "3.12.15",
+    "torch": "2.13.0+cu126",
+    "torchvision": "0.28.0+cu126",
+    "timm": "0.9.8",
+    "device": "cpu",
+    "CUDA_VISIBLE_DEVICES": "",
+    "MAMMOTH_DEVICE": "cpu",
+    "WANDB_MODE": "disabled",
+    "OMP_NUM_THREADS": "2",
+    "MKL_NUM_THREADS": "2",
+    "JE_ARROW_MALLOC_CONF": "background_thread:false",
+    "uv_command_policy": "uv run --no-sync --offline (worktree-specific environment from frozen dev+extra sync)",
+    "visible_cuda_device_count_verified": 0,
+    "default_test_data": "Workspace data/CIFAR10, data/CIFAR100 and data/eurosat symlink to shared cached datasets; ignored local MNIST fixture reused by MyMNIST/raw symlink",
+    "new_method_smoke_data_root": "/mnt/sdab1/share/data"
+  },
+  "checks": [
+    {
+      "name": "Inherited shared ViT/comparison foundation",
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "pytest",
+        "-q",
+        "tests/test_coda_ranpac_sizes.py",
+        "tests/test_prompt_vit_sizes.py",
+        "tests/test_unified_cl_inputs.py",
+        "tests/test_unified_cl_telemetry.py",
+        "tests/test_unified_cl_protocol.py",
+        "tests/test_vit_augreg.py",
+        "tests/test_unified_lora_reference.py",
+        "tests/test_l2p_checkpoint.py",
+        "tests/test_dualprompt_checkpoint.py",
+        "--tb=short"
+      ],
+      "result": "passed",
+      "passed": 231,
+      "elapsed_seconds": 61.53,
+      "execution_note": "Used sandbox escalation for DataLoader IPC after fixing snapshot result paths and installing cached optional extra dependencies"
+    },
+    {
+      "name": "CPS, REP and explicit CPU contracts after final code edits",
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "pytest",
+        "-q",
+        "tests/test_cps_prompt.py",
+        "tests/test_rep_prompt.py",
+        "tests/test_cpu_device.py",
+        "--tb=short"
+      ],
+      "result": "passed",
+      "passed": 30,
+      "elapsed_seconds": 11.86
+    },
+    {
+      "name": "CPS and existing CODA/RanPAC size contracts",
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "pytest",
+        "-q",
+        "tests/test_cps_prompt.py",
+        "tests/test_coda_ranpac_sizes.py",
+        "--tb=short"
+      ],
+      "result": "passed",
+      "passed": 31,
+      "elapsed_seconds": 9.65,
+      "counting_note": "Overlaps both suites above; do not add this count to a unique test total"
+    },
+    {
+      "name": "Selected existing import/registration/configuration/basic regression",
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "pytest",
+        "-q",
+        "tests/test_import.py",
+        "tests/test_module_register.py",
+        "tests/test_model_config.py",
+        "tests/test_dynamic_params.py",
+        "tests/test_basic_functionality.py",
+        "-k",
+        "not test_register_backbone_big and not (test_register_dataset and test_dynamic_params) and not test_best_rehearsal",
+        "--tb=short"
+      ],
+      "initial_result": {
+        "passed": 11,
+        "failed": 3,
+        "deselected": 5,
+        "elapsed_seconds": 301.6
+      },
+      "failure_cause": "Torchvision MyMNIST subclass requested a separate raw directory and tried to download despite a complete local MNIST cache",
+      "resolution": "Reuse the complete local MNIST/raw through data/MNIST/MyMNIST/raw; no dataset implementation change",
+      "result": "All 14 selected tests passed after the targeted rerun below"
+    },
+    {
+      "name": "Three MNIST regressions rerun after local fixture repair",
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "pytest",
+        "-q",
+        "tests/test_model_config.py::test_best_base",
+        "tests/test_dynamic_params.py::test_dynamic_args_backbone_defaults",
+        "tests/test_dynamic_params.py::test_dynamic_args_backbone_override",
+        "--tb=short"
+      ],
+      "result": "passed",
+      "passed": 3,
+      "elapsed_seconds": 35.07
+    },
+    {
+      "name": "PCL model wiring",
+      "commands": [
+        [
+          "uv",
+          "run",
+          "--no-sync",
+          "--offline",
+          "python",
+          "/mnt/sdab1/userHome/wslim/.codex/skills/implement-pcl-method/scripts/check_pcl_method.py",
+          "cps-prompt"
+        ],
+        [
+          "uv",
+          "run",
+          "--no-sync",
+          "--offline",
+          "python",
+          "/mnt/sdab1/userHome/wslim/.codex/skills/implement-pcl-method/scripts/check_pcl_method.py",
+          "rep-prompt"
+        ]
+      ],
+      "result": "passed"
+    },
+    {
+      "name": "Native static lint",
+      "command": [
+        "uv",
+        "tool",
+        "run",
+        "--offline",
+        "ruff",
+        "check",
+        "--config",
+        "pyproject.toml",
+        "--extend-ignore",
+        "N999",
+        "models/cps_prompt.py",
+        "models/cps_prompt_utils",
+        "models/rep_prompt.py",
+        "models/rep_prompt_utils",
+        "models/resource_prompt_utils",
+        "models/coda_frozen.py",
+        "tests/test_cps_prompt.py",
+        "tests/test_rep_prompt.py",
+        "tests/test_cpu_device.py",
+        "--output-format",
+        "concise"
+      ],
+      "environment": {
+        "UV_CACHE_DIR": "/tmp/cl-cps-rep-uv",
+        "UV_TOOL_DIR": "/tmp/cl-cps-rep-tools"
+      },
+      "ruff_version": "0.16.10",
+      "result": "passed",
+      "note": "N999 is caused by the ancestor worktree directory compression-gap-cl; unmodified upstream fixtures excluded"
+    },
+    {
+      "name": "Python syntax",
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "-m",
+        "compileall",
+        "-q",
+        "models/cps_prompt.py",
+        "models/cps_prompt_utils",
+        "models/rep_prompt.py",
+        "models/rep_prompt_utils",
+        "models/resource_prompt_utils",
+        "models/coda_frozen.py",
+        "tests/test_cps_prompt.py",
+        "tests/test_rep_prompt.py",
+        "tests/test_cpu_device.py"
+      ],
+      "result": "passed"
+    },
+    {
+      "name": "Native staged diff whitespace checks",
+      "result": "passed",
+      "fixture_note": "Original CPS fixture trailing whitespace intentionally preserved; byte identity verified against pinned source"
+    }
+  ],
+  "cpu_cli_smokes": [
+    {
+      "method": "cps-prompt",
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "main.py",
+        "--model",
+        "cps-prompt",
+        "--model_config",
+        "default",
+        "--dataset",
+        "seq-cifar100-224",
+        "--dataset_config",
+        "unified",
+        "--backbone",
+        "resnet18",
+        "--device",
+        "cpu",
+        "--base_path",
+        "/mnt/sdab1/share/data",
+        "--results_path",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/cps_cpu_smoke",
+        "--n_epochs",
+        "3",
+        "--batch_size",
+        "2",
+        "--num_workers",
+        "0",
+        "--stop_after",
+        "2",
+        "--seed",
+        "1993",
+        "--debug_mode",
+        "1",
+        "--non_verbose",
+        "1"
+      ],
+      "exit_code": 0,
+      "device": "cpu",
+      "size": "tiny",
+      "original_task_allocation": 10,
+      "executed_tasks": 2,
+      "epochs_per_task": 3,
+      "batch_size": 2,
+      "debug_only": true,
+      "accuracy_gate_evaluated": false,
+      "efficiency_result": false,
+      "local_model_log": "results/cps_cpu_smoke/class-il/seq-cifar100-224/cps-prompt/logs.pyd",
+      "local_model_log_sha256": "73577ca999b2b14ecbe01a2a91b18ff5e6f1a9054135a73151fd439136430404",
+      "wandb_or_slack_sent": false
+    },
+    {
+      "method": "rep-prompt",
+      "command": [
+        "uv",
+        "run",
+        "--no-sync",
+        "--offline",
+        "python",
+        "main.py",
+        "--model",
+        "rep-prompt",
+        "--model_config",
+        "default",
+        "--dataset",
+        "seq-cifar100-224",
+        "--dataset_config",
+        "unified",
+        "--backbone",
+        "resnet18",
+        "--device",
+        "cpu",
+        "--base_path",
+        "/mnt/sdab1/share/data",
+        "--results_path",
+        "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results/rep_cpu_smoke",
+        "--n_epochs",
+        "3",
+        "--batch_size",
+        "2",
+        "--num_workers",
+        "0",
+        "--stop_after",
+        "2",
+        "--seed",
+        "1993",
+        "--debug_mode",
+        "1",
+        "--non_verbose",
+        "1"
+      ],
+      "exit_code": 0,
+      "device": "cpu",
+      "size": "tiny",
+      "original_task_allocation": 10,
+      "executed_tasks": 2,
+      "epochs_per_task": 3,
+      "batch_size": 2,
+      "debug_only": true,
+      "accuracy_gate_evaluated": false,
+      "efficiency_result": false,
+      "local_model_log": "results/rep_cpu_smoke/class-il/seq-cifar100-224/rep-prompt/logs.pyd",
+      "local_model_log_sha256": "b7cc558f442e9f574ad87eccce94e5b52a82cc62a0238e7664cb6b058d29c13e",
+      "wandb_or_slack_sent": false
+    }
+  ],
+  "local_raw_logs": {
+    "cps_cpu_smoke": {
+      "path": "results/cps_rep_validation/raw/cps_cpu_smoke.log",
+      "sha256": "9363b33a9c160f7e087e3ea6ecf6fc2fa926d4863aae14c4bad596fc0a680bd3"
+    },
+    "rep_cpu_smoke": {
+      "path": "results/cps_rep_validation/raw/rep_cpu_smoke.log",
+      "sha256": "c6ebc597b1c8edef7661fe73db4da9808465574c1ff7a392ea2cdfe26c8131a8"
+    },
+    "new_contracts": {
+      "path": "results/cps_rep_validation/raw/new_contracts.log",
+      "sha256": "ec4ba32781ef17a7070980761db494639710db5b15577dad4a76ded34ed2bbdc"
+    },
+    "selected_regression_initial": {
+      "path": "results/cps_rep_validation/raw/selected_regression_initial.log",
+      "sha256": "3c13167441adaadba65df2abb805da891427cc66dccb67e452b67a1635cb84e8"
+    },
+    "mnist_regression_resolved": {
+      "path": "results/cps_rep_validation/raw/mnist_regression_resolved.log",
+      "sha256": "18251f754373f19a2c8cc32ea4bfda9a99ddde2edbfb68e50233d4dbcda1c966"
+    }
+  },
+  "coverage": [
+    "Canonical150 Tiny/Small/Base encoder tensors and frozen parameter flags",
+    "CPS unmodified author sampling, explicit attention/value-norm importance and sparse full-forward parity",
+    "CPS sparse joint updates followed by dense head-only updates; previous prompt rows remain unchanged on task2",
+    "REP hand-calculated matching/mass/gradient and attention-prefix bias oracles",
+    "REP component-off output equals frozen-CODA exactly",
+    "REP actually skips attention/MLP blocks, keeps eval deterministic, advances ALD once per optimizer update and resets at a new task",
+    "Projection, prompt/task counters, owned RNG and optimizer restore produce the identical next update",
+    "Root meta hooks, parser/CLI precedence and two-task CPU main.py integration"
+  ],
+  "excluded_existing_regression_cases": [
+    "tests/test_module_register.py::test_register_backbone_big[vit]",
+    "tests/test_module_register.py::test_register_backbone_big[resnet50]",
+    "tests/test_dynamic_params.py::test_register_dataset[strong]",
+    "tests/test_dynamic_params.py::test_register_dataset[weak]",
+    "tests/test_model_config.py::test_best_rehearsal"
+  ],
+  "excluded_case_reason": "Existing full-task multi-epoch ViT/backbone debug runs and CCIC buffer500 filling are outside focused new-method CPU validation; all new method parser/size/training contracts were covered separately",
+  "earlier_regression_attempts": "Broader selections were interrupted during the lengthy existing ViT and CCIC tests, then the explicit focused selection above was completed",
+  "limitations": {
+    "gpu_training_or_profiling_executed": false,
+    "wandb_or_slack_sent": false,
+    "full_accuracy_reproduction_or_tolerance_gate_evaluated": false,
+    "efficiency_or_energy_results_available": false,
+    "cps": "Source operator parity passed; independent two-task source/native GPU accuracy remains pending",
+    "rep": "Native arXiv v6 reconstruction with configurable merge maximum16, Small threshold10 adaptation and documented ALD interpretations; no complete independent author runner",
+    "swift_at_tiny": "A separate frozen Tiny query is retained even with a Tiny host. It gives no smaller-encoder query FLOP saving there, adds storage/projection, and must be counted in efficiency measurements",
+    "debug_accuracy": "Few-batch CPU smoke accuracy is not a paper reproduction, accuracy acceptance result or comparative performance measurement",
+    "held_11_method_batch": "Unchanged and not launched; standalone unified experiment runtime remains unfinished outside this CPU implementation scope"
+  }
+}

@@ -1,0 +1,389 @@
+{
+  "schema_version": 1,
+  "stage": "CPS-Prompt and REP-CODA implementation and CPU validation",
+  "branch": "codex/cps-rep",
+  "worktree": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl",
+  "approval_scope": "Implement CPS, then native paper-based REP-CODA and a separate frozen-CODA control; CPU validation only",
+  "cpu_validation_authorized": true,
+  "gpu_experiments_authorized": false,
+  "gpu_experiments_executed": false,
+  "wandb_or_slack_sent_in_this_stage": false,
+  "combined_comparison_launch_authorized": false,
+  "unified_experiment_runner_ready": false,
+  "entrypoint": "main.py",
+  "shared_paths": {
+    "data_root": "/mnt/sdab1/share/data",
+    "cache_root": "/mnt/sdab1/userHome/wslim/.cache",
+    "torch_checkpoints": "/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints",
+    "huggingface_hub": "/mnt/sdab1/userHome/wslim/.cache/huggingface/hub",
+    "clip": "/mnt/sdab1/userHome/wslim/.cache/clip",
+    "results_root": "/mnt/sdab1/userHome/wslim/.codex/worktrees/7ea9/compression-gap-cl/results"
+  },
+  "common_future_protocol": {
+    "dataset": {
+      "name": "seq-cifar100-224",
+      "config": "unified",
+      "setting": "class-il",
+      "total_tasks": 10,
+      "stop_after": 2,
+      "classes_per_task": 10,
+      "num_classes": 100,
+      "class_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99
+      ],
+      "train_samples_per_task": 5000,
+      "test_samples_per_task": 1000,
+      "shuffle_training": true,
+      "drop_last": false,
+      "train_transform": [
+        "RandomResizedCrop(224,scale=(0.08,1),ratio=(0.75,4/3),bicubic,antialias=True)",
+        "RandomHorizontalFlip(0.5)",
+        "ToTensor",
+        "Normalize(0.5,0.5)"
+      ],
+      "test_transform": [
+        "Resize(256,bicubic,antialias=True)",
+        "CenterCrop(224)",
+        "ToTensor",
+        "Normalize(0.5,0.5)"
+      ],
+      "replay_and_auxiliary_transform_policy": "Audit actual replay/statistics/herding paths, including Kornia conversion; never assume matching config implies bit-identical crops"
+    },
+    "seed": 1993,
+    "primary_size": "tiny",
+    "supported_sizes": [
+      "tiny",
+      "small",
+      "base"
+    ],
+    "training_batch_sizes": [
+      16,
+      64
+    ],
+    "validation_batch_size": 64,
+    "evaluation_batch_size": 64,
+    "precision": "FP32, no AMP",
+    "pretraining": "Pinned size-specific AugReg IN21K to IN1K canonical150 encoder tensors",
+    "checkpoint_manifest": "models/low_rank_utils/factory.py:CHECKPOINTS",
+    "gpu_pool_after_future_launch_authorization": [
+      0,
+      1
+    ],
+    "accuracy_tolerance_pp": {
+      "pass_max": 1.5,
+      "review_max": 3.0,
+      "fail_above": 3.0
+    },
+    "debug_accuracy_is_a_reproduction_result": false
+  },
+  "methods": [
+    {
+      "cli": "cps-prompt",
+      "display": "CPS-Prompt",
+      "basis": {
+        "repository": "https://github.com/laymond1/CPS-Prompt",
+        "commit": "7ec2be108f4f032f2bb10a6647304076f406ef6b",
+        "paper": "https://arxiv.org/html/2604.07399v1",
+        "license": "MIT",
+        "native_adaptations": [
+          "Reuse Mammoth CODA prompt pool and frozen canonical150 AugReg encoder",
+          "Explicit CIFAR defaults r=.4,temperature=.1,phase_ratio=.4",
+          "Own checkpointed sampling RNG, separate from data augmentation",
+          "Mammoth custom_scheduler lifecycle and accurate Class-IL compatibility",
+          "Joint phase must have at least one epoch; no silent phase skipping",
+          "CPU source operator fixtures are unmodified; source/native GPU accuracy validation remains pending"
+        ],
+        "source_behavior": [
+          "Joint prompt/head phase followed by no-grad full-patch features and head-only backward",
+          "Explicit attention in all source blocks; final query CLS-attention times full-width value norm",
+          "Query and inference remain full-token",
+          "Total20 epochs split8+12 with phase_ratio=.4"
+        ],
+        "unmodified_operator_fixtures": {
+          "cps.py": "e9116b2a0b013d5f66487c98bc49656de50d5681bc18f83cce6f512c46ca906b",
+          "cps_vit.py": "df62a3b2fecf5921f3715ab6dbca708281975954f1c960839a61bcf87fc7c62b"
+        },
+        "fixture_policy": "Preserve upstream bytes, including trailing whitespace; lint and native diff checks exclude these source fixtures"
+      },
+      "defaults": {
+        "epochs": 20,
+        "joint_epochs": 8,
+        "head_only_epochs": 12,
+        "phase_ratio": 0.4,
+        "reduction_ratio": 0.4,
+        "temperature": 0.1,
+        "pool": 100,
+        "prefix_length": 8,
+        "prefix_layers": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "future_validation": {
+        "tasks": 2,
+        "epochs_per_task_minimum": 3,
+        "initial_size": "tiny",
+        "independent_source_native_pair_required": true,
+        "matching": "Use identical input batches, pinned encoder tensors and prompt/head initialization; retain original 10-task allocation"
+      },
+      "diagnostics_available": [
+        "cps_phase",
+        "query_tokens",
+        "prompted_tokens",
+        "query_image_visits",
+        "prompted_image_visits"
+      ]
+    },
+    {
+      "cli": "rep-prompt",
+      "display": "REP-CODA",
+      "basis": {
+        "implementation_basis": "Native reconstruction from REP arXiv v6, applied to the existing CODA host",
+        "paper": "https://arxiv.org/html/2406.04772v6",
+        "public_repository": "https://github.com/omnia-postech/REP",
+        "reviewed_commit": "753f022a62655a7712456a25a88d1967e783af6a",
+        "bundled_upstream_executable_code": false,
+        "upstream_license_observation": "REP repository code is CC BY-NC4.0; this native paper reconstruction does not relabel or bundle that code as MIT",
+        "independent_author_training_reference_available": false,
+        "paper_accuracy_reproduced": false,
+        "host_contract": {
+          "pool": 100,
+          "prefix_length": 8,
+          "prefix_layers": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "tasks": 10,
+          "query": "Frozen Tiny with the same pinned IN21K-to-IN1K AugReg family",
+          "backbone": "Frozen canonical150 Tiny/Small/Base encoder",
+          "optimizer_scheduler": "Existing CODA Adam and task-wise cosine; common20-epoch recipe, not paper1875 iterations",
+          "evaluation": "All blocks execute, merging remains deterministic, query/projection remain enabled"
+        },
+        "explicit_reconstruction_choices": [
+          "Gaussian fixed query projection192->D, divided by sqrt192; registered persistent buffer initialized with seed+1",
+          "Progressive local merge maximum16 is a configurable engineering default; the missing author runner does not establish r_max",
+          "ALD minimum=.5 and gamma=.001 follow public component defaults; alpha=.9 follows paper",
+          "Tiny spatial threshold8 and Base12 follow the paper; Small10 is an explicit adaptation",
+          "ALD uses the local planned merge count capped by currently available image tokens, then skips the whole block before execution",
+          "Use >= at the spatial threshold as Eq6; Algorithm2 prints >",
+          "First optimizer update executes every block, following full-keep initialization text; this is an explicit exception to Eq5 at t=0",
+          "Time is absolute optimizer-update count within the task, advanced once by observe and reset at a new task; gamma is not silently rescaled across batch sizes",
+          "AToM excludes CLS from matching and CODA prefix K/V are never in the image-token sequence",
+          "Weighted token masses become additive log attention biases; prefix keys have mass1",
+          "Native SDPA attention returns image-only mean-key metrics for merging",
+          "Checkpoint includes query weights, fixed projection, task/update counters and separate CPU ALD RNG state",
+          "No automatic sweep, auxiliary teacher, replay buffer, GPU run or inferred energy savings"
+        ],
+        "source_issues_addressed": [
+          "Replace hardcoded1024 projection width with the host encoder dimension",
+          "Persist projection instead of a lazy plain Tensor",
+          "Advance ALD timestep once per optimizer update, rather than per block or with a probability as the timestep",
+          "Explicitly activate progressive merging without an unavailable runner",
+          "Keep prefix keys separate from image tokens and align metrics/masses correctly",
+          "Use explicit native classes rather than source isinstance patching",
+          "Avoid source per-forward CUDA event/synchronize instrumentation"
+        ],
+        "accuracy_gate": "CPU structural tests and paired host controls; the1.5/3pp independent-author accuracy gate remains pending a complete independent reference"
+      },
+      "defaults": {
+        "epochs": 20,
+        "swift": true,
+        "atom": true,
+        "ald": true,
+        "merge_max": 16,
+        "ald_minimum": 0.5,
+        "ald_gamma": 0.001,
+        "ald_alpha": 0.9,
+        "ald_thresholds": {
+          "tiny": 8,
+          "small": 10,
+          "base": 12
+        },
+        "pool": 100,
+        "prefix_length": 8,
+        "prefix_layers": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "component_switches": [
+        "--rep_swift 0",
+        "--rep_atom 0",
+        "--rep_ald 0"
+      ],
+      "future_validation": {
+        "tasks": 2,
+        "initial_size": "tiny",
+        "paired_control": "coda-frozen",
+        "must_record": "Update count and executed-block/merged-token traces; ALD decay is per update, so batch16/64 schedules differ",
+        "independent_author_accuracy_gate_available": false,
+        "ablation_experiments_in_this_stage": false
+      },
+      "diagnostics_available": [
+        "rep_step",
+        "rep_executed_blocks",
+        "rep_merged_tokens",
+        "rep_final_tokens",
+        "query_image_visits",
+        "prompted_image_visits"
+      ],
+      "network_trace_available": [
+        "keeping_probabilities",
+        "executed",
+        "input_tokens",
+        "output_tokens",
+        "merged_tokens",
+        "prefix_tokens"
+      ],
+      "swift_at_tiny_caveat": "A separate frozen Tiny query is retained even with a Tiny host. It gives no smaller-encoder query FLOP saving there, adds storage/projection, and must be counted in efficiency measurements"
+    },
+    {
+      "cli": "coda-frozen",
+      "display": "Frozen-CODA control",
+      "basis": "Existing CODA behavior with explicitly frozen canonical encoder",
+      "legacy_coda_changed_by_control": false,
+      "virtual_bs_iterations": 1
+    }
+  ],
+  "future_efficiency_reporting": {
+    "per_task_and_per_phase": true,
+    "include_query_and_auxiliary_passes": true,
+    "required": [
+      "accuracy",
+      "wall_time",
+      "optimizer_updates",
+      "image_visits",
+      "MACs/FLOPs",
+      "peak_allocated_and_reserved_GPU_memory",
+      "trainable_and_total_parameters",
+      "GPU_energy"
+    ],
+    "energy": "Use the existing device telemetry during dedicated GPU measurements; do not infer energy from CPU debug logs",
+    "publication": "Local plus W&B laymond1/cl-efficiency and configured Slack notifications after a later launch decision",
+    "dedicated_measurement_launches_prepared_or_executed_here": false
+  },
+  "held_comparison_methods": [
+    "sgd",
+    "er",
+    "derpp",
+    "lwf_mc",
+    "coda-prompt",
+    "hide-prompt",
+    "ease",
+    "ranpac",
+    "ewc-lora",
+    "inf-lora",
+    "cl-lora"
+  ],
+  "scope_boundary": "Do not append these methods to or launch the held multi-method experiment batch in this implementation stage",
+  "cpu_validation_complete": true,
+  "validation_report": "benchmarks/cl_efficiency/cps_rep/validation.json"
+}
