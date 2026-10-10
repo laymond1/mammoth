@@ -110,3 +110,6 @@ wandb.conf
 wandb/
 
 vitb16
+
+# ToCom plug-in study outputs (raw runs; reports are written separately).
+results/tocom-*/
