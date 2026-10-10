@@ -346,3 +346,69 @@ def test_microbatches_follow_the_official_repeated_augmentation_replicas():
         expected = [int(index) for index in expected[:len(expected) // MICROBATCH * MICROBATCH]]
         assert [index for step in steps for index in step[rank]] == expected
     assert epoch_microbatches(length, 4) != steps
+
+
+def official_evit_block(x, cls_attn, left_tokens):
+    """Token reorganization of the official EViT ``Block.forward`` with ``fuse_token`` (Apache-2.0)."""
+    def complement_idx(idx, dim):
+        a = torch.arange(dim, device=idx.device)
+        ndim = idx.ndim
+        dims = idx.shape
+        n_idx = dims[-1]
+        dims = dims[:-1] + (-1, )
+        for i in range(1, ndim):
+            a = a.unsqueeze(0)
+        a = a.expand(*dims)
+        masked = torch.scatter(a, -1, idx, 0)
+        compl, _ = torch.sort(masked, dim=-1, descending=False)
+        compl = compl.permute(-1, *tuple(range(ndim - 1)))
+        compl = compl[n_idx:].permute(*(tuple(range(1, ndim)) + (0,)))
+        return compl
+
+    B, N, C = x.shape
+    _, idx = torch.topk(cls_attn, left_tokens, dim=1, largest=True, sorted=True)
+    index = idx.unsqueeze(-1).expand(-1, -1, C)
+    non_cls = x[:, 1:]
+    x_others = torch.gather(non_cls, dim=1, index=index)
+    compl = complement_idx(idx, N - 1)
+    non_topk = torch.gather(non_cls, dim=1, index=compl.unsqueeze(-1).expand(-1, -1, C))
+    non_topk_attn = torch.gather(cls_attn, dim=1, index=compl)
+    extra_token = torch.sum(non_topk * non_topk_attn.unsqueeze(-1), dim=1, keepdim=True)
+    return torch.cat([x[:, 0:1], x_others, extra_token], dim=1)
+
+
+def test_evit_matches_the_official_block():
+    from backbone.token_compression.reducers import Signals, fuse_prune_tokens
+    torch.manual_seed(6)
+    x = torch.randn(3, 65, 48).double()
+    q, k = torch.randn(3, 3, 65, 16).double(), torch.randn(3, 3, 65, 16).double()
+    signals = Signals(q, k, 16 ** -.5)
+    # Official score: CLS row of the softmaxed attention without its own column, averaged over heads.
+    attention = ((q @ k.transpose(-2, -1)) * 16 ** -.5).softmax(dim=-1)
+    cls_attn = attention[:, :, 0, 1:].mean(dim=1)
+    torch.testing.assert_close(signals.cls_attention(), cls_attn, atol=1e-14, rtol=0)
+    for count in (1, 8, 16, 40):
+        removed = min(count, 32)
+        fused, size = fuse_prune_tokens(x, cls_attn, None, count)
+        # Removing `removed` tokens net keeps 64 - removed - 1 patches plus the fused token.
+        expected = official_evit_block(x, cls_attn, 64 - removed - 1)
+        assert size is None and fused.shape == (3, 65 - removed, 48)
+        torch.testing.assert_close(fused, expected, atol=1e-12, rtol=0)
+    assert fuse_prune_tokens(x, cls_attn, None, 0)[0] is x
+    with pytest.raises(ValueError):
+        fuse_prune_tokens(x, cls_attn, torch.ones(3, 65, 1).double(), 4)
+    weights = cls_attn.clone().requires_grad_()
+    fuse_prune_tokens(x, weights, None, 8)[0].sum().backward()
+    assert weights.grad.abs().sum() > 0
+
+
+def test_evit_runs_through_every_family_schedule():
+    net, x = small_vit(), torch.randn(2, 3, 32, 32)
+    controller = attach(net, 'evit', degree=8)
+    with torch.no_grad():
+        compressed = net(x)
+        controller.verify_pass()
+        # The fused token replaces one pruned token, so the schedule equals the other operators'.
+        assert controller.trace == [65, 57, 49, 41] and controller.size is None
+        with controller.degree(0):
+            assert not torch.equal(net(x), compressed)

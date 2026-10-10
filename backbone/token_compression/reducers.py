@@ -106,6 +106,35 @@ def prune_tokens(tokens, scores, size, count):
     return tokens, size
 
 
+def fuse_prune_tokens(tokens, scores, size, count):
+    """EViT token reorganization with a per-block budget.
+
+    As in the official block (youweiliang/evit, evit.py): the most attended
+    patch tokens are kept in descending-attention order, and one appended
+    token sums the others weighted by their CLS attention, without
+    normalization. ``count`` is the net number of tokens removed, so one more
+    token is pruned than by plain pruning and the fused token takes its place.
+    """
+    if scores.shape != (tokens.shape[0], tokens.shape[1] - 1):
+        raise ValueError('Pruning needs one score per non-CLS token')
+    if size is not None:
+        raise ValueError('EViT has no token sizes and cannot follow a merging operator')
+    count = planned(count, tokens.shape[1])
+    if count == 0:
+        return tokens, size
+    patches = tokens[:, 1:]
+    left = patches.shape[1] - count - 1
+    if left < 1:
+        raise ValueError('Too few tokens to keep one and fuse the rest')
+    with torch.no_grad():
+        kept = scores.detach().topk(left, dim=1, largest=True, sorted=True).indices
+        pruned = torch.ones_like(scores, dtype=torch.bool).scatter_(1, kept, False)
+    # The fusion weights stay in the graph, as in the official code.
+    fused = (patches * (scores * pruned).unsqueeze(-1).to(patches.dtype)).sum(dim=1, keepdim=True)
+    kept = patches.gather(1, kept.unsqueeze(-1).expand(-1, -1, tokens.shape[-1]))
+    return torch.cat((tokens[:, :1], kept, fused), dim=1), size
+
+
 class ToMe:
     """Similarity merging on attention keys (Bolya et al., ICLR 2023)."""
     name = 'tome'
@@ -122,4 +151,12 @@ class ClsPrune:
         return prune_tokens(tokens, signals.cls_attention(), size, count)
 
 
-OPERATORS = {operator.name: operator for operator in (ToMe, ClsPrune)}
+class EViT:
+    """Official EViT reorganization with the fused token (Liang et al., ICLR 2022), ``count`` net tokens per block."""
+    name = 'evit'
+
+    def __call__(self, tokens, size, count, signals):
+        return fuse_prune_tokens(tokens, signals.cls_attention(), size, count)
+
+
+OPERATORS = {operator.name: operator for operator in (ToMe, ClsPrune, EViT)}
