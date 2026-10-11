@@ -333,6 +333,42 @@ def test_grid_matches_single_conditions_and_restores_state(tmp_path):
                     accuracy(loader, compensate(net, 8, target, .1)) for loader in loaders]
 
 
+def test_grid_runs_every_target_for_a_model_with_its_own_inference(tmp_path):
+    from torch.utils.data import DataLoader, TensorDataset
+    from backbone.token_compression import FrozenToCom, compensate
+    from backbone.token_compression.evaluation import evaluate_grid
+    net = small_vit()
+    torch.save({'model': bank_state()}, tmp_path / 'tome.pt')
+    banks = {'tome': FrozenToCom.from_checkpoint(tmp_path / 'tome.pt', depth=4, embed_dim=48)}
+    controller = attach(net, 'tome', degree=8, bank=banks['tome'])
+    model = Toy(net).eval()
+    torch.manual_seed(4)
+    loaders = [DataLoader(TensorDataset(torch.randn(24, 3, 32, 32), torch.randint(0, 10, (24,))), batch_size=10)]
+    # No plug-in source degree: the source row is the model as it stands, here at its default degree.
+    compensations = {'tome': ('tome', 8, None), 'tome@0': ('tome', (0,), ['tome'])}
+    grid = evaluate_grid(model, loaders, 10, None, [0, 8], ['tome', 'cls-prune'], banks, .1, compensations)
+
+    def accuracy(context=None):
+        hits = 0
+        with torch.no_grad(), context or controller.degree(8):
+            for images, labels in loaders[0]:
+                hits += int((net(images)[:, :10].argmax(1) == labels).sum())
+        return [hits / 24 * 100]
+
+    tome, prune = grid['operators']['tome'], grid['operators']['cls-prune']
+    assert grid['source'] == accuracy() and set(tome['on']) == {'tome', 'tome@0'} and set(prune['on']) == {'tome'}
+    # Every target is run, also the one that happens to equal the model's own inference.
+    assert tome['off']['8'] == tome['on']['tome']['8'] == grid['source']
+    assert tome['off']['0'] == accuracy(controller.degree(0))
+    assert tome['on']['tome']['0'] == accuracy(compensate(net, 8, 0, .1))
+    assert tome['on']['tome@0']['8'] == accuracy(compensate(net, 0, 8, .1))
+    assert tome['on']['tome@0']['0'] == tome['off']['0']
+    with pytest.raises(ValueError):
+        evaluate_grid(model, loaders, 10, None, [0, 8], ['tome'], banks, .1)
+    with pytest.raises(ValueError):
+        evaluate_grid(model, loaders, 10, 8, [0, 8], ['tome'], banks, .1, {'x': ('evit', 8, None)})
+
+
 def test_microbatches_follow_the_official_repeated_augmentation_replicas():
     from timm.data.distributed_sampler import RepeatAugSampler
     from scripts.tocom.train_bank import MICROBATCH, REPLICAS, epoch_microbatches

@@ -42,25 +42,54 @@ def preserved_state(model, loaders):
 
 
 @torch.no_grad()
-def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, scale):
-    """Class-IL accuracy per loader for the source degree and every inference condition.
+def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, scale, compensations=None):
+    """Class-IL accuracy per loader for the source row and every inference condition.
+
+    ``source`` is the plug-in degree the model was trained at; the source row
+    runs the model at that degree. It is None for a model whose own inference
+    is not a plug-in degree (REP merging on its own schedule): the source row
+    is then the model as it is, and every target is run.
 
     ``operators`` are the reduction operators to infer with. For each, ``off``
-    runs every target degree as is, and ``on[name]`` adds the bank ``name``
-    from ``banks`` (its own bank, or another operator's to test transfer).
-    A target equal to ``source`` is the source row itself. Accuracy follows
-    ``utils.evaluate``: argmax over the first ``n_classes`` logits.
+    runs every target degree as is, and ``on[label]`` adds a bank.
+    ``compensations`` maps a label to ``(bank name, training degrees, operators
+    or None)``: the degrees are one value, or one per encoder pass (see
+    ``compensate``), and the last item restricts the label to some inference
+    operators. By default every bank corrects from ``source`` under its own
+    name, which also tests a bank on another operator.
+
+    A condition that cannot differ from the source row (the target is the
+    source degree and the bank has nothing to correct) reports that row.
+    Accuracy follows ``utils.evaluate``: argmax over the first ``n_classes`` logits.
     """
-    valid_degree(source)
+    if source is not None:
+        valid_degree(source)
     targets = sorted({valid_degree(target) for target in targets})
+    if compensations is None:
+        if source is None:
+            raise ValueError('A model without a plug-in training degree needs explicit compensations')
+        compensations = {name: (name, (source,), None) for name in banks}
+    compensations = {label: (bank, (degrees,) if isinstance(degrees, int) else tuple(degrees), only)
+                     for label, (bank, degrees, only) in compensations.items()}
+    for bank, degrees, _ in compensations.values():
+        if bank not in banks or not degrees:
+            raise ValueError('Every compensation needs a loaded bank and its training degrees')
+        for degree in degrees:
+            valid_degree(degree)
     _, encoder = find_encoder(model.net)
     controller = encoder.token_compression
     trained_operator, trained_bank = controller.operator, controller.bank
-    conditions = [(name, bank, target) for name in operators for target in targets if target != source
-                  for bank in (None, *banks)]
+
+    def is_source(target, degrees=()):
+        return source is not None and target == source and all(degree == target for degree in degrees)
+
+    labels = {name: [label for label, (_, _, only) in compensations.items() if only is None or name in only]
+              for name in operators}
+    conditions = [(name, label, target) for name in operators for target in targets for label in (None, *labels[name])
+                  if not is_source(target, compensations[label][1] if label else ())]
     instances = {name: OPERATORS[name]() for name in operators}
     result = {'source': [], 'samples': [], 'operators': {
-        name: {'off': {str(t): [] for t in targets}, 'on': {bank: {str(t): [] for t in targets} for bank in banks}}
+        name: {'off': {str(t): [] for t in targets}, 'on': {label: {str(t): [] for t in targets} for label in labels[name]}}
         for name in operators}}
 
     def correct(outputs, labels):
@@ -73,22 +102,26 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
             for loader in loaders:
                 counts, source_count, total = {condition: 0. for condition in conditions}, 0., 0.
                 for batch in loader:
-                    inputs, labels = batch[0].to(model.device), batch[1].to(model.device)
+                    inputs, targets_ = batch[0].to(model.device), batch[1].to(model.device)
                     controller.operator, controller.bank = trained_operator, trained_bank
-                    with controller.degree(source):
-                        source_count += correct(model(inputs), labels)
-                    for name, bank, target in conditions:
+                    if source is None:
+                        source_count += correct(model(inputs), targets_)
+                    else:
+                        with controller.degree(source):
+                            source_count += correct(model(inputs), targets_)
+                    for name, label, target in conditions:
                         controller.operator = instances[name]
-                        if bank is None:
+                        if label is None:
                             with controller.degree(target):
-                                counts[name, bank, target] += correct(model(inputs), labels)
+                                counts[name, label, target] += correct(model(inputs), targets_)
                                 controller.verify_pass()
                         else:
+                            bank, degrees, _ = compensations[label]
                             controller.bank = banks[bank]
-                            with compensate(model.net, source, target, scale):
-                                counts[name, bank, target] += correct(model(inputs), labels)
+                            with compensate(model.net, degrees, target, scale):
+                                counts[name, label, target] += correct(model(inputs), targets_)
                                 controller.verify_pass()
-                    total += labels.shape[0]
+                    total += targets_.shape[0]
                 if not total:
                     raise ValueError('Empty evaluation loader')
                 # Same expression as utils.evaluate, so the source row can be compared exactly.
@@ -97,12 +130,12 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
                 for name in operators:
                     entry = result['operators'][name]
                     for target in targets:
-                        same = target == source
-                        entry['off'][str(target)].append(result['source'][-1] if same
+                        entry['off'][str(target)].append(result['source'][-1] if is_source(target)
                                                          else counts[name, None, target] / total * 100)
-                        for bank in banks:
-                            entry['on'][bank][str(target)].append(result['source'][-1] if same
-                                                                  else counts[name, bank, target] / total * 100)
+                        for label in labels[name]:
+                            same = is_source(target, compensations[label][1])
+                            entry['on'][label][str(target)].append(result['source'][-1] if same
+                                                                   else counts[name, label, target] / total * 100)
     finally:
         controller.operator, controller.bank = trained_operator, trained_bank
     return result

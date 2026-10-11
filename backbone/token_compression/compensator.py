@@ -98,27 +98,39 @@ class FrozenToCom(nn.Module):
 
     @contextmanager
     def applied(self, encoder, source, target, scale):
-        """Temporarily correct Q/V outputs, leaving K and all weights untouched."""
-        valid_degree(source)
+        """Temporarily correct Q/V outputs, leaving K and all weights untouched.
+
+        ``encoder`` is one encoder, or a list of encoders that share this bank.
+        ``source`` is the training degree, or a callable returning the degree
+        of the pass being run when the passes of a model were trained differently.
+        """
+        encoders = list(encoder) if isinstance(encoder, (list, tuple)) else [encoder]
+        per_pass = callable(source)
+        if not per_pass:
+            valid_degree(source)
         valid_degree(target)
         if not math.isfinite(scale) or scale < 0:
             raise ValueError('ToCom scale must be finite and nonnegative')
-        if encoder.training or torch.is_grad_enabled():
+        if any(item.training for item in encoders) or torch.is_grad_enabled():
             raise RuntimeError('Frozen ToCom is restricted to eval + no_grad/inference_mode')
         if self._active:
             raise RuntimeError('Nested ToCom application is not supported')
-        if len(encoder.blocks) != len(self.layers):
+        if any(len(item.blocks) != len(self.layers) for item in encoders):
             raise ValueError('ToCom and backbone depths differ')
         handles = []
         self._active = True
         try:
-            if source != target and scale:
-                for block, bank in zip(encoder.blocks, self.layers):
-                    def correct(module, inputs, output, bank=bank):
-                        q, k, v = output.chunk(3, dim=-1)
-                        return torch.cat((q + scale * bank['q'](inputs[0], source, target),
-                                          k, v + scale * bank['v'](inputs[0], source, target)), dim=-1)
-                    handles.append(block.attn.qkv.register_forward_hook(correct))
+            if scale and (per_pass or source != target):
+                for item in encoders:
+                    for block, bank in zip(item.blocks, self.layers):
+                        def correct(module, inputs, output, bank=bank):
+                            current = valid_degree(source()) if per_pass else source
+                            if current == target:
+                                return None
+                            q, k, v = output.chunk(3, dim=-1)
+                            return torch.cat((q + scale * bank['q'](inputs[0], current, target),
+                                              k, v + scale * bank['v'](inputs[0], current, target)), dim=-1)
+                        handles.append(block.attn.qkv.register_forward_hook(correct))
             yield
         finally:
             for handle in handles:

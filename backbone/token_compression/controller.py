@@ -19,6 +19,9 @@ class CompressionController:
         self._override = None
         self.size = None
         self.trace = []
+        # Set by compensate(): the training degree of each encoder pass of one forward call, in order.
+        self.sources = None
+        self.passes = 0
 
     def __deepcopy__(self, memo):
         # A copied network (e.g. a distillation teacher) follows the same degree.
@@ -27,6 +30,11 @@ class CompressionController:
     @property
     def current(self):
         return self.default_degree if self._override is None else self._override
+
+    @property
+    def overridden(self):
+        """Whether an explicit degree context is active."""
+        return self._override is not None
 
     @contextmanager
     def degree(self, value):
@@ -39,6 +47,15 @@ class CompressionController:
 
     def begin_pass(self):
         self.size, self.trace = None, []
+        self.passes += 1
+
+    def source(self):
+        """Training degree of the encoder pass being run, as the bank needs it."""
+        if len(self.sources) == 1:
+            return self.sources[0]
+        if not 1 <= self.passes <= len(self.sources):
+            raise RuntimeError(f'Encoder pass {self.passes} has no training degree among {self.sources}')
+        return self.sources[self.passes - 1]
 
     def verify_pass(self):
         """Raise unless the last encoder pass followed the current schedule."""

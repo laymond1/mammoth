@@ -2,9 +2,12 @@
 
 A patch swaps the class of each block for a thin subclass. Module names,
 parameters and state dictionary keys stay untouched, and at degree 0 before
-any reduction the original ``forward`` runs unchanged.
+any reduction the original ``forward`` runs unchanged. Encoders that drive
+their blocks piecewise, without calling them, get one more swap on the module
+that owns that loop.
 """
 
+from collections import namedtuple
 from contextlib import contextmanager
 
 from torch.nn import functional as F
@@ -12,7 +15,7 @@ from torch.nn import functional as F
 from backbone import vit as mammoth_vit
 
 from .controller import CompressionController
-from .reducers import OPERATORS, Signals, planned
+from .reducers import OPERATORS, Signals, planned, valid_degree
 
 
 class _Compressed:
@@ -59,33 +62,70 @@ class MammothBlock(_Compressed, mammoth_vit.Block):
         return x + self.drop_path2(self.ls2(self.mlp(self.norm2(x))))
 
 
+# attribute: dotted path of the encoder on the network (None: the network itself). host: None, or
+# (dotted path or None for the encoder, class, patch) of the module that loops over the blocks itself.
+# companions: further encoders of the network that follow the same controller and bank, each as
+# (dotted path, encoder class, block class, attention class, patch).
+Family = namedtuple('Family', 'attribute encoder block attention patch host companions', defaults=(None, ()))
+
+
 def _mammoth():
-    return None, mammoth_vit.VisionTransformer, mammoth_vit.Block, mammoth_vit.Attention, MammothBlock
+    return Family(None, mammoth_vit.VisionTransformer, mammoth_vit.Block, mammoth_vit.Attention, MammothBlock)
 
 
-def _coda():
-    from .coda import FAMILY
-    return FAMILY
+def _load(module, name='FAMILY'):
+    def family():
+        from importlib import import_module
+        return Family(*getattr(import_module(f'.{module}', __package__), name))
+    return family
 
 
-def _sd_lora():
-    from .sd_lora import FAMILY
-    return FAMILY
+# Method families are imported on demand, so the plain ViT works without the models package.
+FAMILIES = {'mammoth-vit': _mammoth, 'coda-vit': _load('coda'), 'sd-lora-vit': _load('sd_lora'),
+            'inf-lora-vit': _load('low_rank', 'INF_LORA'), 'ewc-lora-vit': _load('low_rank', 'EWC_LORA'),
+            'cps-vit': _load('cps'), 'rep-vit': _load('rep'), 'ease-vit': _load('ease')}
 
 
-# name -> loader of (encoder attribute on the network or None, encoder class, block class, attention class,
-# patch). Method families are imported on demand, so the plain ViT works without the models package.
-FAMILIES = {'mammoth-vit': _mammoth, 'coda-vit': _coda, 'sd-lora-vit': _sd_lora}
+def _resolve(net, path):
+    for name in path.split('.') if path else ():
+        net = getattr(net, name, None)
+    return net
+
+
+def _host(net, encoder, family):
+    return encoder if family.host[0] is None else _resolve(net, family.host[0])
+
+
+def _companions(net, family):
+    found = []
+    for attribute, encoder_class, block_class, attention_class, patch in family.companions:
+        encoder = _resolve(net, attribute)
+        if type(encoder) is not encoder_class:
+            raise TypeError(f'Token compression needs {attribute} to be a {encoder_class.__name__}')
+        found.append((encoder, block_class, attention_class, patch))
+    return found
 
 
 def find_encoder(net):
     """Return ``(family, encoder)`` for a supported network, by exact class."""
-    for name, family in FAMILIES.items():
-        attribute, encoder_class, *_ = family()
-        encoder = net if attribute is None else getattr(net, attribute, None)
-        if type(encoder) is encoder_class:
+    for name, load in FAMILIES.items():
+        family = load()
+        encoder = _resolve(net, family.attribute)
+        if family.host is None:
+            found = type(encoder) is family.encoder
+        else:
+            # The host carries its patched class while compression is attached.
+            found = type(_host(net, encoder, family)) in family.host[1:] and (
+                family.host[0] is None or type(encoder) is family.encoder)
+        if found:
             return name, encoder
     raise TypeError(f'Token compression does not support {type(net).__name__}')
+
+
+def encoders(net):
+    """Return ``(family, [encoder, ...])``: the main encoder first, then those sharing its controller."""
+    name, encoder = find_encoder(net)
+    return name, [encoder, *(member for member, *_ in _companions(net, FAMILIES[name]()))]
 
 
 def attach(net, operator='tome', degree=0, bank=None):
@@ -97,42 +137,70 @@ def attach(net, operator='tome', degree=0, bank=None):
     if operator not in OPERATORS:
         raise ValueError(f'Unknown token reduction operator: {operator}')
     name, encoder = find_encoder(net)
-    _, _, block_class, attention_class, patch = FAMILIES[name]()
+    family = FAMILIES[name]()
     if getattr(encoder, 'token_compression', None) is not None:
         raise RuntimeError('Token compression is already attached to this encoder')
-    for block in encoder.blocks:
-        # An unknown subclass may bypass or reorder the patched forward.
-        if type(block) is not block_class or type(block.attn) is not attention_class:
-            raise TypeError(f'Unsupported block in {name}: {type(block).__name__}/{type(block.attn).__name__}')
+    members = [(encoder, family.block, family.attention, family.patch), *_companions(net, family)]
+    for member, block_class, attention_class, _ in members:
+        if len(member.blocks) != len(encoder.blocks):
+            raise ValueError('Encoders sharing one controller must have the same depth')
+        for block in member.blocks:
+            # An unknown subclass may bypass or reorder the patched forward.
+            if type(block) is not block_class or type(block.attn) is not attention_class:
+                raise TypeError(f'Unsupported block in {name}: {type(block).__name__}/{type(block.attn).__name__}')
     if bank is not None and len(bank.layers) != len(encoder.blocks):
         raise ValueError('ToCom and backbone depths differ')
     controller = CompressionController(OPERATORS[operator](), len(encoder.blocks), degree)
     controller.bank = bank
-    for index, block in enumerate(encoder.blocks):
-        block.__class__ = patch
-        block._tc, block._tc_index = controller, index
-    encoder.token_compression = controller
+    for member, _, _, patch in members:
+        for index, block in enumerate(member.blocks):
+            block.__class__ = patch
+            block._tc, block._tc_index = controller, index
+        member.token_compression = controller
+    if family.host is not None:
+        _host(net, encoder, family).__class__ = family.host[2]
     return controller
 
 
 @contextmanager
 def compensate(net, source, target, scale):
-    """Run ``net`` at ``target`` with the bank correcting a model trained at ``source``."""
-    _, encoder = find_encoder(net)
+    """Run ``net`` at ``target`` with the bank correcting a model trained at ``source``.
+
+    ``source`` is one degree, or one per encoder pass of a forward call in the
+    order the passes run (the query pass, then the prompted pass), for models
+    whose passes were trained at different degrees. Run one forward per context.
+    """
+    name, encoder = find_encoder(net)
     controller = encoder.token_compression
     if controller.bank is None:
         raise RuntimeError('No ToCom bank is attached to this encoder')
+    sources = (source,) if isinstance(source, int) else tuple(source)
+    if not sources:
+        raise ValueError('At least one training degree is required')
+    for value in sources:
+        valid_degree(value)
+    members = [encoder, *(member for member, *_ in _companions(net, FAMILIES[name]()))]
     # The bank is deliberately not a submodule, so it does not follow net.to().
     controller.bank.to(encoder.blocks[0].attn.qkv.weight.device)
-    with controller.degree(target), controller.bank.applied(encoder, source, target, scale):
-        yield controller
+    controller.sources, controller.passes = sources, 0
+    try:
+        with controller.degree(target), controller.bank.applied(
+                members, sources[0] if len(sources) == 1 else controller.source, target, scale):
+            yield controller
+        if len(sources) > 1 and controller.passes not in (0, len(sources)):
+            raise RuntimeError(f'{len(sources)} training degrees were given, the model ran {controller.passes} passes')
+    finally:
+        controller.sources = None
 
 
 def detach(net):
     """Restore the original block classes."""
     name, encoder = find_encoder(net)
-    block_class = FAMILIES[name]()[2]
-    for block in encoder.blocks:
-        block.__class__ = block_class
-        del block._tc, block._tc_index
-    del encoder.token_compression
+    family = FAMILIES[name]()
+    if family.host is not None:
+        _host(net, encoder, family).__class__ = family.host[1]
+    for member, block_class, _, _ in [(encoder, family.block, None, None), *_companions(net, family)]:
+        for block in member.blocks:
+            block.__class__ = block_class
+            del block._tc, block._tc_index
+        del member.token_compression

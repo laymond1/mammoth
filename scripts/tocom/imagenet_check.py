@@ -42,6 +42,7 @@ def parse_args(argv=None):
     parser.add_argument('--operator', choices=tuple(OPERATORS), default='tome')
     parser.add_argument('--bank', help='ToCom checkpoint trained for these weights and this operator')
     parser.add_argument('--scale', type=float, default=.1)
+    parser.add_argument('--degrees', type=int, nargs='+', default=list(DEGREES), help='Inference degrees')
     parser.add_argument('--data', help='ImageNet root containing val/<synset>/; default from the runtime profile')
     parser.add_argument('--stride', type=int, default=1, help='Evaluate every n-th validation image')
     parser.add_argument('--batch-size', type=int, default=250)
@@ -52,6 +53,7 @@ def parse_args(argv=None):
         parser.error('--weights deit requires --pretrained')
     if min(args.stride, args.batch_size) < 1 or args.workers < 0:
         parser.error('stride and batch size must be positive')
+    args.degrees = sorted({*args.degrees, *SOURCES})
     return args
 
 
@@ -61,14 +63,14 @@ def kl(student, teacher):
 
 
 @torch.no_grad()
-def check(model, loader, controller, pairs, scale, device):
-    correct = {degree: 0 for degree in DEGREES}
+def check(model, loader, controller, degrees, pairs, scale, device):
+    correct = {degree: 0 for degree in degrees}
     stats = {pair: dict(correct=0, kl_off=0., kl_on=0., agree_off=0, agree_on=0) for pair in pairs}
     total = 0
     for images, labels in loader:
         images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
         plain = {}
-        for degree in DEGREES:
+        for degree in degrees:
             with controller.degree(degree):
                 plain[degree] = model(images).float()
                 controller.verify_pass()
@@ -84,7 +86,7 @@ def check(model, loader, controller, pairs, scale, device):
             entry['agree_off'] += int((plain[target].argmax(1) == reference).sum())
             entry['agree_on'] += int((corrected.argmax(1) == reference).sum())
         total += len(labels)
-    accuracy = {degree: 100 * correct[degree] / total for degree in DEGREES}
+    accuracy = {degree: 100 * correct[degree] / total for degree in degrees}
     rows = [{'source': source, 'target': target, 'acc_source': accuracy[source], 'acc_off': accuracy[target],
              'acc_on': 100 * entry['correct'] / total, 'kl_off': entry['kl_off'] / total,
              'kl_on': entry['kl_on'] / total, 'agree_off': 100 * entry['agree_off'] / total,
@@ -113,10 +115,10 @@ def main(argv=None):
         raise ValueError(f'Expected the 50,000-image ImageNet-1K validation set under {data / "val"}')
     loader = DataLoader(Subset(dataset, range(0, len(dataset), args.stride)), batch_size=args.batch_size,
                         num_workers=args.workers, pin_memory=True)
-    pairs = [(source, target) for source in SOURCES for target in DEGREES if source != target] if bank else []
+    pairs = [(source, target) for source in SOURCES for target in args.degrees if source != target] if bank else []
 
     started = time.time()
-    total, accuracy, rows = check(model, loader, controller, pairs, args.scale, device)
+    total, accuracy, rows = check(model, loader, controller, args.degrees, pairs, args.scale, device)
     result = {'weights': args.weights, 'vit_size': args.vit_size if args.weights == 'augreg' else None,
               'backbone_canonical_sha256': model.canonical_pretrained_sha256, 'operator': args.operator,
               'bank_sha256': bank.checkpoint_hash if bank else None, 'scale': args.scale if bank else None,
