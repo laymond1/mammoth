@@ -10,6 +10,9 @@ CPS-Prompt and REP reduce tokens with their own algorithm in training. They take
 own setting equals. Their banks correct each encoder pass from the degree that
 pass was trained at.
 
+Every run keeps its records in its own directory. ``--wandb ENTITY/PROJECT`` also
+mirrors them to Weights & Biases; Mammoth's own logging there stays off.
+
 Examples (from the repository root):
     uv run --no-sync python -m scripts.tocom.run_cl --method er --operator tome --degree 8 \\
         --banks tome=<bank dir> evit=<bank dir> --seed 1993 --output results/tocom-cl-main
@@ -35,6 +38,7 @@ import main as mammoth  # noqa: E402
 from backbone.token_compression import OPERATORS, FrozenToCom, attach, encoders  # noqa: E402
 from backbone.token_compression.compensator import OFFICIAL_COMMIT, file_sha256  # noqa: E402
 from backbone.token_compression.evaluation import evaluate_grid  # noqa: E402
+from scripts.tocom.tracking import Mirror, Progress  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 # Method recipes of the unified Tiny comparison (scripts/unified_cl_protocol.py).
@@ -130,6 +134,7 @@ def parse_args(argv=None):
     parser.add_argument('--save-weights', action='store_true',
                         help='Keep the evaluated model of every task, for scripts.tocom.reevaluate')
     parser.add_argument('--deterministic', action='store_true', help='Deterministic algorithms: reproducible weights')
+    parser.add_argument('--wandb', metavar='ENTITY/PROJECT', help='Mirror the records of the run to Weights & Biases')
     parser.add_argument('--seed', type=int, required=True)
     parser.add_argument('--tasks', type=int, help='Stop after this many tasks (default: all)')
     parser.add_argument('--epochs', type=int, default=20)
@@ -141,6 +146,8 @@ def parse_args(argv=None):
     parser.add_argument('extra', nargs=argparse.REMAINDER, help='After --: extra Mammoth arguments')
     args = parser.parse_args(argv)
     args.extra = args.extra[1:] if args.extra[:1] == ['--'] else args.extra
+    if args.wandb and (args.wandb.count('/') != 1 or not all(args.wandb.split('/'))):
+        parser.error('--wandb takes ENTITY/PROJECT')
     if args.degree not in args.targets:
         parser.error('Inference degrees must include the training degree')
     if (args.method in OWN) != (args.matched_degree is not None):
@@ -203,7 +210,13 @@ def load_banks(specifications, digest, depth, width, allow_partial):
 
 def build(arguments, method):
     """Mammoth model and dataset for these native arguments, with the inputs of the study."""
+    # Mammoth turns its own Weights & Biases logging on from these variables, and that logging runs every
+    # training step under a profiler. The launcher mirrors the run itself (scripts/tocom/tracking.py).
+    for name in ('WANDB_ENTITY', 'WANDB_PROJECT'):
+        os.environ.pop(name, None)
     model, dataset, native = mammoth.initialize(mammoth.parse_args(arguments))
+    if not native.nowand:
+        raise ValueError("Mammoth's own Weights & Biases logging must stay off")
     if native.code_optimization != 0 or native.distributed != 'no':
         raise ValueError('Use FP32 (--code_optimization 0) on one device')
     if method.endswith('-lora') or method == 'ease':
@@ -218,6 +231,15 @@ def build(arguments, method):
         if tuple(normalize.mean) != (.5, .5, .5) or tuple(normalize.std) != (.5, .5, .5):
             raise ValueError('The pretrained weights and the banks expect inputs normalized with 0.5/0.5')
     return model, dataset, native
+
+
+def experiment_name(output):
+    """Name of the experiment a run belongs to: its output directory, as seen from ``results/``."""
+    output = output.resolve()
+    try:
+        return '-'.join(output.relative_to(ROOT / 'results').parts)
+    except ValueError:
+        return output.name
 
 
 def pinned_digest(net, spec):
@@ -274,9 +296,25 @@ def main(argv=None):
         'pretrained_file_sha256': spec['sha256'], 'tocom_official_commit': OFFICIAL_COMMIT,
         'banks': bank_records, 'torch': str(torch.__version__), 'device': str(model.device),
         'started_at_unix': time.time()}, indent=2) + '\n')
+    mirror = Mirror(run, args.wandb, experiment_name(args.output), config, {
+        'epochs': args.epochs, 'batch_size': args.batch_size, 'commit': commit, 'dirty': dirty,
+        'encoder_family': family, 'backbone_canonical_sha256': digest,
+        'bank_sha256': {name: record['checkpoint_sha256'] for name, record in bank_records.items()},
+        'native': values})
 
     records = []
-    native_end_eval = model.meta_end_eval
+    native_observe, native_end_epoch, native_end_eval = model.meta_observe, model.meta_end_epoch, model.meta_end_eval
+
+    def meta_observe(*inputs, **keywords):
+        # Read-only: the loss Mammoth gets back, and the learning rate the step has just used.
+        loss = native_observe(*inputs, **keywords)
+        optimizer = getattr(model, 'opt', None)
+        progress.step(loss, optimizer.param_groups[0]['lr'] if optimizer is not None else None)
+        return loss
+
+    def meta_end_epoch(epoch, trained):
+        native_end_epoch(epoch, trained)
+        mirror.epoch(progress.end_epoch(len(records), epoch))
 
     def meta_end_eval(evaluated, accs):
         # The grid reads the model Mammoth has just evaluated, before a method's own end-of-evaluation
@@ -299,21 +337,25 @@ def main(argv=None):
                 raise RuntimeError(f'Grid source row differs from Mammoth: {grid["source"]} vs {accs[0]}')
             record.update(grid, grid_seconds=time.perf_counter() - started)
         native_end_eval(evaluated, accs)
+        record['seconds'] = progress.end_task()
         records.append(record)
         temporary = run / 'metrics.json.tmp'
         temporary.write_text(json.dumps(records, indent=2, allow_nan=False) + '\n')
         os.replace(temporary, run / 'metrics.json')
+        mirror.task(record)
 
-    model.meta_end_eval = meta_end_eval
+    model.meta_observe, model.meta_end_epoch, model.meta_end_eval = meta_observe, meta_end_epoch, meta_end_eval
+    progress = Progress(run / 'progress.jsonl')
     started = time.time()
     train(model, dataset, native)
     # Mammoth returns quietly when a signal stops it, so completion is judged by the tasks evaluated.
     expected = dataset.N_TASKS if args.tasks is None else args.tasks
     completed = len(records) == expected
-    (run / 'summary.json').write_text(json.dumps({
-        'execution_status': 'completed' if completed else 'interrupted', 'tasks': len(records),
-        'expected_tasks': expected, 'seconds': time.time() - started,
-        'final_class_il': records[-1]['class_il'] if records else None}, indent=2) + '\n')
+    summary = {'execution_status': 'completed' if completed else 'interrupted', 'tasks': len(records),
+               'expected_tasks': expected, 'seconds': time.time() - started,
+               'final_class_il': records[-1]['class_il'] if records else None}
+    (run / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+    mirror.finish(records[-1] if records else None, summary, completed)
     if not completed:
         raise SystemExit(f'Stopped after {len(records)} of {expected} tasks')
 
