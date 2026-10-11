@@ -75,7 +75,9 @@ def main(argv=None):
         values = dict(results_path=f'{scratch}/results', checkpoint_path=f'{scratch}/checkpoints')
         if args.device:
             values['device'] = args.device
-        model, dataset, _ = build(replaced(config['native_arguments'], **values), config['method'])
+        # A run from before the evaluation batch was fixed is evaluated as it was, with its training batch.
+        model, dataset, _ = build(replaced(config['native_arguments'], **values), config['method'],
+                                  config.get('eval_batch_size'))
         model.to(model.device)
         family, encoder, digest = pinned_digest(model.net, checkpoint_spec(config['vit_size']))
         banks, _, scale = load_banks(args.banks, digest, len(encoder.blocks), encoder.embed_dim, False)

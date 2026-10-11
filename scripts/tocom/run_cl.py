@@ -10,6 +10,9 @@ CPS-Prompt and REP reduce tokens with their own algorithm in training. They take
 own setting equals. Their banks correct each encoder pass from the degree that
 pass was trained at.
 
+Training uses batches of 16 and every evaluation batches of 256, unless told otherwise;
+Mammoth alone would evaluate with the training batch size.
+
 Every run keeps its records in its own directory. ``--wandb ENTITY/PROJECT`` also
 mirrors them to Weights & Biases; Mammoth's own logging there stays off.
 
@@ -39,6 +42,7 @@ from backbone.token_compression import OPERATORS, FrozenToCom, attach, encoders 
 from backbone.token_compression.compensator import OFFICIAL_COMMIT, file_sha256  # noqa: E402
 from backbone.token_compression.evaluation import evaluate_grid  # noqa: E402
 from scripts.tocom.tracking import Mirror, Progress  # noqa: E402
+from utils.conf import create_seeded_dataloader  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 # Method recipes of the unified Tiny comparison (scripts/unified_cl_protocol.py).
@@ -138,7 +142,8 @@ def parse_args(argv=None):
     parser.add_argument('--seed', type=int, required=True)
     parser.add_argument('--tasks', type=int, help='Stop after this many tasks (default: all)')
     parser.add_argument('--epochs', type=int, default=20)
-    parser.add_argument('--batch-size', type=int, default=64)
+    parser.add_argument('--batch-size', type=int, default=16, help='Training batch (and replay batch of ER)')
+    parser.add_argument('--eval-batch-size', type=int, default=256, help='Batch of every evaluation')
     parser.add_argument('--device', default='cuda:0')
     parser.add_argument('--output', type=Path, required=True, help='Experiment directory; one sub-directory per run')
     parser.add_argument('--run-id', help='Default: <method>-<operator>-r<degree>-seed<seed>, or '
@@ -208,8 +213,29 @@ def load_banks(specifications, digest, depth, width, allow_partial):
     return banks, records, scales.pop() if scales else None
 
 
-def build(arguments, method):
-    """Mammoth model and dataset for these native arguments, with the inputs of the study."""
+def fixed_evaluation_batch(dataset, size):
+    """Give the test loaders batches of ``size``; Mammoth builds them with the training batch size.
+
+    The loader of each task is built again the way Mammoth built it (own seeded generator, no shuffling),
+    so neither the training nor the order of the test samples changes.
+    """
+    native = dataset.get_data_loaders
+
+    def get_data_loaders():
+        train, test = native()
+        if test.batch_size != size:
+            test = create_seeded_dataloader(dataset.args, test.dataset, non_verbose=True, batch_size=size, shuffle=False)
+            dataset.test_loaders[-1] = test
+        return train, test
+
+    dataset.get_data_loaders = get_data_loaders
+
+
+def build(arguments, method, eval_batch=None):
+    """Mammoth model and dataset for these native arguments, with the inputs of the study.
+
+    ``eval_batch`` fixes the batch size of the test loaders; None leaves them as Mammoth builds them.
+    """
     # Mammoth turns its own Weights & Biases logging on from these variables, and that logging runs every
     # training step under a profiler. The launcher mirrors the run itself (scripts/tocom/tracking.py).
     for name in ('WANDB_ENTITY', 'WANDB_PROJECT'):
@@ -230,6 +256,8 @@ def build(arguments, method):
         normalize = transform.transforms[-1]
         if tuple(normalize.mean) != (.5, .5, .5) or tuple(normalize.std) != (.5, .5, .5):
             raise ValueError('The pretrained weights and the banks expect inputs normalized with 0.5/0.5')
+    if eval_batch:
+        fixed_evaluation_batch(dataset, eval_batch)
     return model, dataset, native
 
 
@@ -274,7 +302,7 @@ def main(argv=None):
     if args.tasks is not None:
         values['stop_after'] = args.tasks
     arguments = [item for key, value in values.items() for item in (f'--{key}', str(value))] + args.extra
-    model, dataset, native = build(arguments, args.method)
+    model, dataset, native = build(arguments, args.method, args.eval_batch_size)
 
     family, encoder, digest = pinned_digest(model.net, spec)
     banks, bank_records, scale = load_banks(args.banks, digest, len(encoder.blocks), encoder.embed_dim,
@@ -289,7 +317,7 @@ def main(argv=None):
               'targets': sorted(set(args.targets)), 'eval_operators': args.eval_operators, 'scale': scale,
               'source': source, 'compensations': compensations, 'save_weights': args.save_weights,
               'seed': args.seed, 'grid': not args.no_grid, 'deterministic': args.deterministic,
-              'native_arguments': arguments}
+              'batch_size': args.batch_size, 'eval_batch_size': args.eval_batch_size, 'native_arguments': arguments}
     (run / 'config.json').write_text(json.dumps(config, indent=2) + '\n')
     (run / 'provenance.json').write_text(json.dumps({
         'commit': commit, 'dirty': dirty, 'family': family, 'backbone_canonical_sha256': digest,
@@ -297,7 +325,8 @@ def main(argv=None):
         'banks': bank_records, 'torch': str(torch.__version__), 'device': str(model.device),
         'started_at_unix': time.time()}, indent=2) + '\n')
     mirror = Mirror(run, args.wandb, experiment_name(args.output), config, {
-        'epochs': args.epochs, 'batch_size': args.batch_size, 'commit': commit, 'dirty': dirty,
+        'epochs': args.epochs, 'batch_size': args.batch_size, 'eval_batch_size': args.eval_batch_size,
+        'commit': commit, 'dirty': dirty,
         'encoder_family': family, 'backbone_canonical_sha256': digest,
         'bank_sha256': {name: record['checkpoint_sha256'] for name, record in bank_records.items()},
         'native': values})

@@ -57,8 +57,43 @@ def test_arguments_of_the_methods_that_compress_on_their_own():
     assert run_cl.method_args('rep-prompt', 'tiny', 'weights.npz', 64, 0)['rep_atom'] == 0
     args = run_cl.parse_args(['--method', 'rep-prompt', '--matched-degree', '8', *common])
     assert args.targets == [0, 4, 8, 10, 13, 16] and args.degree == 0
+    assert (args.batch_size, args.eval_batch_size) == (16, 256)
     for wrong in (['--method', 'cps-prompt'], ['--method', 'er', '--matched-degree', '8'],
                   ['--method', 'cps-prompt', '--matched-degree', '8', '--degree', '8'],
                   ['--method', 'rep-prompt', '--matched-degree', '8', '--vit-size', 'base']):
         with pytest.raises(SystemExit):
             run_cl.parse_args([*wrong, *common])
+
+
+def test_evaluation_batch_is_fixed_without_touching_the_training():
+    from argparse import Namespace
+    from torch.utils.data import DataLoader, TensorDataset
+
+    class Tasks:
+        """Stands in for a Mammoth dataset: one more task, hence one more test loader, at every call."""
+
+        def __init__(self):
+            self.args, self.test_loaders = Namespace(seed=7, num_workers=0), []
+
+        def get_data_loaders(self):
+            samples = torch.arange(600.).unsqueeze(1) + 1000 * len(self.test_loaders)
+            train = DataLoader(TensorDataset(samples), batch_size=16, shuffle=True)
+            self.test_loaders.append(DataLoader(TensorDataset(samples), batch_size=16, shuffle=False))
+            return train, self.test_loaders[-1]
+
+    tasks = Tasks()
+    run_cl.fixed_evaluation_batch(tasks, 256)
+    torch.manual_seed(3)
+    expected = torch.rand(4)
+    torch.manual_seed(3)
+    for task in range(2):
+        train, test = tasks.get_data_loaders()
+        assert train.batch_size == 16 and test.batch_size == 256 and test is tasks.test_loaders[task]
+        batches = [batch[0] for batch in test]
+        assert [len(batch) for batch in batches] == [256, 256, 88]
+        # Every test sample once, in the order Mammoth would give them.
+        assert torch.equal(torch.cat(batches).squeeze(1), torch.arange(600.) + 1000 * task)
+    assert torch.equal(torch.rand(4), expected)
+    same = Tasks()
+    run_cl.fixed_evaluation_batch(same, 16)
+    assert same.get_data_loaders()[1] is same.test_loaders[0] and same.test_loaders[0].batch_size == 16
