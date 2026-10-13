@@ -438,3 +438,66 @@ def test_ease_adapters_train_under_reduction():
     backbone.extract_features(torch.randn(1, 3, 224, 224).double(), 1).sum().backward()
     assert backbone.adapters[1][0].down_proj.weight.grad.abs().sum() > 0
     assert backbone.adapters[0][0].down_proj.weight.grad is None
+
+
+def trained_twice():
+    """An EWC-LoRA encoder as it is before the second merge: one update already merged, a new one trained."""
+    net = ewc_lora()
+    return net, net.image_encoder
+
+
+@pytest.mark.parametrize('operator, degree', [('tome', 0), ('tome', 2), ('evit', 2)])
+def test_ewc_lora_product_merge_keeps_the_function(operator, degree):
+    from models.low_rank_utils.ewc import merge_products
+    net, encoder = trained_twice()
+    x = torch.randn(2, 3, 32, 32).double()
+    attach(net, operator, degree=degree)
+    keys = {name: value.shape for name, value in encoder.state_dict().items()}
+    accumulated = [copy.deepcopy(block.attn.lora_A_k.weight) for block in encoder.blocks]
+    with torch.no_grad():
+        before = encoder(x, True)
+        merge_products(net)
+        # After the merge the new factors contribute nothing, with or without them in the forward pass.
+        assert torch.allclose(encoder(x, True), before, atol=1e-10) and torch.allclose(encoder(x, False), before, atol=1e-10)
+    assert {name: value.shape for name, value in encoder.state_dict().items()} == keys
+    for block, old in zip(encoder.blocks, accumulated):
+        assert torch.equal(block.attn.lora_A_k.weight, old) and not block.attn.lora_new_B_k.weight.any()
+
+
+def test_ewc_lora_merges_differ_only_from_the_second_merge_on():
+    from models.low_rank_utils.ewc import EWCLifecycle, merge_products
+    x = torch.randn(2, 3, 32, 32).double()
+
+    def merged(mode, first):
+        net, encoder = trained_twice()
+        with torch.no_grad():
+            if first:
+                # Nothing merged yet: the accumulated factors are zero, as at the end of the first task.
+                for block in encoder.blocks:
+                    for layer in (*block.attn.lora_A, *block.attn.lora_B):
+                        layer.weight.zero_()
+            before = encoder(x, True)
+            life = EWCLifecycle()
+            life.pending_merge.fill_(True)
+            torch.manual_seed(11)
+            life.finalize_task(SimpleNamespace(net=SimpleNamespace(
+                image_encoder=encoder, accumulate_and_reset_lora=lambda: [
+                    module.accumulate_and_reset_lora() for module in encoder.modules()
+                    if isinstance(module, vit_ewclora.Attention_LoRA)]), args=SimpleNamespace(lora_ewc_merge=mode)))
+            assert not bool(life.pending_merge)
+            return before, encoder(x, False), [block.attn.lora_new_A_v.weight.clone() for block in encoder.blocks]
+
+    for first in (True, False):
+        before, product, fresh = merged('product', first)
+        released, factors, same = merged('factors', first)
+        assert torch.allclose(product, before, atol=1e-10)
+        # The released merge is exact only while nothing has been accumulated; afterwards it adds cross terms.
+        assert torch.allclose(factors, released, atol=1e-10) == first
+        # Both modes draw the next task's factors from the same random stream.
+        assert all(torch.equal(a, b) for a, b in zip(fresh, same))
+    # An argument namespace from before the option existed means the released merge.
+    life, (net, encoder) = EWCLifecycle(), trained_twice()
+    life.pending_merge.fill_(True)
+    called = []
+    life.finalize_task(SimpleNamespace(net=SimpleNamespace(accumulate_and_reset_lora=lambda: called.append(1)), args=SimpleNamespace()))
+    assert called == [1]

@@ -5,6 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from models.low_rank_utils.continual import TensorList
+from models.low_rank_utils.vit_ewclora import Attention_LoRA
 
 
 class EWCLifecycle(nn.Module):
@@ -55,8 +56,31 @@ class EWCLifecycle(nn.Module):
 
     def finalize_task(self, model):
         if bool(self.pending_merge):
-            model.net.accumulate_and_reset_lora()
+            if getattr(model.args, 'lora_ewc_merge', 'factors') == 'product':
+                merge_products(model.net)
+            else:
+                model.net.accumulate_and_reset_lora()
             self.pending_merge.fill_(False)
+
+
+def merge_products(network):
+    """Merge the update of a task as the paper states it (Algorithm 1, step 4: W_t = W_{t-1} + BA).
+
+    The released ``accumulate_and_reset_lora`` adds the factors (A_acc += A_new, B_acc += B_new), which from the
+    second merge on also adds the cross terms B_acc A_new + B_new A_acc, which were never trained. Here the product
+    of the new factors goes into the key and value rows of the attention projection, so the network computes the
+    same function before and after the merge. The accumulated factors stay zero and the state dictionary keeps
+    its keys and shapes. The new factors are re-initialized in the order of the released code, so the random
+    stream is consumed alike.
+    """
+    for module in network.image_encoder.modules():
+        if isinstance(module, Attention_LoRA):
+            width = module.dim
+            with torch.no_grad():
+                module.qkv.weight[width:2 * width] += module.lora_new_B_k.weight @ module.lora_new_A_k.weight
+                module.qkv.weight[2 * width:] += module.lora_new_B_v.weight @ module.lora_new_A_v.weight
+            for index in range(len(module.lora_new_A)):
+                module.reset_new_lora(index)
 
 
 def compute_fisher(network, loader, class_offset, device):

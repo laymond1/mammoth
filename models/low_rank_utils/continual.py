@@ -110,6 +110,9 @@ class LowRankContinualModel(ContinualModel):
         parser.add_argument('--lora_fc_lr', type=float, default=fc_lr)
         parser.add_argument('--lora_gamma', type=float, default=1.)
         parser.add_argument('--lora_ewc_lambda', type=float, default=1e7)
+        parser.add_argument('--lora_ewc_merge', choices=['factors', 'product'], default='factors',
+                            help='EWC-LoRA merge after a task: "factors" adds the A and B factors separately, as the '
+                                 'released code does; "product" adds the product BA to the weight, as the paper states')
         parser.add_argument('--lora_lamb', type=float, default=0.95)
         parser.add_argument('--lora_lame', type=float, default=1.)
         parser.add_argument('--lora_kd_ratio', type=float, default=5.)

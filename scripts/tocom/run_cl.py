@@ -45,7 +45,8 @@ from scripts.tocom.tracking import Mirror, Progress  # noqa: E402
 from utils.conf import create_seeded_dataloader  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-# Method recipes of the unified Tiny comparison (scripts/unified_cl_protocol.py).
+# Method recipes of the unified Tiny comparison (scripts/unified_cl_protocol.py), except where a method notes
+# a value set for this study (ViT-Tiny, batch 16; results/tocom-recipe-diagnosis-20261012/HANDOFF.md).
 COMMON = dict(dataset='seq-cifar100-224', dataset_config='unified', model_config='default', num_workers=4,
               drop_last=0, permute_classes=0, fitting_mode='epochs', scheduler_mode='epoch',
               enable_other_metrics=0, eval_future=0, joint=0, non_verbose=1, code_optimization=0)
@@ -57,27 +58,35 @@ OWN = {'cps-prompt': {0: 0., 8: .237, 16: .477}, 'rep-prompt': {0: 0, 8: 27, 16:
 
 def method_args(method, size, checkpoint, batch_size, matched=None):
     if method == 'er':
+        # Unified has AdamW at 1e-4, which at batch 16 moves the whole backbone too far (31% after ten tasks).
+        # SGD at 0.001 was chosen over AdamW at 1e-5 on validation data: 49.5% against 25.1%.
         return dict(model='er', backbone='vit-augreg', vit_size=size, pretrained=1, vit_checkpoint=checkpoint,
-                    optimizer='adamw', lr=0.0001, optim_wd=0.0, buffer_size=500, minibatch_size=batch_size)
+                    optimizer='sgd', lr=0.001, optim_mom=0.9, optim_wd=0.0, buffer_size=500, minibatch_size=batch_size)
     if method == 'coda-prompt':
         return dict(model='coda-prompt', backbone='vit-augreg', vit_size=size, pretrained=0, coda_vit_size=size,
                     coda_checkpoint=checkpoint, optimizer='adam', lr=0.001, optim_wd=0.0, pool_size=100,
                     prompt_len=8, mu=0.0, ortho_mu=0.0, virtual_bs_iterations=1)
     if method == 'sd-lora':
-        # LoRA learning rate accepted for Base in the unified study; other sizes need a stability check.
+        # Unified has lr 0.001 and classifier lr 0.008. At batch 16 on Tiny the classifier of each new task then
+        # pushes the old tasks out, so both are a quarter of that here.
         return dict(model='sd-lora', backbone='low-rank-vit', lora_vit_size=size, lora_checkpoint=checkpoint,
-                    optimizer='adam', lr=0.001, optim_wd=0.0, lr_scheduler='cosine', lora_rank=10, lora_fc_lr=0.008)
+                    optimizer='adam', lr=0.00025, optim_wd=0.0, lr_scheduler='cosine', lora_rank=10, lora_fc_lr=0.002)
     if method == 'lwf-mc':
+        # As for ER: SGD at 0.001 instead of unified's AdamW at 1e-4 (55.4% against 52.9% for AdamW at 1e-5
+        # on validation data, 43% with the unified setting).
         return dict(model='lwf_mc', backbone='vit-augreg', vit_size=size, pretrained=1, vit_checkpoint=checkpoint,
-                    optimizer='adamw', lr=0.0001, optim_wd=0.0, wd_reg=0.0)
+                    optimizer='sgd', lr=0.001, optim_mom=0.9, optim_wd=0.0, wd_reg=0.0)
     if method == 'inf-lora':
         return dict(model='inf-lora', backbone='low-rank-vit', lora_vit_size=size, lora_checkpoint=checkpoint,
                     optimizer='adam', lr=0.0005, optim_wd=0.0, lr_scheduler='cosine', lora_rank=10,
                     lora_fc_lr=0.0005, lora_lamb=0.95, lora_lame=1.0)
     if method == 'ewc-lora':
+        # Unified follows the released code: factors merged separately and penalty weight 1e7, under which the
+        # update of every task after the first is zero. Here the merge of the paper is used, and the weight was
+        # chosen on validation data at batch 16 (the Fisher estimate grows as the batch shrinks).
         return dict(model='ewc-lora', backbone='low-rank-vit', lora_vit_size=size, lora_checkpoint=checkpoint,
                     optimizer='adam', lr=0.0005, optim_wd=0.0, lr_scheduler='cosine', lora_rank=10,
-                    lora_fc_lr=0.005, lora_gamma=1.0, lora_ewc_lambda=10000000.0)
+                    lora_fc_lr=0.005, lora_gamma=1.0, lora_ewc_lambda=1000.0, lora_ewc_merge='product')
     if method == 'ease':
         return dict(model='ease', backbone='ease-vit', vit_size=size, pretrained=1, ease_checkpoint=checkpoint,
                     ease_pretrain_type='in21k_ft_in1k', adapter_size=64, optimizer='sgd', lr=0.025,

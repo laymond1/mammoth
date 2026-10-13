@@ -55,6 +55,14 @@ def test_arguments_of_the_methods_that_compress_on_their_own():
     rep = run_cl.method_args('rep-prompt', 'tiny', 'weights.npz', 64, 16)
     assert (rep['rep_atom'], rep['rep_ald'], rep['rep_merge_max'], rep['rep_swift']) == (1, 0, 71, 1)
     assert run_cl.method_args('rep-prompt', 'tiny', 'weights.npz', 64, 0)['rep_atom'] == 0
+    # Values set for this study where the unified recipe fails at batch 16 on Tiny.
+    ewc, sd = (run_cl.method_args(method, 'tiny', 'weights.npz', 16) for method in ('ewc-lora', 'sd-lora'))
+    assert (ewc['lora_ewc_merge'], ewc['lora_ewc_lambda'], ewc['lr'], ewc['lora_fc_lr']) == ('product', 1000., .0005, .005)
+    assert (sd['lr'], sd['lora_fc_lr']) == (.00025, .002)
+    for method in ('er', 'lwf-mc'):
+        full = run_cl.method_args(method, 'tiny', 'weights.npz', 16)
+        assert (full['optimizer'], full['lr'], full['optim_mom'], full['optim_wd']) == ('sgd', .001, .9, 0.)
+    assert run_cl.method_args('er', 'tiny', 'weights.npz', 16)['minibatch_size'] == 16
     args = run_cl.parse_args(['--method', 'rep-prompt', '--matched-degree', '8', *common])
     assert args.targets == [0, 4, 8, 10, 13, 16] and args.degree == 0
     assert (args.batch_size, args.eval_batch_size) == (16, 256)
