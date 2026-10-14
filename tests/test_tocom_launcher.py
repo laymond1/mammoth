@@ -105,3 +105,26 @@ def test_evaluation_batch_is_fixed_without_touching_the_training():
     same = Tasks()
     run_cl.fixed_evaluation_batch(same, 16)
     assert same.get_data_loaders()[1] is same.test_loaders[0] and same.test_loaders[0].batch_size == 16
+
+
+def test_a_budget_path_replaces_the_training_degree():
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused',
+              '--targets', '0', '4', '8', '12', '16', '20', '24']
+    path = ['--path', 'P5', '--schedule', *map(str, [0] * 5 + [24] * 5)]
+    args = run_cl.parse_args(common + path)
+    assert args.schedule == [0] * 5 + [24] * 5 and args.degree == 0 and args.eval_operators == ['tome']
+    assert args.sources == [0, 8, 16, 24]
+    args = run_cl.parse_args(common + ['--path', 'P2', '--schedule', *map(str, [24, 24, 16, 8, 0, 0, 0, 0, 0, 0])])
+    assert args.degree == 24
+    plan = run_cl.switch_plan('tome', [24, 0, 8, 16, 8])
+    assert plan == {f'src{d}': ('tome', (d,), None) for d in (0, 8, 16, 24)} and list(plan) == ['src0', 'src8', 'src16', 'src24']
+    for broken in (common + ['--schedule', '0', '24'],                                       # no path name
+                   common + path + ['--degree', '8'],                                        # both
+                   common + ['--path', 'P-1', '--schedule', '0'],                            # name
+                   common + ['--path', 'P1', '--schedule', '0', '25'],                       # degree out of range
+                   common[:-7] + ['--targets', '0', '16'] + path,                            # 24 not inferred
+                   common + path + ['--eval-operators', 'tome', 'evit'],                     # another operator
+                   common + ['--path', 'P1'],                                                # path without schedule
+                   ['--method', 'cps-prompt', '--matched-degree', '0', '--seed', '1', '--output', 'unused'] + path):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)

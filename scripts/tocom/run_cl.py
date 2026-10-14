@@ -13,6 +13,10 @@ pass was trained at.
 Training uses batches of 16 and every evaluation batches of 256, unless told otherwise;
 Mammoth alone would evaluate with the training batch size.
 
+``--schedule`` trains each task at its own degree, a budget path: the task about to be learned and the
+evaluation after it run at that task's degree, and the grid records the bank of the training operator
+from every ``--sources`` degree, so that bank policies can be compared afterwards per test set.
+
 Every run keeps its records in its own directory. ``--wandb ENTITY/PROJECT`` also
 mirrors them to Weights & Biases; Mammoth's own logging there stays off.
 
@@ -21,6 +25,9 @@ Examples (from the repository root):
         --banks tome=<bank dir> evit=<bank dir> --seed 1993 --output results/tocom-cl-main
     uv run --no-sync python -m scripts.tocom.run_cl --method rep-prompt --matched-degree 16 \\
         --eval-operators tome evit --banks tome=<bank dir> evit=<bank dir> --seed 1993 --output results/tocom-cl-main
+    uv run --no-sync python -m scripts.tocom.run_cl --method coda-prompt --operator tome --path P5 \\
+        --schedule 0 0 0 0 0 24 24 24 24 24 --banks tome=<bank dir> --targets 0 4 8 12 16 20 24 --seed 1993 \\
+        --output results/tocom-switch
 """
 
 from scripts.cl_runtime import DEFAULT_PROFILE, configure_native_environment
@@ -32,13 +39,14 @@ import hashlib  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
 from pathlib import Path  # noqa: E402
+import re  # noqa: E402
 import subprocess  # noqa: E402
 import time  # noqa: E402
 
 import torch  # noqa: E402
 
 import main as mammoth  # noqa: E402
-from backbone.token_compression import OPERATORS, FrozenToCom, attach, encoders  # noqa: E402
+from backbone.token_compression import OPERATORS, FrozenToCom, attach, encoders, valid_degree  # noqa: E402
 from backbone.token_compression.compensator import OFFICIAL_COMMIT, file_sha256  # noqa: E402
 from backbone.token_compression.evaluation import evaluate_grid  # noqa: E402
 from scripts.tocom.tracking import Mirror, Progress  # noqa: E402
@@ -126,6 +134,17 @@ def grid_plan(method, degree, matched, bank_names):
     return (0 if method == 'cps-prompt' else None), compensations
 
 
+def switch_plan(operator, sources):
+    """Grid conditions of a model trained on a budget path, as ``evaluate_grid`` takes them.
+
+    Such a model has no single training degree. The bank of its operator corrects from each source degree,
+    labelled ``src<degree>``; the source row of every evaluation is the degree of the task just learned.
+    Bank policies (one fixed source, the last training degree, each test set's own training degree) are
+    read from these rows afterwards.
+    """
+    return {f'src{degree}': (operator, (degree,), None) for degree in sorted(set(sources))}
+
+
 METHODS = ('er', 'coda-prompt', 'sd-lora', 'lwf-mc', 'inf-lora', 'ewc-lora', 'ease', 'cps-prompt', 'rep-prompt')
 
 
@@ -135,6 +154,11 @@ def parse_args(argv=None):
     parser.add_argument('--vit-size', choices=('tiny', 'small', 'base'), default='tiny')
     parser.add_argument('--operator', choices=tuple(OPERATORS), default='tome', help='Reduction used in training')
     parser.add_argument('--degree', type=int, default=0, help='Training degree: tokens removed per block')
+    parser.add_argument('--schedule', type=int, nargs='+', metavar='DEGREE',
+                        help='Training degree of every task in order, a budget path; replaces --degree')
+    parser.add_argument('--path', help='With --schedule: name of the budget path (letters and digits), used in the run id')
+    parser.add_argument('--sources', type=int, nargs='+', default=[0, 8, 16, 24],
+                        help='With --schedule: degrees the bank of the training operator corrects from in the grid')
     parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
                         help='CPS-Prompt and REP: the ToMe training degree their own compression equals in FLOPs')
     parser.add_argument('--targets', type=int, nargs='+', default=[0, 4, 8, 10, 13, 16], help='Inference degrees')
@@ -162,6 +186,25 @@ def parse_args(argv=None):
     args.extra = args.extra[1:] if args.extra[:1] == ['--'] else args.extra
     if args.wandb and (args.wandb.count('/') != 1 or not all(args.wandb.split('/'))):
         parser.error('--wandb takes ENTITY/PROJECT')
+    if args.schedule is not None:
+        if args.method in OWN:
+            parser.error('A budget path is for methods trained with the plug-in')
+        if args.degree:
+            parser.error('--schedule replaces --degree')
+        if not args.path or not re.fullmatch(r'[A-Za-z0-9]+', args.path):
+            parser.error('--schedule needs --path, a name of letters and digits')
+        try:
+            for degree in (*args.schedule, *args.sources):
+                valid_degree(degree)
+        except ValueError as error:
+            parser.error(str(error))
+        if not set(args.schedule) <= set(args.targets):
+            parser.error('Inference degrees must include every degree of the path')
+        if args.eval_operators not in (None, [args.operator]):
+            parser.error('A model trained on a budget path is inferred with its own operator')
+        args.eval_operators, args.degree = [args.operator], args.schedule[0]
+    elif args.path is not None:
+        parser.error('--path goes with --schedule')
     if args.degree not in args.targets:
         parser.error('Inference degrees must include the training degree')
     if (args.method in OWN) != (args.matched_degree is not None):
@@ -298,10 +341,12 @@ def main(argv=None):
     from models.low_rank_utils.factory import checkpoint_spec
     from utils.training import train
 
-    own = args.method in OWN
+    own, switching = args.method in OWN, args.schedule is not None
     # Absolute, because Mammoth resolves a relative results path under its data root.
-    run = (args.output / (args.run_id or (f'{args.method}-own-m{args.matched_degree}-seed{args.seed}' if own
-                                          else f'{args.method}-{args.operator}-r{args.degree}-seed{args.seed}'))).resolve()
+    default_id = (f'{args.method}-own-m{args.matched_degree}-seed{args.seed}' if own else
+                  f'{args.method}-{args.operator}-{args.path}-seed{args.seed}' if switching else
+                  f'{args.method}-{args.operator}-r{args.degree}-seed{args.seed}')
+    run = (args.output / (args.run_id or default_id)).resolve()
     run.mkdir(parents=True, exist_ok=False)
     spec = checkpoint_spec(args.vit_size)
     values = dict(COMMON, **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree),
@@ -312,16 +357,29 @@ def main(argv=None):
         values['stop_after'] = args.tasks
     arguments = [item for key, value in values.items() for item in (f'--{key}', str(value))] + args.extra
     model, dataset, native = build(arguments, args.method, args.eval_batch_size)
+    if switching and len(args.schedule) != dataset.N_TASKS:
+        raise ValueError(f'The budget path has {len(args.schedule)} degrees for {dataset.N_TASKS} tasks')
 
     family, encoder, digest = pinned_digest(model.net, spec)
     banks, bank_records, scale = load_banks(args.banks, digest, len(encoder.blocks), encoder.embed_dim,
                                             args.allow_partial_banks)
-    attach(model.net, args.operator, degree=args.degree, bank=banks.get(args.operator))
-    source, compensations = grid_plan(args.method, args.degree, args.matched_degree, list(banks))
+    controller = attach(model.net, args.operator, degree=args.degree, bank=banks.get(args.operator))
+    if switching:
+        if not args.no_grid:
+            if args.operator not in banks:
+                raise ValueError('A budget path is evaluated with the bank of its operator: pass it with --banks')
+            # Checked now rather than at the first evaluation, hours later.
+            for degree in (*args.schedule, *args.sources, *args.targets):
+                banks[args.operator].covered(degree)
+        source, compensations = None, switch_plan(args.operator, args.sources)
+    else:
+        source, compensations = grid_plan(args.method, args.degree, args.matched_degree, list(banks))
 
     commit = subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip()
     dirty = bool(subprocess.check_output(['git', '-C', str(ROOT), 'status', '--porcelain'], text=True).strip())
-    config = {'method': args.method, 'vit_size': args.vit_size, 'operator': args.operator, 'degree': args.degree,
+    config = {'method': args.method, 'vit_size': args.vit_size, 'operator': args.operator,
+              'degree': None if switching else args.degree, 'schedule': args.schedule, 'path': args.path,
+              'sources': sorted(set(args.sources)) if switching else None,
               'matched_degree': args.matched_degree, 'own_setting': OWN[args.method][args.matched_degree] if own else None,
               'targets': sorted(set(args.targets)), 'eval_operators': args.eval_operators, 'scale': scale,
               'source': source, 'compensations': compensations, 'save_weights': args.save_weights,
@@ -342,6 +400,13 @@ def main(argv=None):
 
     records = []
     native_observe, native_end_epoch, native_end_eval = model.meta_observe, model.meta_end_epoch, model.meta_end_eval
+    native_begin_task = model.meta_begin_task
+
+    def meta_begin_task(evaluated):
+        # A budget path: the task about to be learned (with whatever its method runs when a task begins)
+        # and the evaluation after it run at that task's degree, until the next task begins.
+        controller.default_degree = valid_degree(args.schedule[len(records)])
+        native_begin_task(evaluated)
 
     def meta_observe(*inputs, **keywords):
         # Read-only: the loss Mammoth gets back, and the learning rate the step has just used.
@@ -360,6 +425,8 @@ def main(argv=None):
         # compared to one without it.
         record = {'task': len(records), 'classes': evaluated.get_offsets()[1], 'class_il': list(accs[0]),
                   'task_il': list(accs[1]), 'state_sha256': state_digest(model.net)}
+        if switching:
+            record['degree'] = controller.default_degree
         if args.save_weights:
             # The whole method state, so that the model can be rebuilt and inferred again; no optimizer
             # and no replay buffer, so training cannot resume from it.
@@ -369,7 +436,8 @@ def main(argv=None):
             record['weights'] = str(path.relative_to(run))
         if not args.no_grid:
             started = time.perf_counter()
-            grid = evaluate_grid(model, evaluated.test_loaders, record['classes'], source,
+            grid = evaluate_grid(model, evaluated.test_loaders, record['classes'],
+                                 record['degree'] if switching else source,
                                  args.targets, args.eval_operators, banks, scale, compensations)
             if grid['source'] != record['class_il']:
                 raise RuntimeError(f'Grid source row differs from Mammoth: {grid["source"]} vs {accs[0]}')
@@ -383,6 +451,8 @@ def main(argv=None):
         mirror.task(record)
 
     model.meta_observe, model.meta_end_epoch, model.meta_end_eval = meta_observe, meta_end_epoch, meta_end_eval
+    if switching:
+        model.meta_begin_task = meta_begin_task
     progress = Progress(run / 'progress.jsonl')
     started = time.time()
     train(model, dataset, native)

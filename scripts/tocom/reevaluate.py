@@ -26,7 +26,7 @@ import torch  # noqa: E402
 
 from backbone.token_compression import OPERATORS, attach  # noqa: E402
 from backbone.token_compression.evaluation import evaluate_grid  # noqa: E402
-from scripts.tocom.run_cl import build, grid_plan, load_banks, pinned_digest, state_digest  # noqa: E402
+from scripts.tocom.run_cl import build, grid_plan, load_banks, pinned_digest, state_digest, switch_plan  # noqa: E402
 
 
 def parse_args(argv=None):
@@ -88,12 +88,20 @@ def main(argv=None):
         model.to(model.device)
         family, encoder, digest = pinned_digest(model.net, checkpoint_spec(config['vit_size']))
         banks, _, scale = load_banks(args.banks, digest, len(encoder.blocks), encoder.embed_dim, False)
-        attach(model.net, config['operator'], degree=config['degree'], bank=banks.get(config['operator']))
-        source, compensations = grid_plan(config['method'], config['degree'], config['matched_degree'], list(banks))
+        schedule = config.get('schedule')
+        controller = attach(model.net, config['operator'], degree=schedule[0] if schedule else config['degree'],
+                            bank=banks.get(config['operator']))
+        if schedule:
+            # A budget path: each task is evaluated at its own degree, with the bank from every source of the run.
+            source, compensations = None, switch_plan(config['operator'], config['sources'])
+        else:
+            source, compensations = grid_plan(config['method'], config['degree'], config['matched_degree'], list(banks))
         targets = args.targets or config['targets']
         operators = args.eval_operators or config['eval_operators']
         if source is not None and source not in targets:
             targets = sorted({*targets, source})
+        if schedule:
+            targets = sorted({*targets, *schedule})
 
         results = []
         for record in records:
@@ -103,6 +111,8 @@ def main(argv=None):
                 continue
             state = torch.load(args.run / record['weights'], map_location='cpu', weights_only=True)
             restore(model, dataset, state['model'], record['task'], config['method'])
+            if schedule:
+                controller.default_degree = schedule[record['task']]
             model.net.eval()
             class_il, task_il = dataset.evaluate(model, dataset)
             result = {'task': record['task'], 'classes': record['classes'], 'class_il': list(class_il),
@@ -110,7 +120,8 @@ def main(argv=None):
                       'class_il_matches': list(class_il) == record['class_il'],
                       'task_il_matches': list(task_il) == record['task_il']}
             if not args.verify:
-                result.update(evaluate_grid(model, dataset.test_loaders, record['classes'], source, targets,
+                result.update(evaluate_grid(model, dataset.test_loaders, record['classes'],
+                                            schedule[record['task']] if schedule else source, targets,
                                             operators, banks, scale or config['scale'], compensations))
             results.append(result)
             print(json.dumps({key: result[key] for key in ('task', 'state_matches', 'class_il_matches', 'task_il_matches')}))

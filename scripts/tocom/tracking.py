@@ -7,6 +7,7 @@ recorded, so it cannot change the training, and a failure of the service is logg
 from contextlib import contextmanager
 import json
 import logging
+import re
 import time
 
 FAMILIES = {'er': 'replay', 'lwf-mc': 'regularization', 'coda-prompt': 'prompt', 'cps-prompt': 'prompt',
@@ -16,7 +17,13 @@ FINISH_TIMEOUT = 900.
 
 
 def identity(config):
-    """How a run was trained, in the fields runs are filtered and grouped by."""
+    """How a run was trained, in the fields runs are filtered and grouped by.
+
+    A run on a budget path has kind ``switch`` and the name of its path as training degree.
+    """
+    if config.get('schedule'):
+        return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'switch',
+                'train_operator': config['operator'], 'train_degree': config['path'], 'seed': config['seed']}
     own = config['matched_degree'] is not None
     degree = config['matched_degree'] if own else config['degree']
     kind = 'none' if not degree else 'own' if own else 'plugin'
@@ -33,13 +40,15 @@ def _conditions(record):
     """Every grid condition of a task record: (operator, kind, degree, accuracy over the tasks seen).
 
     ``off`` is the inference degree as it is and ``on`` adds the bank of the inference operator. ``on0`` is
-    that bank correcting from degree 0 (CPS-Prompt and REP), and ``cross-<bank>`` another operator's bank.
+    that bank correcting from degree 0 (CPS-Prompt and REP), ``src<degree>`` the bank of a run on a budget
+    path correcting from that degree, and ``cross-<bank>`` another operator's bank.
     """
     for name, entry in record.get('operators', {}).items():
         for target, values in entry['off'].items():
             yield name, 'off', int(target), _mean(values)
         for label, targets in entry['on'].items():
-            kind = 'on' if label == name else 'on0' if label == f'{name}@0' else f'cross-{label}'
+            kind = ('on' if label == name else 'on0' if label == f'{name}@0' else
+                    label if re.fullmatch(r'src\d+', label) else f'cross-{label}')
             for target, values in targets.items():
                 yield name, kind, int(target), _mean(values)
 

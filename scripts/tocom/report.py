@@ -38,6 +38,7 @@ import heapq
 import json
 import os
 from pathlib import Path
+import re
 import statistics
 import time
 import urllib.request
@@ -66,17 +67,23 @@ ROWS = 40
 
 
 class Job(namedtuple('Job', 'method condition value seed')):
+    """One run of a queue: ``value`` is a training degree, or the name of a budget path (``P1``) for a run
+    that trains each task at its own degree."""
+
     @classmethod
     def parse(cls, fields):
         method, condition, value, seed = fields
-        if method not in NAMES or condition not in ('own', *OPERATORS):
+        path = re.fullmatch(r'P\d+', value) is not None
+        if method not in NAMES or condition not in ('own', *OPERATORS) or (path and condition == 'own'):
             raise ValueError(f'Unknown job: {" ".join(fields)}')
-        return cls(method, condition, int(value), int(seed))
+        return cls(method, condition, value if path else int(value), int(seed))
 
     @property
     def id(self):
         if self.condition == 'own':
             return f'{self.method}-own-m{self.value}-seed{self.seed}'
+        if self.kind == 'switch':
+            return f'{self.method}-{self.condition}-{self.value}-seed{self.seed}'
         return f'{self.method}-{self.condition}-r{self.value}-seed{self.seed}'
 
     @property
@@ -85,29 +92,32 @@ class Job(namedtuple('Job', 'method condition value seed')):
 
     @property
     def kind(self):
+        if isinstance(self.value, str):
+            return 'switch'
         return 'none' if not self.value else 'own' if self.condition == 'own' else 'plugin'
 
     @property
     def title(self):
         training = {'none': '압축 없이 학습', 'own': f'자체 압축으로 학습(ToMe {self.value}과 같은 FLOPs)',
-                    'plugin': f'{OPERATORS.get(self.condition)} 학습 압축도 {self.value}'}[self.kind]
+                    'plugin': f'{OPERATORS.get(self.condition)} 학습 압축도 {self.value}',
+                    'switch': f'{OPERATORS.get(self.condition)} 예산 경로 {self.value}'}[self.kind]
         return f'{NAMES[self.method]} · {training} · seed {self.seed}'
 
     @property
     def train(self):
         """The training condition in at most seven plain characters, for fixed-width tables."""
-        return {'none': 'none', 'own': f'own {self.value}',
-                'plugin': f'{CODES.get(self.condition)} {self.value}'}[self.kind]
+        return {'none': 'none', 'own': f'own {self.value}', 'plugin': f'{CODES.get(self.condition)} {self.value}',
+                'switch': f'{CODES.get(self.condition)} {self.value}'}[self.kind]
 
     @property
     def brief(self):
-        return {'none': '압축 없음', 'own': f'자체 {self.value}',
-                'plugin': f'{OPERATORS.get(self.condition)} {self.value}'}[self.kind]
+        return {'none': '압축 없음', 'own': f'자체 {self.value}', 'plugin': f'{OPERATORS.get(self.condition)} {self.value}',
+                'switch': f'{OPERATORS.get(self.condition)} 경로 {self.value}'}[self.kind]
 
     @property
     def inference(self):
         # A model trained with the plug-in is inferred with its own operator; the others with every operator.
-        return OPERATORS[self.condition] if self.kind == 'plugin' else '·'.join(OPERATORS[name] for name in GRID)
+        return OPERATORS[self.condition] if self.kind in ('plugin', 'switch') else '·'.join(OPERATORS[name] for name in GRID)
 
 
 def duration(seconds):
@@ -265,6 +275,9 @@ def tables(queue, seeds):
         return lambda record: (mean(record['class_il']), mean(record['operators'][name]['off'][target]),
                                mean(record['operators'][name]['on'][name][target]))
 
+    if any(job.kind == 'switch' for job in queue.jobs.values()):
+        # Runs on budget paths have no single training degree to tabulate this way.
+        return ''
     high = max((job.value for job in queue.jobs.values()), default=0)
     trained = [name for name in OPERATORS if any(job.condition == name for job in queue.jobs.values())] or list(GRID)
     text = ''
@@ -462,14 +475,16 @@ def kickoff(queue, args, now):
     (queue.reports / 'kickoff.json').write_text(json.dumps(queue.plan, indent=2) + '\n')
     (queue.reports / 'watch.json').unlink(missing_ok=True)
     jobs = list(queue.jobs.values())
-    kinds = [sum(job.kind == kind for job in jobs) for kind in ('none', 'plugin', 'own')]
+    kinds = [sum(job.kind == kind for job in jobs) for kind in ('none', 'plugin', 'own', 'switch')]
     seeds = sorted({job.seed for job in jobs})
     end = queue.end(now)
     cadence = [f'{args.digest_hours:g}시간마다 진행 요약', *(['실행마다 시작과 완료'] if args.per_run else []),
                *(['seed 하나가 끝나면 요약표'] if args.seed_tables else [])]
     lines = [f'🚀 *{queue.root.name} 시작* · 실행 {len(jobs)}개',
-             f'압축 없이 학습 {kinds[0]} · plug-in으로 줄여 학습 {kinds[1]} · 자체 압축으로 학습 {kinds[2]} '
-             f'(방법 {len({job.method for job in jobs})}개 × seed {"·".join(map(str, seeds))})',
+             (f'예산 경로로 학습 {kinds[3]}(경로 {len({job.value for job in jobs if job.kind == "switch"})}개) '
+              if kinds[3] else
+              f'압축 없이 학습 {kinds[0]} · plug-in으로 줄여 학습 {kinds[1]} · 자체 압축으로 학습 {kinds[2]} ')
+             + f'(방법 {len({job.method for job in jobs})}개 × seed {"·".join(map(str, seeds))})',
              f'동시에 {args.workers}개' + (f' · 예상 {duration(end - now)} → {clock(end, now)}쯤 끝남' if end else ''),
              f'보고: {", ".join(cadence)}. 실패와 멈춤은 바로, 끝나면 전체 요약']
     if args.wandb:

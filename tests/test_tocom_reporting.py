@@ -471,3 +471,51 @@ def test_a_queue_may_train_with_any_registered_operator(tmp_path, monkeypatch, c
     assert rows[1] == 'InfLoRA  Prun 24 1993 55.0 55.0'
     metrics = task_metrics(json.loads((root / 'inf-lora-pitome-r24-seed1993/metrics.json').read_text())[0])
     assert metrics['pitome-off/r24'] == 60 and not any('pitome-on' in key for key in metrics)
+
+
+def test_runs_on_budget_paths_are_named_by_their_path(tmp_path, monkeypatch, capsys):
+    jobs = [(method, operator, path) for method in ('coda-prompt', 'inf-lora') for operator in ('tome', 'evit')
+            for path in ('P1', 'P5')]
+    root = tmp_path / 'tocom-switch'
+    (root / 'logs').mkdir(parents=True)
+    (root / 'jobs.txt').write_text(''.join(f'{m} {o} {p} 1993\n' for m, o, p in jobs))
+    (root / 'estimates.json').write_text(json.dumps({f'{m} {o} {p}': 1800 for m, o, p in jobs}))
+    now = [1_800_000_000.]
+    monkeypatch.setattr(report.time, 'time', lambda: now[0])
+
+    def call(*arguments):
+        report.main(['--experiment', str(root), '--dry-run', *map(str, arguments)])
+
+    job = report.Job.parse(['coda-prompt', 'tome', 'P5', '1993'])
+    assert (job.kind, job.id, job.train, job.inference) == ('switch', 'coda-prompt-tome-P5-seed1993', 'ToMe P5', 'ToMe')
+    assert '예산 경로 P5' in job.title and report.Job.parse(['er', 'tome', '8', '1']).kind == 'plugin'
+    for broken in (['coda-prompt', 'own', 'P5', '1'], ['coda-prompt', 'tome', 'Q5', '1']):
+        with pytest.raises(ValueError):
+            report.Job.parse(broken)
+    call('kickoff', '--workers', 6)
+    assert '예산 경로로 학습 8(경로 2개)' in capsys.readouterr().out
+    schedule = [0] * 5 + [24] * 5
+    for method, operator, path in jobs:
+        job = report.Job(method, operator, path, 1993)
+        call('start', method, operator, path, 1993, '--gpu', 0)
+        config = dict(config_of(method, operator, 0, seed=1993), degree=None, schedule=schedule, path=path,
+                      sources=[0, 8, 16, 24], eval_operators=[operator],
+                      compensations={f'src{d}': [operator, [d], None] for d in (0, 8, 16, 24)})
+        off = {str(t): [60. - t / 4] * 2 for t in TARGETS}
+        record = {'task': 1, 'degree': 0, 'class_il': [60., 50.], 'task_il': [90., 80.], 'seconds': 60., 'grid_seconds': 30.,
+                  'operators': {operator: {'off': off, 'on': {f'src{d}': {t: [v[0] + 1] * 2 for t, v in off.items()}
+                                                              for d in (0, 8, 16, 24)}}}}
+        (root / job.id).mkdir()
+        (root / job.id / 'config.json').write_text(json.dumps(config))
+        (root / job.id / 'metrics.json').write_text(json.dumps([record]))
+        (root / job.id / 'summary.json').write_text(json.dumps({'execution_status': 'completed'}))
+        now[0] += 600
+        call('finish', method, operator, path, 1993, '--exit-code', 0)
+    text = capsys.readouterr().out
+    assert 'tocom-switch 끝남' in text and '```' not in text[text.index('tocom-switch 끝남'):]
+    with report.Queue(root).locked() as queue:
+        assert report.results(queue, [job.id])[1] == 'InfLoRA  EViT P5 1993 55.0    -'
+    fields = identity(config)
+    assert (fields['kind'], fields['train_operator'], fields['train_degree']) == ('switch', 'evit', 'P5')
+    metrics = task_metrics(record)
+    assert metrics['evit-src8/r16'] == 57 and metrics['evit-off/r16'] == 56 and not any('cross' in key for key in metrics)
