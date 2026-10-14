@@ -419,3 +419,55 @@ def test_watch_checks_once_from_the_command_line(experiment, capsys):
     capsys.readouterr()
     call('watch', '--once')
     assert '진행* · 2시간 20분 경과' in capsys.readouterr().out
+
+
+def test_a_queue_may_train_with_any_registered_operator(tmp_path, monkeypatch, capsys):
+    from backbone.token_compression import OPERATORS
+    assert set(report.OPERATORS) == set(report.CODES) == set(OPERATORS)
+    jobs = [(method, condition, value) for method in ('coda-prompt', 'inf-lora')
+            for condition, values in (('tome', (0, 24)), ('evit', (24,)), ('cls-prune', (16, 24)), ('pitome', (24,)))
+            for value in values]
+    root = tmp_path / 'tocom-wide'
+    (root / 'logs').mkdir(parents=True)
+    (root / 'jobs.txt').write_text(''.join(f'{method} {condition} {value} 1993\n' for method, condition, value in jobs))
+    (root / 'estimates.json').write_text(json.dumps({f'{m} {c} {v}': 1800 for m, c, v in jobs}))
+    now = [1_800_000_000.]
+    monkeypatch.setattr(report.time, 'time', lambda: now[0])
+
+    def call(*arguments):
+        report.main(['--experiment', str(root), '--dry-run', *map(str, arguments)])
+
+    call('kickoff', '--workers', 6)
+    assert '실행 12개' in capsys.readouterr().out
+    targets = (0, 8, 16, 24)
+    for method, condition, value in jobs:
+        job = report.Job(method, condition, value, 1993)
+        assert len(job.train) <= 7 and (job.id.split('-r')[0].endswith(condition))
+        call('start', method, condition, value, 1993, '--gpu', 0)
+        config = dict(config_of(method, condition, value, seed=1993), targets=list(targets),
+                      eval_operators=list(report.OPERATORS) if not value else [condition])
+        # A bank for every operator the model is inferred with; the last method has none, as before its banks exist.
+        entry = {'off': {str(target): [60. - abs(target - value) / 4] * 2 for target in targets}}
+        record = {'task': 1, 'class_il': [60., 50.], 'task_il': [90., 80.], 'seconds': 120., 'grid_seconds': 30.,
+                  'operators': {name: dict(entry, on={} if method == 'inf-lora' else {
+                      name: {target: [value + 1 for value in values] for target, values in entry['off'].items()}})
+                      for name in config['eval_operators']}}
+        (root / job.id).mkdir()
+        (root / job.id / 'config.json').write_text(json.dumps(config))
+        (root / job.id / 'metrics.json').write_text(json.dumps([record]))
+        (root / job.id / 'summary.json').write_text(json.dumps({'execution_status': 'completed'}))
+        now[0] += 600
+        call('finish', method, condition, value, 1993, '--exit-code', 0)
+    text = capsys.readouterr().out
+    final = text[text.index('tocom-wide 끝남'):]
+    blocks = final.split('```')[1::2]
+    # Two tables per pair of operators, each under 40 characters; a run without banks leaves its cells out.
+    assert len(blocks) == 4 and all(len(line) <= 40 for block in blocks for line in block.splitlines())
+    assert 'method   base ToMe 24   EViT 24' in blocks[0] and 'method   base Prun 24   PiTM 24' in blocks[2]
+    assert 'CODA     55.0 54.0>55.0 54.0>55.0' in blocks[0] and 'InfLoRA' not in final.split('```')[1]
+    assert 'CODA     55.0 54.0>55.0 55.0 54.0>55.0' in blocks[1] and 'CODA     55.0 54.0>55.0 55.0 54.0>55.0' in blocks[3]
+    with report.Queue(root).locked() as queue:
+        rows = report.results(queue, [report.Job('inf-lora', 'cls-prune', 24, 1993).id])
+    assert rows[1] == 'InfLoRA  Prun 24 1993 55.0 55.0'
+    metrics = task_metrics(json.loads((root / 'inf-lora-pitome-r24-seed1993/metrics.json').read_text())[0])
+    assert metrics['pitome-off/r24'] == 60 and not any('pitome-on' in key for key in metrics)

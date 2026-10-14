@@ -48,7 +48,12 @@ from scripts.tocom.tracking import identity
 NAMES = {'er': 'ER', 'lwf-mc': 'LwF-MC', 'coda-prompt': 'CODA-Prompt', 'cps-prompt': 'CPS-Prompt', 'rep-prompt': 'REP',
          'ease': 'EASE', 'sd-lora': 'SD-LoRA', 'inf-lora': 'InfLoRA', 'ewc-lora': 'EWC-LoRA'}
 SHORT = {'coda-prompt': 'CODA', 'cps-prompt': 'CPS'}
-OPERATORS = {'tome': 'ToMe', 'evit': 'EViT'}
+OPERATORS = {'tome': 'ToMe', 'evit': 'EViT', 'cls-prune': 'cls-prune', 'pitome': 'PiToMe'}
+# Four characters each, for the fixed-width tables.
+CODES = {'tome': 'ToMe', 'evit': 'EViT', 'cls-prune': 'Prun', 'pitome': 'PiTM'}
+# Operators a model trained without the plug-in is inferred with, and the table columns of a queue that trains
+# with no operator.
+GRID = ('tome', 'evit')
 WEBHOOK = 'https://hooks.slack.com/'
 # A run is marked in the digest once it has taken this many times its expected duration, plus a margin.
 LATE, MARGIN = 1.5, 600
@@ -92,16 +97,17 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def train(self):
         """The training condition in at most seven plain characters, for fixed-width tables."""
         return {'none': 'none', 'own': f'own {self.value}',
-                'plugin': f'{OPERATORS.get(self.condition)} {self.value}'}[self.kind]
+                'plugin': f'{CODES.get(self.condition)} {self.value}'}[self.kind]
 
     @property
     def brief(self):
-        return {'none': '압축 없음', 'own': f'자체 {self.value}', 'plugin': self.train}[self.kind]
+        return {'none': '압축 없음', 'own': f'자체 {self.value}',
+                'plugin': f'{OPERATORS.get(self.condition)} {self.value}'}[self.kind]
 
     @property
     def inference(self):
         # A model trained with the plug-in is inferred with its own operator; the others with every operator.
-        return OPERATORS[self.condition] if self.kind == 'plugin' else '·'.join(OPERATORS.values())
+        return OPERATORS[self.condition] if self.kind == 'plugin' else '·'.join(OPERATORS[name] for name in GRID)
 
 
 def duration(seconds):
@@ -240,7 +246,8 @@ def tables(queue, seeds):
 
     Each row is a method. The first table infers a model trained without reduction at the highest degree,
     the second infers a model trained at the highest degree without reduction: the accuracy as trained,
-    then without and with the bank of the inference operator. Rows stay under 40 characters for a phone.
+    then without and with the bank of the inference operator. Rows stay under 40 characters for a phone,
+    so a queue that trains with more than two operators gets the tables once per pair of operators.
     """
     def cells(job, pick):
         values = []
@@ -259,31 +266,35 @@ def tables(queue, seeds):
                                mean(record['operators'][name]['on'][name][target]))
 
     high = max((job.value for job in queue.jobs.values()), default=0)
-    forward = ['method   base ' + ' '.join(f'{name} {high}'.ljust(9) for name in OPERATORS.values())]
-    backward = ['         ' + ' '.join(name.ljust(14) for name in OPERATORS.values()),
-                'method   ' + ' '.join('base off>on'.ljust(14) for _ in OPERATORS)]
-    for method in NAMES:
-        mine = [job for job in queue.jobs.values() if job.method == method]
-        if not mine:
-            continue
-        own = mine[0].condition == 'own'
-        label = SHORT.get(method, NAMES[method]).ljust(8)
-        plain = [cells(lambda seed: Job(method, 'own' if own else 'tome', 0, seed), pick(name, str(high)))
-                 for name in OPERATORS]
-        if any(plain):
-            base = next(row[0] for row in plain if row)
-            forward.append(f'{label} {base:4.1f} ' + ' '.join(
-                f'{row[1]:4.1f}>{row[2]:4.1f}' if row else '-'.center(9) for row in plain))
-        reduced = [cells(lambda seed: Job(method, 'own' if own else name, high, seed), pick(name, '0'))
-                   for name in OPERATORS]
-        if any(reduced):
-            backward.append(f'{label} ' + ' '.join(
-                f'{row[0]:4.1f} {row[1]:4.1f}>{row[2]:4.1f}' if row else '-'.center(14) for row in reduced))
+    trained = [name for name in OPERATORS if any(job.condition == name for job in queue.jobs.values())] or list(GRID)
     text = ''
-    if len(forward) > 1:
-        text += f'압축 없이 학습 → 추론 {high} (base: 학습한 그대로, 보정 끔>켬)\n```\n' + '\n'.join(forward) + '\n```\n'
-    if len(backward) > 2:
-        text += f'압축도 {high}으로 학습 → 추론 0 (base: 학습한 그대로, 보정 끔>켬)\n```\n' + '\n'.join(backward) + '\n```\n'
+    for names in (trained[index:index + 2] for index in range(0, len(trained), 2)):
+        forward = ['method   base ' + ' '.join(f'{CODES[name]} {high}'.ljust(9) for name in names)]
+        backward = ['         ' + ' '.join(CODES[name].ljust(14) for name in names),
+                    'method   ' + ' '.join('base off>on'.ljust(14) for _ in names)]
+        for method in NAMES:
+            mine = [job for job in queue.jobs.values() if job.method == method]
+            if not mine:
+                continue
+            own = mine[0].condition == 'own'
+            label = SHORT.get(method, NAMES[method]).ljust(8)
+            plain = [cells(lambda seed: Job(method, 'own' if own else 'tome', 0, seed), pick(name, str(high)))
+                     for name in names]
+            if any(plain):
+                base = next(row[0] for row in plain if row)
+                forward.append(f'{label} {base:4.1f} ' + ' '.join(
+                    f'{row[1]:4.1f}>{row[2]:4.1f}' if row else '-'.center(9) for row in plain))
+            reduced = [cells(lambda seed: Job(method, 'own' if own else name, high, seed), pick(name, '0'))
+                       for name in names]
+            if any(reduced):
+                backward.append(f'{label} ' + ' '.join(
+                    f'{row[0]:4.1f} {row[1]:4.1f}>{row[2]:4.1f}' if row else '-'.center(14) for row in reduced))
+        if len(forward) > 1:
+            text += (f'압축 없이 학습 → 추론 {high} (base: 학습한 그대로, 보정 끔>켬)\n```\n' + '\n'.join(forward)
+                     + '\n```\n')
+        if len(backward) > 2:
+            text += (f'압축도 {high}으로 학습 → 추론 0 (base: 학습한 그대로, 보정 끔>켬)\n```\n' + '\n'.join(backward)
+                     + '\n```\n')
     return text
 
 
