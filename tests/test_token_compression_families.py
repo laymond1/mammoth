@@ -108,7 +108,7 @@ def test_sd_lora_is_identity_at_degree_zero():
     assert [(name, parameter.requires_grad) for name, parameter in encoder.named_parameters()] == names
 
 
-@pytest.mark.parametrize('operator', ['tome', 'cls-prune'])
+@pytest.mark.parametrize('operator', ['tome', 'cls-prune', 'pitome'])
 def test_families_agree_on_shared_weights(operator):
     reference, x = mammoth(), torch.randn(2, 3, 32, 32).double()
     nets = [reference, coda(), sd_lora()]

@@ -17,6 +17,8 @@ from torch.nn import functional as F
 from .reducers import MAX_DEGREE, valid_degree
 
 OFFICIAL_COMMIT = 'ee8b0d920f7456476d25387a67b3fba26477039a'
+# Degrees covered by the official bank and by every checkpoint that does not state its own range.
+OFFICIAL_MAX_DEGREE = 16
 
 
 def file_sha256(path):
@@ -28,27 +30,34 @@ def file_sha256(path):
 
 
 class ProjectionBank(nn.Module):
-    def __init__(self, down, up):
+    def __init__(self, down, up, max_degree=OFFICIAL_MAX_DEGREE):
         super().__init__()
         self.register_buffer('down', down.detach().clone())
         self.register_buffer('up', up.detach().clone())
+        self.max_degree = max_degree
 
     def forward(self, x, source, target):
-        # Official checkpoint packs 16 adjacent gaps from right to left.
+        # Official checkpoint packs its adjacent gaps (16 there) from right to left.
         width = self.down.shape[0]
         index = torch.arange(width, device=x.device)
-        src = index >= width - width // MAX_DEGREE * source
-        tgt = index >= width - width // MAX_DEGREE * target
+        src = index >= width - width // self.max_degree * source
+        tgt = index >= width - width // self.max_degree * target
         mask = tgt.to(x.dtype) - src.to(x.dtype)
         return F.linear(F.linear(x, self.down) * mask, self.up)
 
 
 class FrozenToCom(nn.Module):
-    def __init__(self, layers, checkpoint_hash):
+    def __init__(self, layers, checkpoint_hash, max_degree=OFFICIAL_MAX_DEGREE):
         super().__init__()
         self.layers = nn.ModuleList(layers)
         self.checkpoint_hash = checkpoint_hash
+        self.max_degree = max_degree
         self._active = False
+
+    def covered(self, degree):
+        if valid_degree(degree) > self.max_degree:
+            raise ValueError(f'This ToCom bank covers degrees up to {self.max_degree}, not {degree}')
+        return degree
 
     @classmethod
     def from_checkpoint(cls, path, depth=12, embed_dim=768):
@@ -57,6 +66,8 @@ class FrozenToCom(nn.Module):
         Require all Q/V banks, exact shapes, finite floating weights, and a
         nonzero bank. Missing checkpoints never become identity substitutes.
         Loading is tensor-only: arbitrary checkpoint Python objects are refused.
+        A bank covers degrees 0 to ``max_degree`` of its checkpoint, or 0 to 16
+        (the official range) when the checkpoint does not say.
         """
         path = Path(path)
         payload = torch.load(path, map_location='cpu', weights_only=True)
@@ -65,6 +76,9 @@ class FrozenToCom(nn.Module):
         state = payload.get('model', payload)
         if not isinstance(state, dict):
             raise ValueError('ToCom checkpoint model must be a state dictionary')
+        max_degree = payload.get('max_degree', OFFICIAL_MAX_DEGREE) if 'model' in payload else OFFICIAL_MAX_DEGREE
+        if type(max_degree) is not int or not 1 <= max_degree <= MAX_DEGREE:
+            raise ValueError(f'ToCom checkpoint must cover degrees up to an integer in [1, {MAX_DEGREE}]')
         expected = {f'blocks.{i}.attn.{q}_tocom.adapter_{part}.weight'
                     for i in range(depth) for q in ('q', 'v') for part in ('down', 'up')}
         actual = {key for key in state if '_tocom' in key}
@@ -80,17 +94,17 @@ class FrozenToCom(nn.Module):
                 if any(not isinstance(v, torch.Tensor) or not v.is_floating_point()
                        or not torch.isfinite(v).all() for v in (down, up)):
                     raise ValueError('ToCom weights must be finite floating tensors')
-                if down.ndim != 2 or down.shape[1] != embed_dim or down.shape[0] == 0 or down.shape[0] % MAX_DEGREE:
+                if down.ndim != 2 or down.shape[1] != embed_dim or down.shape[0] == 0 or down.shape[0] % max_degree:
                     raise ValueError('ToCom down projection has incompatible dimensions')
                 width = down.shape[0] if width is None else width
                 if down.shape[0] != width or up.shape != (embed_dim, width):
                     raise ValueError('ToCom projection dimensions must agree across every layer')
                 nonzero |= bool(torch.count_nonzero(down) and torch.count_nonzero(up))
-                projections[q] = ProjectionBank(down.float(), up.float())
+                projections[q] = ProjectionBank(down.float(), up.float(), max_degree)
             layers.append(nn.ModuleDict(projections))
         if not nonzero:
             raise ValueError('All-zero/untrained ToCom checkpoint cannot represent a trained compensator')
-        return cls(layers, file_sha256(path))
+        return cls(layers, file_sha256(path), max_degree)
 
     @property
     def tensor_count(self):
@@ -107,8 +121,8 @@ class FrozenToCom(nn.Module):
         encoders = list(encoder) if isinstance(encoder, (list, tuple)) else [encoder]
         per_pass = callable(source)
         if not per_pass:
-            valid_degree(source)
-        valid_degree(target)
+            self.covered(source)
+        self.covered(target)
         if not math.isfinite(scale) or scale < 0:
             raise ValueError('ToCom scale must be finite and nonnegative')
         if any(item.training for item in encoders) or torch.is_grad_enabled():
@@ -124,7 +138,7 @@ class FrozenToCom(nn.Module):
                 for item in encoders:
                     for block, bank in zip(item.blocks, self.layers):
                         def correct(module, inputs, output, bank=bank):
-                            current = valid_degree(source()) if per_pass else source
+                            current = self.covered(source()) if per_pass else source
                             if current == target:
                                 return None
                             q, k, v = output.chunk(3, dim=-1)
@@ -141,32 +155,33 @@ class FrozenToCom(nn.Module):
 class _Adapter(nn.Module):
     """Official ``Adapter(act=False)``: down, dropout, gap mask, zero-initialized up."""
 
-    def __init__(self, embed_dim, width, dropout):
+    def __init__(self, embed_dim, rank, max_degree, dropout):
         super().__init__()
-        self.adapter_down = nn.Linear(embed_dim, width, bias=False)
-        self.adapter_up = nn.Linear(width, embed_dim, bias=False)
+        self.rank = rank
+        self.adapter_down = nn.Linear(embed_dim, rank * max_degree, bias=False)
+        self.adapter_up = nn.Linear(rank * max_degree, embed_dim, bias=False)
         nn.init.zeros_(self.adapter_up.weight)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, source, target):
         width = self.adapter_down.out_features
         index = torch.arange(width, device=x.device)
-        mask = ((index >= width - width // MAX_DEGREE * target).to(x.dtype)
-                - (index >= width - width // MAX_DEGREE * source).to(x.dtype))
+        mask = ((index >= width - self.rank * target).to(x.dtype)
+                - (index >= width - self.rank * source).to(x.dtype))
         return self.adapter_up(self.dropout(self.adapter_down(x)) * mask)
 
 
 class _Pair(nn.Module):
-    def __init__(self, embed_dim, width, dropout):
+    def __init__(self, embed_dim, rank, max_degree, dropout):
         super().__init__()
-        self.q_tocom = _Adapter(embed_dim, width, dropout)
-        self.v_tocom = _Adapter(embed_dim, width, dropout)
+        self.q_tocom = _Adapter(embed_dim, rank, max_degree, dropout)
+        self.v_tocom = _Adapter(embed_dim, rank, max_degree, dropout)
 
 
 class _Layer(nn.Module):
-    def __init__(self, embed_dim, width, dropout):
+    def __init__(self, embed_dim, rank, max_degree, dropout):
         super().__init__()
-        self.attn = _Pair(embed_dim, width, dropout)
+        self.attn = _Pair(embed_dim, rank, max_degree, dropout)
 
 
 class TrainableToCom(nn.Module):
@@ -174,11 +189,15 @@ class TrainableToCom(nn.Module):
 
     ``pair`` is the (source, target) of the next student forward: the student
     runs at ``target`` and is pulled towards the plain model at ``source``.
+    The bank holds ``rank`` rows per adjacent pair of degrees up to
+    ``max_degree``; a checkpoint must be saved with that ``max_degree``
+    unless it is the official 16.
     """
 
-    def __init__(self, depth, embed_dim, rank=2, scale=.1, dropout=.1):
+    def __init__(self, depth, embed_dim, rank=2, scale=.1, dropout=.1, max_degree=MAX_DEGREE):
         super().__init__()
-        self.blocks = nn.ModuleList(_Layer(embed_dim, rank * MAX_DEGREE, dropout) for _ in range(depth))
+        self.max_degree = valid_degree(max_degree)
+        self.blocks = nn.ModuleList(_Layer(embed_dim, rank, max_degree, dropout) for _ in range(depth))
         self.scale = scale
         self.pair = None
         self._handles = []

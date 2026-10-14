@@ -43,6 +43,8 @@ def parse_args(argv=None):
     parser.add_argument('--bank', help='ToCom checkpoint trained for these weights and this operator')
     parser.add_argument('--scale', type=float, default=.1)
     parser.add_argument('--degrees', type=int, nargs='+', default=list(DEGREES), help='Inference degrees')
+    parser.add_argument('--sources', type=int, nargs='+', default=list(SOURCES),
+                        help='With a bank: degrees the compensated model is pulled back to')
     parser.add_argument('--data', help='ImageNet root containing val/<synset>/; default from the runtime profile')
     parser.add_argument('--stride', type=int, default=1, help='Evaluate every n-th validation image')
     parser.add_argument('--batch-size', type=int, default=250)
@@ -53,7 +55,8 @@ def parse_args(argv=None):
         parser.error('--weights deit requires --pretrained')
     if min(args.stride, args.batch_size) < 1 or args.workers < 0:
         parser.error('stride and batch size must be positive')
-    args.degrees = sorted({*args.degrees, *SOURCES})
+    args.sources = sorted(set(args.sources))
+    args.degrees = sorted({*args.degrees, *args.sources})
     return args
 
 
@@ -115,7 +118,7 @@ def main(argv=None):
         raise ValueError(f'Expected the 50,000-image ImageNet-1K validation set under {data / "val"}')
     loader = DataLoader(Subset(dataset, range(0, len(dataset), args.stride)), batch_size=args.batch_size,
                         num_workers=args.workers, pin_memory=True)
-    pairs = [(source, target) for source in SOURCES for target in args.degrees if source != target] if bank else []
+    pairs = [(source, target) for source in args.sources for target in args.degrees if source != target] if bank else []
 
     started = time.time()
     total, accuracy, rows = check(model, loader, controller, args.degrees, pairs, args.scale, device)

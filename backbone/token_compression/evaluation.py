@@ -74,8 +74,8 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
     for bank, degrees, _ in compensations.values():
         if bank not in banks or not degrees:
             raise ValueError('Every compensation needs a loaded bank and its training degrees')
-        for degree in degrees:
-            valid_degree(degree)
+        for degree in (*degrees, *targets):
+            banks[bank].covered(degree)
     _, encoder = find_encoder(model.net)
     controller = encoder.token_compression
     trained_operator, trained_bank = controller.operator, controller.bank

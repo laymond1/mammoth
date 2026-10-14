@@ -100,7 +100,9 @@ class Track:
         self.teacher_controller = attach(self.teacher, operator)
         self.student_controller = attach(self.student, operator)
         self.canonical_sha256 = self.teacher.canonical_pretrained_sha256
-        self.bank = TrainableToCom(len(self.student.blocks), self.student.embed_dim, rank=2, scale=args.scale)
+        self.bank = TrainableToCom(len(self.student.blocks), self.student.embed_dim, rank=2, scale=args.scale,
+                                   max_degree=args.max_degree)
+        self.degrees = range(args.max_degree + 1)
         self.bank.to(self.device).train().install(self.student)
         self.optimizer = torch.optim.AdamW(self.bank.parameters(), lr=0.001 * REPLICAS * MICROBATCH / 512,
                                            betas=(0.9, 0.999), eps=1e-8, weight_decay=0.05)
@@ -112,7 +114,7 @@ class Track:
         self.loss_sum, self.successful = 0., 0
 
     def micro(self, images):
-        source, target = self.pairs.sample(range(MAX_DEGREE + 1), 2)
+        source, target = self.pairs.sample(self.degrees, 2)
         images = images.to(self.device, non_blocking=True)
         with torch.no_grad(), torch.autocast('cuda', dtype=torch.float16):
             with self.teacher_controller.degree(source):
@@ -172,6 +174,8 @@ def parse_args(argv=None):
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--drop-path', type=float, default=.1, help='Student stochastic depth (official: 0.1)')
     parser.add_argument('--scale', type=float, default=.1)
+    parser.add_argument('--max-degree', type=int, default=MAX_DEGREE,
+                        help='Degrees 0 to this value are sampled and covered by the bank (official: 16)')
     parser.add_argument('--workers', type=int, default=16)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--save-every', type=int, default=25)
@@ -191,6 +195,8 @@ def parse_args(argv=None):
         parser.error('Epochs and intervals must be positive')
     if not 0 <= args.drop_path < 1 or not math.isfinite(args.scale) or args.scale <= 0:
         parser.error('drop-path must be in [0, 1) and scale positive')
+    if not 1 <= args.max_degree <= MAX_DEGREE:
+        parser.error(f'max-degree must be in [1, {MAX_DEGREE}]')
     return args
 
 
@@ -232,6 +238,7 @@ def main(argv=None):
 
     contract = {'weights': args.weights, 'vit_size': args.vit_size, 'operators': args.operators,
                 'epochs': args.epochs, 'seed': args.seed, 'drop_path': args.drop_path, 'scale': args.scale,
+                'max_degree': args.max_degree,
                 'backbone_canonical_sha256': first.canonical_sha256}
     start_epoch, start_step, global_step = 0, 0, 0
     if args.resume:
@@ -251,7 +258,7 @@ def main(argv=None):
                      'devices': {track.operator: torch.cuda.get_device_name(track.device) for track in tracks},
                      'training_images': len(dataset), 'global_batch_size': REPLICAS * MICROBATCH,
                      'updates_per_epoch': updates_per_epoch, 'initial_lr': 0.002, 'rank_per_gap': 2,
-                     'degree_range': [0, MAX_DEGREE], 'normalization': [mean, std],
+                     'degree_range': [0, args.max_degree], 'normalization': [mean, std],
                      'data_access': 'ImageNet-1K train only; no downstream CL data or validation images',
                      'differences_from_official_launcher': [
                          'one process emulating the 8 repeated-augmentation replicas with gradient accumulation',
@@ -275,12 +282,14 @@ def main(argv=None):
             folder = args.output / track.operator
             folder.mkdir(exist_ok=True)
             entry = {**progress, 'successful_steps': track.successful}
-            atomic_save({'model': track.weights(), 'preparation': entry}, folder / 'checkpoint.pth')
+            atomic_save({'model': track.weights(), 'max_degree': args.max_degree, 'preparation': entry},
+                        folder / 'checkpoint.pth')
             atomic_json({'official_commit': OFFICIAL_COMMIT, 'operator': track.operator,
                          'backbone': {'weights': args.weights, 'vit_size': args.vit_size if args.weights == 'augreg' else None,
                                       'canonical_sha256': track.canonical_sha256},
                          'checkpoint_sha256': file_sha256(folder / 'checkpoint.pth'), 'scale': args.scale,
-                         'rank_per_gap': 2, 'student_drop_path': args.drop_path, 'complete': complete,
+                         'rank_per_gap': 2, 'degree_range': [0, args.max_degree], 'student_drop_path': args.drop_path,
+                         'complete': complete,
                          'preparation_data': f'ImageNet-1K train, {len(dataset)} images, {args.epochs} epochs planned',
                          'progress': entry}, folder / 'provenance.json')
         atomic_save({'tracks': {track.operator: track.resume_state() for track in tracks}, 'contract': contract,

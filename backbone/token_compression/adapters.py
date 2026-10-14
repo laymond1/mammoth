@@ -15,7 +15,7 @@ from torch.nn import functional as F
 from backbone import vit as mammoth_vit
 
 from .controller import CompressionController
-from .reducers import OPERATORS, Signals, planned, valid_degree
+from .reducers import OPERATORS, Signals, planned
 
 
 class _Compressed:
@@ -177,8 +177,8 @@ def compensate(net, source, target, scale):
     sources = (source,) if isinstance(source, int) else tuple(source)
     if not sources:
         raise ValueError('At least one training degree is required')
-    for value in sources:
-        valid_degree(value)
+    for value in (*sources, target):
+        controller.bank.covered(value)
     members = [encoder, *(member for member, *_ in _companions(net, FAMILIES[name]()))]
     # The bank is deliberately not a submodule, so it does not follow net.to().
     controller.bank.to(encoder.blocks[0].attn.qkv.weight.device)

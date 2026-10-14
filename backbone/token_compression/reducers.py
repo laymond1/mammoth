@@ -5,10 +5,12 @@ tokens, the ToMe clamp, so all operators share one token schedule per degree.
 Sizes are ``None`` until an operator merges tokens; pruning leaves them as is.
 """
 
+import math
+
 import torch
 from torch.nn import functional as F
 
-MAX_DEGREE = 16
+MAX_DEGREE = 24
 
 
 def valid_degree(value):
@@ -114,6 +116,9 @@ def fuse_prune_tokens(tokens, scores, size, count):
     token sums the others weighted by their CLS attention, without
     normalization. ``count`` is the net number of tokens removed, so one more
     token is pruned than by plain pruning and the fused token takes its place.
+    With two patch tokens left the shared schedule removes one, and the fused
+    token then stands for both; degree 24 reaches this in the last block of a
+    224-pixel ViT with 12 blocks, where it cannot change the class token.
     """
     if scores.shape != (tokens.shape[0], tokens.shape[1] - 1):
         raise ValueError('Pruning needs one score per non-CLS token')
@@ -124,8 +129,8 @@ def fuse_prune_tokens(tokens, scores, size, count):
         return tokens, size
     patches = tokens[:, 1:]
     left = patches.shape[1] - count - 1
-    if left < 1:
-        raise ValueError('Too few tokens to keep one and fuse the rest')
+    if left < 0:
+        raise ValueError('Too few tokens to fuse')
     with torch.no_grad():
         kept = scores.detach().topk(left, dim=1, largest=True, sorted=True).indices
         pruned = torch.ones_like(scores, dtype=torch.bool).scatter_(1, kept, False)
@@ -133,6 +138,55 @@ def fuse_prune_tokens(tokens, scores, size, count):
     fused = (patches * (scores * pruned).unsqueeze(-1).to(patches.dtype)).sum(dim=1, keepdim=True)
     kept = patches.gather(1, kept.unsqueeze(-1).expand(-1, -1, tokens.shape[-1]))
     return torch.cat((tokens[:, :1], kept, fused), dim=1), size
+
+
+def energy_merge_tokens(tokens, metric, size, count, margin, protect):
+    """PiToMe merging with a per-block budget.
+
+    As in the official code (hchautran/PiToMe, algo/pitome/merge.py): the
+    energy of a patch token is the mean over all patch tokens of
+    ``ELU(cosine similarity - margin)``, high inside large groups of similar
+    tokens. With ``protect`` only the ``2 * count`` tokens of highest energy
+    may merge: in energy order they alternate between sources and
+    destinations, and every source joins its most similar destination
+    (``pitome``). Without it all patch tokens alternate between both sets and
+    the ``count`` sources closest to a destination are merged
+    (``pitome_bsm``). Averages are weighted by size. The official code derives
+    the count from a keep ratio; here it is the shared per-block budget. The
+    result is ordered as there: CLS, the untouched tokens, the destinations.
+    """
+    if metric.shape[:2] != tokens.shape[:2]:
+        raise ValueError('Image tokens and key metric must align')
+    count = planned(count, tokens.shape[1])
+    if count == 0:
+        return tokens, size
+    if size is None:
+        size = tokens.new_ones(*tokens.shape[:2], 1)
+    with torch.no_grad():
+        direction = F.normalize(metric[:, 1:].detach().float(), dim=-1)
+        affinity = direction @ direction.transpose(-2, -1)
+        order = F.elu(affinity - margin).mean(dim=-1).argsort(dim=-1, descending=True)
+        if protect:
+            sources, targets, rest = order[:, :2 * count:2], order[:, 1:2 * count:2], order[:, 2 * count:]
+        else:
+            sources, targets = order[:, ::2], order[:, 1::2]
+        pairs = affinity.gather(1, sources.unsqueeze(-1).expand(-1, -1, affinity.shape[-1]))
+        pairs = pairs.gather(2, targets.unsqueeze(1).expand(-1, sources.shape[1], -1))
+        strength, destination = pairs.max(dim=-1)
+        if not protect:
+            ranked = strength.argsort(dim=-1, descending=True)
+            rest = sources.gather(1, ranked[:, count:])
+            sources, destination = sources.gather(1, ranked[:, :count]), destination.gather(1, ranked[:, :count])
+    patches, patch_size = tokens[:, 1:], size[:, 1:]
+
+    def take(values, index):
+        return values.gather(1, index.unsqueeze(-1).expand(-1, -1, values.shape[-1]))
+
+    weighted = take(patches * patch_size, targets).scatter_add(
+        1, destination.unsqueeze(-1).expand(-1, -1, tokens.shape[-1]), take(patches * patch_size, sources))
+    merged_size = take(patch_size, targets).scatter_add(1, destination.unsqueeze(-1), take(patch_size, sources))
+    return (torch.cat((tokens[:, :1], take(patches, rest), weighted / merged_size), dim=1),
+            torch.cat((size[:, :1], take(patch_size, rest), merged_size), dim=1))
 
 
 class ToMe:
@@ -159,4 +213,21 @@ class EViT:
         return fuse_prune_tokens(tokens, signals.cls_attention(), size, count)
 
 
-OPERATORS = {operator.name: operator for operator in (ToMe, ClsPrune, EViT)}
+class PiToMe:
+    """Energy-based merging that protects isolated tokens (Tran et al., NeurIPS 2024), ``count`` tokens per block.
+
+    Margin and block split follow the official DeiT patch (algo/pitome/patch/deit.py): the margin falls
+    linearly from 0.75 over the blocks, and only the second half of the blocks protects tokens. The paper
+    states 0.9 and protection in every block. Proportional attention is the plug-in's, as the paper says;
+    the official block does not pass sizes to its attention.
+    """
+    name = 'pitome'
+    margin = .75
+
+    def __call__(self, tokens, size, count, signals):
+        margin = self.margin - self.margin * signals.block / signals.depth
+        protect = signals.block >= math.ceil(signals.depth / 2)
+        return energy_merge_tokens(tokens, signals.metric, size, count, margin, protect)
+
+
+OPERATORS = {operator.name: operator for operator in (ToMe, ClsPrune, EViT, PiToMe)}

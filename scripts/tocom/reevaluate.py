@@ -18,6 +18,7 @@ configure_native_environment()
 import argparse  # noqa: E402
 import copy  # noqa: E402
 import json  # noqa: E402
+import os  # noqa: E402
 from pathlib import Path  # noqa: E402
 import tempfile  # noqa: E402
 
@@ -67,6 +68,12 @@ def main(argv=None):
     args = parse_args(argv)
     config = json.loads((args.run / 'config.json').read_text())
     records = json.loads((args.run / 'metrics.json').read_text())
+    if config.get('deterministic'):
+        # As in the run, and before the first CUDA call: token merging scatters into shared destinations,
+        # and without this a merged condition can differ from the record by an image.
+        os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG', ':4096:8')
+        torch.use_deterministic_algorithms(True)
+        torch.backends.cudnn.benchmark = False
     if not all('weights' in record for record in records):
         raise ValueError('This run did not save its weights')
     from models.low_rank_utils.factory import checkpoint_spec

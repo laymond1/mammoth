@@ -100,7 +100,7 @@ def test_attach_is_identity_at_degree_zero():
         assert torch.equal(net(x), before)
 
 
-@pytest.mark.parametrize('operator', ['tome', 'cls-prune'])
+@pytest.mark.parametrize('operator', ['tome', 'cls-prune', 'pitome'])
 def test_schedule_degree_context_and_gradients(operator):
     net, x = small_vit(), torch.randn(2, 3, 32, 32)
     controller = attach(net, operator, degree=8)
@@ -116,6 +116,10 @@ def test_schedule_degree_context_and_gradients(operator):
             # The clamp halves the sequence once fewer than 2r + 1 tokens remain.
             assert controller.trace == [65, 49, 33, 17]
             controller.verify_pass()
+        with controller.degree(24):
+            net(x)
+            assert controller.trace == schedule(24, 65, 4) == [65, 41, 21, 11]
+            controller.verify_pass()
         with controller.degree(0):
             full = net(x)
         assert controller.current == 8
@@ -125,7 +129,7 @@ def test_schedule_degree_context_and_gradients(operator):
     net(x).sum().backward()
     assert all(block.attn.qkv.weight.grad.abs().sum() > 0 for block in net.blocks)
     with pytest.raises(ValueError):
-        with controller.degree(17):
+        with controller.degree(25):
             pass
     controller.trace = [65, 65, 65, 65]
     with pytest.raises(RuntimeError):
@@ -237,9 +241,11 @@ def test_compensation_identity_cleanup_and_guards(tmp_path):
                     pass
         assert controller.current == 0
         assert all(not block.attn.qkv._forward_hooks for block in net.blocks)
-        with pytest.raises(ValueError):
-            with compensate(net, 0, 17, .1):
-                pass
+        # The bank of this test has the official range, 0 to 16.
+        for beyond in (17, 24, 25):
+            with pytest.raises(ValueError):
+                with compensate(net, 0, beyond, .1):
+                    pass
         with pytest.raises(ValueError):
             with compensate(net, 0, 8, -1.):
                 pass
@@ -431,6 +437,10 @@ def test_evit_matches_the_official_block():
         assert size is None and fused.shape == (3, 65 - removed, 48)
         torch.testing.assert_close(fused, expected, atol=1e-12, rtol=0)
     assert fuse_prune_tokens(x, cls_attn, None, 0)[0] is x
+    # Two patches left: the schedule removes one, and the fused token stands for both.
+    last, pair = fuse_prune_tokens(x[:, :3], cls_attn[:, :2], None, 24)[0], x[:, 1:3] * cls_attn[:, :2, None]
+    assert last.shape == (3, 2, 48) and torch.equal(last[:, 0], x[:, 0])
+    torch.testing.assert_close(last[:, 1], pair.sum(dim=1), atol=1e-12, rtol=0)
     with pytest.raises(ValueError):
         fuse_prune_tokens(x, cls_attn, torch.ones(3, 65, 1).double(), 4)
     weights = cls_attn.clone().requires_grad_()
@@ -446,5 +456,195 @@ def test_evit_runs_through_every_family_schedule():
         controller.verify_pass()
         # The fused token replaces one pruned token, so the schedule equals the other operators'.
         assert controller.trace == [65, 57, 49, 41] and controller.size is None
+        with controller.degree(24):
+            net(x)
+            controller.verify_pass()
+            assert controller.trace == [65, 41, 21, 11]
         with controller.degree(0):
             assert not torch.equal(net(x), compressed)
+
+
+def official_pitome(x, metric, size, r, margin, use_bsm_pitome):
+    """``pitome_vision`` and ``merge_wavg`` of hchautran/PiToMe (algo/pitome/merge.py), with ``r`` given directly."""
+    from torch.nn import functional as F
+    metric = metric[:, 1:, :]
+    B, T, C = metric.shape
+    metric = F.normalize(metric, p=2, dim=-1)
+    sim = metric @ metric.transpose(-1, -2)
+    energy_score = F.elu((sim - margin), alpha=1.0).mean(dim=-1)
+    indices = torch.argsort(energy_score, descending=True)
+    batch_idx = torch.arange(B).unsqueeze_(1)
+    if use_bsm_pitome:
+        a_idx, b_idx = indices[..., ::2], indices[..., 1::2]
+        scores = sim.gather(dim=-1, index=b_idx.unsqueeze(-2).expand(B, T, b_idx.shape[-1]))
+        scores = scores.gather(dim=-2, index=a_idx.unsqueeze(-1).expand(B, a_idx.shape[-1], b_idx.shape[-1]))
+        node_max, node_idx = scores.max(dim=-1)
+        edge_idx = node_max.argsort(dim=-1, descending=True)[..., None]
+        unm_idx = edge_idx[..., r:, :]
+        src_idx = edge_idx[..., :r, :]
+        dst_idx = node_idx[..., None].gather(dim=-2, index=src_idx)
+
+        def merge(x, mode):
+            x_cls = x[:, 0, :].unsqueeze(1)
+            x = x[:, 1:, :]
+            src, dst = x[batch_idx, a_idx, :], x[batch_idx, b_idx, :]
+            n, t1, c = src.shape
+            unm = src.gather(dim=-2, index=unm_idx.expand(n, t1 - r, c))
+            src = src.gather(dim=-2, index=src_idx.expand(n, r, c))
+            dst = dst.scatter_reduce(-2, dst_idx.expand(n, r, c), src, reduce=mode)
+            return torch.cat([x_cls, unm, dst], dim=1)
+    else:
+        merge_idx = indices[..., :2 * r]
+        protected_idx = indices[..., 2 * r:]
+        a_idx, b_idx = merge_idx[..., ::2], merge_idx[..., 1::2]
+        scores = sim.gather(dim=-1, index=b_idx.unsqueeze(-2).expand(B, T, r))
+        scores = scores.gather(dim=-2, index=a_idx.unsqueeze(-1).expand(B, r, r))
+        _, dst_idx = scores.max(dim=-1)
+
+        def merge(x, mode):
+            x_cls = x[:, 0, :].unsqueeze(1)
+            x = x[:, 1:, :]
+            B, T, C = x.shape
+            protected = x[batch_idx, protected_idx, :]
+            src, dst = x[batch_idx, a_idx, :], x[batch_idx, b_idx, :]
+            dst = dst.scatter_reduce(-2, dst_idx.unsqueeze(2).expand(B, r, C), src, reduce=mode)
+            return torch.cat([x_cls, protected, dst], dim=1)
+    x = merge(x * size, 'sum')
+    size = merge(size, 'sum')
+    return x / size, size
+
+
+def test_pitome_matches_the_official_merge():
+    from backbone.token_compression.reducers import PiToMe, Signals, energy_merge_tokens
+    torch.manual_seed(7)
+    tokens, metric = torch.randn(3, 65, 48).double(), torch.randn(3, 65, 16)
+    size = torch.randint(1, 5, (3, 65, 1)).double()
+    for protect in (True, False):
+        for count in (1, 8, 16, 24, 32, 40):
+            removed = min(count, 32)
+            merged, merged_size = energy_merge_tokens(tokens, metric, size, count, .4, protect)
+            expected, expected_size = official_pitome(tokens, metric, size, removed, .4, not protect)
+            assert merged.shape == (3, 65 - removed, 48)
+            torch.testing.assert_close(merged, expected, atol=1e-12, rtol=0)
+            assert torch.equal(merged_size, expected_size) and merged_size.sum() == size.sum()
+    # Without sizes every token starts with unit size; CLS is never merged.
+    merged, merged_size = energy_merge_tokens(tokens, metric, None, 8, .4, True)
+    expected, expected_size = official_pitome(tokens, metric, torch.ones(3, 65, 1).double(), 8, .4, False)
+    torch.testing.assert_close(merged, expected, atol=1e-12, rtol=0)
+    assert torch.equal(merged[:, 0], tokens[:, 0]) and torch.equal(merged_size[:, 0], torch.ones(3, 1).double())
+    assert energy_merge_tokens(tokens, metric, None, 0, .4, True) == (tokens, None)
+    with pytest.raises(ValueError):
+        energy_merge_tokens(tokens, metric[:, :-1], None, 4, .4, True)
+    # Official DeiT patch: margin .75 - .75 * i / depth, protection in the second half of the blocks only.
+    keys = metric[:, None].expand(-1, 3, -1, -1)
+    for block in range(4):
+        merged, _ = PiToMe()(tokens, size, 8, Signals(keys, keys, 1., block=block, depth=4))
+        expected, _ = official_pitome(tokens, metric, size, 8, .75 - .75 * block / 4, block < 2)
+        torch.testing.assert_close(merged, expected, atol=1e-12, rtol=0)
+    weights = tokens.clone().requires_grad_()
+    energy_merge_tokens(weights, metric, None, 8, .4, True)[0].sum().backward()
+    assert weights.grad.abs().sum() > 0
+
+
+def test_bank_covers_its_own_degree_range(tmp_path):
+    from backbone.token_compression import FrozenToCom, compensate
+    from backbone.token_compression.evaluation import evaluate_grid
+    net, x = small_vit().double(), torch.randn(2, 3, 32, 32).double()
+    state = bank_state(width=48)
+    torch.save({'model': state, 'max_degree': 24}, tmp_path / 'wide.pt')
+    wide = FrozenToCom.from_checkpoint(tmp_path / 'wide.pt', depth=4, embed_dim=48)
+    assert wide.max_degree == 24
+    controller = attach(net, 'tome', bank=wide.double())
+    index = torch.arange(48)
+    with torch.no_grad():
+        for source, target in ((0, 24), (24, 8), (16, 20), (4, 12)):
+            # Two rows per adjacent pair of degrees, packed from the right as in the official bank.
+            mask = ((index >= 48 - 2 * target).double() - (index >= 48 - 2 * source).double())
+            merged = copy.deepcopy(net)
+            for i, block in enumerate(merged.blocks):
+                for part, rows in (('q', slice(0, 48)), ('v', slice(96, 144))):
+                    down, up = [state[f'blocks.{i}.attn.{part}_tocom.adapter_{name}.weight'].double()
+                                for name in ('down', 'up')]
+                    block.attn.qkv.weight[rows] += .1 * (up * mask) @ down
+            with compensate(net, source, target, .1):
+                corrected = net(x)
+                controller.verify_pass()
+            with controller.degree(target):
+                torch.testing.assert_close(corrected, merged(x), atol=1e-10, rtol=0)
+        # A checkpoint that does not state its range has the official one: 16 gaps, here of three rows each.
+        torch.save({'model': state}, tmp_path / 'official.pt')
+        torch.save(state, tmp_path / 'bare.pt')
+        for name in ('official.pt', 'bare.pt'):
+            official = FrozenToCom.from_checkpoint(tmp_path / name, depth=4, embed_dim=48)
+            assert official.max_degree == 16
+            controller.bank = official.double()
+            mask = ((index >= 48 - 3 * 16).double() - (index >= 48 - 3 * 4).double())
+            merged = copy.deepcopy(net)
+            for i, block in enumerate(merged.blocks):
+                for part, rows in (('q', slice(0, 48)), ('v', slice(96, 144))):
+                    down, up = [state[f'blocks.{i}.attn.{part}_tocom.adapter_{name}.weight'].double()
+                                for name in ('down', 'up')]
+                    block.attn.qkv.weight[rows] += .1 * (up * mask) @ down
+            with compensate(net, 4, 16, .1):
+                corrected = net(x)
+            with controller.degree(16):
+                torch.testing.assert_close(corrected, merged(x), atol=1e-10, rtol=0)
+            for source, target in ((0, 20), (20, 0)):
+                with pytest.raises(ValueError):
+                    with compensate(net, source, target, .1):
+                        pass
+            with pytest.raises(ValueError):
+                with compensate(net, (0, 20), 8, .1):
+                    net(x)
+        assert all(not block.attn.qkv._forward_hooks for block in net.blocks)
+    for index, bad in enumerate((0, 25, 16., 7)):
+        torch.save({'model': state, 'max_degree': bad}, tmp_path / f'bad{index}.pt')
+        with pytest.raises(ValueError):
+            FrozenToCom.from_checkpoint(tmp_path / f'bad{index}.pt', depth=4, embed_dim=48)
+    # The grid refuses a degree its bank does not cover before it runs anything.
+    from torch.utils.data import DataLoader, TensorDataset
+    plain = small_vit()
+    attach(plain, 'tome')
+    loaders = [DataLoader(TensorDataset(torch.randn(8, 3, 32, 32), torch.randint(0, 10, (8,))), batch_size=8)]
+    banks = {'tome': FrozenToCom.from_checkpoint(tmp_path / 'official.pt', depth=4, embed_dim=48)}
+    with pytest.raises(ValueError, match='covers degrees up to 16'):
+        evaluate_grid(Toy(plain), loaders, 10, 0, [0, 20], ['tome'], banks, .1)
+    banks = {'tome': FrozenToCom.from_checkpoint(tmp_path / 'wide.pt', depth=4, embed_dim=48)}
+    grid = evaluate_grid(Toy(plain), loaders, 10, 0, [0, 20, 24], ['tome'], banks, .1)
+    assert set(grid['operators']['tome']['on']['tome']) == {'0', '20', '24'}
+
+
+@pytest.mark.parametrize('max_degree', [16, 24])
+def test_trained_bank_is_read_back_with_its_range(tmp_path, max_degree):
+    from backbone.token_compression import FrozenToCom, TrainableToCom, compensate
+    net, x = small_vit().double(), torch.randn(2, 3, 32, 32).double()
+    controller = attach(net, 'tome')
+    torch.manual_seed(4)
+    bank = TrainableToCom(4, 48, rank=2, scale=.1, dropout=0., max_degree=max_degree).eval()
+    assert all(layer.attn.q_tocom.adapter_down.out_features == 2 * max_degree for layer in bank.blocks)
+    with torch.no_grad():
+        for parameter in bank.parameters():
+            parameter.copy_(torch.randn_like(parameter) * .05)
+    # Checkpoints hold single precision, as the trainer writes them.
+    payload = {'model': {name: value.detach().clone() for name, value in bank.named_parameters()}}
+    bank.double()
+    if max_degree != 16:
+        payload['max_degree'] = max_degree
+    torch.save(payload, tmp_path / 'bank.pt')
+    frozen = FrozenToCom.from_checkpoint(tmp_path / 'bank.pt', depth=4, embed_dim=48)
+    assert frozen.max_degree == max_degree
+    bank.install(net)
+    with torch.no_grad():
+        for source, target in ((0, max_degree), (max_degree, 4), (8, 12)):
+            bank.pair = (source, target)
+            with controller.degree(target):
+                trained = net(x)
+            bank.pair = None
+            controller.bank = frozen.double()
+            with compensate(net, source, target, .1):
+                torch.testing.assert_close(net(x), trained, atol=1e-12, rtol=0)
+            with controller.degree(target):
+                assert not torch.equal(net(x), trained)
+    bank.remove()
+    with pytest.raises(ValueError):
+        TrainableToCom(4, 48, max_degree=25)
