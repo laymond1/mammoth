@@ -1,0 +1,23 @@
+{
+  "skill_name": "track-experiment",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "tocom-cl-main-v5 대기열 만들 거야. v4랑 같은 구성인데 seed만 1996, 1997로. 돌리기 전에 wandb랑 슬랙 보고까지 붙여줘.",
+      "expected_output": "new_queue.py로 v4에서 틀을 만들고 jobs.txt의 seed를 바꾼다. 보고 코드를 새로 쓰지 않는다. kickoff를 --dry-run으로 미리 보이고, 실제 적용되는 설정(배치 16, 평가 배치 256 포함)을 적어 보인 뒤 시작 승인을 묻는다. 승인 없이 start.sh를 실행하지 않는다.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "지금 실험 어디까지 됐어? 언제 끝나?",
+      "expected_output": "report status로 읽는다. 완료 수와 전체 수, 실패 수, 예상 종료를 먼저 답하고 끝난 실행의 최종 class-IL 평균을 같은 방법의 압축 없는 실행과 나란히 든다. 돌고 있는 대기열에 kickoff나 watch --once를 실행하지 않는다.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "EASE랑 CODA만 seed 두 개 더 돌려줘.",
+      "expected_output": "보고 이야기가 없어도 스킬을 따른다. 새 실험 폴더에 대기열을 만들고 W&B 기록과 Slack 보고를 붙인다. webhook 값을 출력하거나 학습 명령에 넘기지 않는다. 시작 전에 설정을 보이고 승인을 묻는다.",
+      "files": []
+    }
+  ]
+}
