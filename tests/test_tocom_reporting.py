@@ -526,19 +526,25 @@ def test_joint_and_mixed_runs_are_named_by_their_kind(tmp_path, capsys):
     assert (joint.kind, joint.id, joint.train, joint.inference) == ('joint', 'inf-lora-evit-J8-seed1993', 'EViT J8', 'EViT')
     assert (mix.kind, mix.id, mix.train, mix.inference) == ('mix', 'coda-prompt-tome-MIX-seed1993', 'ToMe MIX', 'ToMe')
     assert 'joint' in joint.title and report.Job.parse(['coda-prompt', 'tome', 'J0', '1']).inference == 'ToMe·EViT'
+    within = report.Job.parse(['inf-lora', 'evit', 'P3M', '1993'])
+    assert (within.kind, within.id, within.train, within.inference) == ('switch-mix', 'inf-lora-evit-P3M-seed1993', 'EViT P3M', 'EViT')
+    assert '예산 경로 P3 안에서' in within.title
     for broken in (['coda-prompt', 'own', 'J8', '1'], ['coda-prompt', 'tome', 'MIXED', '1'], ['coda-prompt', 'tome', 'J', '1']):
         with pytest.raises(ValueError):
             report.Job.parse(broken)
     root = tmp_path / 'tocom-bounds'
     (root / 'logs').mkdir(parents=True)
-    lines = ['inf-lora evit J8 1993', 'coda-prompt tome J0 1993', 'coda-prompt tome MIX 1993', 'coda-prompt tome P1 1993']
+    lines = ['inf-lora evit J8 1993', 'coda-prompt tome J0 1993', 'coda-prompt tome MIX 1993', 'coda-prompt tome P1 1993',
+             'coda-prompt tome P3M 1993', 'inf-lora evit P3M 1993', 'inf-lora evit P5M 1993']
     (root / 'jobs.txt').write_text(''.join(f'{line}\n' for line in lines))
     (root / 'estimates.json').write_text(json.dumps({line.rsplit(' ', 1)[0]: 1800 for line in lines}))
     report.main(['--experiment', str(root), '--dry-run', 'kickoff', '--workers', '2'])
-    assert '예산 경로로 학습 1(경로 1개) · joint 학습 2 · 제거량 섞어 학습 1' in capsys.readouterr().out
+    assert '예산 경로로 학습 1(경로 1개) · joint 학습 2 · 제거량 섞어 학습 1 · 예산 안에서 섞어 학습 3(경로 2개)' in capsys.readouterr().out
     base = dict(method='coda-prompt', operator='tome', seed=1, schedule=None, path=None, matched_degree=None)
     fields = identity(dict(base, degree=0, mix=[0, 8, 16, 24], joint=False))
     assert (fields['kind'], fields['train_operator'], fields['train_degree']) == ('mix', 'tome', 'MIX')
     fields = identity(dict(base, degree=8, mix=None, joint=True))
     assert (fields['kind'], fields['train_operator'], fields['train_degree']) == ('joint', 'tome', 8)
     assert identity(dict(base, degree=8))['kind'] == 'plugin'
+    fields = identity(dict(base, degree=None, schedule=[0] * 5 + [24] * 5, path='P5', mix=[0, 8, 16, 24], joint=False))
+    assert (fields['kind'], fields['train_operator'], fields['train_degree']) == ('switch-mix', 'tome', 'P5M')

@@ -138,6 +138,8 @@ def test_joint_and_mixed_degrees_are_references_for_budget_paths():
     assert args.mix == [0, 8, 16, 24] and args.degree == 0 and args.eval_operators == ['tome'] and not args.joint
     args = run_cl.parse_args(common + ['--joint', '--degree', '8'])
     assert args.joint and args.degree == 8 and args.eval_operators == ['tome'] and args.mix is None
+    args = run_cl.parse_args(common + mix + ['--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5])
+    assert args.mix == [0, 8, 16, 24] and args.schedule[-1] == 24 and args.degree == 0 and args.eval_operators == ['tome']
     assert run_cl.joint_args('coda-prompt') == {'joint': 1}
     assert run_cl.joint_args('inf-lora') == {'joint': 1, 'lora_classes_per_task': 100}
     for broken in (common + mix + ['--joint'],                                                 # both
@@ -147,7 +149,7 @@ def test_joint_and_mixed_degrees_are_references_for_budget_paths():
                    common + ['--mix', '8', '16'],                                                # --degree 0 not drawn
                    common[:-7] + ['--targets', '0', '8'] + mix,                                  # 24 not inferred
                    common + mix + ['--eval-operators', 'tome', 'evit'],                          # another operator
-                   common + mix + ['--path', 'P1', '--schedule', *['0'] * 10],                   # mix and path
+                   common + ['--mix', '0', '8', '--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5],  # 24 not drawn
                    ['--method', 'cps-prompt', '--matched-degree', '0', '--seed', '1', '--output', 'unused'] + mix):
         with pytest.raises(SystemExit):
             run_cl.parse_args(broken)

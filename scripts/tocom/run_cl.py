@@ -19,7 +19,9 @@ from every ``--sources`` degree, so that bank policies can be compared afterward
 
 Two references for budget paths: ``--joint`` learns every class as one task (Mammoth's joint setting) at
 one degree, the usual upper bound of a continual method; ``--mix`` trains every step at a degree drawn
-uniformly from a list, one model for any budget, and is evaluated like a budget path.
+uniformly from a list, one model for any budget, and is evaluated like a budget path. With ``--schedule``,
+``--mix`` draws every step from the degrees of the list that cost no more than the task's own (the degree
+or more): training at mixed degrees within the budget of the moment.
 
 Every run keeps its records in its own directory. ``--wandb ENTITY/PROJECT`` also
 mirrors them to Weights & Biases; Mammoth's own logging there stays off.
@@ -175,7 +177,8 @@ def parse_args(argv=None):
                         help='With --schedule or --mix: degrees the bank of the training operator corrects from in the grid')
     parser.add_argument('--mix', type=int, nargs='+', metavar='DEGREE',
                         help='Train every step at a degree drawn uniformly from these; everything else (task '
-                             'boundaries, evaluation) runs at --degree')
+                             'boundaries, evaluation) runs at --degree. With --schedule: from those at least the '
+                             "task's degree, and everything else at the task's degree")
     parser.add_argument('--joint', action='store_true',
                         help='Learn every class as one task at --degree (Mammoth --joint 1): the joint upper bound')
     parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
@@ -227,8 +230,10 @@ def parse_args(argv=None):
     if args.joint and (args.schedule is not None or args.mix or args.method in OWN or args.tasks is not None):
         parser.error('--joint trains one task at one plug-in degree: not with --schedule, --mix, --tasks or CPS/REP')
     if args.mix is not None:
-        if args.schedule is not None or args.method in OWN:
-            parser.error('--mix is for methods trained with the plug-in, without --schedule')
+        if args.method in OWN:
+            parser.error('--mix is for methods trained with the plug-in')
+        if args.schedule is not None and not set(args.schedule) <= set(args.mix):
+            parser.error('With --schedule, --mix must include every degree of the path')
         try:
             for degree in (*args.mix, *args.sources):
                 valid_degree(degree)
@@ -378,6 +383,7 @@ def main(argv=None):
     own, switching, mixing = args.method in OWN, args.schedule is not None, args.mix is not None
     # Absolute, because Mammoth resolves a relative results path under its data root.
     default_id = (f'{args.method}-own-m{args.matched_degree}-seed{args.seed}' if own else
+                  f'{args.method}-{args.operator}-{args.path}M-seed{args.seed}' if switching and mixing else
                   f'{args.method}-{args.operator}-{args.path}-seed{args.seed}' if switching else
                   f'{args.method}-{args.operator}-MIX-seed{args.seed}' if mixing else
                   f'{args.method}-{args.operator}-J{args.degree}-seed{args.seed}' if args.joint else
@@ -407,7 +413,7 @@ def main(argv=None):
             if args.operator not in banks:
                 raise ValueError('A budget path is evaluated with the bank of its operator: pass it with --banks')
             # Checked now rather than at the first evaluation, hours later.
-            for degree in (*(args.schedule or args.mix), *args.sources, *args.targets):
+            for degree in (*(args.schedule or ()), *(args.mix or ()), *args.sources, *args.targets):
                 banks[args.operator].covered(degree)
         source, compensations = (None if switching else args.degree), switch_plan(args.operator, args.sources)
     else:
@@ -452,14 +458,16 @@ def main(argv=None):
 
     def meta_observe(*inputs, **keywords):
         # Read-only: the loss Mammoth gets back, and the learning rate the step has just used.
+        base = controller.default_degree
         if mixing:
-            controller.default_degree = draws.choice(args.mix)
+            # On a budget path, only degrees that cost no more than the task's own.
+            controller.default_degree = draws.choice([d for d in args.mix if d >= base] if switching else args.mix)
             steps[controller.default_degree] += 1
         try:
             loss = native_observe(*inputs, **keywords)
         finally:
             if mixing:
-                controller.default_degree = args.degree
+                controller.default_degree = base
         optimizer = getattr(model, 'opt', None)
         progress.step(loss, optimizer.param_groups[0]['lr'] if optimizer is not None else None)
         return loss
