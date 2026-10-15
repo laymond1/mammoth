@@ -358,3 +358,21 @@ Remote checkpoint/cache nuances:
 - For non-doc changes, run at least one focused test playbook plus a smoke run.
 - Suggested smoke run: `uv run python main.py --model sgd --dataset seq-cifar10 --lr 1e-3 --n_epochs 1 --batch_size 2 --non_verbose 1 --num_workers 0 --debug_mode 1`
 - Always report validation commands actually executed.
+
+## 14) Session units
+
+Every agent session belongs to one unit. The unit names the kind of work; use it in session titles, commit messages and new result folders.
+
+| Unit (title) | Short name | Covers |
+|---|---|---|
+| [실험 세팅] | `setup` | environments, data, checkpoints, banks, launchers, and reproduction checks |
+| [시나리오 실험] | `scenario` | experiments of a defined scenario (fixed budgets, budget switching, their queues) |
+| [아이디어 실험] | `idea` | trying a new method or idea |
+| [분석 실험] | `analysis` | analysing existing results (re-evaluation without training included) |
+| [구현] | `impl` | code changes that are not tied to one experiment |
+| [조사] | `survey` | literature and background research |
+| [논문] | `paper` | writing, figures and tables for a paper |
+
+- Session title: `[unit] topic`, for example `[시나리오 실험] ToCom 및 9가지 시나리오 구현`.
+- Commit message: end with a trailer line `Unit: <short name>`, for example `Unit: impl`. A `commit-msg` hook (in the shared `.git/hooks`, so every worktree) only warns when the line is missing; it never blocks a commit.
+- New result folders: `results/<short name>-<topic>...`, for example `results/scenario-switch-v2`. Existing folders keep their names (`results/tocom-*` and others).
