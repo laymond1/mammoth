@@ -9,7 +9,7 @@ from PIL import Image
 
 NUM = re.compile(r"\d+\.\d+")
 SOURCES = {"eval-1": "docs/19-tocom-cl-cifar100-three-seed-results.md", "eval-3": "docs/22-tocom-task-and-inference-budget-analysis.md"}
-REPO = Path("/mnt/sdab1/userHome/wslim/workspace/compression-gap-cl")
+REPO = Path(__file__).resolve().parents[5]  # .claude/skills/explain-clearly/evals/tools/ -> repository root
 EXTERNAL = re.compile(r"""<script[^>]+src=["']https?://|<link[^>]+href=["']https?://|<img[^>]+src=["']https?://|@import\s+url\(["']?https?://|fetch\(""", re.I)
 
 
@@ -46,7 +46,9 @@ def main(root: Path):
                 entry["visible_body"][p.name] = {"chars": len(re.sub(r"\s+", "", visible_text(p))), "decimal_numbers": len(found), "unique": len(set(found)), "values_shown_more_than_3_times": repeats}
         source = next((v for k, v in SOURCES.items() if key.startswith(k)), None)
         if source:
-            entry["source_doc_decimal_numbers"] = len(NUM.findall((REPO / source).read_text(encoding="utf-8")))
+            # The source docs live on the archive/tocom-deit-tiny branch, not in every checkout.
+            source_path = REPO / source
+            entry["source_doc_decimal_numbers"] = len(NUM.findall(source_path.read_text(encoding="utf-8"))) if source_path.is_file() else None
         report[key] = entry
     print(json.dumps(report, ensure_ascii=False, indent=2))
 
