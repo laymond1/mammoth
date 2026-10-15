@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.cl_efficiency import Recorder, flatten, notify_slack, valid_slack_webhook, write_json
-from scripts.cl_runtime import configure_environment, configure_native_environment
+from scripts.cl_runtime import configure_environment, configure_native_environment, public_setting
 from scripts.low_rank_protocol import (
     CHECKPOINT, CHECKPOINT_SHA256, CANONICAL_PRETRAINED_SHA256, METHODS,
     PRECISION, REFERENCE_COMMIT, REQUIRED_STRUCTURAL_CHECKS,
@@ -68,7 +68,7 @@ def source_code(source, method, checkpoint):
 def author_args(source, method, device):
     settings = json.loads((Path(source) / f'configs/{METHODS[method]}/cifar100.json').read_text())
     settings.update(seed=[1993], batch_size=64, num_workers=4, device=[device],
-                    data_path='/mnt/sdab1/share/data')
+                    data_path=public_setting('data_root'))
     return settings
 
 

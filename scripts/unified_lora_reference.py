@@ -191,11 +191,12 @@ def _load_source(source, method, geometry):
 
 def author_args(spec, source=DEFAULT_SOURCE, device='cpu'):
     """Map the fresh approved recipe onto the source's own argument names."""
+    from scripts.cl_runtime import public_setting
     reference_description(spec)
     settings = json.loads((Path(source) / f'configs/{METHODS[spec["method"]]}/cifar100.json').read_text())
     recipe = spec['method_recipe']
     settings.update(seed=[spec['seed']], epochs=spec['n_epochs'], batch_size=spec['batch_size'], num_workers=spec['num_workers'],
-                    device=[device], sessions=10, init_cls=10, increment=10, data_path='/mnt/sdab1/share/data',
+                    device=[device], sessions=10, init_cls=10, increment=10, data_path=public_setting('data_root'),
                     optimizer=recipe['optimizer'], scheduler='cosine', lrate=recipe['lr'], weight_decay=recipe['optim_wd'],
                     fc_lrate=recipe['lora_fc_lr'], rank=recipe['lora_rank'])
     names = {'lora_gamma': 'gamma', 'lora_ewc_lambda': 'lambda', 'lora_lamb': 'lamb', 'lora_lame': 'lame',

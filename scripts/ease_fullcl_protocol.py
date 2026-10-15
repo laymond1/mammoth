@@ -11,10 +11,11 @@ import json
 from pathlib import Path
 import random
 
+from scripts.cl_runtime import checkpoint_path, resolve_data_root
+
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_COMMIT = '6d67508ed8b7c4d23350ed4eb28c123914b40ae3'
-CHECKPOINT = ('/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/'
-              'B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz')
+CHECKPOINT = checkpoint_path('B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz')
 CHECKPOINT_SHA256 = 'ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124'
 CANONICAL_PRETRAINED_SHA256 = 'cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300'
 PHASES = ('train', 'prototype', 'evaluation', 'task_begin')
@@ -110,7 +111,8 @@ def configure_epoch_loader(loader, seed, task_id, phase, epoch=0):
     return selected
 
 
-def native_command(mode, checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', output=None):
+def native_command(mode, checkpoint=CHECKPOINT, data_root=None, output=None):
+    data_root = resolve_data_root(data_root)
     settings = protocol(mode)
     command = ['--model', 'ease', '--dataset', settings['dataset'], '--model_config', 'default',
                '--dataset_config', 'hide_prompt', '--ease_checkpoint', str(checkpoint),
@@ -145,12 +147,13 @@ def prepare_native_args(args):
     return args
 
 
-def dataset_args(mode='validation', checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data'):
+def dataset_args(mode='validation', checkpoint=CHECKPOINT, data_root=None):
     import main as mammoth
     return prepare_native_args(mammoth.parse_args(cmd=native_command(mode, checkpoint, data_root)))
 
 
-def create_dataset(mode='validation', checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data'):
+def create_dataset(mode='validation', checkpoint=CHECKPOINT, data_root=None):
+    data_root = resolve_data_root(data_root)
     from scripts.hide_protocol import forbid_cifar_download, validate_shared_data
     from utils.conf import base_path
     from datasets import get_dataset

@@ -1,6 +1,7 @@
 """Construct the pinned native EWC-, SD-, Inf- and CL-LoRA networks locally."""
 import hashlib
 from importlib import import_module
+import os
 from pathlib import Path
 
 from .pretrained import canonical_pretrained_digest
@@ -8,7 +9,18 @@ from .pretrained import canonical_pretrained_digest
 
 SOURCE_COMMIT = 'd007ef5c13a6d8a7d7db3eedf93f5e796e2ce429'
 SIZES = {'base': (768, 12), 'small': (384, 6), 'tiny': (192, 3)}
-_CACHE = Path('/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints')
+
+
+def _checkpoint_dir():
+    """The torch hub checkpoint cache: TORCH_HOME, else CL_CACHE_ROOT/torch, else ~/.cache/torch."""
+    home = os.environ.get('TORCH_HOME')
+    if not home:
+        cache = os.environ.get('CL_CACHE_ROOT') or os.environ.get('XDG_CACHE_HOME') or str(Path.home() / '.cache')
+        home = str(Path(cache) / 'torch')
+    return Path(home).expanduser() / 'hub' / 'checkpoints'
+
+
+_CACHE = _checkpoint_dir()
 CHECKPOINTS = {
     'base': {
         'file': str(_CACHE / 'B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz'),

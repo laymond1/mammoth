@@ -47,7 +47,7 @@ PREPARATION_REQUIRED_CHECKS = REQUIRED_CHECKS
 REQUIRED_CHECKS = tuple('first_actual_batch_inputs_gradients_lr_audited' if name ==
                         'first_actual_batch_inputs_gradients_lr_match' else name for name in REQUIRED_CHECKS)
 MODES = ('validation', 'efficiency')
-CHECKPOINT = '/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz'
+_CHECKPOINT_FILE = 'B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz'
 CHECKPOINT_SHA256 = 'ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124'
 CANONICAL_PRETRAINED_SHA256 = 'cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300'
 PRECISION = {'parameter_dtype': 'float32', 'autocast': False, 'matmul_precision': 'highest',
@@ -97,6 +97,23 @@ def load_preparation_plan(path=PLAN):
     return plan
 
 
+def _default_data_root():
+    from scripts.cl_runtime import public_setting
+    return public_setting('data_root')
+
+
+def _default_checkpoint():
+    # Resolved when used: importing this module must not load scripts.cl_runtime.
+    from scripts.cl_runtime import checkpoint_path
+    return checkpoint_path(_CHECKPOINT_FILE)
+
+
+def __getattr__(name):
+    if name == 'CHECKPOINT':
+        return _default_checkpoint()
+    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
+
+
 def native_command(plan, tasks=None, output=None):
     # Preserve the historical preparation API; a worker specification uses the
     # second path below, with explicit shared data/device and zero extra work.
@@ -104,8 +121,8 @@ def native_command(plan, tasks=None, output=None):
         settings = protocol(plan['mode'])
         command = ['--model', 'prol-prompt', '--model_config', 'default', '--dataset', 'seq-cifar100-224',
                    '--dataset_config', 'ease', '--backbone', 'prol-vit', '--prol_vit_size', 'base',
-                   '--prol_checkpoint', str(plan.get('checkpoint_file', CHECKPOINT)),
-                   '--base_path', str(plan.get('data_root', '/mnt/sdab1/share/data')), '--device', 'cuda:0',
+                   '--prol_checkpoint', str(plan.get('checkpoint_file', _default_checkpoint())),
+                   '--base_path', str(plan.get('data_root') or _default_data_root()), '--device', 'cuda:0',
                    '--n_epochs', '1', '--stop_after', str(settings['tasks']), '--batch_size', '64', '--num_workers', '4',
                    '--seed', '1993', '--permute_classes', '0', '--validation', '0', '--lr', '0.01',
                    '--optimizer', 'adam', '--optim_wd', '0', '--enable_other_metrics', '0', '--eval_future', '0',

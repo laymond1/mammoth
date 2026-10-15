@@ -16,6 +16,8 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROFILE = ROOT / 'benchmarks/cl_efficiency/runtime.json'
+# Shared selected values; they mirror the committed benchmarks/cl_efficiency/runtime.json.
+# Other machines override them with CL_DATA_ROOT / CL_CACHE_ROOT or --profile instead of editing code.
 PUBLIC_DEFAULTS = {
     'gpu': '1',
     'wandb_entity': 'laymond1',
@@ -146,6 +148,29 @@ def _public_profile(path):
     if not isinstance(values, dict):
         raise ValueError('Public profile configuration must contain flat settings')
     return {key: value for key, value in values.items() if key in PUBLIC_DEFAULTS}
+
+
+def public_setting(key, environ=None):
+    """Return one effective public setting without touching the environment.
+
+    Same precedence as configure_environment: defaults, the committed public
+    profile, then the CL_* override. Scripts use this for their own defaults so
+    that no machine-specific path is repeated outside the profile.
+    """
+    environ = os.environ if environ is None else environ
+    if environ.get(PUBLIC_ENV[key]):
+        return environ[PUBLIC_ENV[key]]
+    return _public_profile(None).get(key, PUBLIC_DEFAULTS[key])
+
+
+def resolve_data_root(value=None, environ=None):
+    """The explicit data root, or the effective shared one when none is given."""
+    return public_setting('data_root', environ) if value is None else value
+
+
+def checkpoint_path(filename, environ=None):
+    """A pretrained file in the shared torch hub cache (TORCH_HOME is cache_root/torch)."""
+    return str(Path(public_setting('cache_root', environ)) / 'torch/hub/checkpoints' / filename)
 
 
 def configure_native_environment(environ=None):

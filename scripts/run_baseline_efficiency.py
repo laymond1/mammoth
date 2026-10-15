@@ -20,11 +20,11 @@ sys.path.insert(0, str(ROOT))
 
 from scripts import benchmark_cl
 from scripts.cl_efficiency import write_json
-from scripts.cl_runtime import configure_environment
+from scripts.cl_runtime import checkpoint_path, configure_environment
 from scripts.run_ease_efficiency import distribution, RESOURCE_KEYS as EASE_RESOURCE_KEYS, PHASE_KEYS
 
 MODELS = ('ranpac', 'l2p', 'dualprompt')
-CHECKPOINT = '/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz'
+CHECKPOINT = checkpoint_path('B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz')
 CHECKPOINT_SHA256 = 'ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124'
 CHECKPOINT_TAG = 'vit_base_patch16_224.augreg_in21k_ft_in1k'
 EASE_RESULTS = 'benchmarks/cl_efficiency/ease/efficiency_pilot_results.json'

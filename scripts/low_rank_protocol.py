@@ -8,6 +8,7 @@ from pathlib import Path
 import random
 import subprocess
 
+from scripts.cl_runtime import resolve_data_root
 from scripts.hide_protocol import CHECKPOINT, CHECKPOINT_SHA256, CANONICAL_PRETRAINED_SHA256
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -306,7 +307,8 @@ def validate_prediction_archive(path, task, expected_ids=None, expected_labels=N
                                        seen_classes=task * 10)
 
 
-def native_command(method, checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', output=None):
+def native_command(method, checkpoint=CHECKPOINT, data_root=None, output=None):
+    data_root = resolve_data_root(data_root)
     settings = protocol(method)
     hyper = settings['hyperparameters']
     command = ['--model', method, '--dataset', settings['dataset'], '--model_config', 'default',

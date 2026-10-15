@@ -31,7 +31,8 @@ def test_plan_preparation_scope_and_shared_conditions(tmp_path):
                        ('--rainbow_warmup_epochs', '5'), ('--wandb_entity', 'laymond1')]:
         assert argv[argv.index(key) + 1] == value
     assert 'https://hooks.slack.com' not in json.dumps(plan)
-    assert plan['common']['data_root'] == '/mnt/sdab1/share/data'
+    from scripts.cl_runtime import public_setting
+    assert plan['common']['data_root'] == public_setting('data_root')
     assert plan['common']['gpu'] == '1' and plan['common']['wandb_entity'] == 'laymond1'
 
 

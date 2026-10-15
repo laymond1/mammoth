@@ -2,6 +2,7 @@
 import hashlib
 from pathlib import Path
 
+from scripts.cl_runtime import public_setting
 from scripts.cps_author_reference import SOURCE_COMMIT, file_hash, verify_source
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,7 +33,7 @@ def native_arguments(run, output, *, cpu_smoke=False):
         raise ValueError('Unknown bounded CPS/REP validation run')
     args = ['--model', RUNS[run][0], '--model_config', 'default', '--dataset', 'seq-cifar100-224',
             '--dataset_config', 'unified', '--backbone', 'resnet18', '--device', 'cpu' if cpu_smoke else 'cuda:0',
-            '--base_path', '/mnt/sdab1/share/data', '--results_path', str(Path(output) / 'mammoth'),
+            '--base_path', public_setting('data_root'), '--results_path', str(Path(output) / 'mammoth'),
             '--n_epochs', '3', '--batch_size', '2' if cpu_smoke else '64', '--seed', '1993',
             '--num_workers', '0' if cpu_smoke else '2', '--non_verbose', '1',
             '--permute_classes', '0', '--enable_other_metrics', '0', '--stop_after', '2',

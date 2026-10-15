@@ -10,12 +10,13 @@ from contextlib import contextmanager
 from pathlib import Path
 import random
 
+from scripts.cl_runtime import checkpoint_path, resolve_data_root
+
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_COMMIT = '0ed433334ff2cfb206c5e2899651c3044ec85f92'
 CHECKPOINT_SHA256 = 'ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124'
 CANONICAL_PRETRAINED_SHA256 = 'cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300'
-CHECKPOINT = ('/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/'
-              'B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz')
+CHECKPOINT = checkpoint_path('B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz')
 PHASES = ('tii_train', 'prompt_train', 'tii_statistics', 'prompt_statistics',
           'tii_alignment', 'prompt_alignment', 'evaluation')
 SOURCE_FILES = ('scripts/run_hide_validation.py', 'scripts/hide_protocol.py',
@@ -110,7 +111,8 @@ def configure_epoch_loader(loader, seed, task_id, phase, epoch=0):
     return selected
 
 
-def native_command(mode, checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', output=None, variant=None):
+def native_command(mode, checkpoint=CHECKPOINT, data_root=None, output=None, variant=None):
+    data_root = resolve_data_root(data_root)
     settings = protocol(mode) if variant is None else protocol(mode, variant=variant)
     command = ['--model', 'hide-prompt', '--dataset', settings['dataset'], '--model_config', 'default',
                '--dataset_config', settings['dataset_config'], '--hide_checkpoint', str(checkpoint),
@@ -129,14 +131,15 @@ def native_command(mode, checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data
     return command
 
 
-def dataset_args(mode='validation', checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', variant=None):
+def dataset_args(mode='validation', checkpoint=CHECKPOINT, data_root=None, variant=None):
     """Share parser/dataset configuration only; never initialize a native model."""
     import main as mammoth
     command = native_command(mode, checkpoint, data_root) if variant is None else native_command(mode, checkpoint, data_root, variant=variant)
     return mammoth.parse_args(cmd=command)
 
 
-def create_dataset(mode='validation', checkpoint=CHECKPOINT, data_root='/mnt/sdab1/share/data', variant=None):
+def create_dataset(mode='validation', checkpoint=CHECKPOINT, data_root=None, variant=None):
+    data_root = resolve_data_root(data_root)
     # Parsing alone does not call main.extend_args, which normally sets this
     # process-wide path before dataset/class-name construction.
     validate_shared_data(data_root)

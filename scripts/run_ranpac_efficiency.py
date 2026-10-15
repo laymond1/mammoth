@@ -22,9 +22,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts import baseline_audit, benchmark_cl
-from scripts.cl_runtime import PUBLIC_DEFAULTS, configure_environment
+from scripts.cl_runtime import PUBLIC_DEFAULTS, checkpoint_path, configure_environment
 
-CHECKPOINT = '/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz'
+CHECKPOINT = checkpoint_path('B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz')
 CHECKPOINT_SHA = 'ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124'
 TRANSFORM_SHA = {'train': '2b87a34cb83d20320607074f03b709cb68998ff546243dccb2b89d0e5670e412',
                  'test': 'c3425775bd0c9bad0848f553b08357b2a74f4ad5dcb661665ae199095869dc01'}

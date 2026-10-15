@@ -5,13 +5,15 @@ import json
 from pathlib import Path
 import subprocess
 
+from scripts.cl_runtime import checkpoint_path, public_setting
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / 'benchmarks/cl_efficiency/rainbow_prompt/run_plan.json'
 REVIEW = ROOT / 'benchmarks/cl_efficiency/rainbow_prompt/source_review.json'
 REFERENCE_SOURCE = Path('/tmp/cl-rainbow-official-20261008')
 REFERENCE_COMMIT = '0b84d3e3738669fe4bb516ccc1c526a535576ad3'
-CHECKPOINT = '/mnt/sdab1/userHome/wslim/.cache/torch/hub/checkpoints/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz'
+CHECKPOINT = checkpoint_path('B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_224.npz')
 CHECKPOINT_SHA256 = 'ac104c0df8158c46754510e50495536fa6de9647e572e38b5659dc54f260b124'
 CANONICAL_PRETRAINED_SHA256 = 'cd8acbba3d33807125c2e30d2d0159f90825208e63a95034ab57ef0af837a300'
 MODES = ('full_validation', 'short_validation', 'efficiency')
@@ -141,7 +143,7 @@ def native_command(spec, output=None):
     command = ['--model', 'rainbow-prompt', '--model_config', 'default', '--dataset', 'seq-cifar100-224',
                '--dataset_config', 'ease', '--backbone', 'rainbow-vit', '--rainbow_vit_size', 'base',
                '--rainbow_checkpoint', str(spec.get('checkpoint_file', CHECKPOINT)),
-               '--base_path', str(spec.get('data_root', '/mnt/sdab1/share/data')), '--device', 'cuda:0',
+               '--base_path', str(spec.get('data_root') or public_setting('data_root')), '--device', 'cuda:0',
                '--n_epochs', str(settings['n_epochs']), '--rainbow_warmup_epochs', str(settings['warmup_epochs']),
                '--stop_after', str(settings['tasks']), '--batch_size', '64', '--num_workers', '4',
                '--seed', '1993', '--permute_classes', '0', '--validation', '0',
