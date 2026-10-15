@@ -123,6 +123,12 @@ def method_args(method, size, checkpoint, batch_size, matched=None):
     raise ValueError(f'No recipe for {method}')
 
 
+def joint_args(method):
+    """Native arguments of joint training: one task of every class. The low-rank methods keep one classifier
+    head per task, sized by ``--lora_classes_per_task``, so for them that head must hold all hundred classes."""
+    return dict(joint=1, **({'lora_classes_per_task': 100} if method.endswith('-lora') else {}))
+
+
 def grid_plan(method, degree, matched, bank_names):
     """Source row and bank conditions of the grid, as ``evaluate_grid`` takes them.
 
@@ -380,11 +386,13 @@ def main(argv=None):
     run.mkdir(parents=True, exist_ok=False)
     spec = checkpoint_spec(args.vit_size)
     values = dict(COMMON, **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree),
-                  n_epochs=args.epochs, batch_size=args.batch_size, seed=args.seed, device=args.device, joint=int(args.joint),
+                  n_epochs=args.epochs, batch_size=args.batch_size, seed=args.seed, device=args.device,
                   base_path=json.loads(DEFAULT_PROFILE.read_text())['data_root'] + '/',
                   results_path=str(run / 'native_results'), checkpoint_path=str(run / 'checkpoints'))
     if args.tasks is not None:
         values['stop_after'] = args.tasks
+    if args.joint:
+        values.update(joint_args(args.method))
     arguments = [item for key, value in values.items() for item in (f'--{key}', str(value))] + args.extra
     model, dataset, native = build(arguments, args.method, args.eval_batch_size)
     if switching and len(args.schedule) != dataset.N_TASKS:

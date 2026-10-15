@@ -138,6 +138,8 @@ def test_joint_and_mixed_degrees_are_references_for_budget_paths():
     assert args.mix == [0, 8, 16, 24] and args.degree == 0 and args.eval_operators == ['tome'] and not args.joint
     args = run_cl.parse_args(common + ['--joint', '--degree', '8'])
     assert args.joint and args.degree == 8 and args.eval_operators == ['tome'] and args.mix is None
+    assert run_cl.joint_args('coda-prompt') == {'joint': 1}
+    assert run_cl.joint_args('inf-lora') == {'joint': 1, 'lora_classes_per_task': 100}
     for broken in (common + mix + ['--joint'],                                                 # both
                    common + ['--joint', '--path', 'P1', '--schedule', *['0'] * 10],              # joint path
                    common + ['--joint', '--tasks', '2'],                                         # joint stops early
