@@ -15,6 +15,8 @@ beside the workers. What is posted:
               where the running ones are
     say       a free line, for the preflight and for a worker that stops
     status    the state of the queue on the terminal; nothing is posted
+    summary   the table of a finished queue written and uploaded again, into the summary run of the first
+              attempt when there was one (after a failed upload); nothing is posted
 
 ``kickoff --per-run`` also posts the start (content, expected time) and the end (duration, headline) of
 every run, which suits a short queue; ``--seed-tables`` a table whenever a seed is finished.
@@ -335,8 +337,18 @@ def final_rows(queue):
                            'bank': '' if label == 'off' else label, 'accuracy': mean(values), 'as_trained': source}
 
 
-def upload_final(queue, path, rows):
-    """One Weights & Biases run holding the table of the whole queue; returns its address or None."""
+def table_data(rows):
+    """Columns and rows of the summary table. A column holding both names and numbers (training degrees next to
+    ``MIX`` or a path name) is written as text throughout, as a Weights & Biases table takes one type per column."""
+    columns = list(rows[0])
+    named = {column for column in columns if len({isinstance(row[column], str) for row in rows if row[column] is not None}) > 1}
+    return columns, [[str(row[column]) if column in named else row[column] for column in columns] for row in rows]
+
+
+def upload_final(queue, path, rows, resume=None):
+    """One Weights & Biases run holding the table of the whole queue; returns its address or None.
+
+    ``resume`` is the id of an earlier summary run of the queue to write into instead of starting another."""
     target = queue.plan.get('wandb')
     if not target or not rows:
         return None
@@ -345,8 +357,10 @@ def upload_final(queue, path, rows):
         entity, _, project = target.partition('/')
         with wandb.init(entity=entity, project=project, name=f'{queue.root.name}-summary', job_type='summary',
                         dir=str(queue.reports), config={'experiment': queue.root.name, 'runs': len(queue.of('completed'))},
+                        id=resume, resume='allow' if resume else None,
                         settings=wandb.Settings(console='off', save_code=False, disable_git=True, silent=True)) as run:
-            run.log({'final_grid': wandb.Table(columns=list(rows[0]), data=[list(row.values()) for row in rows])})
+            columns, data = table_data(rows)
+            run.log({'final_grid': wandb.Table(columns=columns, data=data)})
             run.save(str(path), base_path=str(path.parent), policy='now')
             return run.url
     except Exception as error:
@@ -551,14 +565,7 @@ def finish(queue, args, now):
         messages.append((f'seed {job.seed}', f'📊 *seed {job.seed} 끝남* · {len(seed_jobs)}개 중 완료 {good}, 실패 '
                                              f'{len(seed_jobs) - good} · 최종 정확도(%)\n{tables(queue, [job.seed])}'))
     if all(queue.states.get(name, {}).get('finished') for name in queue.jobs) and queue.once('all'):
-        rows = list(final_rows(queue))
-        path = queue.reports / 'final_grid.csv'
-        if rows:
-            with path.open('w', newline='') as stream:
-                writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
-                writer.writeheader()
-                writer.writerows(rows)
-        address = None if args.dry_run else upload_final(queue, path, rows)
+        address = write_summary(queue, args.dry_run)
         seeds = sorted({other.seed for other in queue.jobs.values()})
         failed = ', '.join(sorted(queue.of('failed')))
         messages.append(('all', f'🏁 *{queue.root.name} 끝남* · 완료 {len(queue.of("completed"))} · 실패 '
@@ -567,6 +574,25 @@ def finish(queue, args, now):
                                 + f'seed {len(seeds)}개 평균, 최종 정확도(%)\n{tables(queue, seeds)}'
                                 + f'결과: {queue.root}' + (f'\nW&B 집계: {address}' if address else '')))
     return messages
+
+
+def write_summary(queue, dry_run, resume=None):
+    """Write the table of the finished queue to final_grid.csv and upload it; returns the run address or None."""
+    rows = list(final_rows(queue))
+    path = queue.reports / 'final_grid.csv'
+    if rows:
+        with path.open('w', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+            writer.writeheader()
+            writer.writerows(rows)
+    return None if dry_run else upload_final(queue, path, rows, resume)
+
+
+def earlier_summary(queue):
+    """Id of the summary run an earlier upload of this queue started, from its local Weights & Biases directory."""
+    latest = queue.reports / 'wandb' / 'latest-run'
+    match = re.fullmatch(r'(?:offline-)?run-\d{8}_\d{6}-(\w+)', latest.resolve().name) if latest.exists() else None
+    return match.group(1) if match else None
 
 
 def status(queue, now):
@@ -598,6 +624,7 @@ def main(argv=None):
                              type=str if name == 'start' else int)
     commands.add_parser('say').add_argument('text')
     commands.add_parser('status')
+    commands.add_parser('summary')
     command = commands.add_parser('watch')
     command.add_argument('--interval', type=float, default=300, help='Seconds between two checks')
     command.add_argument('--once', action='store_true', help='Check once and return')
@@ -614,6 +641,14 @@ def main(argv=None):
     with Queue(args.experiment).locked() as queue:
         if args.command == 'status':
             return status(queue, now)
+        if args.command == 'summary':
+            if not all(queue.states.get(name, {}).get('finished') for name in queue.jobs):
+                raise SystemExit('The queue is not finished')
+            resume = earlier_summary(queue)
+            address = write_summary(queue, args.dry_run, resume)
+            print(f'{len(queue.of("completed"))} runs; ' + (f'uploaded to {address}' + (f' (run {resume} continued)' if resume else '')
+                                                          if address else 'not uploaded'))
+            return
         messages = [('say', f'*{queue.root.name}* · {args.text}')] if args.command == 'say' else \
             {'kickoff': kickoff, 'start': start, 'finish': finish}[args.command](queue, args, now)
     # Posted with the lock released, so a slow delivery does not hold the other workers.

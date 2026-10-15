@@ -548,3 +548,66 @@ def test_joint_and_mixed_runs_are_named_by_their_kind(tmp_path, capsys):
     assert identity(dict(base, degree=8))['kind'] == 'plugin'
     fields = identity(dict(base, degree=None, schedule=[0] * 5 + [24] * 5, path='P5', mix=[0, 8, 16, 24], joint=False))
     assert (fields['kind'], fields['train_operator'], fields['train_degree']) == ('switch-mix', 'tome', 'P5M')
+
+
+def test_a_summary_table_takes_named_and_numeric_degrees_and_can_be_uploaded_again(tmp_path, monkeypatch, capsys):
+    rows = [{'kind': 'joint', 'train_degree': 8, 'accuracy': 60.}, {'kind': 'mix', 'train_degree': 'MIX', 'accuracy': 61.5},
+            {'kind': 'none', 'train_degree': 0, 'accuracy': None}]
+    columns, data = report.table_data(rows)
+    assert columns == ['kind', 'train_degree', 'accuracy'] and [row[1] for row in data] == ['8', 'MIX', '0']
+    assert [row[2] for row in data] == [60., 61.5, None]
+    assert report.table_data(rows[:1])[1] == [['joint', 8, 60.]]
+
+    root = tmp_path / 'tocom-bounds'
+    (root / 'logs').mkdir(parents=True)
+    (root / 'jobs.txt').write_text('inf-lora evit J8 1993\ncoda-prompt tome MIX 1993\n')
+    (root / 'estimates.json').write_text(json.dumps({'inf-lora evit J8': 1800, 'coda-prompt tome MIX': 1800}))
+
+    def call(*arguments, dry=True):
+        report.main(['--experiment', str(root), *(['--dry-run'] if dry else []), *map(str, arguments)])
+
+    call('kickoff', '--workers', 2, '--wandb', 'someone/some-project')
+    with pytest.raises(SystemExit):
+        call('summary', dry=False)                                          # not finished
+    for method, operator, value, config in (
+            ('inf-lora', 'evit', 'J8', dict(config_of('inf-lora', 'evit', 8, seed=1993), joint=True)),
+            ('coda-prompt', 'tome', 'MIX', dict(config_of('coda-prompt', 'tome', 0, seed=1993), mix=[0, 8, 16, 24]))):
+        job = report.Job(method, operator, value, 1993)
+        call('start', method, operator, value, 1993, '--gpu', 0)
+        (root / job.id).mkdir()
+        (root / job.id / 'config.json').write_text(json.dumps(config))
+        (root / job.id / 'metrics.json').write_text(json.dumps([record_of(config)]))
+        (root / job.id / 'summary.json').write_text(json.dumps({'execution_status': 'completed'}))
+        call('finish', method, operator, value, 1993, '--exit-code', 0)
+    assert 'MIX' in (root / 'reports' / 'final_grid.csv').read_text()
+
+    wandb = pytest.importorskip('wandb')
+    seen = {}
+
+    class Run:
+        url = 'https://wandb.ai/someone/some-project/runs/abc123'
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def log(self, values):
+            seen['table'] = values['final_grid']
+
+        def save(self, *arguments, **keywords):
+            seen['saved'] = arguments[0]
+
+    monkeypatch.setattr(wandb, 'init', lambda **keywords: seen.update(keywords) or Run())
+    monkeypatch.setattr(wandb, 'Table', lambda columns, data: (columns, data))
+    earlier = root / 'reports' / 'wandb' / 'run-20261015_222050-abc123'
+    earlier.mkdir(parents=True)
+    (root / 'reports' / 'wandb' / 'latest-run').symlink_to(earlier.name)
+    capsys.readouterr()
+    call('summary', dry=False)
+    assert (seen['id'], seen['resume'], seen['name']) == ('abc123', 'allow', 'tocom-bounds-summary')
+    columns, data = seen['table']
+    degree = columns.index('train_degree')
+    assert {row[degree] for row in data} == {'8', 'MIX'} and seen['saved'].endswith('final_grid.csv')
+    assert 'uploaded to https://wandb.ai/someone/some-project/runs/abc123 (run abc123 continued)' in capsys.readouterr().out
