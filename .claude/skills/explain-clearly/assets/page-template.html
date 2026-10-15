@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>제목 두세 단어</title>
+<style>
+  :root {
+    --bg: #fbfbfa; --surface: #ffffff; --text: #1f2328; --muted: #656d76;
+    --line: #d9dde2; --accent: #1f6feb; --accent-soft: #e7f0fe; --neutral: #9aa0a6;
+    --good: #1a7f37; --warn: #9a6700; --bad: #cf222e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1216; --surface: #171b21; --text: #e6e9ed; --muted: #9aa4af;
+      --line: #2c333c; --accent: #6ea8fe; --accent-soft: #17263d; --neutral: #6b737d;
+      --good: #4ac26b; --warn: #d4a72c; --bad: #ff7b72;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.7 system-ui, -apple-system, "Noto Sans KR", "Noto Sans CJK KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    word-break: keep-all; overflow-wrap: anywhere;
+  }
+  main { max-width: 780px; margin: 0 auto; padding: 40px 16px 80px; }
+  h1 { font-size: 1.7rem; line-height: 1.3; margin: 0 0 4px; }
+  h2 { font-size: 1.25rem; line-height: 1.4; margin: 56px 0 8px; padding-top: 20px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.02rem; margin: 28px 0 6px; }
+  p { margin: 10px 0; }
+  a { color: var(--accent); }
+  .meta { color: var(--muted); font-size: 0.88rem; }
+  .eyebrow { color: var(--muted); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; margin: 0; }
+
+  /* 결론: 이것만 읽고 닫아도 되는 한 문단 */
+  .answer { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 6px; padding: 14px 18px; margin: 22px 0; }
+  .answer p { margin: 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.94rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.84rem; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-wrap { overflow-x: auto; }
+  .tag { display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .tag.good { color: var(--good); } .tag.warn { color: var(--warn); } .tag.bad { color: var(--bad); } .tag.muted { color: var(--muted); }
+
+  /* 그림: 제목(figcaption의 strong)은 주제가 아니라 주장으로 쓴다 */
+  figure { margin: 20px 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  figure svg, figure img, figure video { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  figcaption { margin-bottom: 12px; }
+  figcaption strong { display: block; font-size: 1rem; }
+  figcaption span { color: var(--muted); font-size: 0.88rem; }
+
+  details { border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; margin: 12px 0; background: var(--surface); }
+  summary { cursor: pointer; font-weight: 600; font-size: 0.94rem; }
+  details[open] summary { margin-bottom: 6px; }
+
+  dl { margin: 12px 0; }
+  dt { font-weight: 600; margin-top: 10px; }
+  dd { margin: 2px 0 0; color: var(--muted); }
+
+  /* 단계별 재생 */
+  .stepper .controls { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .stepper button { font: inherit; font-size: 0.9rem; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); cursor: pointer; }
+  .stepper button:disabled { opacity: 0.4; cursor: default; }
+  .stepper .step-label { font-size: 0.92rem; }
+  .stepper .step-count { color: var(--muted); font-size: 0.84rem; margin-left: auto; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+
+  <p class="eyebrow">무엇에 대한 정리인지</p>
+  <h1>제목</h1>
+  <p class="meta">기준 시점 · 원본 위치(결과 파일, 브랜치 등)</p>
+
+  <div class="answer">
+    <p><strong>결론.</strong> 한 문단. 이것만 읽고 닫아도 되게 쓴다.</p>
+  </div>
+
+  <!-- 전체 개요: 질문별 한 줄. 본문 절의 순서와 같게 둔다 -->
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>질문</th><th>지금 답</th><th>상태</th></tr></thead>
+      <tbody>
+        <tr><td><a href="#q1">질문 1</a></td><td>한 줄 답</td><td><span class="tag good">확인됨</span></td></tr>
+        <tr><td><a href="#q2">질문 2</a></td><td>한 줄 답</td><td><span class="tag warn">진행 중</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 본문: 모든 절이 같은 안쪽 순서를 따른다 -->
+  <h2 id="q1">질문 1을 한 문장으로</h2>
+  <p>무엇을 묻는가, 무엇을 했는가.</p>
+
+  <figure>
+    <figcaption>
+      <strong>주장을 한 문장으로 (예: B가 A보다 3.2%p 높다)</strong>
+      <span>무엇을 그린 것인지, 단위, 반복 횟수</span>
+    </figcaption>
+    <!-- 인라인 SVG, base64 PNG, 또는 <video controls> -->
+  </figure>
+
+  <p>이 결과가 뜻하는 것. 남은 것.</p>
+
+  <details>
+    <summary>전체 수치와 단서</summary>
+    <p>정밀한 표, 실험 설정, 주의할 점.</p>
+  </details>
+
+  <!-- 단계별 재생: 시간에 따라 변하는 과정을 보여 줄 때만. 필요 없으면 이 블록과 아래 스크립트를 지운다 -->
+  <figure class="stepper" id="stepper-1">
+    <figcaption>
+      <strong>과정이 보여 주는 주장</strong>
+      <span>버튼을 누르지 않아도 첫 화면에서 요점이 읽히게 한다</span>
+    </figcaption>
+    <div class="stage"></div>
+    <div class="controls">
+      <button type="button" data-act="prev">이전</button>
+      <button type="button" data-act="next">다음</button>
+      <button type="button" data-act="play">재생</button>
+      <span class="step-label"></span>
+      <span class="step-count"></span>
+    </div>
+  </figure>
+
+  <h2 id="next">남은 것</h2>
+  <ul>
+    <li>다음에 할 일 또는 결정이 필요한 것</li>
+  </ul>
+
+  <h2 id="terms">용어</h2>
+  <dl>
+    <dt>용어</dt><dd>한 줄 풀이</dd>
+  </dl>
+
+</main>
+
+<script>
+// 단계별 재생. steps의 각 항목은 { label: "지금 무슨 단계인지", render: (stage) => { stage.innerHTML = ... } }
+function makeStepper(root, steps, intervalMs = 1200) {
+  const stage = root.querySelector(".stage");
+  const label = root.querySelector(".step-label");
+  const count = root.querySelector(".step-count");
+  const [prev, next, play] = ["prev", "next", "play"].map(a => root.querySelector(`[data-act="${a}"]`));
+  let i = 0, timer = null;
+  const show = () => {
+    steps[i].render(stage);
+    label.textContent = steps[i].label;
+    count.textContent = `${i + 1} / ${steps.length}`;
+    prev.disabled = i === 0;
+    next.disabled = i === steps.length - 1;
+  };
+  const stop = () => { clearInterval(timer); timer = null; play.textContent = "재생"; };
+  prev.onclick = () => { stop(); i = Math.max(0, i - 1); show(); };
+  next.onclick = () => { stop(); i = Math.min(steps.length - 1, i + 1); show(); };
+  play.onclick = () => {
+    if (timer) return stop();
+    if (i === steps.length - 1) i = 0;
+    play.textContent = "정지";
+    show();
+    timer = setInterval(() => { if (i === steps.length - 1) return stop(); i += 1; show(); }, intervalMs);
+  };
+  show();
+}
+
+makeStepper(document.getElementById("stepper-1"), [
+  { label: "1단계", render: s => { s.textContent = "여기에 1단계 상태를 그린다"; } },
+  { label: "2단계", render: s => { s.textContent = "여기에 2단계 상태를 그린다"; } },
+]);
+</script>
+</body>
+</html>
