@@ -128,3 +128,46 @@ def test_a_budget_path_replaces_the_training_degree():
                    ['--method', 'cps-prompt', '--matched-degree', '0', '--seed', '1', '--output', 'unused'] + path):
         with pytest.raises(SystemExit):
             run_cl.parse_args(broken)
+
+
+def test_joint_and_mixed_degrees_are_references_for_budget_paths():
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused',
+              '--targets', '0', '4', '8', '12', '16', '20', '24']
+    mix = ['--mix', '0', '8', '16', '24']
+    args = run_cl.parse_args(common + mix)
+    assert args.mix == [0, 8, 16, 24] and args.degree == 0 and args.eval_operators == ['tome'] and not args.joint
+    args = run_cl.parse_args(common + ['--joint', '--degree', '8'])
+    assert args.joint and args.degree == 8 and args.eval_operators == ['tome'] and args.mix is None
+    for broken in (common + mix + ['--joint'],                                                 # both
+                   common + ['--joint', '--path', 'P1', '--schedule', *['0'] * 10],              # joint path
+                   common + ['--joint', '--tasks', '2'],                                         # joint stops early
+                   common + ['--mix', '0', '25'],                                                # degree out of range
+                   common + ['--mix', '8', '16'],                                                # --degree 0 not drawn
+                   common[:-7] + ['--targets', '0', '8'] + mix,                                  # 24 not inferred
+                   common + mix + ['--eval-operators', 'tome', 'evit'],                          # another operator
+                   common + mix + ['--path', 'P1', '--schedule', *['0'] * 10],                   # mix and path
+                   ['--method', 'cps-prompt', '--matched-degree', '0', '--seed', '1', '--output', 'unused'] + mix):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)
+
+
+def test_predictions_keep_class_and_task_il_and_check_the_grid(tmp_path):
+    import numpy as np
+    from scripts.tocom.reevaluate import Predictions
+    keep = Predictions(2)
+    logits = torch.tensor([[0., 3., 1., 2.], [5., 0., 1., 6.], [0., 1., 4., 2.]])
+    labels = torch.tensor([1, 0, 3])
+    keep(0, None, logits, labels)
+    keep(0, ('tome', None, 8), logits, labels)
+    keep(0, ('tome', 'src0', 8), -logits, labels)
+    one, none = 1 / 3 * 100, 0 / 3 * 100
+    keep.check({'source': [one], 'operators': {'tome': {'off': {'8': [one]}, 'on': {'src0': {'8': [none]}}}}})
+    with pytest.raises(RuntimeError):
+        keep.check({'source': [one], 'operators': {'tome': {'off': {'8': [one]}, 'on': {'src0': {'8': [one]}}}}})
+    keep.save(tmp_path / 'p.npz')
+    saved = np.load(tmp_path / 'p.npz')
+    assert saved['label'].tolist() == [1, 0, 3] and saved['loader'].tolist() == [0, 0, 0]
+    assert saved['source|pred'].tolist() == [1, 3, 2] and saved['source|within'].tolist() == [1, 0, 2]
+    assert saved['tome/off/8|task_max'].tolist() == [[3, 2], [5, 6], [1, 4]]
+    with pytest.raises(ValueError):
+        keep(0, None, logits[:, :3], labels)

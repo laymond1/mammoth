@@ -19,11 +19,16 @@ FINISH_TIMEOUT = 900.
 def identity(config):
     """How a run was trained, in the fields runs are filtered and grouped by.
 
-    A run on a budget path has kind ``switch`` and the name of its path as training degree.
+    A run on a budget path has kind ``switch`` and the name of its path as training degree; a run with mixed
+    degrees has kind ``mix`` and training degree ``MIX``; joint training has kind ``joint`` and its degree.
     """
-    if config.get('schedule'):
-        return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'switch',
-                'train_operator': config['operator'], 'train_degree': config['path'], 'seed': config['seed']}
+    if config.get('schedule') or config.get('mix'):
+        kind, degree = ('switch', config['path']) if config.get('schedule') else ('mix', 'MIX')
+        return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': kind,
+                'train_operator': config['operator'], 'train_degree': degree, 'seed': config['seed']}
+    if config.get('joint'):
+        return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'joint',
+                'train_operator': config['operator'], 'train_degree': config['degree'], 'seed': config['seed']}
     own = config['matched_degree'] is not None
     degree = config['matched_degree'] if own else config['degree']
     kind = 'none' if not degree else 'own' if own else 'plugin'

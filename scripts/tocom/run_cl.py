@@ -17,6 +17,10 @@ Mammoth alone would evaluate with the training batch size.
 evaluation after it run at that task's degree, and the grid records the bank of the training operator
 from every ``--sources`` degree, so that bank policies can be compared afterwards per test set.
 
+Two references for budget paths: ``--joint`` learns every class as one task (Mammoth's joint setting) at
+one degree, the usual upper bound of a continual method; ``--mix`` trains every step at a degree drawn
+uniformly from a list, one model for any budget, and is evaluated like a budget path.
+
 Every run keeps its records in its own directory. ``--wandb ENTITY/PROJECT`` also
 mirrors them to Weights & Biases; Mammoth's own logging there stays off.
 
@@ -28,6 +32,8 @@ Examples (from the repository root):
     uv run --no-sync python -m scripts.tocom.run_cl --method coda-prompt --operator tome --path P5 \\
         --schedule 0 0 0 0 0 24 24 24 24 24 --banks tome=<bank dir> --targets 0 4 8 12 16 20 24 --seed 1993 \\
         --output results/tocom-switch
+    uv run --no-sync python -m scripts.tocom.run_cl --method inf-lora --operator evit --mix 0 8 16 24 \\
+        --banks evit=<bank dir> --targets 0 4 8 12 16 20 24 --seed 1993 --output results/tocom-bounds
 """
 
 from scripts.cl_runtime import DEFAULT_PROFILE, configure_native_environment
@@ -35,10 +41,12 @@ from scripts.cl_runtime import DEFAULT_PROFILE, configure_native_environment
 configure_native_environment()
 
 import argparse  # noqa: E402
+import collections  # noqa: E402
 import hashlib  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
 from pathlib import Path  # noqa: E402
+import random  # noqa: E402
 import re  # noqa: E402
 import subprocess  # noqa: E402
 import time  # noqa: E402
@@ -158,7 +166,12 @@ def parse_args(argv=None):
                         help='Training degree of every task in order, a budget path; replaces --degree')
     parser.add_argument('--path', help='With --schedule: name of the budget path (letters and digits), used in the run id')
     parser.add_argument('--sources', type=int, nargs='+', default=[0, 8, 16, 24],
-                        help='With --schedule: degrees the bank of the training operator corrects from in the grid')
+                        help='With --schedule or --mix: degrees the bank of the training operator corrects from in the grid')
+    parser.add_argument('--mix', type=int, nargs='+', metavar='DEGREE',
+                        help='Train every step at a degree drawn uniformly from these; everything else (task '
+                             'boundaries, evaluation) runs at --degree')
+    parser.add_argument('--joint', action='store_true',
+                        help='Learn every class as one task at --degree (Mammoth --joint 1): the joint upper bound')
     parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
                         help='CPS-Prompt and REP: the ToMe training degree their own compression equals in FLOPs')
     parser.add_argument('--targets', type=int, nargs='+', default=[0, 4, 8, 10, 13, 16], help='Inference degrees')
@@ -205,6 +218,21 @@ def parse_args(argv=None):
         args.eval_operators, args.degree = [args.operator], args.schedule[0]
     elif args.path is not None:
         parser.error('--path goes with --schedule')
+    if args.joint and (args.schedule is not None or args.mix or args.method in OWN or args.tasks is not None):
+        parser.error('--joint trains one task at one plug-in degree: not with --schedule, --mix, --tasks or CPS/REP')
+    if args.mix is not None:
+        if args.schedule is not None or args.method in OWN:
+            parser.error('--mix is for methods trained with the plug-in, without --schedule')
+        try:
+            for degree in (*args.mix, *args.sources):
+                valid_degree(degree)
+        except ValueError as error:
+            parser.error(str(error))
+        if args.degree not in args.mix or not set(args.mix) <= set(args.targets):
+            parser.error('--degree and the inference degrees must include the degrees of --mix')
+        if args.eval_operators not in (None, [args.operator]):
+            parser.error('A model trained with mixed degrees is inferred with its own operator')
+        args.eval_operators = [args.operator]
     if args.degree not in args.targets:
         parser.error('Inference degrees must include the training degree')
     if (args.method in OWN) != (args.matched_degree is not None):
@@ -341,16 +369,18 @@ def main(argv=None):
     from models.low_rank_utils.factory import checkpoint_spec
     from utils.training import train
 
-    own, switching = args.method in OWN, args.schedule is not None
+    own, switching, mixing = args.method in OWN, args.schedule is not None, args.mix is not None
     # Absolute, because Mammoth resolves a relative results path under its data root.
     default_id = (f'{args.method}-own-m{args.matched_degree}-seed{args.seed}' if own else
                   f'{args.method}-{args.operator}-{args.path}-seed{args.seed}' if switching else
+                  f'{args.method}-{args.operator}-MIX-seed{args.seed}' if mixing else
+                  f'{args.method}-{args.operator}-J{args.degree}-seed{args.seed}' if args.joint else
                   f'{args.method}-{args.operator}-r{args.degree}-seed{args.seed}')
     run = (args.output / (args.run_id or default_id)).resolve()
     run.mkdir(parents=True, exist_ok=False)
     spec = checkpoint_spec(args.vit_size)
     values = dict(COMMON, **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree),
-                  n_epochs=args.epochs, batch_size=args.batch_size, seed=args.seed, device=args.device,
+                  n_epochs=args.epochs, batch_size=args.batch_size, seed=args.seed, device=args.device, joint=int(args.joint),
                   base_path=json.loads(DEFAULT_PROFILE.read_text())['data_root'] + '/',
                   results_path=str(run / 'native_results'), checkpoint_path=str(run / 'checkpoints'))
     if args.tasks is not None:
@@ -364,14 +394,14 @@ def main(argv=None):
     banks, bank_records, scale = load_banks(args.banks, digest, len(encoder.blocks), encoder.embed_dim,
                                             args.allow_partial_banks)
     controller = attach(model.net, args.operator, degree=args.degree, bank=banks.get(args.operator))
-    if switching:
+    if switching or mixing:
         if not args.no_grid:
             if args.operator not in banks:
                 raise ValueError('A budget path is evaluated with the bank of its operator: pass it with --banks')
             # Checked now rather than at the first evaluation, hours later.
-            for degree in (*args.schedule, *args.sources, *args.targets):
+            for degree in (*(args.schedule or args.mix), *args.sources, *args.targets):
                 banks[args.operator].covered(degree)
-        source, compensations = None, switch_plan(args.operator, args.sources)
+        source, compensations = (None if switching else args.degree), switch_plan(args.operator, args.sources)
     else:
         source, compensations = grid_plan(args.method, args.degree, args.matched_degree, list(banks))
 
@@ -379,7 +409,8 @@ def main(argv=None):
     dirty = bool(subprocess.check_output(['git', '-C', str(ROOT), 'status', '--porcelain'], text=True).strip())
     config = {'method': args.method, 'vit_size': args.vit_size, 'operator': args.operator,
               'degree': None if switching else args.degree, 'schedule': args.schedule, 'path': args.path,
-              'sources': sorted(set(args.sources)) if switching else None,
+              'sources': sorted(set(args.sources)) if switching or mixing else None,
+              'mix': sorted(set(args.mix)) if mixing else None, 'joint': args.joint,
               'matched_degree': args.matched_degree, 'own_setting': OWN[args.method][args.matched_degree] if own else None,
               'targets': sorted(set(args.targets)), 'eval_operators': args.eval_operators, 'scale': scale,
               'source': source, 'compensations': compensations, 'save_weights': args.save_weights,
@@ -408,9 +439,19 @@ def main(argv=None):
         controller.default_degree = valid_degree(args.schedule[len(records)])
         native_begin_task(evaluated)
 
+    # Mixed degrees: a generator of its own, so that the draws leave every other random stream as it was.
+    draws, steps = random.Random(args.seed), collections.Counter()
+
     def meta_observe(*inputs, **keywords):
         # Read-only: the loss Mammoth gets back, and the learning rate the step has just used.
-        loss = native_observe(*inputs, **keywords)
+        if mixing:
+            controller.default_degree = draws.choice(args.mix)
+            steps[controller.default_degree] += 1
+        try:
+            loss = native_observe(*inputs, **keywords)
+        finally:
+            if mixing:
+                controller.default_degree = args.degree
         optimizer = getattr(model, 'opt', None)
         progress.step(loss, optimizer.param_groups[0]['lr'] if optimizer is not None else None)
         return loss
@@ -427,6 +468,9 @@ def main(argv=None):
                   'task_il': list(accs[1]), 'state_sha256': state_digest(model.net)}
         if switching:
             record['degree'] = controller.default_degree
+        if mixing:
+            record['mix_steps'] = {str(degree): steps[degree] for degree in sorted(set(args.mix))}
+            steps.clear()
         if args.save_weights:
             # The whole method state, so that the model can be rebuilt and inferred again; no optimizer
             # and no replay buffer, so training cannot resume from it.

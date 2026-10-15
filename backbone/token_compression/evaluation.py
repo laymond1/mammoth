@@ -42,7 +42,7 @@ def preserved_state(model, loaders):
 
 
 @torch.no_grad()
-def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, scale, compensations=None):
+def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, scale, compensations=None, sink=None):
     """Class-IL accuracy per loader for the source row and every inference condition.
 
     ``source`` is the plug-in degree the model was trained at; the source row
@@ -61,6 +61,12 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
     A condition that cannot differ from the source row (the target is the
     source degree and the bank has nothing to correct) reports that row.
     Accuracy follows ``utils.evaluate``: argmax over the first ``n_classes`` logits.
+
+    ``sink``, when given, is called for every batch and condition as
+    ``sink(loader index, condition, logits, labels)``, with the first ``n_classes``
+    logits; the condition is None for the source row and ``(operator, label or
+    None, target)`` otherwise, conditions that report the source row included.
+    It lets a caller keep per-sample predictions; nothing else changes.
     """
     if source is not None:
         valid_degree(source)
@@ -85,41 +91,45 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
 
     labels = {name: [label for label, (_, _, only) in compensations.items() if only is None or name in only]
               for name in operators}
-    conditions = [(name, label, target) for name in operators for target in targets for label in (None, *labels[name])
-                  if not is_source(target, compensations[label][1] if label else ())]
+    every = [(name, label, target) for name in operators for target in targets for label in (None, *labels[name])]
+    conditions = [condition for condition in every if not is_source(condition[2], compensations[condition[1]][1] if condition[1] else ())]
+    reported = [condition for condition in every if condition not in conditions]
     instances = {name: OPERATORS[name]() for name in operators}
     result = {'source': [], 'samples': [], 'operators': {
         name: {'off': {str(t): [] for t in targets}, 'on': {label: {str(t): [] for t in targets} for label in labels[name]}}
         for name in operators}}
 
-    def correct(outputs, labels):
+    def correct(outputs, labels, index, condition):
         if outputs.shape[1] < n_classes or not torch.isfinite(outputs).all():
             raise ValueError('Invalid evaluation logits')
+        if sink is not None:
+            for each in ((None, *reported) if condition is None else (condition,)):
+                sink(index, each, outputs[:, :n_classes], labels)
         return torch.sum(outputs[:, :n_classes].argmax(1) == labels).item()
 
     try:
         with preserved_state(model, loaders):
-            for loader in loaders:
+            for index, loader in enumerate(loaders):
                 counts, source_count, total = {condition: 0. for condition in conditions}, 0., 0.
                 for batch in loader:
                     inputs, targets_ = batch[0].to(model.device), batch[1].to(model.device)
                     controller.operator, controller.bank = trained_operator, trained_bank
                     if source is None:
-                        source_count += correct(model(inputs), targets_)
+                        source_count += correct(model(inputs), targets_, index, None)
                     else:
                         with controller.degree(source):
-                            source_count += correct(model(inputs), targets_)
+                            source_count += correct(model(inputs), targets_, index, None)
                     for name, label, target in conditions:
                         controller.operator = instances[name]
                         if label is None:
                             with controller.degree(target):
-                                counts[name, label, target] += correct(model(inputs), targets_)
+                                counts[name, label, target] += correct(model(inputs), targets_, index, (name, label, target))
                                 controller.verify_pass()
                         else:
                             bank, degrees, _ = compensations[label]
                             controller.bank = banks[bank]
                             with compensate(model.net, degrees, target, scale):
-                                counts[name, label, target] += correct(model(inputs), targets_)
+                                counts[name, label, target] += correct(model(inputs), targets_, index, (name, label, target))
                                 controller.verify_pass()
                     total += targets_.shape[0]
                 if not total:

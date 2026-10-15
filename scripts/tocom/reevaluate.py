@@ -9,6 +9,10 @@ Examples (from the repository root):
     uv run --no-sync python -m scripts.tocom.reevaluate --run <run directory> --verify
     uv run --no-sync python -m scripts.tocom.reevaluate --run <run directory> --tasks 9 --targets 0 2 6 \\
         --banks tome=<bank dir> evit=<bank dir> --output <json file>
+
+``--predictions FILE`` also keeps, for every test sample and grid condition, the class-IL prediction, the
+prediction among the classes of the sample's own task (task-IL) and the largest logit of each task's classes
+(see ``Predictions``), and checks that they give the accuracy of the grid.
 """
 
 from scripts.cl_runtime import configure_native_environment
@@ -22,6 +26,7 @@ import os  # noqa: E402
 from pathlib import Path  # noqa: E402
 import tempfile  # noqa: E402
 
+import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
 from backbone.token_compression import OPERATORS, attach  # noqa: E402
@@ -39,7 +44,67 @@ def parse_args(argv=None):
     parser.add_argument('--banks', nargs='*', default=[], metavar='OPERATOR=DIR')
     parser.add_argument('--device', help='Default: the device of the run')
     parser.add_argument('--output', type=Path, help='Result file (default: <run>/reevaluation.json)')
+    parser.add_argument('--predictions', type=Path, help='Also keep per-sample predictions in this .npz file')
+    parser.add_argument('--source-only', action='store_true',
+                        help='Evaluate the model as it was evaluated in the run (the source row) and no other condition')
     return parser.parse_args(argv)
+
+
+class Predictions:
+    """Per-sample outputs of the grid conditions, as ``evaluate_grid`` passes them to its sink.
+
+    For a condition and a sample: ``pred``, the class-IL prediction (argmax over the classes seen); ``within``,
+    the argmax among the classes of the sample's own task, which is the task-IL prediction; ``task_max``, the
+    largest logit of each task's classes. A score offset per task moves ``task_max`` and leaves ``within``, so
+    the two give class-IL under any such offset. Conditions are named ``source`` or
+    ``<operator>/<bank label or off>/<target>``; with several tasks, ``t<task>:`` comes first.
+    """
+
+    def __init__(self, width):
+        self.width, self.prefix, self.arrays = width, '', {}
+
+    @staticmethod
+    def name(condition):
+        if condition is None:
+            return 'source'
+        operator, label, target = condition
+        return f'{operator}/{label or "off"}/{target}'
+
+    def __call__(self, index, condition, logits, labels):
+        blocks = logits.shape[1] // self.width
+        if blocks * self.width != logits.shape[1]:
+            raise ValueError('The classes seen are not a whole number of tasks')
+        tasks = logits.view(len(logits), blocks, self.width)
+        own = labels // self.width
+        values = {'pred': logits.argmax(1), 'within': tasks[torch.arange(len(logits)), own].argmax(1) + own * self.width,
+                  'task_max': tasks.amax(2)}
+        if condition is None:
+            values.update(label=labels, loader=torch.full_like(labels, index))
+        for key, value in values.items():
+            name = f'{self.prefix}{key}' if key in ('label', 'loader') else f'{self.prefix}{self.name(condition)}|{key}'
+            self.arrays.setdefault(name, []).append(value.cpu())
+
+    def check(self, grid):
+        """The accuracy of every condition, recomputed from the predictions, equals the grid's."""
+        labels, loaders = (torch.cat(self.arrays[f'{self.prefix}{key}']) for key in ('label', 'loader'))
+
+        def accuracy(name):
+            hits = torch.cat(self.arrays[f'{self.prefix}{name}|pred']) == labels
+            return [hits[loaders == index].sum().item() / (loaders == index).sum().item() * 100
+                    for index in range(len(grid['source']))]
+
+        if accuracy('source') != grid['source']:
+            raise RuntimeError('Predictions of the source row differ from the grid')
+        for operator, entry in grid['operators'].items():
+            for label, targets in (('off', entry['off']), *entry['on'].items()):
+                for target, values in targets.items():
+                    if accuracy(f'{operator}/{label}/{target}') != values:
+                        raise RuntimeError(f'Predictions of {operator}/{label}/{target} differ from the grid')
+
+    def save(self, path):
+        arrays = {name: torch.cat(values).numpy() for name, values in self.arrays.items()}
+        np.savez_compressed(path, **{name: value.astype(np.int16) if value.dtype == np.int64 else value
+                                     for name, value in arrays.items()})
 
 
 def replaced(arguments, **values):
@@ -94,16 +159,23 @@ def main(argv=None):
         if schedule:
             # A budget path: each task is evaluated at its own degree, with the bank from every source of the run.
             source, compensations = None, switch_plan(config['operator'], config['sources'])
+        elif config.get('mix'):
+            source, compensations = config['degree'], switch_plan(config['operator'], config['sources'])
         else:
             source, compensations = grid_plan(config['method'], config['degree'], config['matched_degree'], list(banks))
         targets = args.targets or config['targets']
         operators = args.eval_operators or config['eval_operators']
+        if args.source_only:
+            targets, operators, compensations = [], [], {}
         if source is not None and source not in targets:
             targets = sorted({*targets, source})
-        if schedule:
+        if schedule and not args.source_only:
             targets = sorted({*targets, *schedule})
 
         results = []
+        # Classes per task of the dataset as defined; joint training gives the instance one task of all classes.
+        predictions = Predictions(type(dataset).N_CLASSES_PER_TASK) if args.predictions else None
+        chosen = [record['task'] for record in records if args.tasks is None or record['task'] in args.tasks]
         for record in records:
             # Test loaders of the tasks seen so far are built task by task, as in training.
             dataset.get_data_loaders()
@@ -120,9 +192,13 @@ def main(argv=None):
                       'class_il_matches': list(class_il) == record['class_il'],
                       'task_il_matches': list(task_il) == record['task_il']}
             if not args.verify:
+                if predictions is not None:
+                    predictions.prefix = f't{record["task"]}:' if len(chosen) > 1 else ''
                 result.update(evaluate_grid(model, dataset.test_loaders, record['classes'],
                                             schedule[record['task']] if schedule else source, targets,
-                                            operators, banks, scale or config['scale'], compensations))
+                                            operators, banks, scale or config['scale'], compensations, predictions))
+                if predictions is not None:
+                    predictions.check(result)
             results.append(result)
             print(json.dumps({key: result[key] for key in ('task', 'state_matches', 'class_il_matches', 'task_il_matches')}))
     if args.verify:
@@ -132,6 +208,8 @@ def main(argv=None):
             raise SystemExit(f'Restored models differ from the record at tasks {failed}')
         print(f'verified {len(results)} tasks of {args.run.name}')
         return
+    if predictions is not None:
+        predictions.save(args.predictions)
     output = args.output or args.run / 'reevaluation.json'
     output.write_text(json.dumps({'run': args.run.name, 'targets': targets, 'eval_operators': operators,
                                   'records': results}, indent=2, allow_nan=False) + '\n')

@@ -339,6 +339,38 @@ def test_grid_matches_single_conditions_and_restores_state(tmp_path):
                     accuracy(loader, compensate(net, 8, target, .1)) for loader in loaders]
 
 
+def test_grid_sink_sees_every_condition_and_changes_nothing(tmp_path):
+    from torch.utils.data import DataLoader, TensorDataset
+    from backbone.token_compression import FrozenToCom
+    from backbone.token_compression.evaluation import evaluate_grid
+    net = small_vit()
+    torch.save({'model': bank_state()}, tmp_path / 'tome.pt')
+    banks = {'tome': FrozenToCom.from_checkpoint(tmp_path / 'tome.pt', depth=4, embed_dim=48)}
+    attach(net, 'tome', degree=8, bank=banks['tome'])
+    model = Toy(net).eval()
+    torch.manual_seed(4)
+    loaders = [DataLoader(TensorDataset(torch.randn(24, 3, 32, 32), torch.randint(low, low + 5, (24,))), batch_size=10)
+               for low in (0, 5)]
+    seen = {}
+
+    def sink(index, condition, logits, labels):
+        assert logits.shape == (len(labels), 10)
+        seen[index, condition] = seen.get((index, condition), 0) + int((logits.argmax(1) == labels).sum())
+
+    compensations = {f'src{d}': ('tome', (d,), None) for d in (0, 8)}
+    grid = evaluate_grid(model, loaders, 10, 8, [0, 8, 16], ['tome'], banks, .1, compensations, sink)
+    assert grid == evaluate_grid(model, loaders, 10, 8, [0, 8, 16], ['tome'], banks, .1, compensations)
+    # Every condition reaches the sink, those that report the source row (8 off, 8 from 8) included.
+    assert len(seen) == 2 * (1 + 3 * 3)
+    for index in (0, 1):
+        assert seen[index, None] / 24 * 100 == grid['source'][index]
+        entry = grid['operators']['tome']
+        for target in (0, 8, 16):
+            assert seen[index, ('tome', None, target)] / 24 * 100 == entry['off'][str(target)][index]
+            for label in compensations:
+                assert seen[index, ('tome', label, target)] / 24 * 100 == entry['on'][label][str(target)][index]
+
+
 def test_grid_runs_every_target_for_a_model_with_its_own_inference(tmp_path):
     from torch.utils.data import DataLoader, TensorDataset
     from backbone.token_compression import FrozenToCom, compensate
