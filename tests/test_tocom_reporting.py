@@ -529,6 +529,9 @@ def test_joint_and_mixed_runs_are_named_by_their_kind(tmp_path, capsys):
     within = report.Job.parse(['inf-lora', 'evit', 'P3M', '1993'])
     assert (within.kind, within.id, within.train, within.inference) == ('switch-mix', 'inf-lora-evit-P3M-seed1993', 'EViT P3M', 'EViT')
     assert '예산 경로 P3 안에서' in within.title
+    variant = report.Job.parse(['inf-lora', 'evit', 'P3MR', '1993'])
+    assert (variant.kind, variant.id) == ('switch-mix', 'inf-lora-evit-P3MR-seed1993') and '돌아오면 섞지 않음' in variant.title
+    assert report.Job.parse(['inf-lora', 'evit', 'P5MW', '1993']).kind == 'switch-mix'
     for broken in (['coda-prompt', 'own', 'J8', '1'], ['coda-prompt', 'tome', 'MIXED', '1'], ['coda-prompt', 'tome', 'J', '1']):
         with pytest.raises(ValueError):
             report.Job.parse(broken)
@@ -548,6 +551,8 @@ def test_joint_and_mixed_runs_are_named_by_their_kind(tmp_path, capsys):
     assert identity(dict(base, degree=8))['kind'] == 'plugin'
     fields = identity(dict(base, degree=None, schedule=[0] * 5 + [24] * 5, path='P5', mix=[0, 8, 16, 24], joint=False))
     assert (fields['kind'], fields['train_operator'], fields['train_degree']) == ('switch-mix', 'tome', 'P5M')
+    fields = identity(dict(base, degree=None, schedule=[0] * 5 + [24] * 5, path='P5', mix=[0, 8, 16, 24], mix_own=.5, joint=False))
+    assert fields['train_degree'] == 'P5MW'
 
 
 def test_a_summary_table_takes_named_and_numeric_degrees_and_can_be_uploaded_again(tmp_path, monkeypatch, capsys):

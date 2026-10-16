@@ -140,6 +140,12 @@ def test_joint_and_mixed_degrees_are_references_for_budget_paths():
     assert args.joint and args.degree == 8 and args.eval_operators == ['tome'] and args.mix is None
     args = run_cl.parse_args(common + mix + ['--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5])
     assert args.mix == [0, 8, 16, 24] and args.schedule[-1] == 24 and args.degree == 0 and args.eval_operators == ['tome']
+    args = run_cl.parse_args(common + mix + ['--mix-own', '.5', '--mix-no-return', '--path', 'P3', '--schedule', *'0 0 24 24 24 24 24 0 0 0'.split()])
+    assert args.mix_own == .5 and args.mix_no_return and run_cl.mix_suffix(args) == 'MRW'
+    assert run_cl.mix_suffix({'mix_own': None, 'mix_no_return': False}) == 'M'
+    for broken in (common + mix + ['--mix-own', '1.5'], common + mix + ['--mix-no-return'], common + ['--mix-own', '.5']):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)
     assert run_cl.joint_args('coda-prompt') == {'joint': 1}
     assert run_cl.joint_args('inf-lora') == {'joint': 1, 'lora_classes_per_task': 100}
     for broken in (common + mix + ['--joint'],                                                 # both

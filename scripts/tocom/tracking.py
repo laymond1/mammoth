@@ -24,7 +24,8 @@ def identity(config):
     ``switch-mix`` and the path's name followed by ``M``; joint training has kind ``joint`` and its degree.
     """
     if config.get('schedule') or config.get('mix'):
-        kind, degree = (('switch-mix', f'{config["path"]}M') if config.get('mix') else ('switch', config['path'])) \
+        suffix = 'M' + ('R' if config.get('mix_no_return') else '') + ('W' if config.get('mix_own') is not None else '')
+        kind, degree = (('switch-mix', f'{config["path"]}{suffix}') if config.get('mix') else ('switch', config['path'])) \
             if config.get('schedule') else ('mix', 'MIX')
         return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': kind,
                 'train_operator': config['operator'], 'train_degree': degree, 'seed': config['seed']}
