@@ -230,3 +230,18 @@ def test_shapes_are_checked_and_cost_what_the_budget_allows():
     # At 224 pixels the cost is the FLOPs a degree saves, as measured for the plug-in.
     stated = {0: 0, 4: 13, 8: 26, 10: 33, 13: 41, 16: 50}
     assert all(abs((1 - shape_cost(224, degree)) * 100 - percent) < 1 for degree, percent in stated.items())
+
+
+def test_latency_is_timed_per_shape_and_batch_and_leaves_the_controller_as_it_was():
+    from scripts.tocom.imagenet_check import parse_args, shape_latency
+    net, _ = network('mammoth-vit')
+    controller = attach(net.float(), 'tome', degree=2)
+    timings = shape_latency(net, controller, [(NATIVE, 0), (24, 4)], [1, 3], torch.device('cpu'), size=NATIVE,
+                            rounds=2, repeats=3, warmup=1)
+    assert list(timings) == ['32:0', '24:4'] and all(list(value) == ['1', '3'] for value in timings.values())
+    assert all(ms > 0 for value in timings.values() for ms in value.values())
+    assert (controller.resolution, controller.current) == (None, 2)
+    assert parse_args(['--weights', 'augreg', '--shapes', '176:8', '--latency', '1', '16']).latency == [1, 16]
+    for broken in (['--latency', '1'], ['--shapes', '176:8', '--latency', '0'], ['--shapes', '176:8', '--bank', 'x']):
+        with pytest.raises(SystemExit):
+            parse_args(['--weights', 'augreg', *broken])
