@@ -9,11 +9,11 @@ that owns that loop.
 
 from collections import namedtuple
 from contextlib import contextmanager
+from functools import lru_cache
 from types import MethodType
 
 import torch
 from torch.nn import functional as F
-from timm.layers import resample_abs_pos_embed
 
 from backbone import vit as mammoth_vit
 
@@ -95,12 +95,26 @@ FAMILIES = {'mammoth-vit': _mammoth, 'coda-vit': _load('coda'), 'sd-lora-vit': _
 POSITION = {'mammoth-vit': 'full', 'coda-vit': 'slice', 'inf-lora-vit': 'slice'}
 
 
+@lru_cache(maxsize=None)
+def _resampling(native, grid, dtype, device):
+    """The ``grid`` x ``grid`` positions as a fixed mixture of the ``native`` ones: timm's resampling of a position
+    embedding (``resample_abs_pos_embed``: bicubic, antialiased) applied to every native position alone, in double
+    precision."""
+    basis = torch.eye(native[0] * native[1], dtype=torch.float64).reshape(1, *native, -1).permute(0, 3, 1, 2)
+    weights = F.interpolate(basis, size=(grid, grid), mode='bicubic', antialias=True)
+    return weights.permute(0, 2, 3, 1).reshape(grid * grid, -1).to(dtype=dtype, device=device)
+
+
 def _resampled(encoder, grid):
-    """The position embedding of ``encoder`` resampled to a ``grid`` x ``grid`` patch grid, and its prefix length."""
+    """The position embedding of ``encoder`` resampled to a ``grid`` x ``grid`` patch grid, and its prefix length.
+
+    The resampling is a matrix product with fixed weights rather than the interpolation itself: CUDA has no
+    deterministic backward of the interpolation, and the gradient reaches the table whenever it requires one."""
     table = encoder.pos_embed
-    native = encoder.patch_embed.grid_size
+    native = tuple(encoder.patch_embed.grid_size)
     prefix = table.shape[1] - native[0] * native[1]
-    return resample_abs_pos_embed(table, (grid, grid), old_size=native, num_prefix_tokens=prefix), prefix
+    weights = _resampling(native, grid, table.dtype, table.device)
+    return torch.cat((table[:, :prefix], weights @ table[:, prefix:]), dim=1), prefix
 
 
 def _resize_input(module, args):
@@ -147,7 +161,7 @@ def _make_resizable(name, controller, members):
     """Let the encoders of a family take inputs below their native resolution, when the controller says so.
 
     At the native resolution nothing changes. Otherwise the images are resized (bicubic, antialiased) before
-    the patch embedding and the position embedding is resampled (bicubic, as timm does) to the new grid.
+    the patch embedding and the position embedding is resampled (bicubic, antialiased, as timm does) to the new grid.
     Hooks find their encoder through the module they run on, so a deep copy (a distillation teacher) uses
     its own position embedding.
     """

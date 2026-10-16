@@ -10,6 +10,7 @@ from torch.nn import functional as F
 
 from backbone.token_compression import (FrozenToCom, attach, compensate, detach, find_encoder, parse_shape, shape_cost,
                                         shape_label, valid_resolution)
+from backbone.token_compression.adapters import _resampled
 from backbone.token_compression.evaluation import evaluate_shapes
 from backbone.token_compression.reducers import OPERATORS
 from backbone.vit import VisionTransformer as MammothViT
@@ -62,6 +63,13 @@ def images(count=2, seed=1):
     return torch.randn(count, 3, NATIVE, NATIVE, generator=torch.Generator().manual_seed(seed)).double()
 
 
+def resampled_reference(table, grid):
+    """timm's resampling of a position embedding with a class token (bicubic, antialiased), in double precision."""
+    patches = table[:, 1:].reshape(1, GRID, GRID, -1).permute(0, 3, 1, 2)
+    patches = F.interpolate(patches, size=(grid, grid), mode='bicubic', antialias=True)
+    return torch.cat((table[:, :1], patches.permute(0, 2, 3, 1).reshape(1, grid * grid, -1)), dim=1)
+
+
 def bank_for(tmp_path, depth=4, dim=48, width=32):
     generator = torch.Generator().manual_seed(5)
     state = {f'blocks.{i}.attn.{q}_tocom.adapter_{part}.weight':
@@ -104,7 +112,7 @@ def test_another_resolution_equals_an_encoder_built_for_it(family, resolution):
     x, grid = images(), resolution // 4
     reference = BUILD[family](resolution).double().eval()
     state = encoder.state_dict()
-    state['pos_embed'] = resample_abs_pos_embed(state['pos_embed'], (grid, grid), old_size=(GRID, GRID), num_prefix_tokens=1)
+    state['pos_embed'] = resampled_reference(state['pos_embed'], grid)
     reference.load_state_dict(state)
     small = F.interpolate(x, size=(resolution, resolution), mode='bicubic', align_corners=False, antialias=True)
     controller = attach(net, 'tome')
@@ -126,6 +134,39 @@ def test_another_resolution_equals_an_encoder_built_for_it(family, resolution):
 
 
 @pytest.mark.parametrize('family', list(BUILD))
+def test_the_gradient_reaches_every_native_position_without_an_interpolation(family):
+    # CUDA has no deterministic backward of an interpolation, so none may lie between the loss and the table;
+    # the gradient still reaches the native positions the resampled grid is made of, not only the leading rows.
+    net, encoder = network(family)
+    controller = attach(net, 'tome')
+    with controller.shape(24, 0):
+        loss = features(family, encoder, images()).square().mean()
+    names, seen, stack = set(), set(), [loss.grad_fn]
+    while stack:
+        node = stack.pop()
+        if node is None or node in seen:
+            continue
+        seen.add(node)
+        names.add(type(node).__name__)
+        stack.extend(child for child, _ in node.next_functions)
+    assert not any('Upsample' in name for name in names)
+    loss.backward()
+    assert encoder.pos_embed.grad[0, 1 + 36:].abs().sum(1).gt(0).all()
+
+
+def test_the_resampling_is_timms_as_a_fixed_linear_map():
+    _, encoder = network('mammoth-vit')
+    table, prefix = _resampled(encoder, 6)
+    assert prefix == 1 and torch.allclose(table, resampled_reference(encoder.pos_embed, 6), rtol=0, atol=1e-12)
+    timm = resample_abs_pos_embed(encoder.pos_embed.float(), (6, 6), old_size=(GRID, GRID), num_prefix_tokens=1)
+    assert torch.allclose(table.float(), timm, rtol=0, atol=1e-6)
+    upstream = torch.randn_like(table)
+    mine = torch.autograd.grad((_resampled(encoder, 6)[0] * upstream).sum(), encoder.pos_embed)[0]
+    reference = torch.autograd.grad((resampled_reference(encoder.pos_embed, 6) * upstream).sum(), encoder.pos_embed)[0]
+    assert torch.allclose(mine, reference, rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize('family', list(BUILD))
 def test_a_copied_encoder_resamples_its_own_position_embedding(family):
     net, encoder = network(family)
     controller = attach(net, 'tome')
@@ -135,7 +176,8 @@ def test_a_copied_encoder_resamples_its_own_position_embedding(family):
     with torch.no_grad(), controller.shape(24, 0):
         before = features(family, copied, x)
         assert torch.equal(features(family, encoder, x), before)
-        encoder.pos_embed.add_(1.)
+        # Not a constant: the layer norms would remove a shift of every channel.
+        encoder.pos_embed.add_(torch.randn_like(encoder.pos_embed))
         assert torch.equal(features(family, copied, x), before)
         assert not torch.allclose(features(family, encoder, x), before)
 
