@@ -25,6 +25,11 @@ or more): training at mixed degrees within the budget of the moment. ``--mix-no-
 budget came back (its degree is below an earlier task's) at its own degree only, and ``--mix-own SHARE`` draws the
 degree the step would otherwise run at with that probability and the others uniformly.
 
+``--resolution R`` feeds the encoder images of R pixels per side (resized before the patch embedding, with the
+position embedding resampled) in training and in Mammoth's evaluation, at the training degree: one input shape
+(R, degree). ``--eval-shapes R:D ...`` also evaluates every task at those shapes with the training operator and
+no bank. Banks are trained at 224 pixels, so a run at another resolution takes none.
+
 Every run keeps its records in its own directory. ``--wandb ENTITY/PROJECT`` also
 mirrors them to Weights & Biases; Mammoth's own logging there stays off.
 
@@ -38,6 +43,8 @@ Examples (from the repository root):
         --output results/tocom-switch
     uv run --no-sync python -m scripts.tocom.run_cl --method inf-lora --operator evit --mix 0 8 16 24 \\
         --banks evit=<bank dir> --targets 0 4 8 12 16 20 24 --seed 1993 --output results/tocom-bounds
+    uv run --no-sync python -m scripts.tocom.run_cl --method coda-prompt --operator tome --degree 8 --resolution 176 \\
+        --targets 8 --eval-shapes 224:0 224:24 176:8 144:0 --seed 1993 --output results/idea-res-shapes-0b
 """
 
 from scripts.cl_runtime import DEFAULT_PROFILE, configure_native_environment
@@ -58,9 +65,10 @@ import time  # noqa: E402
 import torch  # noqa: E402
 
 import main as mammoth  # noqa: E402
-from backbone.token_compression import OPERATORS, FrozenToCom, attach, encoders, valid_degree  # noqa: E402
+from backbone.token_compression import (OPERATORS, FrozenToCom, attach, encoders, parse_shape, shape_cost,  # noqa: E402
+                                        shape_label, valid_degree, valid_resolution)
 from backbone.token_compression.compensator import OFFICIAL_COMMIT, file_sha256  # noqa: E402
-from backbone.token_compression.evaluation import evaluate_grid  # noqa: E402
+from backbone.token_compression.evaluation import evaluate_grid, evaluate_shapes  # noqa: E402
 from scripts.tocom.tracking import Mirror, Progress  # noqa: E402
 from utils.conf import create_seeded_dataloader  # noqa: E402
 
@@ -170,6 +178,8 @@ def switch_plan(operator, sources):
 
 
 METHODS = ('er', 'coda-prompt', 'sd-lora', 'lwf-mc', 'inf-lora', 'ewc-lora', 'ease', 'cps-prompt', 'rep-prompt')
+# Methods whose encoders the plug-in can feed at another resolution (backbone.token_compression.adapters.POSITION).
+RESIZABLE = ('er', 'lwf-mc', 'coda-prompt', 'inf-lora')
 
 
 def parse_args(argv=None):
@@ -198,6 +208,10 @@ def parse_args(argv=None):
     parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
                         help='CPS-Prompt and REP: the ToMe training degree their own compression equals in FLOPs')
     parser.add_argument('--targets', type=int, nargs='+', default=[0, 4, 8, 10, 13, 16], help='Inference degrees')
+    parser.add_argument('--resolution', type=int,
+                        help='Input side length in training and in the grid, a multiple of 16 up to 224 (default: 224)')
+    parser.add_argument('--eval-shapes', nargs='+', default=[], metavar='R:D',
+                        help='Also evaluate every task at these input shapes (resolution:degree), training operator, no bank')
     parser.add_argument('--eval-operators', nargs='+', choices=tuple(OPERATORS),
                         help='Operators to infer with; default: all at degree 0, else the training operator')
     parser.add_argument('--banks', nargs='*', default=[], metavar='OPERATOR=DIR',
@@ -266,6 +280,22 @@ def parse_args(argv=None):
         args.eval_operators = [args.operator]
     if args.degree not in args.targets:
         parser.error('Inference degrees must include the training degree')
+    try:
+        if args.resolution is not None:
+            # 224 is the native resolution: such a run is an ordinary run.
+            args.resolution = None if valid_resolution(args.resolution) == 224 else args.resolution
+        args.eval_shapes = [parse_shape(text) for text in args.eval_shapes]
+    except ValueError as error:
+        parser.error(str(error))
+    if len(set(args.eval_shapes)) != len(args.eval_shapes):
+        parser.error('Every evaluation shape once')
+    if args.resolution is not None or args.eval_shapes:
+        if args.method not in RESIZABLE:
+            parser.error(f'Another input resolution is supported for {", ".join(RESIZABLE)} only')
+        if args.schedule is not None or args.mix is not None or args.joint:
+            parser.error('--resolution and --eval-shapes are for one training shape: not with --schedule, --mix or --joint')
+    if args.resolution is not None and args.banks:
+        parser.error('The banks are trained at 224 pixels: no --banks with another --resolution')
     if (args.method in OWN) != (args.matched_degree is not None):
         parser.error('--matched-degree is required for CPS-Prompt and REP, and is only theirs')
     if args.method in OWN and (args.degree or args.vit_size != 'tiny'):
@@ -407,6 +437,8 @@ def main(argv=None):
                   f'{args.method}-{args.operator}-{args.path}-seed{args.seed}' if switching else
                   f'{args.method}-{args.operator}-MIX-seed{args.seed}' if mixing else
                   f'{args.method}-{args.operator}-J{args.degree}-seed{args.seed}' if args.joint else
+                  f'{args.method}-{args.operator}-r{args.degree}-px{args.resolution}-seed{args.seed}'
+                  if args.resolution is not None else
                   f'{args.method}-{args.operator}-r{args.degree}-seed{args.seed}')
     run = (args.output / (args.run_id or default_id)).resolve()
     run.mkdir(parents=True, exist_ok=False)
@@ -428,6 +460,8 @@ def main(argv=None):
     banks, bank_records, scale = load_banks(args.banks, digest, len(encoder.blocks), encoder.embed_dim,
                                             args.allow_partial_banks)
     controller = attach(model.net, args.operator, degree=args.degree, bank=banks.get(args.operator))
+    # Mammoth's own evaluation and the grid run at the training shape as well.
+    controller.default_resolution = controller.check_resolution(args.resolution)
     if switching or mixing:
         if not args.no_grid:
             if args.operator not in banks:
@@ -450,7 +484,11 @@ def main(argv=None):
               'targets': sorted(set(args.targets)), 'eval_operators': args.eval_operators, 'scale': scale,
               'source': source, 'compensations': compensations, 'save_weights': args.save_weights,
               'seed': args.seed, 'grid': not args.no_grid, 'deterministic': args.deterministic,
-              'batch_size': args.batch_size, 'eval_batch_size': args.eval_batch_size, 'native_arguments': arguments}
+              'batch_size': args.batch_size, 'eval_batch_size': args.eval_batch_size,
+              'resolution': args.resolution, 'eval_shapes': [shape_label(*shape) for shape in args.eval_shapes],
+              'cost': None if switching or mixing or own else shape_cost(
+                  args.resolution or controller.native or 224, args.degree, encoder.embed_dim, len(encoder.blocks)),
+              'native_arguments': arguments}
     (run / 'config.json').write_text(json.dumps(config, indent=2) + '\n')
     (run / 'provenance.json').write_text(json.dumps({
         'commit': commit, 'dirty': dirty, 'family': family, 'backbone_canonical_sha256': digest,
@@ -530,6 +568,11 @@ def main(argv=None):
             if grid['source'] != record['class_il']:
                 raise RuntimeError(f'Grid source row differs from Mammoth: {grid["source"]} vs {accs[0]}')
             record.update(grid, grid_seconds=time.perf_counter() - started)
+        if args.eval_shapes:
+            started = time.perf_counter()
+            record['shapes'] = evaluate_shapes(model, evaluated.test_loaders, record['classes'], args.eval_shapes,
+                                               args.operator)
+            record['shapes_seconds'] = time.perf_counter() - started
         native_end_eval(evaluated, accs)
         record['seconds'] = progress.end_task()
         records.append(record)

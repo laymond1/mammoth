@@ -181,3 +181,24 @@ def test_predictions_keep_class_and_task_il_and_check_the_grid(tmp_path):
     assert saved['tome/off/8|task_max'].tolist() == [[3, 2], [5, 6], [1, 4]]
     with pytest.raises(ValueError):
         keep(0, None, logits[:, :3], labels)
+
+
+def test_a_run_at_another_resolution_trains_and_is_inferred_at_one_shape():
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused',
+              '--targets', '0', '4', '8', '12', '16', '20', '24']
+    args = run_cl.parse_args(common + ['--degree', '8', '--resolution', '176', '--eval-shapes', '224:0', '176:8', '128:0'])
+    assert args.resolution == 176 and args.eval_shapes == [(224, 0), (176, 8), (128, 0)] and args.eval_operators == ['tome']
+    # 224 pixels is an ordinary run; ER evaluates other shapes of a model trained at 224.
+    assert run_cl.parse_args(common + ['--resolution', '224']).resolution is None
+    assert run_cl.parse_args(['--method', 'er', '--seed', '1', '--output', 'unused', '--eval-shapes', '128:0']).eval_shapes == [(128, 0)]
+    for broken in (common + ['--resolution', '100'],                                       # not whole patches
+                   common + ['--resolution', '240'],                                       # above 224
+                   common + ['--eval-shapes', '176'],                                      # no degree
+                   common + ['--eval-shapes', '176:8', '176:8'],                           # twice
+                   common + ['--resolution', '176', '--banks', 'tome=unused'],             # banks are trained at 224
+                   common + ['--mix', '0', '8', '16', '24', '--resolution', '176'],        # mixed degrees
+                   common + ['--joint', '--degree', '8', '--eval-shapes', '224:0'],        # joint training
+                   common + ['--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5, '--resolution', '176'],
+                   ['--method', 'sd-lora', '--seed', '1', '--output', 'unused', '--resolution', '176']):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)

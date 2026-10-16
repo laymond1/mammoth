@@ -12,6 +12,7 @@ import torch
 
 from .adapters import compensate, find_encoder
 from .reducers import OPERATORS, valid_degree
+from .shapes import shape_label
 
 
 @contextmanager
@@ -148,4 +149,46 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
                                                                    else counts[name, label, target] / total * 100)
     finally:
         controller.operator, controller.bank = trained_operator, trained_bank
+    return result
+
+
+@torch.no_grad()
+def evaluate_shapes(model, loaders, n_classes, shapes, operator):
+    """Class-IL accuracy per loader at every input shape, without a bank.
+
+    ``shapes`` are ``(resolution, degree)`` pairs, resolution None for the native one; reductions use
+    ``operator``. Batches and accuracy are those of ``evaluate_grid``, and the model, the random state and
+    the loaders are left as they were. Returns ``{"resolution:degree": [accuracy per loader]}``.
+    """
+    _, encoder = find_encoder(model.net)
+    controller = encoder.token_compression
+    shapes = [(controller.native if resolution is None else resolution, valid_degree(degree)) for resolution, degree in shapes]
+    for resolution, _ in shapes:
+        controller.check_resolution(resolution)
+    labels = [shape_label(resolution, degree) for resolution, degree in shapes]
+    if len(set(labels)) != len(labels):
+        raise ValueError('Every shape is evaluated once')
+    trained_operator, instance = controller.operator, OPERATORS[operator]()
+    result = {label: [] for label in labels}
+    try:
+        with preserved_state(model, loaders):
+            for loader in loaders:
+                counts, total = dict.fromkeys(labels, 0.), 0.
+                for batch in loader:
+                    inputs, targets = batch[0].to(model.device), batch[1].to(model.device)
+                    controller.operator = instance
+                    for (resolution, degree), label in zip(shapes, labels):
+                        with controller.shape(resolution, degree):
+                            outputs = model(inputs)
+                            controller.verify_pass()
+                        if outputs.shape[1] < n_classes or not torch.isfinite(outputs).all():
+                            raise ValueError('Invalid evaluation logits')
+                        counts[label] += torch.sum(outputs[:, :n_classes].argmax(1) == targets).item()
+                    total += targets.shape[0]
+                if not total:
+                    raise ValueError('Empty evaluation loader')
+                for label in labels:
+                    result[label].append(counts[label] / total * 100)
+    finally:
+        controller.operator = trained_operator
     return result

@@ -4,6 +4,8 @@ from .adapters import attach, compensate, detach, encoders, find_encoder
 from .compensator import FrozenToCom, TrainableToCom
 from .controller import CompressionController
 from .reducers import MAX_DEGREE, OPERATORS, planned, schedule, valid_degree
+from .shapes import parse_shape, shape_cost, shape_label, valid_resolution
 
 __all__ = ['attach', 'compensate', 'detach', 'encoders', 'find_encoder', 'CompressionController', 'FrozenToCom', 'TrainableToCom',
-           'MAX_DEGREE', 'OPERATORS', 'planned', 'schedule', 'valid_degree']
+           'MAX_DEGREE', 'OPERATORS', 'planned', 'schedule', 'valid_degree',
+           'parse_shape', 'shape_cost', 'shape_label', 'valid_resolution']

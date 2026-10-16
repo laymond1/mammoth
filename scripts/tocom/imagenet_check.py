@@ -7,6 +7,9 @@ model at ``target`` moves back to the same model at ``source``: accuracy,
 KL to the source-degree output and top-1 agreement. A working bank lowers the
 KL in every pair. Read-only apart from the optional ``--output`` file.
 
+With ``--shapes R:D ...`` it reports top-1 at those input shapes instead (the 224-pixel centre crop resized to
+R pixels, then D tokens removed per block with ``--operator``), without a bank.
+
 Run from the repository root:
     uv run --no-sync python -m scripts.tocom.imagenet_check --weights augreg --operator tome
 """
@@ -27,7 +30,8 @@ from torchvision import transforms  # noqa: E402
 from torchvision.datasets import ImageFolder  # noqa: E402
 from torchvision.transforms import InterpolationMode  # noqa: E402
 
-from backbone.token_compression import OPERATORS, FrozenToCom, attach, compensate  # noqa: E402
+from backbone.token_compression import (OPERATORS, FrozenToCom, attach, compensate, parse_shape,  # noqa: E402
+                                        shape_cost, shape_label)
 from backbone.token_compression.reference import augreg_reference, deit_reference  # noqa: E402
 
 DEGREES = (0, 4, 8, 12, 16)
@@ -45,6 +49,8 @@ def parse_args(argv=None):
     parser.add_argument('--degrees', type=int, nargs='+', default=list(DEGREES), help='Inference degrees')
     parser.add_argument('--sources', type=int, nargs='+', default=list(SOURCES),
                         help='With a bank: degrees the compensated model is pulled back to')
+    parser.add_argument('--shapes', nargs='+', default=[], metavar='R:D',
+                        help='Report top-1 at these input shapes (resolution:degree) instead, without a bank')
     parser.add_argument('--data', help='ImageNet root containing val/<synset>/; default from the runtime profile')
     parser.add_argument('--stride', type=int, default=1, help='Evaluate every n-th validation image')
     parser.add_argument('--batch-size', type=int, default=250)
@@ -57,6 +63,12 @@ def parse_args(argv=None):
         parser.error('stride and batch size must be positive')
     args.sources = sorted(set(args.sources))
     args.degrees = sorted({*args.degrees, *args.sources})
+    try:
+        args.shapes = [parse_shape(text) for text in args.shapes]
+    except ValueError as error:
+        parser.error(str(error))
+    if args.shapes and args.bank:
+        parser.error('--shapes is evaluated without a bank')
     return args
 
 
@@ -98,6 +110,20 @@ def check(model, loader, controller, degrees, pairs, scale, device):
     return total, accuracy, rows
 
 
+@torch.no_grad()
+def check_shapes(model, loader, controller, shapes, device):
+    correct, total = {shape: 0 for shape in shapes}, 0
+    for images, labels in loader:
+        images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+        for shape in shapes:
+            with controller.shape(*shape):
+                outputs = model(images)
+                controller.verify_pass()
+            correct[shape] += int((outputs.argmax(1) == labels).sum())
+        total += len(labels)
+    return total, {shape_label(*shape): 100 * correct[shape] / total for shape in shapes}
+
+
 def main(argv=None):
     args = parse_args(argv)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -121,6 +147,19 @@ def main(argv=None):
     pairs = [(source, target) for source in args.sources for target in args.degrees if source != target] if bank else []
 
     started = time.time()
+    if args.shapes:
+        total, by_shape = check_shapes(model, loader, controller, args.shapes, device)
+        costs = {shape_label(*shape): shape_cost(*shape, model.embed_dim, len(model.blocks)) for shape in args.shapes}
+        result = {'weights': args.weights, 'vit_size': args.vit_size if args.weights == 'augreg' else None,
+                  'backbone_canonical_sha256': model.canonical_pretrained_sha256, 'operator': args.operator,
+                  'images': total, 'seconds': round(time.time() - started, 1), 'torch': torch.__version__,
+                  'accuracy_by_shape': by_shape, 'cost_by_shape': costs}
+        if args.output:
+            args.output.write_text(json.dumps(result, indent=2) + '\n')
+        print(f'{args.weights} {args.operator}: images={total} seconds={result["seconds"]}')
+        for label, value in by_shape.items():
+            print(f'  {label:>7}  cost {costs[label]:.3f}  top-1 {value:.2f}')
+        return result
     total, accuracy, rows = check(model, loader, controller, args.degrees, pairs, args.scale, device)
     result = {'weights': args.weights, 'vit_size': args.vit_size if args.weights == 'augreg' else None,
               'backbone_canonical_sha256': model.canonical_pretrained_sha256, 'operator': args.operator,

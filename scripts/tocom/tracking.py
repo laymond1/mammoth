@@ -21,7 +21,8 @@ def identity(config):
 
     A run on a budget path has kind ``switch`` and the name of its path as training degree; a run with mixed
     degrees has kind ``mix`` and training degree ``MIX``, one with mixed degrees within the budget of a path kind
-    ``switch-mix`` and the path's name followed by ``M``; joint training has kind ``joint`` and its degree.
+    ``switch-mix`` and the path's name followed by ``M``; joint training has kind ``joint`` and its degree. A run
+    at another input resolution than 224 pixels has kind ``shape``, its degree and ``train_resolution``.
     """
     if config.get('schedule') or config.get('mix'):
         suffix = 'M' + ('R' if config.get('mix_no_return') else '') + ('W' if config.get('mix_own') is not None else '')
@@ -32,6 +33,10 @@ def identity(config):
     if config.get('joint'):
         return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'joint',
                 'train_operator': config['operator'], 'train_degree': config['degree'], 'seed': config['seed']}
+    if config.get('resolution'):
+        return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'shape',
+                'train_operator': config['operator'] if config['degree'] else 'none', 'train_degree': config['degree'],
+                'train_resolution': config['resolution'], 'seed': config['seed']}
     own = config['matched_degree'] is not None
     degree = config['matched_degree'] if own else config['degree']
     kind = 'none' if not degree else 'own' if own else 'plugin'
@@ -69,6 +74,9 @@ def task_metrics(record):
     for key, name in (('seconds', 'task_minutes'), ('grid_seconds', 'grid_minutes')):
         if key in record:
             metrics[f'time/{name}'] = record[key] / 60
+    for label, accuracies in record.get('shapes', {}).items():
+        resolution, _, degree = label.partition(':')
+        metrics[f'shape/{resolution}px-r{int(degree):02d}'] = _mean(accuracies)
     values = {(name, kind, degree): value for name, kind, degree, value in _conditions(record)}
     for (name, kind, degree), value in values.items():
         metrics[f'{name}-{kind}/r{degree:02d}'] = value
@@ -143,7 +151,9 @@ class Mirror:
             job_type='train', tags=[experiment, fields['kind'], fields['family']], dir=str(directory),
             config={'experiment': experiment, **fields, **extra,
                     **{key: config[key] for key in ('vit_size', 'own_setting', 'targets', 'eval_operators', 'scale',
-                                                    'deterministic', 'save_weights')}})
+                                                    'deterministic', 'save_weights')},
+                    # Runs that evaluate other input shapes name them and their own cost.
+                    **{key: config[key] for key in ('eval_shapes', 'cost') if config.get('eval_shapes')}})
         try:
             import wandb
             # No console capture, code or diff upload: the run directory holds the log and the provenance.

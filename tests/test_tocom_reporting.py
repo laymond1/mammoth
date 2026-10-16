@@ -616,3 +616,56 @@ def test_a_summary_table_takes_named_and_numeric_degrees_and_can_be_uploaded_aga
     degree = columns.index('train_degree')
     assert {row[degree] for row in data} == {'8', 'MIX'} and seen['saved'].endswith('final_grid.csv')
     assert 'uploaded to https://wandb.ai/someone/some-project/runs/abc123 (run abc123 continued)' in capsys.readouterr().out
+
+
+def test_runs_at_another_resolution_are_named_by_their_shape(tmp_path, capsys):
+    shape, plain = report.Job.parse(['coda-prompt', 'tome', '8px176', '1993']), report.Job.parse(['inf-lora', 'tome', '0px128', '1'])
+    assert (shape.kind, shape.id, shape.train, shape.brief, shape.inference) == \
+        ('shape', 'coda-prompt-tome-r8-px176-seed1993', '176/8', '176 px + 8', 'ToMe')
+    assert 'ToMe 학습 압축도 8, 입력 176 px' in shape.title and '압축 없이, 입력 128 px' in plain.title
+    assert plain.id == 'inf-lora-tome-r0-px128-seed1' and report.Job.parse(['er', 'tome', '0', '1']).kind == 'none'
+    for broken in (['coda-prompt', 'own', '8px176', '1'], ['coda-prompt', 'tome', 'px176', '1'], ['coda-prompt', 'tome', '8px', '1']):
+        with pytest.raises(ValueError):
+            report.Job.parse(broken)
+    root = tmp_path / 'idea-res-shapes-0b'
+    (root / 'logs').mkdir(parents=True)
+    lines = [f'{method} tome {value} 1993' for method in ('coda-prompt', 'inf-lora') for value in ('0px128', '0px144', '8px176')]
+    (root / 'jobs.txt').write_text(''.join(f'{line}\n' for line in lines))
+    (root / 'estimates.json').write_text(json.dumps({line.rsplit(' ', 1)[0]: 1800 for line in lines}))
+
+    def call(*arguments):
+        report.main(['--experiment', str(root), '--dry-run', *map(str, arguments)])
+
+    call('kickoff', '--workers', 6)
+    assert '해상도를 바꿔 학습 6(모양 3개)' in capsys.readouterr().out
+    for line in lines:
+        job = report.Job.parse(line.split())
+        degree, resolution = map(int, job.value.split('px'))
+        call('start', *line.split(), '--gpu', 0)
+        config = dict(config_of(job.method, 'tome', degree, seed=1993), targets=[degree], eval_operators=['tome'],
+                      compensations=None, resolution=resolution, eval_shapes=['224:0', '176:8'], cost=.35)
+        record = {'task': 1, 'class_il': [62., 52.], 'task_il': [90., 80.], 'seconds': 60., 'grid_seconds': 1.,
+                  'operators': {'tome': {'off': {str(degree): [62., 52.]}, 'on': {}}},
+                  'shapes': {'224:0': [70., 60.], '176:8': [64., 56.]}}
+        (root / job.id).mkdir()
+        for name, content in (('config.json', config), ('metrics.json', [record]), ('summary.json', {'execution_status': 'completed'})):
+            (root / job.id / name).write_text(json.dumps(content))
+        call('finish', *line.split(), '--exit-code', 0)
+    text = capsys.readouterr().out
+    assert 'idea-res-shapes-0b 끝남' in text and '```\nmethod   base' not in text
+    with report.Queue(root).locked() as queue:
+        assert report.results(queue, [report.Job.parse(lines[2].split()).id])[1] == 'CODA     176/8   1993 57.0    -'
+    import csv
+    with (root / 'reports' / 'final_grid.csv').open() as stream:
+        rows = list(csv.DictReader(stream))
+    assert {row['kind'] for row in rows} == {'shape'} and {row['train_resolution'] for row in rows} == {'128', '144', '176'}
+    native = [row for row in rows if row['infer_resolution'] == '224']
+    assert len(rows) == 18 and len(native) == 6 and {(row['infer_degree'], row['accuracy']) for row in native} == {('0', '65.0')}
+    fields = identity(config)
+    assert (fields['kind'], fields['train_operator'], fields['train_degree'], fields['train_resolution']) == ('shape', 'tome', 8, 176)
+    assert identity(dict(config, degree=0))['train_operator'] == 'none' and 'train_resolution' not in identity(dict(config, resolution=None))
+    metrics = task_metrics(record)
+    assert metrics['shape/224px-r00'] == 65 and metrics['shape/176px-r08'] == 60 and metrics['tome-off/r08'] == 57
+    # Summary tables of a queue whose runs name more fields than others keep every field.
+    columns, data = report.table_data([{'kind': 'none', 'accuracy': 60.}, {'kind': 'shape', 'accuracy': 61., 'train_resolution': 176}])
+    assert columns == ['kind', 'accuracy', 'train_resolution'] and data == [['none', 60., None], ['shape', 61., 176]]
