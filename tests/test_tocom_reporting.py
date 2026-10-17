@@ -701,3 +701,17 @@ def test_a_kickoff_counts_the_references_beside_the_named_kinds(tmp_path, capsys
     (root / 'estimates.json').write_text(json.dumps({line.rsplit(' ', 1)[0]: 1800 for line in lines}))
     report.main(['--experiment', str(root), '--dry-run', 'kickoff', '--workers', '8'])
     assert '실행 8개\n압축 없이 학습 2 · plug-in으로 줄여 학습 2 · 해상도를 바꿔 학습 4(모양 2개) (방법 2개' in capsys.readouterr().out
+
+
+def test_paths_at_the_shapes_of_their_budgets_are_named_by_a_suffix():
+    fixed, mixed = report.Job.parse(['coda-prompt', 'tome', 'P5S', '1993']), report.Job.parse(['inf-lora', 'tome', 'P3MS', '1993'])
+    assert (fixed.kind, fixed.id, mixed.kind, mixed.id) == ('switch', 'coda-prompt-tome-P5S-seed1993', 'switch-mix', 'inf-lora-tome-P3MS-seed1993')
+    assert '예산 경로 P5 (예산마다 정한 해상도 모양)' in fixed.title and '예산 경로 P3 안에서 해상도 모양을 섞어 학습' in mixed.title
+    assert '예산 경로 P3 안에서 섞어 학습 (돌아오면 섞지 않음)' in report.Job.parse(['inf-lora', 'tome', 'P3MR', '1']).title
+    assert mixed.brief == 'ToMe 경로 P3 모양 섞음' and report.Job.parse(['inf-lora', 'tome', 'P3MR', '1']).brief == 'ToMe 경로 P3 섞음 R'
+    with pytest.raises(ValueError):
+        report.Job.parse(['coda-prompt', 'tome', 'P5SM', '1'])
+    base = dict(method='coda-prompt', operator='tome', seed=1, path='P5', schedule=[0] * 5 + [24] * 5, matched_degree=None, joint=False)
+    assert identity(dict(base, degree=None, mix=None, budget_shapes={'24': '176:8'}))['train_degree'] == 'P5S'
+    assert identity(dict(base, degree=None, mix=[0, 8, 16, 24], mix_shapes=True, budget_shapes={'24': '176:8'}))['train_degree'] == 'P5MS'
+    assert identity(dict(base, degree=None, mix=[0, 8, 16, 24]))['train_degree'] == 'P5M'

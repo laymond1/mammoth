@@ -25,6 +25,11 @@ or more): training at mixed degrees within the budget of the moment. ``--mix-no-
 budget came back (its degree is below an earlier task's) at its own degree only, and ``--mix-own SHARE`` draws the
 degree the step would otherwise run at with that probability and the others uniformly.
 
+On a budget path, ``--budget-shapes B=R:D ...`` trains and evaluates a task of budget B at the shape (R, D) instead of
+(224, B), and ``--mix-shapes`` with ``--mix`` replaces every drawn degree by a shape of that budget level drawn
+uniformly from ``SHAPE_LEVELS``. Banks are trained at 224 pixels, so such runs take ``--no-grid`` and are evaluated
+with ``--eval-shapes``.
+
 ``--resolution R`` feeds the encoder images of R pixels per side (resized before the patch embedding, with the
 position embedding resampled) in training and in Mammoth's evaluation, at the training degree: one input shape
 (R, degree). ``--eval-shapes R:D ...`` also evaluates every task at those shapes with the training operator and
@@ -78,6 +83,11 @@ ROOT = Path(__file__).resolve().parents[2]
 COMMON = dict(dataset_config='unified', model_config='default', num_workers=4,
               drop_last=0, permute_classes=0, fitting_mode='epochs', scheduler_mode='epoch',
               enable_other_metrics=0, eval_future=0, joint=0, non_verbose=1, code_optimization=0)
+# The shapes of each budget level, from the families of equal cost of stage 0a (results/idea-res-shapes-0a): those
+# whose block cost is at most the level's at 224 pixels, within 1 % (192:12 and 176:8 are 0.7 % and 0.3 % above 224:24).
+SHAPE_LEVELS = {0: ((224, 0),), 8: ((224, 8), (208, 4), (192, 0)),
+                16: ((224, 16), (208, 12), (192, 8), (176, 4), (160, 0)), 24: ((224, 24), (192, 12), (176, 8), (128, 0))}
+TOLERANCE = 1.01
 # Datasets with a unified input recipe (datasets/configs/<dataset>/unified.yaml), the first the default, and their
 # classes per task.
 DATASETS = {'seq-cifar100-224': 10, 'seq-imagenet-r': 20}
@@ -154,9 +164,22 @@ def joint_args(method):
 
 
 def mix_suffix(config):
-    """Name of a path's run with mixed degrees: ``M``, then ``R`` without mixing after a return, ``W`` with a share."""
-    get = config.get if isinstance(config, dict) else lambda name: getattr(config, name)
-    return 'M' + ('R' if get('mix_no_return') else '') + ('W' if get('mix_own') is not None else '')
+    """Name of a path's run with mixed degrees: ``M``, then ``S`` with mixed shapes, ``R`` without mixing after a
+    return, ``W`` with a share."""
+    get = config.get if isinstance(config, dict) else lambda name: getattr(config, name, None)
+    return ('M' + ('S' if get('mix_shapes') else '') + ('R' if get('mix_no_return') else '')
+            + ('W' if get('mix_own') is not None else ''))
+
+
+def path_suffix(config):
+    """What follows a path's name in a run's name: the mixing suffix, or ``S`` for shapes of the budgets."""
+    get = config.get if isinstance(config, dict) else lambda name: getattr(config, name, None)
+    return mix_suffix(config) if get('mix') else 'S' if get('budget_shapes') else ''
+
+
+def budget_shape(budget_shapes, budget):
+    """(resolution, degree) a task of this budget is trained and evaluated at: (224, budget) unless given."""
+    return tuple((budget_shapes or {}).get(budget, (224, budget)))
 
 
 def grid_plan(method, degree, matched, bank_names):
@@ -216,6 +239,10 @@ def parse_args(argv=None):
     parser.add_argument('--mix-no-return', action='store_true',
                         help='With --mix and --schedule: a task whose degree is below that of an earlier task (the budget '
                              'came back) trains at its own degree only')
+    parser.add_argument('--budget-shapes', nargs='+', metavar='B=R:D',
+                        help='With --schedule: train and evaluate a task of budget B at shape (R, D), of no more cost')
+    parser.add_argument('--mix-shapes', action='store_true',
+                        help='With --mix: every drawn degree becomes a shape of that budget level (SHAPE_LEVELS)')
     parser.add_argument('--joint', action='store_true',
                         help='Learn every class as one task at --degree (Mammoth --joint 1): the joint upper bound')
     parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
@@ -304,11 +331,30 @@ def parse_args(argv=None):
         parser.error(str(error))
     if len(set(args.eval_shapes)) != len(args.eval_shapes):
         parser.error('Every evaluation shape once')
-    if args.resolution is not None or args.eval_shapes:
+    shapes = {}
+    try:
+        for text in args.budget_shapes or ():
+            budget, _, shape = text.partition('=')
+            budget, shape = valid_degree(int(budget)), parse_shape(shape)
+            if budget in shapes:
+                raise ValueError(f'Budget {budget} has two shapes')
+            if shape_cost(*shape) > shape_cost(224, budget) * TOLERANCE:
+                raise ValueError(f'{shape_label(*shape)} costs more than the budget of degree {budget}')
+            shapes[budget] = shape
+    except ValueError as error:
+        parser.error(f'--budget-shapes takes B=R:D within the budget: {error}')
+    args.budget_shapes = shapes or None
+    if args.resolution is not None or args.eval_shapes or args.budget_shapes or args.mix_shapes:
         if args.method not in RESIZABLE:
             parser.error(f'Another input resolution is supported for {", ".join(RESIZABLE)} only')
-        if args.schedule is not None or args.mix is not None or args.joint:
-            parser.error('--resolution and --eval-shapes are for one training shape: not with --schedule, --mix or --joint')
+        if args.joint or (args.resolution is not None and (args.schedule is not None or args.mix is not None)):
+            parser.error('--resolution is one training shape, not with --schedule, --mix or --joint; no shapes with --joint')
+    if args.budget_shapes and (args.schedule is None or (args.mix is not None and not args.mix_shapes)):
+        parser.error('--budget-shapes goes with --schedule, and with --mix only together with --mix-shapes')
+    if args.mix_shapes and (args.mix is None or not set(args.mix) <= set(SHAPE_LEVELS)):
+        parser.error(f'--mix-shapes goes with --mix over the budget levels {sorted(SHAPE_LEVELS)}')
+    if (args.budget_shapes or args.mix_shapes) and not args.no_grid:
+        parser.error('Runs at the shapes of their budgets are evaluated with --eval-shapes and take --no-grid')
     if args.resolution is not None and args.banks:
         parser.error('The banks are trained at 224 pixels: no --banks with another --resolution')
     if (args.method in OWN) != (args.matched_degree is not None):
@@ -448,8 +494,7 @@ def main(argv=None):
     own, switching, mixing = args.method in OWN, args.schedule is not None, args.mix is not None
     # Absolute, because Mammoth resolves a relative results path under its data root.
     default_id = (f'{args.method}-own-m{args.matched_degree}-seed{args.seed}' if own else
-                  f'{args.method}-{args.operator}-{args.path}{mix_suffix(args)}-seed{args.seed}' if switching and mixing else
-                  f'{args.method}-{args.operator}-{args.path}-seed{args.seed}' if switching else
+                  f'{args.method}-{args.operator}-{args.path}{path_suffix(args)}-seed{args.seed}' if switching else
                   f'{args.method}-{args.operator}-MIX-seed{args.seed}' if mixing else
                   f'{args.method}-{args.operator}-J{args.degree}-seed{args.seed}' if args.joint else
                   f'{args.method}-{args.operator}-r{args.degree}-px{args.resolution}-seed{args.seed}'
@@ -495,6 +540,8 @@ def main(argv=None):
               'degree': None if switching else args.degree, 'schedule': args.schedule, 'path': args.path,
               'sources': sorted(set(args.sources)) if switching or mixing else None,
               'mix': sorted(set(args.mix)) if mixing else None, 'mix_own': args.mix_own, 'mix_no_return': args.mix_no_return,
+              'mix_shapes': args.mix_shapes,
+              'budget_shapes': {str(budget): shape_label(*shape) for budget, shape in sorted((args.budget_shapes or {}).items())} or None,
               'joint': args.joint,
               'matched_degree': args.matched_degree, 'own_setting': OWN[args.method][args.matched_degree] if own else None,
               'targets': sorted(set(args.targets)), 'eval_operators': args.eval_operators, 'scale': scale,
@@ -522,10 +569,16 @@ def main(argv=None):
     native_observe, native_end_epoch, native_end_eval = model.meta_observe, model.meta_end_epoch, model.meta_end_eval
     native_begin_task = model.meta_begin_task
 
+    # The budget of the task being learned: the degree of its path, or the training degree.
+    budget = [args.degree]
+
     def meta_begin_task(evaluated):
         # A budget path: the task about to be learned (with whatever its method runs when a task begins)
-        # and the evaluation after it run at that task's degree, until the next task begins.
-        controller.default_degree = valid_degree(args.schedule[len(records)])
+        # and the evaluation after it run at that task's budget, at (224, budget) or the shape given for it,
+        # until the next task begins.
+        budget[0] = valid_degree(args.schedule[len(records)])
+        resolution, degree = budget_shape(args.budget_shapes, budget[0])
+        controller.default_degree, controller.default_resolution = degree, controller.check_resolution(resolution)
         native_begin_task(evaluated)
 
     # Mixed degrees: a generator of its own, so that the draws leave every other random stream as it was.
@@ -533,23 +586,31 @@ def main(argv=None):
 
     def meta_observe(*inputs, **keywords):
         # Read-only: the loss Mammoth gets back, and the learning rate the step has just used.
-        base = controller.default_degree
+        base, resolution = controller.default_degree, controller.default_resolution
         if mixing:
+            own = budget[0]
             # On a budget path, only degrees that cost no more than the task's own.
-            allowed = [d for d in args.mix if d >= base] if switching else list(args.mix)
-            if args.mix_no_return and base < max(args.schedule[:len(records) + 1]):
-                allowed = [base]
+            allowed = [d for d in args.mix if d >= own] if switching else list(args.mix)
+            if args.mix_no_return and own < max(args.schedule[:len(records) + 1]):
+                allowed = [own]
             if args.mix_own is not None and len(allowed) > 1:
-                others = [d for d in allowed if d != base]
-                controller.default_degree = base if draws.random() < args.mix_own else draws.choice(others)
+                others = [d for d in allowed if d != own]
+                level = own if draws.random() < args.mix_own else draws.choice(others)
             else:
-                controller.default_degree = draws.choice(allowed)
-            steps[controller.default_degree] += 1
+                level = draws.choice(allowed)
+            if args.mix_shapes:
+                # Then a shape of that budget level, from the same generator.
+                size, controller.default_degree = draws.choice(SHAPE_LEVELS[level])
+                controller.default_resolution = controller.check_resolution(size)
+                steps[shape_label(size, controller.default_degree)] += 1
+            else:
+                controller.default_degree = level
+                steps[level] += 1
         try:
             loss = native_observe(*inputs, **keywords)
         finally:
             if mixing:
-                controller.default_degree = base
+                controller.default_degree, controller.default_resolution = base, resolution
         optimizer = getattr(model, 'opt', None)
         progress.step(loss, optimizer.param_groups[0]['lr'] if optimizer is not None else None)
         return loss
@@ -566,8 +627,12 @@ def main(argv=None):
                   'task_il': list(accs[1]), 'state_sha256': state_digest(model.net)}
         if switching:
             record['degree'] = controller.default_degree
+            if args.budget_shapes:
+                record['budget'], record['resolution'] = budget[0], controller.resolution or controller.native
         if mixing:
-            record['mix_steps'] = {str(degree): steps[degree] for degree in sorted(set(args.mix))}
+            keys = ([shape_label(*shape) for level in sorted(set(args.mix)) for shape in SHAPE_LEVELS[level]]
+                    if args.mix_shapes else sorted(set(args.mix)))
+            record['mix_steps'] = {str(key): steps[key] for key in keys}
             steps.clear()
         if args.save_weights:
             # The whole method state, so that the model can be rebuilt and inferred again; no optimizer

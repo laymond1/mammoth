@@ -35,7 +35,8 @@ import torch  # noqa: E402
 
 from backbone.token_compression import OPERATORS, attach, parse_shape, shape_label  # noqa: E402
 from backbone.token_compression.evaluation import evaluate_grid, evaluate_shapes  # noqa: E402
-from scripts.tocom.run_cl import build, grid_plan, load_banks, pinned_digest, state_digest, switch_plan  # noqa: E402
+from scripts.tocom.run_cl import (budget_shape, build, grid_plan, load_banks, pinned_digest, state_digest,  # noqa: E402
+                                  switch_plan)
 
 
 def parse_args(argv=None):
@@ -198,7 +199,10 @@ def main(argv=None):
             state = torch.load(args.run / record['weights'], map_location='cpu', weights_only=True)
             restore(model, dataset, state['model'], record['task'], config['method'])
             if schedule:
-                controller.default_degree = schedule[record['task']]
+                # The task's budget, at (224, budget) or the shape the run gave that budget.
+                shapes = {int(budget): parse_shape(text) for budget, text in (config.get('budget_shapes') or {}).items()}
+                resolution, controller.default_degree = budget_shape(shapes, schedule[record['task']])
+                controller.default_resolution = controller.check_resolution(resolution)
             model.net.eval()
             class_il, task_il = dataset.evaluate(model, dataset)
             result = {'task': record['task'], 'classes': record['classes'], 'class_il': list(class_il),

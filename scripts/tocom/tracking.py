@@ -23,7 +23,8 @@ def identity(config):
 
     A run on a budget path has kind ``switch`` and the name of its path as training degree; a run with mixed
     degrees has kind ``mix`` and training degree ``MIX``, one with mixed degrees within the budget of a path kind
-    ``switch-mix`` and the path's name followed by ``M``; joint training has kind ``joint`` and its degree. A run
+    ``switch-mix`` and the path's name followed by ``M`` (``MS`` for mixed shapes); a path's run at the shapes of
+    its budgets has the path's name followed by ``S``; joint training has kind ``joint`` and its degree. A run
     at another input resolution than 224 pixels has kind ``shape``, its degree and ``train_resolution``. A run on
     another dataset than seq-cifar100-224 also has ``dataset``.
     """
@@ -35,8 +36,10 @@ def identity(config):
 
 def _identity(config):
     if config.get('schedule') or config.get('mix'):
-        suffix = 'M' + ('R' if config.get('mix_no_return') else '') + ('W' if config.get('mix_own') is not None else '')
-        kind, degree = (('switch-mix', f'{config["path"]}{suffix}') if config.get('mix') else ('switch', config['path'])) \
+        suffix = ('M' + ('S' if config.get('mix_shapes') else '') + ('R' if config.get('mix_no_return') else '')
+                  + ('W' if config.get('mix_own') is not None else ''))
+        kind, degree = (('switch-mix', f'{config["path"]}{suffix}') if config.get('mix') else
+                        ('switch', config['path'] + ('S' if config.get('budget_shapes') else ''))) \
             if config.get('schedule') else ('mix', 'MIX')
         return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': kind,
                 'train_operator': config['operator'], 'train_degree': degree, 'seed': config['seed']}

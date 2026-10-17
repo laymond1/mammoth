@@ -223,3 +223,30 @@ def test_imagenet_r_takes_the_unified_recipe_of_cifar_with_its_own_classes():
     for broken in (common + ['--dataset', 'seq-cifar10'], common + ['--dataset', 'seq-imagenet-r', '--joint']):
         with pytest.raises(SystemExit):
             run_cl.parse_args(broken)
+
+
+def test_a_path_runs_at_the_shapes_of_its_budgets_or_mixes_them():
+    from backbone.token_compression import shape_cost
+    # Every shape of a budget level costs no more than the level at 224 pixels, within the tolerance.
+    for level, shapes in run_cl.SHAPE_LEVELS.items():
+        assert (224, level) in shapes and all(shape_cost(*shape) <= shape_cost(224, level) * run_cl.TOLERANCE for shape in shapes)
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused', '--no-grid',
+              '--targets', '0', '4', '8', '12', '16', '20', '24', '--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5]
+    args = run_cl.parse_args(common + ['--budget-shapes', '24=176:8', '--eval-shapes', '224:0', '176:8'])
+    assert args.budget_shapes == {24: (176, 8)} and run_cl.path_suffix(args) == 'S'
+    assert run_cl.budget_shape(args.budget_shapes, 24) == (176, 8) and run_cl.budget_shape(args.budget_shapes, 0) == (224, 0)
+    mixed = run_cl.parse_args(common + ['--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24', '--mix-shapes'])
+    assert mixed.mix_shapes and run_cl.path_suffix(mixed) == 'MS'
+    assert run_cl.path_suffix(run_cl.parse_args(common)) == '' and run_cl.path_suffix(run_cl.parse_args(common + ['--mix', '0', '8', '16', '24'])) == 'M'
+    assert run_cl.mix_suffix({'mix': [0, 24], 'mix_shapes': True, 'mix_own': .5}) == 'MSW'
+    for broken in (common + ['--budget-shapes', '24=208:16'],                          # costs more than budget 24
+                   common + ['--budget-shapes', '24=176:8', '24=192:12'],              # twice
+                   common + ['--budget-shapes', '24=176'],                             # no degree
+                   [item for item in common if item != '--no-grid'] + ['--budget-shapes', '24=176:8'],   # the grid
+                   common + ['--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24'],    # degrees mixed, shapes fixed
+                   common + ['--mix', '0', '4', '24', '--mix-shapes'],                 # 4 is no budget level
+                   common + ['--mix-shapes'],                                          # nothing to mix
+                   ['--method', 'sd-lora', *common[2:], '--budget-shapes', '24=176:8'],
+                   common[:17] + ['--budget-shapes', '24=176:8']):                     # no path
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)

@@ -70,14 +70,15 @@ ROWS = 40
 
 class Job(namedtuple('Job', 'method condition value seed')):
     """One run of a queue: ``value`` is a training degree, the name of a budget path (``P1``) for a run
-    that trains each task at its own degree (``P1M`` for mixed degrees within that path's budget),
+    that trains each task at its own degree (``P1M`` for mixed degrees within that path's budget, ``P1S`` at the
+    shapes given for its budgets, ``P1MS`` for mixed shapes within them),
     ``J<degree>`` for joint training at that degree, ``MIX`` for training at mixed degrees, or ``<degree>px<resolution>``
     for training at one degree with inputs of another resolution than 224 pixels."""
 
     @classmethod
     def parse(cls, fields):
         method, condition, value, seed = fields
-        named = re.fullmatch(r'P\d+(M[RW]*)?|J\d+|MIX|\d+px\d+', value) is not None
+        named = re.fullmatch(r'P\d+(S|MS?R?W?)?|J\d+|MIX|\d+px\d+', value) is not None
         if method not in NAMES or condition not in ('own', *OPERATORS) or (named and condition == 'own'):
             raise ValueError(f'Unknown job: {" ".join(fields)}')
         return cls(method, condition, value if named else int(value), int(seed))
@@ -109,9 +110,12 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def title(self):
         training = {'none': '압축 없이 학습', 'own': f'자체 압축으로 학습(ToMe {self.value}과 같은 FLOPs)',
                     'plugin': f'{OPERATORS.get(self.condition)} 학습 압축도 {self.value}',
-                    'switch': f'{OPERATORS.get(self.condition)} 예산 경로 {self.value}',
-                    'switch-mix': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value).split("M")[0]} 안에서 섞어 학습'
-                                  + {'R': ' (돌아오면 섞지 않음)', 'W': ' (그 예산에 가중)', 'RW': ' (돌아오면 섞지 않음, 가중)'}.get(str(self.value).partition('M')[2], ''),
+                    'switch': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value).rstrip("S")}'
+                              + (' (예산마다 정한 해상도 모양)' if str(self.value).endswith('S') else ''),
+                    'switch-mix': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value).split("M")[0]} 안에서 '
+                                  + ('해상도 모양을 섞어 학습' if str(self.value).partition('M')[2].startswith('S') else '섞어 학습')
+                                  + {'R': ' (돌아오면 섞지 않음)', 'W': ' (그 예산에 가중)', 'RW': ' (돌아오면 섞지 않음, 가중)'}.get(
+                                      str(self.value).partition('M')[2].lstrip('S'), ''),
                     'joint': f'{OPERATORS.get(self.condition)} {str(self.value)[1:]}로 joint 학습',
                     'mix': f'{OPERATORS.get(self.condition)} 0~24 섞어 학습',
                     'shape': ('압축 없이, ' if str(self.value).startswith('0px') else
@@ -132,7 +136,9 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def brief(self):
         return {'none': '압축 없음', 'own': f'자체 {self.value}', 'plugin': f'{OPERATORS.get(self.condition)} {self.value}',
                 'switch': f'{OPERATORS.get(self.condition)} 경로 {self.value}',
-                'switch-mix': f'{OPERATORS.get(self.condition)} 경로 {str(self.value).split("M")[0]} 섞음 {str(self.value).partition("M")[2]}'.rstrip(),
+                'switch-mix': f'{OPERATORS.get(self.condition)} 경로 {str(self.value).split("M")[0]} 섞음 {str(self.value).partition("M")[2]}'.rstrip()
+                              if 'S' not in str(self.value).partition('M')[2] else
+                              f'{OPERATORS.get(self.condition)} 경로 {str(self.value).split("M")[0]} 모양 섞음 {str(self.value).partition("M")[2][1:]}'.rstrip(),
                 'joint': f'{OPERATORS.get(self.condition)} joint {str(self.value)[1:]}', 'mix': f'{OPERATORS.get(self.condition)} 섞음',
                 'shape': ' px + '.join(reversed(str(self.value).split('px')))}[self.kind]
 
