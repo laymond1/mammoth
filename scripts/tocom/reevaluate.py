@@ -213,7 +213,7 @@ def main(argv=None):
                 if predictions is not None:
                     predictions.prefix = f't{record["task"]}:' if len(chosen) > 1 else ''
                 result.update(evaluate_grid(model, dataset.test_loaders, record['classes'],
-                                            schedule[record['task']] if schedule else source, targets,
+                                            controller.default_degree if schedule else source, targets,
                                             operators, banks, scale or config['scale'], compensations, predictions))
                 if predictions is not None:
                     predictions.check(result)
