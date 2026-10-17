@@ -533,6 +533,9 @@ def kickoff(queue, args, now):
                *(['seed 하나가 끝나면 요약표'] if args.seed_tables else [])]
     lines = [f'🚀 *{queue.root.name} 시작* · 실행 {len(jobs)}개',
              (' · '.join(text for count, text in (
+                 # References at one degree beside the named kinds, when the queue has them.
+                 (kinds[0], f'압축 없이 학습 {kinds[0]}'), (kinds[1], f'plug-in으로 줄여 학습 {kinds[1]}'),
+                 (kinds[2], f'자체 압축으로 학습 {kinds[2]}'),
                  (kinds[3], f'예산 경로로 학습 {kinds[3]}(경로 {len({job.value for job in jobs if job.kind == "switch"})}개)'),
                  (kinds[4], f'joint 학습 {kinds[4]}'), (kinds[5], f'제거량 섞어 학습 {kinds[5]}'),
                  (kinds[6], f'예산 안에서 섞어 학습 {kinds[6]}(경로 {len({job.value for job in jobs if job.kind == "switch-mix"})}개)'),

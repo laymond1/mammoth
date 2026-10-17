@@ -637,7 +637,7 @@ def test_runs_at_another_resolution_are_named_by_their_shape(tmp_path, capsys):
         report.main(['--experiment', str(root), '--dry-run', *map(str, arguments)])
 
     call('kickoff', '--workers', 6)
-    assert '해상도를 바꿔 학습 6(모양 3개)' in capsys.readouterr().out
+    assert '해상도를 바꿔 학습 6(모양 3개) (방법' in capsys.readouterr().out
     for line in lines:
         job = report.Job.parse(line.split())
         degree, resolution = map(int, job.value.split('px'))
@@ -691,3 +691,13 @@ def test_runs_on_another_dataset_name_it_and_group_apart(tmp_path, monkeypatch):
     Mirror(run, 'someone/some-project', 'idea-res-shapes-imr', config, {})
     assert seen['group'] == 'coda-prompt-tome-r8-px176@seq-imagenet-r' and 'seq-imagenet-r' in seen['tags']
     assert seen['config']['dataset'] == 'seq-imagenet-r'
+
+
+def test_a_kickoff_counts_the_references_beside_the_named_kinds(tmp_path, capsys):
+    root = tmp_path / 'idea-res-shapes-imr'
+    (root / 'logs').mkdir(parents=True)
+    lines = [f'{method} tome {value} 1993' for method in ('coda-prompt', 'inf-lora') for value in ('24', '8px176', '0px144', '0')]
+    (root / 'jobs.txt').write_text(''.join(f'{line}\n' for line in lines))
+    (root / 'estimates.json').write_text(json.dumps({line.rsplit(' ', 1)[0]: 1800 for line in lines}))
+    report.main(['--experiment', str(root), '--dry-run', 'kickoff', '--workers', '8'])
+    assert '실행 8개\n압축 없이 학습 2 · plug-in으로 줄여 학습 2 · 해상도를 바꿔 학습 4(모양 2개) (방법 2개' in capsys.readouterr().out
