@@ -669,3 +669,25 @@ def test_runs_at_another_resolution_are_named_by_their_shape(tmp_path, capsys):
     # Summary tables of a queue whose runs name more fields than others keep every field.
     columns, data = report.table_data([{'kind': 'none', 'accuracy': 60.}, {'kind': 'shape', 'accuracy': 61., 'train_resolution': 176}])
     assert columns == ['kind', 'accuracy', 'train_resolution'] and data == [['none', 60., None], ['shape', 61., 176]]
+
+
+def test_runs_on_another_dataset_name_it_and_group_apart(tmp_path, monkeypatch):
+    wandb = pytest.importorskip('wandb')
+    assert 'dataset' not in identity(config_of('er')) and 'dataset' not in identity(dict(config_of('er'), dataset='seq-cifar100-224'))
+    config = dict(config_of('coda-prompt', 'tome', 8), dataset='seq-imagenet-r', resolution=176)
+    fields = identity(config)
+    assert (fields['dataset'], fields['kind'], fields['train_resolution']) == ('seq-imagenet-r', 'shape', 176)
+    seen = {}
+
+    class Run:
+        id, name, url = 'abc', 'x', None
+
+        def define_metric(self, *arguments, **keywords):
+            pass
+
+    monkeypatch.setattr(wandb, 'init', lambda **keywords: seen.update(keywords) or Run())
+    run = tmp_path / 'coda-prompt-tome-r8-px176-seed1993'
+    run.mkdir()
+    Mirror(run, 'someone/some-project', 'idea-res-shapes-imr', config, {})
+    assert seen['group'] == 'coda-prompt-tome-r8-px176@seq-imagenet-r' and 'seq-imagenet-r' in seen['tags']
+    assert seen['config']['dataset'] == 'seq-imagenet-r'

@@ -12,6 +12,8 @@ import time
 
 FAMILIES = {'er': 'replay', 'lwf-mc': 'regularization', 'coda-prompt': 'prompt', 'cps-prompt': 'prompt',
             'rep-prompt': 'prompt', 'ease': 'adapter', 'sd-lora': 'lora', 'inf-lora': 'lora', 'ewc-lora': 'lora'}
+# Runs without a dataset in their config are on this one; runs on another are told apart by name and group.
+DATASET = 'seq-cifar100-224'
 UPLOADED = ('config.json', 'provenance.json', 'metrics.json', 'summary.json', 'progress.jsonl')
 FINISH_TIMEOUT = 900.
 
@@ -22,8 +24,16 @@ def identity(config):
     A run on a budget path has kind ``switch`` and the name of its path as training degree; a run with mixed
     degrees has kind ``mix`` and training degree ``MIX``, one with mixed degrees within the budget of a path kind
     ``switch-mix`` and the path's name followed by ``M``; joint training has kind ``joint`` and its degree. A run
-    at another input resolution than 224 pixels has kind ``shape``, its degree and ``train_resolution``.
+    at another input resolution than 224 pixels has kind ``shape``, its degree and ``train_resolution``. A run on
+    another dataset than seq-cifar100-224 also has ``dataset``.
     """
+    fields = _identity(config)
+    if config.get('dataset', DATASET) != DATASET:
+        fields['dataset'] = config['dataset']
+    return fields
+
+
+def _identity(config):
     if config.get('schedule') or config.get('mix'):
         suffix = 'M' + ('R' if config.get('mix_no_return') else '') + ('W' if config.get('mix_own') is not None else '')
         kind, degree = (('switch-mix', f'{config["path"]}{suffix}') if config.get('mix') else ('switch', config['path'])) \
@@ -146,9 +156,12 @@ class Mirror:
             return
         entity, _, project = target.partition('/')
         fields = identity(config)
+        # Runs of one setting share a group across seeds; on another dataset the dataset joins the group.
+        group = directory.name.rsplit('-seed', 1)[0] + (f'@{fields["dataset"]}' if 'dataset' in fields else '')
         options = dict(
-            entity=entity, project=project, name=directory.name, group=directory.name.rsplit('-seed', 1)[0],
-            job_type='train', tags=[experiment, fields['kind'], fields['family']], dir=str(directory),
+            entity=entity, project=project, name=directory.name, group=group,
+            job_type='train', tags=[experiment, fields['kind'], fields['family'], *[fields[key] for key in ('dataset',) if key in fields]],
+            dir=str(directory),
             config={'experiment': experiment, **fields, **extra,
                     **{key: config[key] for key in ('vit_size', 'own_setting', 'targets', 'eval_operators', 'scale',
                                                     'deterministic', 'save_weights')},

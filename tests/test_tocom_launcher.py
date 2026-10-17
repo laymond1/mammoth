@@ -202,3 +202,19 @@ def test_a_run_at_another_resolution_trains_and_is_inferred_at_one_shape():
                    ['--method', 'sd-lora', '--seed', '1', '--output', 'unused', '--resolution', '176']):
         with pytest.raises(SystemExit):
             run_cl.parse_args(broken)
+
+
+def test_imagenet_r_takes_the_unified_recipe_of_cifar_with_its_own_classes():
+    import yaml
+    configs = Path(run_cl.ROOT) / 'datasets' / 'configs'
+    cifar, imagenet_r = (yaml.safe_load((configs / name / 'unified.yaml').read_text()) for name in run_cl.DATASETS)
+    assert (imagenet_r['N_TASKS'], imagenet_r['N_CLASSES_PER_TASK'], imagenet_r['N_CLASSES']) == (10, 20, 200)
+    assert {key: value for key, value in imagenet_r.items() if not key.startswith('N_')} == \
+        {key: value for key, value in cifar.items() if not key.startswith('N_')}
+    common = ['--method', 'inf-lora', '--seed', '1', '--output', 'unused']
+    assert run_cl.parse_args(common).dataset == 'seq-cifar100-224'
+    args = run_cl.parse_args(common + ['--dataset', 'seq-imagenet-r', '--resolution', '176', '--degree', '8', '--targets', '8'])
+    assert (args.dataset, args.resolution) == ('seq-imagenet-r', 176)
+    for broken in (common + ['--dataset', 'seq-cifar10'], common + ['--dataset', 'seq-imagenet-r', '--joint']):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)

@@ -75,9 +75,11 @@ from utils.conf import create_seeded_dataloader  # noqa: E402
 ROOT = Path(__file__).resolve().parents[2]
 # Method recipes of the unified Tiny comparison (scripts/unified_cl_protocol.py), except where a method notes
 # a value set for this study (ViT-Tiny, batch 16; results/tocom-recipe-diagnosis-20261012/HANDOFF.md).
-COMMON = dict(dataset='seq-cifar100-224', dataset_config='unified', model_config='default', num_workers=4,
+COMMON = dict(dataset_config='unified', model_config='default', num_workers=4,
               drop_last=0, permute_classes=0, fitting_mode='epochs', scheduler_mode='epoch',
               enable_other_metrics=0, eval_future=0, joint=0, non_verbose=1, code_optimization=0)
+# Datasets with a unified input recipe (datasets/configs/<dataset>/unified.yaml); the first is the default.
+DATASETS = ('seq-cifar100-224', 'seq-imagenet-r')
 # The method's own compression setting at which the FLOPs of its prompted pass equal ToMe at a training
 # degree, on ViT-Tiny (scripts/tocom/flops.py): the ratio of patches CPS-Prompt samples away in its
 # joint phase, and the largest per-block merge of REP's progressive schedule with layer dropping off.
@@ -185,6 +187,7 @@ RESIZABLE = ('er', 'lwf-mc', 'coda-prompt', 'inf-lora')
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--method', choices=METHODS, required=True)
+    parser.add_argument('--dataset', choices=DATASETS, default=DATASETS[0])
     parser.add_argument('--vit-size', choices=('tiny', 'small', 'base'), default='tiny')
     parser.add_argument('--operator', choices=tuple(OPERATORS), default='tome', help='Reduction used in training')
     parser.add_argument('--degree', type=int, default=0, help='Training degree: tokens removed per block')
@@ -259,6 +262,8 @@ def parse_args(argv=None):
         parser.error('--mix-own and --mix-no-return go with --mix')
     if args.joint and (args.schedule is not None or args.mix or args.method in OWN or args.tasks is not None):
         parser.error('--joint trains one task at one plug-in degree: not with --schedule, --mix, --tasks or CPS/REP')
+    if args.joint and args.dataset != DATASETS[0]:
+        parser.error('--joint sizes its heads for the hundred classes of seq-cifar100-224')
     if args.mix is not None:
         if args.method in OWN:
             parser.error('--mix is for methods trained with the plug-in')
@@ -443,7 +448,8 @@ def main(argv=None):
     run = (args.output / (args.run_id or default_id)).resolve()
     run.mkdir(parents=True, exist_ok=False)
     spec = checkpoint_spec(args.vit_size)
-    values = dict(COMMON, **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree),
+    values = dict(COMMON, dataset=args.dataset,
+                  **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree),
                   n_epochs=args.epochs, batch_size=args.batch_size, seed=args.seed, device=args.device,
                   base_path=json.loads(DEFAULT_PROFILE.read_text())['data_root'] + '/',
                   results_path=str(run / 'native_results'), checkpoint_path=str(run / 'checkpoints'))
@@ -475,7 +481,7 @@ def main(argv=None):
 
     commit = subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip()
     dirty = bool(subprocess.check_output(['git', '-C', str(ROOT), 'status', '--porcelain'], text=True).strip())
-    config = {'method': args.method, 'vit_size': args.vit_size, 'operator': args.operator,
+    config = {'method': args.method, 'dataset': args.dataset, 'vit_size': args.vit_size, 'operator': args.operator,
               'degree': None if switching else args.degree, 'schedule': args.schedule, 'path': args.path,
               'sources': sorted(set(args.sources)) if switching or mixing else None,
               'mix': sorted(set(args.mix)) if mixing else None, 'mix_own': args.mix_own, 'mix_no_return': args.mix_no_return,
