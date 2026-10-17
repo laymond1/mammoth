@@ -78,8 +78,9 @@ ROOT = Path(__file__).resolve().parents[2]
 COMMON = dict(dataset_config='unified', model_config='default', num_workers=4,
               drop_last=0, permute_classes=0, fitting_mode='epochs', scheduler_mode='epoch',
               enable_other_metrics=0, eval_future=0, joint=0, non_verbose=1, code_optimization=0)
-# Datasets with a unified input recipe (datasets/configs/<dataset>/unified.yaml); the first is the default.
-DATASETS = ('seq-cifar100-224', 'seq-imagenet-r')
+# Datasets with a unified input recipe (datasets/configs/<dataset>/unified.yaml), the first the default, and their
+# classes per task.
+DATASETS = {'seq-cifar100-224': 10, 'seq-imagenet-r': 20}
 # The method's own compression setting at which the FLOPs of its prompted pass equal ToMe at a training
 # degree, on ViT-Tiny (scripts/tocom/flops.py): the ratio of patches CPS-Prompt samples away in its
 # joint phase, and the largest per-block merge of REP's progressive schedule with layer dropping off.
@@ -137,6 +138,15 @@ def method_args(method, size, checkpoint, batch_size, matched=None):
     raise ValueError(f'No recipe for {method}')
 
 
+def dataset_args(method, dataset):
+    """Native arguments of the dataset. The heads of the low-rank methods take ``--lora_classes_per_task`` classes
+    each (10 by default, as in seq-cifar100-224, whose runs keep their arguments as they were)."""
+    values = {'dataset': dataset}
+    if method.endswith('-lora') and dataset != next(iter(DATASETS)):
+        values['lora_classes_per_task'] = DATASETS[dataset]
+    return values
+
+
 def joint_args(method):
     """Native arguments of joint training: one task of every class. The low-rank methods keep one classifier
     head per task, sized by ``--lora_classes_per_task``, so for them that head must hold all hundred classes."""
@@ -187,7 +197,7 @@ RESIZABLE = ('er', 'lwf-mc', 'coda-prompt', 'inf-lora')
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--method', choices=METHODS, required=True)
-    parser.add_argument('--dataset', choices=DATASETS, default=DATASETS[0])
+    parser.add_argument('--dataset', choices=tuple(DATASETS), default=next(iter(DATASETS)))
     parser.add_argument('--vit-size', choices=('tiny', 'small', 'base'), default='tiny')
     parser.add_argument('--operator', choices=tuple(OPERATORS), default='tome', help='Reduction used in training')
     parser.add_argument('--degree', type=int, default=0, help='Training degree: tokens removed per block')
@@ -262,7 +272,7 @@ def parse_args(argv=None):
         parser.error('--mix-own and --mix-no-return go with --mix')
     if args.joint and (args.schedule is not None or args.mix or args.method in OWN or args.tasks is not None):
         parser.error('--joint trains one task at one plug-in degree: not with --schedule, --mix, --tasks or CPS/REP')
-    if args.joint and args.dataset != DATASETS[0]:
+    if args.joint and args.dataset != next(iter(DATASETS)):
         parser.error('--joint sizes its heads for the hundred classes of seq-cifar100-224')
     if args.mix is not None:
         if args.method in OWN:
@@ -448,7 +458,7 @@ def main(argv=None):
     run = (args.output / (args.run_id or default_id)).resolve()
     run.mkdir(parents=True, exist_ok=False)
     spec = checkpoint_spec(args.vit_size)
-    values = dict(COMMON, dataset=args.dataset,
+    values = dict(COMMON, **dataset_args(args.method, args.dataset),
                   **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree),
                   n_epochs=args.epochs, batch_size=args.batch_size, seed=args.seed, device=args.device,
                   base_path=json.loads(DEFAULT_PROFILE.read_text())['data_root'] + '/',

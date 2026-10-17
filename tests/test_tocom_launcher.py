@@ -209,10 +209,15 @@ def test_imagenet_r_takes_the_unified_recipe_of_cifar_with_its_own_classes():
     configs = Path(run_cl.ROOT) / 'datasets' / 'configs'
     cifar, imagenet_r = (yaml.safe_load((configs / name / 'unified.yaml').read_text()) for name in run_cl.DATASETS)
     assert (imagenet_r['N_TASKS'], imagenet_r['N_CLASSES_PER_TASK'], imagenet_r['N_CLASSES']) == (10, 20, 200)
+    assert (cifar['N_CLASSES_PER_TASK'], imagenet_r['N_CLASSES_PER_TASK']) == tuple(run_cl.DATASETS.values())
     assert {key: value for key, value in imagenet_r.items() if not key.startswith('N_')} == \
         {key: value for key, value in cifar.items() if not key.startswith('N_')}
     common = ['--method', 'inf-lora', '--seed', '1', '--output', 'unused']
     assert run_cl.parse_args(common).dataset == 'seq-cifar100-224'
+    # The low-rank heads take the classes of a task; on CIFAR-100 the arguments stay as they were.
+    assert run_cl.dataset_args('inf-lora', 'seq-imagenet-r') == {'dataset': 'seq-imagenet-r', 'lora_classes_per_task': 20}
+    assert run_cl.dataset_args('inf-lora', 'seq-cifar100-224') == {'dataset': 'seq-cifar100-224'}
+    assert run_cl.dataset_args('coda-prompt', 'seq-imagenet-r') == {'dataset': 'seq-imagenet-r'}
     args = run_cl.parse_args(common + ['--dataset', 'seq-imagenet-r', '--resolution', '176', '--degree', '8', '--targets', '8'])
     assert (args.dataset, args.resolution) == ('seq-imagenet-r', 176)
     for broken in (common + ['--dataset', 'seq-cifar10'], common + ['--dataset', 'seq-imagenet-r', '--joint']):
