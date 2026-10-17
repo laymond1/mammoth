@@ -74,7 +74,8 @@ class MyImagenetR(Dataset):
         else:
             data_config = yaml.load(open(pwd + '/imagenet_r_utils/imagenet-r_test.yaml'), Loader=yaml.Loader)
 
-        self.data = np.array(data_config['data'])
+        # The split files name every image data/imagenet-r/<synset>/<file>; the images are under ``root``.
+        self.data = np.array([os.path.join(self.root, path.split('imagenet-r/', 1)[1]) for path in data_config['data']])
         self.targets = np.array(data_config['targets'])
 
     def __len__(self):
