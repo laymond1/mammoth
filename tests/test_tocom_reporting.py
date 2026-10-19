@@ -715,3 +715,15 @@ def test_paths_at_the_shapes_of_their_budgets_are_named_by_a_suffix():
     assert identity(dict(base, degree=None, mix=None, budget_shapes={'24': '176:8'}))['train_degree'] == 'P5S'
     assert identity(dict(base, degree=None, mix=[0, 8, 16, 24], mix_shapes=True, budget_shapes={'24': '176:8'}))['train_degree'] == 'P5MS'
     assert identity(dict(base, degree=None, mix=[0, 8, 16, 24]))['train_degree'] == 'P5M'
+
+
+def test_paths_mixing_every_shape_within_the_budget_are_named_by_their_pool():
+    for value, words in (('P5MSU', '예산 이하 모양 전부에서 균등'), ('P5MSG', '예산 이하 격자 전부에서 균등')):
+        job = report.Job.parse(['coda-prompt', 'tome', value, '1993'])
+        assert (job.kind, job.id) == ('switch-mix', f'coda-prompt-tome-{value}-seed1993') and words in job.title
+    for broken in ('P5MSX', 'P5MU', 'P5SG'):
+        with pytest.raises(ValueError):
+            report.Job.parse(['coda-prompt', 'tome', broken, '1'])
+    base = dict(method='coda-prompt', operator='tome', seed=1, path='P5', schedule=[0] * 5 + [24] * 5, matched_degree=None,
+                joint=False, degree=None, mix=[0, 8, 16, 24], mix_shapes=True, budget_shapes={'24': '176:8'})
+    assert [identity(dict(base, shape_pool=pool))['train_degree'] for pool in ('levels', 'menu', 'grid', None)] == ['P5MS', 'P5MSU', 'P5MSG', 'P5MS']

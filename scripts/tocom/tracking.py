@@ -36,7 +36,8 @@ def identity(config):
 
 def _identity(config):
     if config.get('schedule') or config.get('mix'):
-        suffix = ('M' + ('S' if config.get('mix_shapes') else '') + ('R' if config.get('mix_no_return') else '')
+        pool = {'menu': 'U', 'grid': 'G'}.get(config.get('shape_pool'), '')
+        suffix = ('M' + ('S' + pool if config.get('mix_shapes') else '') + ('R' if config.get('mix_no_return') else '')
                   + ('W' if config.get('mix_own') is not None else ''))
         kind, degree = (('switch-mix', f'{config["path"]}{suffix}') if config.get('mix') else
                         ('switch', config['path'] + ('S' if config.get('budget_shapes') else ''))) \

@@ -250,3 +250,23 @@ def test_a_path_runs_at_the_shapes_of_its_budgets_or_mixes_them():
                    common[:17] + ['--budget-shapes', '24=176:8']):                     # no path
         with pytest.raises(SystemExit):
             run_cl.parse_args(broken)
+
+
+def test_shapes_may_also_be_drawn_from_everything_within_the_budget():
+    from backbone.token_compression import shape_cost
+    # The 13 shapes of the levels, and the grid of resolutions 128-224 by 16 and degrees 0-24 by 4.
+    assert [len(run_cl.shape_pool('menu', b)) for b in (0, 8, 16, 24)] == [13, 12, 9, 4]
+    assert [len(run_cl.shape_pool('grid', b)) for b in (0, 8, 16, 24)] == [49, 46, 39, 30]
+    assert set(run_cl.shape_pool('menu', 24)) == set(run_cl.SHAPE_LEVELS[24])
+    assert all(shape_cost(*s) <= shape_cost(224, 24) * run_cl.TOLERANCE for s in run_cl.shape_pool('grid', 24))
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused', '--no-grid',
+              '--targets', '0', '4', '8', '12', '16', '20', '24', '--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5,
+              '--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24', '--mix-shapes']
+    assert run_cl.path_suffix(run_cl.parse_args(common)) == 'MS'
+    assert run_cl.path_suffix(run_cl.parse_args(common + ['--shape-pool', 'menu'])) == 'MSU'
+    assert run_cl.path_suffix(run_cl.parse_args(common + ['--shape-pool', 'grid'])) == 'MSG'
+    for broken in (common[:-1] + ['--shape-pool', 'grid'],                   # no --mix-shapes
+                   common + ['--shape-pool', 'grid', '--mix-own', '.5'],
+                   common + ['--shape-pool', 'other']):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)
