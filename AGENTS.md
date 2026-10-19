@@ -376,3 +376,15 @@ Every agent session belongs to one unit. The unit names the kind of work; use it
 - Session title: `[unit] topic`, for example `[시나리오 실험] ToCom 및 9가지 시나리오 구현`.
 - Commit message: end with a trailer line `Unit: <short name>`, for example `Unit: impl`. A `commit-msg` hook (in the shared `.git/hooks`, so every worktree) only warns when the line is missing; it never blocks a commit.
 - New result folders: `results/<short name>-<topic>...`, for example `results/scenario-switch-v2`. Existing folders keep their names (`results/tocom-*` and others).
+- Before starting a session, look on the research flow board (https://claude.ai/artifact/Jh9DnoZhQijTuFmefjkGoC) for an open session on the same question and continue that one instead of starting a new one.
+- When a session ends, update its own row on the board: its state and, in one line, the decision it waits on.
+
+## 15) Tool changes go to a separate worktree
+
+A queue imports the code anew at the start of every run, so a commit in the worktree a queue runs from changes the code of its later runs. On 2026-10-16 `e74ce24` landed in the `tocom/plugin` worktree four minutes after `scenario-switch-seeds-v1` started there; its first 6 runs used `092f851`, the other 26 record `e74ce24`, and the preflight had checked only the former.
+
+- A worktree that runs experiment queues (for example `.claude/worktrees/tocom-plugin`) is for running. Do not edit tracked files or commit there.
+- Make tool changes (launchers, `scripts/`, `backbone/`, `models/`, `datasets/`, reporters, their tests) in a separate worktree, on a branch cut from the queue worktree's branch, and test them there.
+- Bring a change into the queue worktree's branch (for example `git merge --ff-only <tool branch>` run in the queue worktree) only while no queue runs from it, and run the next queue's preflight on the new commit. Alternatively start the next queue from the tool worktree itself.
+- Check for running queues before merging or committing in a worktree: `for p in $(pgrep -f 'results/.*/(worker|watch)\.sh'); do readlink /proc/$p/cwd; done` lists the working directory of every queue worker and watch.
+- Writing results and analysis scripts under `results/` is not a tool change; it may happen while a queue runs.
