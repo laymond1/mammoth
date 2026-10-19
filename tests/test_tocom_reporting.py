@@ -521,6 +521,65 @@ def test_runs_on_budget_paths_are_named_by_their_path(tmp_path, monkeypatch, cap
     assert metrics['evit-src8/r16'] == 57 and metrics['evit-off/r16'] == 56 and not any('cross' in key for key in metrics)
 
 
+def test_cps_and_rep_runs_on_budget_paths_are_named_by_their_path(tmp_path, monkeypatch, capsys):
+    job = report.Job.parse(['cps-prompt', 'own', 'P3', '1993'])
+    assert (job.kind, job.id, job.key, job.train, job.inference) == \
+        ('switch', 'cps-prompt-own-P3-seed1993', 'cps-prompt own P3', 'own P3', 'ToMe·EViT')
+    assert '자체 압축 예산 경로 P3' in job.title and '자체 경로 P3' in job.brief and 'None' not in job.title + job.brief
+    # A fixed matched degree keeps its name; the other methods have no path of their own compression.
+    assert report.Job.parse(['rep-prompt', 'own', '24', '1993']).id == 'rep-prompt-own-m24-seed1993'
+    for broken in (['coda-prompt', 'own', 'P3', '1'], ['inf-lora', 'own', 'P3', '1'], ['cps-prompt', 'own', 'P3M', '1'],
+                   ['rep-prompt', 'own', 'J8', '1'], ['rep-prompt', 'own', 'MIX', '1']):
+        with pytest.raises(ValueError):
+            report.Job.parse(broken)
+    jobs = [(method, path, seed) for method in ('cps-prompt', 'rep-prompt') for path in ('P3', 'P4') for seed in (1993, 1994)]
+    root = tmp_path / 'scenario-cps-rep-paths'
+    (root / 'logs').mkdir(parents=True)
+    (root / 'jobs.txt').write_text(''.join(f'{m} own {p} {s}\n' for m, p, s in jobs))
+    (root / 'estimates.json').write_text(json.dumps({f'{m} own {p}': 5400 for m, p, _ in jobs}))
+    now = [1_800_000_000.]
+    monkeypatch.setattr(report.time, 'time', lambda: now[0])
+
+    def call(*arguments):
+        report.main(['--experiment', str(root), '--dry-run', *map(str, arguments)])
+
+    call('kickoff', '--workers', 6)
+    assert '예산 경로로 학습 8(경로 2개)' in capsys.readouterr().out
+    schedule = [0, 0] + [24] * 5 + [0] * 3
+    for method, path, seed in jobs:
+        job = report.Job(method, 'own', path, seed)
+        call('start', method, 'own', path, seed, '--gpu', 0)
+        # The config of such a run as the launcher writes it: no training operator, the own setting of every task.
+        config = dict(config_of(method, 'tome', 0, seed=seed), schedule=schedule, path=path, sources=[0, 8, 16, 24],
+                      degree=None, own_setting=[0 if degree == 0 else 187 for degree in schedule],
+                      eval_operators=['tome', 'evit'],
+                      compensations={f'src{d}': [None, [0, d], None] for d in (0, 8, 16, 24)})
+        off = {str(t): [60. - t / 4] * 2 for t in TARGETS}
+        record = {'task': 1, 'degree': 0, 'class_il': [60., 50.], 'task_il': [90., 80.], 'seconds': 60., 'grid_seconds': 30.,
+                  'operators': {operator: {'off': off, 'on': {f'src{d}': {t: [v[0] + 1] * 2 for t, v in off.items()}
+                                                              for d in (0, 8, 16, 24)}} for operator in ('tome', 'evit')}}
+        (root / job.id).mkdir()
+        (root / job.id / 'config.json').write_text(json.dumps(config))
+        (root / job.id / 'metrics.json').write_text(json.dumps([record]))
+        (root / job.id / 'summary.json').write_text(json.dumps({'execution_status': 'completed'}))
+        now[0] += 600
+        call('finish', method, 'own', path, seed, '--exit-code', 0)
+    text = capsys.readouterr().out
+    assert '끝남' in text and 'None' not in text
+    fields = identity(config)
+    assert (fields['kind'], fields['train_operator'], fields['train_degree']) == ('switch', 'own', 'P4')
+    # Plug-in runs on a path keep the operator they were trained with.
+    plug = dict(config, own_setting=None, operator='evit')
+    assert identity(plug)['train_operator'] == 'evit'
+    metrics = task_metrics(record)
+    assert metrics['tome-src24/r16'] == 57 and metrics['evit-src0/r16'] == 57 and metrics['evit-off/r16'] == 56
+    assert not any('cross' in key for key in metrics)
+    with report.Queue(root).locked() as queue:
+        rows = list(report.final_rows(queue))
+    assert {row['train_operator'] for row in rows} == {'own'} and {row['infer_operator'] for row in rows} == {'tome', 'evit'}
+    assert {row['bank'] for row in rows} == {'', 'src0', 'src8', 'src16', 'src24'}
+
+
 def test_joint_and_mixed_runs_are_named_by_their_kind(tmp_path, capsys):
     joint, mix = report.Job.parse(['inf-lora', 'evit', 'J8', '1993']), report.Job.parse(['coda-prompt', 'tome', 'MIX', '1993'])
     assert (joint.kind, joint.id, joint.train, joint.inference) == ('joint', 'inf-lora-evit-J8-seed1993', 'EViT J8', 'EViT')

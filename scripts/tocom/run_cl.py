@@ -8,7 +8,11 @@ with and without the compensator bank of each operator.
 CPS-Prompt and REP reduce tokens with their own algorithm in training. They take
 ``--matched-degree`` instead of a training degree: the ToMe degree whose FLOPs their
 own setting equals. Their banks correct each encoder pass from the degree that
-pass was trained at.
+pass was trained at. On a budget path (``--schedule``) each task takes the own setting of
+the matched degree its path gives it; the grid then holds, for each inference operator in
+``--eval-operators``, the bank of that operator from every ``--sources`` degree (``src<degree>``,
+the prompted pass trained at that degree, the query pass on every token), and the source row is the model as a
+fixed run evaluates it.
 
 Training uses batches of 16 and every evaluation batches of 256, unless told otherwise;
 Mammoth alone would evaluate with the training batch size.
@@ -38,6 +42,9 @@ Examples (from the repository root):
         --output results/tocom-switch
     uv run --no-sync python -m scripts.tocom.run_cl --method inf-lora --operator evit --mix 0 8 16 24 \\
         --banks evit=<bank dir> --targets 0 4 8 12 16 20 24 --seed 1993 --output results/tocom-bounds
+    uv run --no-sync python -m scripts.tocom.run_cl --method cps-prompt --path P5 \\
+        --schedule 0 0 0 0 0 24 24 24 24 24 --eval-operators tome evit --banks tome=<bank dir> evit=<bank dir> \\
+        --targets 0 4 8 12 16 20 24 --seed 1993 --output results/scenario-cps-rep-paths
 """
 
 from scripts.cl_runtime import DEFAULT_PROFILE, configure_native_environment
@@ -73,7 +80,9 @@ COMMON = dict(dataset='seq-cifar100-224', dataset_config='unified', model_config
 # The method's own compression setting at which the FLOPs of its prompted pass equal ToMe at a training
 # degree, on ViT-Tiny (scripts/tocom/flops.py): the ratio of patches CPS-Prompt samples away in its
 # joint phase, and the largest per-block merge of REP's progressive schedule with layer dropping off.
-OWN = {'cps-prompt': {0: 0., 8: .237, 16: .477}, 'rep-prompt': {0: 0, 8: 27, 16: 71}}
+# Degree 24 is 71 patches kept for CPS-Prompt; REP's schedule is clamped to half of the tokens in every
+# block, so 187 is the smallest maximum that reaches the FLOPs of ToMe 24 (184 to 186 fall .003 short).
+OWN = {'cps-prompt': {0: 0., 8: .237, 16: .477, 24: .635}, 'rep-prompt': {0: 0, 8: 27, 16: 71, 24: 187}}
 
 
 def method_args(method, size, checkpoint, batch_size, matched=None):
@@ -153,9 +162,48 @@ def grid_plan(method, degree, matched, bank_names):
     compensations = {name: (name, (0, matched), None) for name in bank_names}
     if matched:
         compensations.update({f'{name}@0': (name, (0, 0), [name]) for name in bank_names})
-    # CPS-Prompt infers with every token, which is the plug-in at degree 0. REP's own inference merges
-    # on its schedule, which is no plug-in degree: its source row is the model as it is.
-    return (0 if method == 'cps-prompt' else None), compensations
+    return own_source(method), compensations
+
+
+def own_source(method):
+    """Source row of a model that compresses on its own. CPS-Prompt infers with every token, which is the
+    plug-in at degree 0. REP's own inference merges on its schedule, which is no plug-in degree: its source
+    row is the model as it is."""
+    return 0 if method == 'cps-prompt' else None
+
+
+def own_switch_plan(sources):
+    """Grid conditions of CPS-Prompt or REP trained on a budget path, as ``evaluate_grid`` takes them.
+
+    The bank of the inference operator (no name: each operator takes its own) corrects the two encoder passes
+    from (0, degree): the query pass saw every token, the prompted pass was trained at the matched degree.
+    The labels are those of a plug-in model on a path, ``src<degree>``; ``src0`` is the ``@0`` row of a fixed run.
+    """
+    return {f'src{degree}': (None, (0, degree), None) for degree in sorted(set(sources))}
+
+
+def apply_own_setting(model, method, setting):
+    """Give a built CPS-Prompt or REP model the own compression setting of the task about to be learned.
+
+    Both read their setting from a plain attribute at every forward call, so a budget path changes it between
+    tasks and a constant path is the fixed run: the ratio of patches CPS-Prompt's sampler removes, and REP's
+    largest per-block merge with its merging switched on or off.
+    """
+    if method == 'cps-prompt':
+        if not 0 <= setting < 1:
+            raise ValueError('reduction_ratio must be in [0,1)')
+        model.net.sampler.reduction_ratio = float(setting)
+    elif method == 'rep-prompt':
+        if type(setting) is not int or setting < 0:
+            raise ValueError('rep_merge_max must be a nonnegative integer')
+        model.net.maximum, model.net.atom = setting, setting > 0
+    else:
+        raise ValueError(f'{method} has no own compression setting')
+
+
+def own_setting(model, method):
+    """The own compression setting a built CPS-Prompt or REP model holds now (what ``apply_own_setting`` sets)."""
+    return model.net.sampler.reduction_ratio if method == 'cps-prompt' else model.net.maximum
 
 
 def switch_plan(operator, sources):
@@ -179,7 +227,8 @@ def parse_args(argv=None):
     parser.add_argument('--operator', choices=tuple(OPERATORS), default='tome', help='Reduction used in training')
     parser.add_argument('--degree', type=int, default=0, help='Training degree: tokens removed per block')
     parser.add_argument('--schedule', type=int, nargs='+', metavar='DEGREE',
-                        help='Training degree of every task in order, a budget path; replaces --degree')
+                        help='Training degree of every task in order, a budget path; replaces --degree. CPS-Prompt and '
+                             'REP take the matched degree of every task (0, 8, 16, 24) and train it with their own setting')
     parser.add_argument('--path', help='With --schedule: name of the budget path (letters and digits), used in the run id')
     parser.add_argument('--sources', type=int, nargs='+', default=[0, 8, 16, 24],
                         help='With --schedule or --mix: degrees the bank of the training operator corrects from in the grid')
@@ -195,8 +244,9 @@ def parse_args(argv=None):
                              'came back) trains at its own degree only')
     parser.add_argument('--joint', action='store_true',
                         help='Learn every class as one task at --degree (Mammoth --joint 1): the joint upper bound')
-    parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
-                        help='CPS-Prompt and REP: the ToMe training degree their own compression equals in FLOPs')
+    parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16, 24),
+                        help='CPS-Prompt and REP: the ToMe training degree their own compression equals in FLOPs '
+                             '(with --schedule, every task has its own)')
     parser.add_argument('--targets', type=int, nargs='+', default=[0, 4, 8, 10, 13, 16], help='Inference degrees')
     parser.add_argument('--eval-operators', nargs='+', choices=tuple(OPERATORS),
                         help='Operators to infer with; default: all at degree 0, else the training operator')
@@ -216,15 +266,14 @@ def parse_args(argv=None):
     parser.add_argument('--device', default='cuda:0')
     parser.add_argument('--output', type=Path, required=True, help='Experiment directory; one sub-directory per run')
     parser.add_argument('--run-id', help='Default: <method>-<operator>-r<degree>-seed<seed>, or '
-                                         '<method>-own-m<matched degree>-seed<seed>')
+                                         '<method>-own-m<matched degree>-seed<seed>, or on a path of CPS-Prompt and REP '
+                                         '<method>-own-<path>-seed<seed>')
     parser.add_argument('extra', nargs=argparse.REMAINDER, help='After --: extra Mammoth arguments')
     args = parser.parse_args(argv)
     args.extra = args.extra[1:] if args.extra[:1] == ['--'] else args.extra
     if args.wandb and (args.wandb.count('/') != 1 or not all(args.wandb.split('/'))):
         parser.error('--wandb takes ENTITY/PROJECT')
     if args.schedule is not None:
-        if args.method in OWN:
-            parser.error('A budget path is for methods trained with the plug-in')
         if args.degree:
             parser.error('--schedule replaces --degree')
         if not args.path or not re.fullmatch(r'[A-Za-z0-9]+', args.path):
@@ -236,9 +285,18 @@ def parse_args(argv=None):
             parser.error(str(error))
         if not set(args.schedule) <= set(args.targets):
             parser.error('Inference degrees must include every degree of the path')
-        if args.eval_operators not in (None, [args.operator]):
-            parser.error('A model trained on a budget path is inferred with its own operator')
-        args.eval_operators, args.degree = [args.operator], args.schedule[0]
+        if args.method in OWN:
+            # No training operator: each task trains with the method's own setting, the plug-in stays at degree 0,
+            # and the inference operators are the caller's (each with its bank).
+            if not set(args.schedule) <= set(OWN[args.method]):
+                parser.error(f'{args.method} has its own setting at degrees {sorted(OWN[args.method])}: '
+                             'a budget path may use only these')
+            if args.matched_degree is not None:
+                parser.error('--matched-degree is for a fixed budget: a path gives every task its own')
+        else:
+            if args.eval_operators not in (None, [args.operator]):
+                parser.error('A model trained on a budget path is inferred with its own operator')
+            args.eval_operators, args.degree = [args.operator], args.schedule[0]
     elif args.path is not None:
         parser.error('--path goes with --schedule')
     if args.mix is None and (args.mix_own is not None or args.mix_no_return):
@@ -266,7 +324,7 @@ def parse_args(argv=None):
         args.eval_operators = [args.operator]
     if args.degree not in args.targets:
         parser.error('Inference degrees must include the training degree')
-    if (args.method in OWN) != (args.matched_degree is not None):
+    if (args.method in OWN) != (args.matched_degree is not None) and not (args.method in OWN and args.schedule is not None):
         parser.error('--matched-degree is required for CPS-Prompt and REP, and is only theirs')
     if args.method in OWN and (args.degree or args.vit_size != 'tiny'):
         parser.error('CPS-Prompt and REP compress with their own algorithm in training (degree 0); '
@@ -402,7 +460,8 @@ def main(argv=None):
 
     own, switching, mixing = args.method in OWN, args.schedule is not None, args.mix is not None
     # Absolute, because Mammoth resolves a relative results path under its data root.
-    default_id = (f'{args.method}-own-m{args.matched_degree}-seed{args.seed}' if own else
+    default_id = (f'{args.method}-own-{args.path}-seed{args.seed}' if own and switching else
+                  f'{args.method}-own-m{args.matched_degree}-seed{args.seed}' if own else
                   f'{args.method}-{args.operator}-{args.path}{mix_suffix(args)}-seed{args.seed}' if switching and mixing else
                   f'{args.method}-{args.operator}-{args.path}-seed{args.seed}' if switching else
                   f'{args.method}-{args.operator}-MIX-seed{args.seed}' if mixing else
@@ -411,7 +470,9 @@ def main(argv=None):
     run = (args.output / (args.run_id or default_id)).resolve()
     run.mkdir(parents=True, exist_ok=False)
     spec = checkpoint_spec(args.vit_size)
-    values = dict(COMMON, **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree),
+    # CPS-Prompt and REP on a budget path are built with the setting of the first task.
+    matched = args.schedule[0] if own and switching else args.matched_degree
+    values = dict(COMMON, **method_args(args.method, args.vit_size, spec['file'], args.batch_size, matched),
                   n_epochs=args.epochs, batch_size=args.batch_size, seed=args.seed, device=args.device,
                   base_path=json.loads(DEFAULT_PROFILE.read_text())['data_root'] + '/',
                   results_path=str(run / 'native_results'), checkpoint_path=str(run / 'checkpoints'))
@@ -430,12 +491,18 @@ def main(argv=None):
     controller = attach(model.net, args.operator, degree=args.degree, bank=banks.get(args.operator))
     if switching or mixing:
         if not args.no_grid:
-            if args.operator not in banks:
-                raise ValueError('A budget path is evaluated with the bank of its operator: pass it with --banks')
+            # CPS-Prompt and REP are inferred with every operator named, each with its own bank.
+            needed = args.eval_operators if own else [args.operator]
+            if any(name not in banks for name in needed):
+                raise ValueError('A budget path is evaluated with the bank of each inference operator: pass it with --banks')
             # Checked now rather than at the first evaluation, hours later.
             for degree in (*(args.schedule or ()), *(args.mix or ()), *args.sources, *args.targets):
-                banks[args.operator].covered(degree)
-        source, compensations = (None if switching else args.degree), switch_plan(args.operator, args.sources)
+                for name in needed:
+                    banks[name].covered(degree)
+        if own:
+            source, compensations = own_source(args.method), own_switch_plan(args.sources)
+        else:
+            source, compensations = (None if switching else args.degree), switch_plan(args.operator, args.sources)
     else:
         source, compensations = grid_plan(args.method, args.degree, args.matched_degree, list(banks))
 
@@ -446,7 +513,9 @@ def main(argv=None):
               'sources': sorted(set(args.sources)) if switching or mixing else None,
               'mix': sorted(set(args.mix)) if mixing else None, 'mix_own': args.mix_own, 'mix_no_return': args.mix_no_return,
               'joint': args.joint,
-              'matched_degree': args.matched_degree, 'own_setting': OWN[args.method][args.matched_degree] if own else None,
+              'matched_degree': args.matched_degree,
+              'own_setting': None if not own else ([OWN[args.method][degree] for degree in args.schedule] if switching
+                                                   else OWN[args.method][args.matched_degree]),
               'targets': sorted(set(args.targets)), 'eval_operators': args.eval_operators, 'scale': scale,
               'source': source, 'compensations': compensations, 'save_weights': args.save_weights,
               'seed': args.seed, 'grid': not args.no_grid, 'deterministic': args.deterministic,
@@ -470,8 +539,13 @@ def main(argv=None):
 
     def meta_begin_task(evaluated):
         # A budget path: the task about to be learned (with whatever its method runs when a task begins)
-        # and the evaluation after it run at that task's degree, until the next task begins.
-        controller.default_degree = valid_degree(args.schedule[len(records)])
+        # and the evaluation after it run at that task's degree, until the next task begins. CPS-Prompt and REP
+        # train it with their own setting of that matched degree, the plug-in staying at degree 0.
+        degree = valid_degree(args.schedule[len(records)])
+        if own:
+            apply_own_setting(model, args.method, OWN[args.method][degree])
+        else:
+            controller.default_degree = degree
         native_begin_task(evaluated)
 
     # Mixed degrees: a generator of its own, so that the draws leave every other random stream as it was.
@@ -511,7 +585,12 @@ def main(argv=None):
         record = {'task': len(records), 'classes': evaluated.get_offsets()[1], 'class_il': list(accs[0]),
                   'task_il': list(accs[1]), 'state_sha256': state_digest(model.net)}
         if switching:
-            record['degree'] = controller.default_degree
+            record['degree'] = args.schedule[len(records)] if own else controller.default_degree
+        if switching and own:
+            # Read from the model, not from the schedule: the setting its task was trained with.
+            record['own_setting'] = own_setting(model, args.method)
+            if record['own_setting'] != OWN[args.method][record['degree']]:
+                raise RuntimeError(f'Task {record["task"]} was not trained with the own setting of degree {record["degree"]}')
         if mixing:
             record['mix_steps'] = {str(degree): steps[degree] for degree in sorted(set(args.mix))}
             steps.clear()
@@ -525,7 +604,7 @@ def main(argv=None):
         if not args.no_grid:
             started = time.perf_counter()
             grid = evaluate_grid(model, evaluated.test_loaders, record['classes'],
-                                 record['degree'] if switching else source,
+                                 record['degree'] if switching and not own else source,
                                  args.targets, args.eval_operators, banks, scale, compensations)
             if grid['source'] != record['class_il']:
                 raise RuntimeError(f'Grid source row differs from Mammoth: {grid["source"]} vs {accs[0]}')

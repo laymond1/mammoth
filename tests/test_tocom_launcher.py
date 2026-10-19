@@ -37,6 +37,21 @@ def test_own_settings_are_the_closest_to_tome_in_flops():
     assert run_cl.OWN['cps-prompt'][0] == run_cl.OWN['rep-prompt'][0] == 0
 
 
+def test_degree_24_own_settings_match_tome_24_in_flops():
+    targets, sampled = flops.cps_reductions((24,), range(69, 74))
+    keep = flops.closest(targets, {keep: value[1] for keep, value in sampled.items()})[24]
+    assert keep == 71 and sampled[keep][0] == run_cl.OWN['cps-prompt'][24] == .635
+    assert int(196 * (1 - run_cl.OWN['cps-prompt'][24])) == 71 and abs(sampled[keep][1] - targets[24]) < .003
+    targets, own = flops.rep_reductions((24,), range(184, 191))
+    chosen = flops.closest(targets, own)[24]
+    assert chosen == run_cl.OWN['rep-prompt'][24] == 187 and abs(own[chosen] - targets[24]) < .005
+    # REP's merges are clamped to half of the tokens in every block, so smaller maxima fall short.
+    assert own[186] < targets[24] - .003 and own[chosen] > own[186]
+    arguments = run_cl.method_args('rep-prompt', 'tiny', 'weights.npz', 16, 24)
+    assert (arguments['rep_atom'], arguments['rep_merge_max']) == (1, 187)
+    assert run_cl.method_args('cps-prompt', 'tiny', 'weights.npz', 16, 24)['reduction_ratio'] == .635
+
+
 def test_plan_gives_each_pass_its_training_degree():
     banks = ['tome', 'evit']
     assert run_cl.grid_plan('coda-prompt', 8, None, banks) == (8, None)
@@ -181,3 +196,88 @@ def test_predictions_keep_class_and_task_il_and_check_the_grid(tmp_path):
     assert saved['tome/off/8|task_max'].tolist() == [[3, 2], [5, 6], [1, 4]]
     with pytest.raises(ValueError):
         keep(0, None, logits[:, :3], labels)
+
+
+def test_cps_and_rep_take_a_budget_path():
+    common = ['--seed', '1', '--output', 'unused', '--targets', '0', '4', '8', '12', '16', '20', '24']
+    path = ['--path', 'P5', '--schedule', *map(str, [0] * 5 + [24] * 5)]
+    for method in ('cps-prompt', 'rep-prompt'):
+        args = run_cl.parse_args(['--method', method, *common, *path, '--eval-operators', 'tome', 'evit'])
+        # No training degree: the plug-in stays at 0 and every task takes the own setting of its matched degree.
+        assert args.schedule == [0] * 5 + [24] * 5 and args.degree == 0 and args.matched_degree is None
+        assert args.eval_operators == ['tome', 'evit'] and args.sources == [0, 8, 16, 24]
+        assert run_cl.parse_args(['--method', method, *common, *path]).eval_operators == sorted(run_cl.OPERATORS)
+        args = run_cl.parse_args(['--method', method, '--matched-degree', '24', '--seed', '1', '--output', 'unused'])
+        assert args.matched_degree == 24 and args.schedule is None
+        for broken in (['--method', method, *common, *path, '--matched-degree', '24'],          # a path gives every task its own
+                       ['--method', method, *common, '--path', 'P1', '--schedule', *map(str, [0] * 9 + [12])],  # no setting at 12
+                       ['--method', method, *common, '--schedule', *map(str, [0] * 10)],        # no path name
+                       ['--method', method, *common, *path, '--degree', '8'],
+                       ['--method', method, *common, *path, '--vit-size', 'base'],
+                       ['--method', method, *common, *path, '--mix', '0', '24'],
+                       ['--method', method, *common, *path, '--joint'],
+                       ['--method', method, '--seed', '1', '--output', 'unused'],                # neither a budget nor a path
+                       ['--method', method, '--seed', '1', '--output', 'unused', '--targets', '0', '8', '--path', 'P5',
+                        '--schedule', *map(str, [0] * 5 + [24] * 5)]):                          # 24 not inferred
+            with pytest.raises(SystemExit):
+                run_cl.parse_args(broken)
+    # The plug-in methods keep their rules: the operator of the path is the only one inferred.
+    args = run_cl.parse_args(['--method', 'inf-lora', '--operator', 'evit', *common, *path])
+    assert args.eval_operators == ['evit'] and args.degree == 0
+    with pytest.raises(SystemExit):
+        run_cl.parse_args(['--method', 'inf-lora', *common, *path, '--matched-degree', '24'])
+
+
+def test_a_path_changes_the_own_setting_between_tasks():
+    from types import SimpleNamespace
+    from models.cps_prompt_utils.model import PromptModel
+    from models.rep_prompt_utils.model import REPModel
+    torch.manual_seed(0)
+    images = torch.randn(2, 3, 224, 224)
+    cps = SimpleNamespace(net=PromptModel(num_classes=100, n_tasks=10, vit_size='tiny', pretrained=False).train())
+    for degree, kept in ((0, 196), (24, 71), (8, 149), (16, 102), (0, 196)):
+        run_cl.apply_own_setting(cps, 'cps-prompt', run_cl.OWN['cps-prompt'][degree])
+        cps.net(images, train=True)
+        assert run_cl.own_setting(cps, 'cps-prompt') == run_cl.OWN['cps-prompt'][degree]
+        assert cps.net.diagnostics['prompted_tokens'] == 1 + kept
+        cps.net.eval()
+        cps.net(images)
+        # Inference keeps every token whatever the task was trained with.
+        assert cps.net.diagnostics['prompted_tokens'] == 197
+        cps.net.train()
+    rep = SimpleNamespace(net=REPModel(num_classes=100, n_tasks=10, vit_size='tiny', pretrained=False, atom=False, ald=False).train())
+    for degree in (0, 24, 8, 16, 0):
+        setting = run_cl.OWN['rep-prompt'][degree]
+        run_cl.apply_own_setting(rep, 'rep-prompt', setting)
+        assert run_cl.own_setting(rep, 'rep-prompt') == setting and rep.net.atom == bool(setting)
+        # The same model built with that setting from the start merges the same tokens.
+        built = REPModel(num_classes=100, n_tasks=10, vit_size='tiny', pretrained=False, atom=bool(setting), ald=False,
+                         maximum=setting).train()
+        built.load_state_dict(rep.net.state_dict())
+        rep.net(images, train=True)
+        built(images, train=True)
+        assert rep.net.diagnostics['merged_tokens'] == built.diagnostics['merged_tokens']
+        assert (sum(rep.net.diagnostics['merged_tokens']) > 0) == (setting > 0)
+    # More budget removed, fewer tokens left at the end of the encoder.
+    ends = {}
+    for degree in (8, 16, 24):
+        run_cl.apply_own_setting(rep, 'rep-prompt', run_cl.OWN['rep-prompt'][degree])
+        rep.net(images, train=True)
+        ends[degree] = rep.net.diagnostics['output_tokens'][-1]
+    assert ends[8] > ends[16] > ends[24] >= 2
+    for method, wrong in (('cps-prompt', 1.), ('cps-prompt', -.1), ('rep-prompt', -1), ('rep-prompt', .5), ('er', 0)):
+        with pytest.raises(ValueError):
+            run_cl.apply_own_setting(cps if method == 'cps-prompt' else rep, method, wrong)
+
+
+def test_the_grid_of_a_path_gives_each_operator_the_bank_from_every_source():
+    plan = run_cl.own_switch_plan([24, 0, 8, 16, 8])
+    # The query pass saw every token; the prompted pass was trained at the source degree. No bank is named:
+    # each inference operator takes its own.
+    assert plan == {f'src{d}': (None, (0, d), None) for d in (0, 8, 16, 24)} and list(plan) == ['src0', 'src8', 'src16', 'src24']
+    assert run_cl.own_source('cps-prompt') == 0 and run_cl.own_source('rep-prompt') is None
+    assert run_cl.grid_plan('cps-prompt', 0, 24, ['tome'])[0] == 0
+    # A constant path is the fixed run: its conditions are the fixed run's, under the labels of a path.
+    _, fixed = run_cl.grid_plan('rep-prompt', 0, 24, ['tome', 'evit'])
+    assert fixed['tome'] == ('tome', (0, 24), None) and fixed['evit@0'] == ('evit', (0, 0), ['evit'])
+    assert plan['src24'][1] == fixed['tome'][1] and plan['src0'][1] == fixed['tome@0'][1]

@@ -113,3 +113,11 @@ vitb16
 
 # ToCom plug-in study outputs (raw runs; reports are written separately).
 results/tocom-*/
+# New result folders follow AGENTS.md section 14: results/<unit>-...
+results/setup-*/
+results/scenario-*/
+results/idea-*/
+results/analysis-*/
+results/impl-*/
+results/survey-*/
+results/paper-*/

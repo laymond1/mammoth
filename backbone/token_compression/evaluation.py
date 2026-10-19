@@ -55,8 +55,9 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
     ``compensations`` maps a label to ``(bank name, training degrees, operators
     or None)``: the degrees are one value, or one per encoder pass (see
     ``compensate``), and the last item restricts the label to some inference
-    operators. By default every bank corrects from ``source`` under its own
-    name, which also tests a bank on another operator.
+    operators. A bank name of None is the bank of the inference operator
+    itself, whichever it is. By default every bank corrects from ``source``
+    under its own name, which also tests a bank on another operator.
 
     A condition that cannot differ from the source row (the target is the
     source degree and the bank has nothing to correct) reports that row.
@@ -77,11 +78,13 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
         compensations = {name: (name, (source,), None) for name in banks}
     compensations = {label: (bank, (degrees,) if isinstance(degrees, int) else tuple(degrees), only)
                      for label, (bank, degrees, only) in compensations.items()}
-    for bank, degrees, _ in compensations.values():
-        if bank not in banks or not degrees:
+    for bank, degrees, only in compensations.values():
+        names = [bank] if bank is not None else [name for name in operators if only is None or name in only]
+        if not degrees or any(name not in banks for name in names):
             raise ValueError('Every compensation needs a loaded bank and its training degrees')
-        for degree in (*degrees, *targets):
-            banks[bank].covered(degree)
+        for name in names:
+            for degree in (*degrees, *targets):
+                banks[name].covered(degree)
     _, encoder = find_encoder(model.net)
     controller = encoder.token_compression
     trained_operator, trained_bank = controller.operator, controller.bank
@@ -127,7 +130,7 @@ def evaluate_grid(model, loaders, n_classes, source, targets, operators, banks, 
                                 controller.verify_pass()
                         else:
                             bank, degrees, _ = compensations[label]
-                            controller.bank = banks[bank]
+                            controller.bank = banks[name if bank is None else bank]
                             with compensate(model.net, degrees, target, scale):
                                 counts[name, label, target] += correct(model(inputs), targets_, index, (name, label, target))
                                 controller.verify_pass()
