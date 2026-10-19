@@ -727,3 +727,16 @@ def test_paths_mixing_every_shape_within_the_budget_are_named_by_their_pool():
     base = dict(method='coda-prompt', operator='tome', seed=1, path='P5', schedule=[0] * 5 + [24] * 5, matched_degree=None,
                 joint=False, degree=None, mix=[0, 8, 16, 24], mix_shapes=True, budget_shapes={'24': '176:8'})
     assert [identity(dict(base, shape_pool=pool))['train_degree'] for pool in ('levels', 'menu', 'grid', None)] == ['P5MS', 'P5MSU', 'P5MSG', 'P5MS']
+
+
+def test_paths_mixing_the_grid_shapes_of_each_level_are_named_by_their_pool():
+    job = report.Job.parse(['inf-lora', 'tome', 'P6MSL', '1993'])
+    assert (job.kind, job.id) == ('switch-mix', 'inf-lora-tome-P6MSL-seed1993') and '비용 구간의 격자' in job.title
+    assert report.Job.parse(['inf-lora', 'tome', 'P6MSLR', '1']).kind == 'switch-mix'
+    for broken in ('P6ML', 'P6SL', 'P6MSLU'):
+        with pytest.raises(ValueError):
+            report.Job.parse(['inf-lora', 'tome', broken, '1'])
+    base = dict(method='inf-lora', operator='tome', seed=1, path='P6', schedule=[24] * 5 + [0] * 5, matched_degree=None,
+                joint=False, degree=None, mix=[0, 8, 16, 24], mix_shapes=True, budget_shapes={'24': '176:8'})
+    assert identity(dict(base, shape_pool='grid-levels'))['train_degree'] == 'P6MSL'
+    assert identity(dict(base, shape_pool='grid-levels', mix_own=.5))['train_degree'] == 'P6MSLW'

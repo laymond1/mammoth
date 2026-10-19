@@ -78,7 +78,7 @@ class Job(namedtuple('Job', 'method condition value seed')):
     @classmethod
     def parse(cls, fields):
         method, condition, value, seed = fields
-        named = re.fullmatch(r'P\d+(S|M(S[UG]?)?R?W?)?|J\d+|MIX|\d+px\d+', value) is not None
+        named = re.fullmatch(r'P\d+(S|M(S[LUG]?)?R?W?)?|J\d+|MIX|\d+px\d+', value) is not None
         if method not in NAMES or condition not in ('own', *OPERATORS) or (named and condition == 'own'):
             raise ValueError(f'Unknown job: {" ".join(fields)}')
         return cls(method, condition, value if named else int(value), int(seed))
@@ -115,6 +115,7 @@ class Job(namedtuple('Job', 'method condition value seed')):
                     'switch-mix': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value).split("M")[0]} 안에서 '
                                   + ('해상도 모양을 섞어 학습' if str(self.value).partition('M')[2].startswith('S') else '섞어 학습')
                                   + {'R': ' (돌아오면 섞지 않음)', 'W': ' (그 예산에 가중)', 'RW': ' (돌아오면 섞지 않음, 가중)',
+                                     'L': ' (수준을 고른 뒤 그 비용 구간의 격자에서)',
                                      'U': ' (예산 이하 모양 전부에서 균등)', 'G': ' (예산 이하 격자 전부에서 균등)'}.get(
                                       str(self.value).partition('M')[2].lstrip('S'), ''),
                     'joint': f'{OPERATORS.get(self.condition)} {str(self.value)[1:]}로 joint 학습',

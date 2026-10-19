@@ -27,9 +27,10 @@ degree the step would otherwise run at with that probability and the others unif
 
 On a budget path, ``--budget-shapes B=R:D ...`` trains and evaluates a task of budget B at the shape (R, D) instead of
 (224, B), and ``--mix-shapes`` with ``--mix`` replaces every drawn degree by a shape of that budget level drawn
-uniformly from ``SHAPE_LEVELS``. ``--shape-pool menu`` instead draws every step uniformly from all the shapes of
-``SHAPE_LEVELS`` within the task's budget, and ``--shape-pool grid`` from all shapes of ``SHAPE_GRID`` within it. Banks are trained at 224 pixels, so such runs take ``--no-grid`` and are evaluated
-with ``--eval-shapes``.
+uniformly from ``SHAPE_LEVELS``. ``--shape-pool grid-levels`` draws that shape instead among the shapes of ``SHAPE_GRID``
+between the level's cost and the next cheaper level's. ``--shape-pool menu`` instead draws every step uniformly from all
+the shapes of ``SHAPE_LEVELS`` within the task's budget, and ``--shape-pool grid`` from all shapes of ``SHAPE_GRID``
+within it. Banks are trained at 224 pixels, so such runs take ``--no-grid`` and are evaluated with ``--eval-shapes``.
 
 ``--resolution R`` feeds the encoder images of R pixels per side (resized before the patch embedding, with the
 position embedding resampled) in training and in Mammoth's evaluation, at the training degree: one input shape
@@ -91,9 +92,13 @@ SHAPE_LEVELS = {0: ((224, 0),), 8: ((224, 8), (208, 4), (192, 0)),
 TOLERANCE = 1.01
 # Every shape a step may take with --shape-pool grid: resolutions 128 to 224 by 16, degrees 0 to 24 by 4.
 SHAPE_GRID = tuple((resolution, degree) for resolution in range(128, 225, 16) for degree in range(0, 25, 4))
-# How --mix-shapes draws: a budget level, then a shape of it (levels); or one shape among all those within the budget,
-# from SHAPE_LEVELS (menu) or SHAPE_GRID (grid). The run name carries the pool after MS.
-SHAPE_POOLS = {'levels': '', 'menu': 'U', 'grid': 'G'}
+# How --mix-shapes draws: a budget level, then a shape of it from SHAPE_LEVELS (levels) or from SHAPE_GRID
+# (grid-levels); or one shape among all those within the budget, from SHAPE_LEVELS (menu) or SHAPE_GRID (grid). The
+# run name carries the pool after MS.
+SHAPE_POOLS = {'levels': '', 'grid-levels': 'L', 'menu': 'U', 'grid': 'G'}
+# With --shape-pool grid-levels, the shapes of the cheapest level reach down to this share of its cost; (128, 0), the
+# cheapest shape of SHAPE_LEVELS, is at 0.86.
+FLOOR = .85
 # Datasets with a unified input recipe (datasets/configs/<dataset>/unified.yaml), the first the default, and their
 # classes per task.
 DATASETS = {'seq-cifar100-224': 10, 'seq-imagenet-r': 20}
@@ -177,6 +182,20 @@ def mix_suffix(config):
             + ('R' if get('mix_no_return') else '') + ('W' if get('mix_own') is not None else ''))
 
 
+def level_shapes(pool, level):
+    """The shapes a step drawn at this budget level takes, uniformly: those of SHAPE_LEVELS (levels), or with
+    --shape-pool grid-levels the shapes of SHAPE_GRID that cost more than the next cheaper level and no more than this
+    one (both within the tolerance), down to FLOOR of its cost for the cheapest level. Every shape of a level of
+    SHAPE_LEVELS is in its grid-levels shapes."""
+    if pool == 'levels':
+        return SHAPE_LEVELS[level]
+    levels = sorted(SHAPE_LEVELS)
+    cheaper = levels[levels.index(level) + 1:]
+    low = shape_cost(224, cheaper[0]) * TOLERANCE if cheaper else shape_cost(224, level) * FLOOR
+    return tuple(s for s in SHAPE_GRID
+                 if (low < shape_cost(*s) if cheaper else low <= shape_cost(*s)) and shape_cost(*s) <= shape_cost(224, level) * TOLERANCE)
+
+
 def shape_pool(pool, budget):
     """The shapes a step of a task of this budget draws from, uniformly, with --shape-pool menu or grid."""
     shapes = sorted({s for level in SHAPE_LEVELS.values() for s in level}) if pool == 'menu' else SHAPE_GRID
@@ -256,8 +275,9 @@ def parse_args(argv=None):
     parser.add_argument('--mix-shapes', action='store_true',
                         help='With --mix: every drawn degree becomes a shape of that budget level (SHAPE_LEVELS)')
     parser.add_argument('--shape-pool', choices=tuple(SHAPE_POOLS), default='levels',
-                        help='With --mix-shapes: a level then a shape of it (levels), or one shape among all those within '
-                             'the budget from SHAPE_LEVELS (menu) or SHAPE_GRID (grid)')
+                        help='With --mix-shapes: a level then a shape of it from SHAPE_LEVELS (levels) or SHAPE_GRID '
+                             '(grid-levels), or one shape among all those within the budget from SHAPE_LEVELS (menu) '
+                             'or SHAPE_GRID (grid)')
     parser.add_argument('--joint', action='store_true',
                         help='Learn every class as one task at --degree (Mammoth --joint 1): the joint upper bound')
     parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
@@ -368,8 +388,10 @@ def parse_args(argv=None):
         parser.error('--budget-shapes goes with --schedule, and with --mix only together with --mix-shapes')
     if args.mix_shapes and (args.mix is None or not set(args.mix) <= set(SHAPE_LEVELS)):
         parser.error(f'--mix-shapes goes with --mix over the budget levels {sorted(SHAPE_LEVELS)}')
-    if args.shape_pool != 'levels' and (not args.mix_shapes or args.mix_own is not None or args.mix_no_return):
-        parser.error('--shape-pool menu or grid goes with --mix-shapes, without --mix-own or --mix-no-return')
+    if args.shape_pool != 'levels' and not args.mix_shapes:
+        parser.error('--shape-pool goes with --mix-shapes')
+    if args.shape_pool in ('menu', 'grid') and (args.mix_own is not None or args.mix_no_return):
+        parser.error('--shape-pool menu or grid draws no level: not with --mix-own or --mix-no-return')
     if (args.budget_shapes or args.mix_shapes) and not args.no_grid:
         parser.error('Runs at the shapes of their budgets are evaluated with --eval-shapes and take --no-grid')
     if args.resolution is not None and args.banks:
@@ -600,7 +622,9 @@ def main(argv=None):
 
     # Mixed degrees: a generator of its own, so that the draws leave every other random stream as it was.
     draws, steps = random.Random(args.seed), collections.Counter()
-    pool = {b: shape_pool(args.shape_pool, b) for b in SHAPE_LEVELS} if args.mix_shapes and args.shape_pool != 'levels' else {}
+    flat = args.mix_shapes and args.shape_pool in ('menu', 'grid')
+    pool = ({b: shape_pool(args.shape_pool, b) for b in SHAPE_LEVELS} if flat else
+            {level: level_shapes(args.shape_pool, level) for level in SHAPE_LEVELS} if args.mix_shapes else {})
 
     def meta_observe(*inputs, **keywords):
         # Read-only: the loss Mammoth gets back, and the learning rate the step has just used.
@@ -611,7 +635,7 @@ def main(argv=None):
             allowed = [d for d in args.mix if d >= own] if switching else list(args.mix)
             if args.mix_no_return and own < max(args.schedule[:len(records) + 1]):
                 allowed = [own]
-            if args.mix_shapes and args.shape_pool != 'levels':
+            if flat:
                 # One shape among all those within the task's budget.
                 size, controller.default_degree = draws.choice(pool[own])
                 controller.default_resolution = controller.check_resolution(size)
@@ -624,7 +648,7 @@ def main(argv=None):
                     level = draws.choice(allowed)
                 if args.mix_shapes:
                     # Then a shape of that budget level, from the same generator.
-                    size, controller.default_degree = draws.choice(SHAPE_LEVELS[level])
+                    size, controller.default_degree = draws.choice(pool[level])
                     controller.default_resolution = controller.check_resolution(size)
                     steps[shape_label(size, controller.default_degree)] += 1
                 else:
@@ -654,9 +678,9 @@ def main(argv=None):
             if args.budget_shapes:
                 record['budget'], record['resolution'] = budget[0], controller.resolution or controller.native
         if mixing:
-            keys = ([shape_label(*shape) for level in sorted(set(args.mix)) for shape in SHAPE_LEVELS[level]]
-                    if args.mix_shapes and args.shape_pool == 'levels' else
-                    [shape_label(*shape) for shape in shape_pool(args.shape_pool, 0)] if args.mix_shapes else sorted(set(args.mix)))
+            keys = ([shape_label(*shape) for shape in shape_pool(args.shape_pool, 0)] if flat else
+                    [shape_label(*shape) for level in sorted(set(args.mix)) for shape in pool[level]] if args.mix_shapes
+                    else sorted(set(args.mix)))
             record['mix_steps'] = {str(key): steps[key] for key in keys}
             steps.clear()
         if args.save_weights:

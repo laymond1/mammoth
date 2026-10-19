@@ -270,3 +270,31 @@ def test_shapes_may_also_be_drawn_from_everything_within_the_budget():
                    common + ['--shape-pool', 'other']):
         with pytest.raises(SystemExit):
             run_cl.parse_args(broken)
+
+
+def test_a_level_may_also_take_the_grid_shapes_of_its_cost():
+    from backbone.token_compression import shape_cost
+    levels = {level: run_cl.level_shapes('grid-levels', level) for level in (0, 8, 16, 24)}
+    assert all(run_cl.level_shapes('levels', level) == run_cl.SHAPE_LEVELS[level] for level in levels)
+    # Each level takes the grid shapes between its cost and the next cheaper level's, the cheapest down to FLOOR of its
+    # own: 24 shapes in all, each at one level, with every shape of SHAPE_LEVELS at its own level.
+    assert [len(shapes) for shapes in levels.values()] == [3, 7, 9, 5]
+    union = {s for shapes in levels.values() for s in shapes}
+    assert len(union) == 24 and set(levels[0]) == {(224, 0), (224, 4), (208, 0)}
+    assert all(set(run_cl.SHAPE_LEVELS[level]) <= set(shapes) for level, shapes in levels.items())
+    for upper, lower in ((0, 8), (8, 16), (16, 24)):
+        assert all(shape_cost(224, lower) * run_cl.TOLERANCE < shape_cost(*s) <= shape_cost(224, upper) * run_cl.TOLERANCE
+                   for s in levels[upper])
+    # The grid shapes left out are those cheaper than the floor.
+    floor = shape_cost(224, 24) * run_cl.FLOOR
+    assert all(floor <= shape_cost(*s) <= shape_cost(224, 24) * run_cl.TOLERANCE for s in levels[24])
+    assert {s for s in run_cl.SHAPE_GRID if shape_cost(*s) >= floor} == union
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused', '--no-grid',
+              '--targets', '0', '4', '8', '12', '16', '20', '24', '--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5,
+              '--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24', '--mix-shapes', '--shape-pool', 'grid-levels']
+    assert run_cl.path_suffix(run_cl.parse_args(common)) == 'MSL'
+    # The level is drawn as with the levels pool, so a share or no mixing after a return still applies.
+    assert run_cl.path_suffix(run_cl.parse_args(common + ['--mix-own', '.5'])) == 'MSLW'
+    assert run_cl.path_suffix(run_cl.parse_args(common + ['--mix-no-return'])) == 'MSLR'
+    with pytest.raises(SystemExit):
+        run_cl.parse_args([a for a in common if a != '--mix-shapes'])
