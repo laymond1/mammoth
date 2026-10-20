@@ -23,14 +23,18 @@ from scripts.token_efficiency.vit import Attention, Block, Mlp, VisionTransforme
 from . import arms
 
 PARTS = ('qkv', 'attn', 'merge', 'mlp')
+DEVICE_CATEGORIES = ('kernel', 'gpu_memcpy', 'gpu_memset')
+LAUNCH_CATEGORIES = ('cuda_runtime', 'cuda_driver')
 
 
 def attribute(events):
     """Per-block, per-part ``{'kernels', 'gpu_us', 'cpu_us'}`` from Chrome-trace events (all iterations summed)."""
     ranges = [e for e in events if e.get('cat') == 'user_annotation' and e.get('ph') == 'X'
               and (e['name'].startswith('blk') or e['name'] in PARTS)]
+    # cuBLAS launches its GEMMs through the driver API, and sorts issue memsets: count both, as the grid's
+    # profile does, so the parts add up to the same number of device operations.
     launch = {e['args']['correlation']: e for e in events
-              if e.get('cat') == 'cuda_runtime' and e.get('ph') == 'X' and 'correlation' in e.get('args', {})}
+              if e.get('cat') in LAUNCH_CATEGORIES and e.get('ph') == 'X' and 'correlation' in e.get('args', {})}
     table = defaultdict(lambda: {'kernels': 0, 'gpu_us': 0.0, 'cpu_us': 0.0})
     block_ranges = [r for r in ranges if r['name'].startswith('blk')]
     part_ranges = [r for r in ranges if r['name'] in PARTS]
@@ -39,7 +43,7 @@ def attribute(events):
         hits = [r for r in candidates if r['pid'] == call['pid'] and r['tid'] == call['tid'] and r['ts'] <= call['ts'] <= r['ts'] + r['dur']]
         return min(hits, key=lambda r: r['dur']) if hits else None
 
-    for kernel in (e for e in events if e.get('cat') == 'kernel' and e.get('ph') == 'X'):
+    for kernel in (e for e in events if e.get('cat') in DEVICE_CATEGORIES and e.get('ph') == 'X'):
         call = launch.get(kernel.get('args', {}).get('correlation'))
         block = inside(block_ranges, call) if call else None
         part = inside(part_ranges, call) if call and block else None

@@ -88,9 +88,14 @@ def test_kernel_attribution_uses_the_innermost_range_of_the_launch():
         dict(base, cat='kernel', name='a', pid=0, tid=7, ts=200, dur=5, args={'correlation': 7}),
         dict(base, cat='kernel', name='b', pid=0, tid=7, ts=210, dur=3, args={'correlation': 8}),
         dict(base, cat='kernel', name='c', pid=0, tid=7, ts=220, dur=2, args={'correlation': 9}),
+        # a GEMM launched through the driver API and a memset of a sort, both inside the merge range
+        dict(base, cat='cuda_driver', name='cuLaunchKernel', ts=50, dur=2, args={'correlation': 10}),
+        dict(base, cat='cuda_runtime', name='cudaMemsetAsync', ts=52, dur=1, args={'correlation': 11}),
+        dict(base, cat='kernel', name='gemm', pid=0, tid=7, ts=230, dur=4, args={'correlation': 10}),
+        dict(base, cat='gpu_memset', name='Memset', pid=0, tid=7, ts=240, dur=1, args={'correlation': 11}),
     ]
     table = attribute(events)
-    assert (table[('blk00', 'merge')]['kernels'], table[('blk00', 'merge')]['gpu_us']) == (1, 5)
+    assert (table[('blk00', 'merge')]['kernels'], table[('blk00', 'merge')]['gpu_us']) == (3, 10)
     assert table[('blk00', 'rest')]['kernels'] == 1
     assert table[('outside', 'embed-classify')]['kernels'] == 1
     assert table[('blk00', 'merge')]['cpu_us'] == 20
