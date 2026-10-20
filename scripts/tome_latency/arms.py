@@ -66,13 +66,49 @@ class _Trace:
         self.trace = []
 
 
-def build(arm, size, dtype, device, operator, degree, weights_root, patched=False):
+class _Shrink:
+    """Timing control: drops the last ``count`` tokens, merging nothing.
+
+    It keeps the schedule and the shapes of the real operator, so the blocks after it see the same token
+    counts. With ``masked`` the token sizes stay an all-ones tensor and the attention keeps its (zero)
+    bias, so the masked attention path runs as it does after a real merge. The output is not a ToMe output.
+    """
+
+    name = 'shrink'
+
+    def __init__(self, masked):
+        self.masked = masked
+
+    def __call__(self, tokens, size, count, signals):
+        kept = tokens.shape[1] - count
+        if self.masked:
+            size = tokens.new_ones(*tokens.shape[:2], 1) if size is None else size
+            size = size[:, :kept].contiguous()
+        return tokens[:, :kept].contiguous(), size
+
+
+VARIANTS = ('real', 'shrink-masked', 'shrink-unmasked', 'real-unmasked')
+
+
+def _study_variant(model, operator, degree, variant):
+    """Study ViT forward for a timing control; ``unmasked`` drops the size bias from the attention call."""
+    from scripts.token_efficiency.vit import Attention, Reduction
+    if variant.endswith('unmasked'):
+        mix = Attention.mix
+        Attention.mix = lambda self, q, k, v, bias=None: mix(self, q, k, v, None)
+    reduction = Reduction(_Shrink(variant == 'shrink-masked') if variant.startswith('shrink') else operator, degree)
+    return (lambda images: model(images, reduction)), {'capturable': True, 'state': reduction}
+
+
+def build(arm, size, dtype, device, operator, degree, weights_root, patched=False, variant='real'):
     """Return ``(forward, info)``; ``operator`` is ``dense`` or one of the four operator names."""
     state = weights.load(size, weights_root)
     dtype = DTYPES[dtype] if isinstance(dtype, str) else dtype
     device = torch.device(device)
     if arm == 'study':
         model = build_study(size, state, device, dtype)
+        if variant != 'real' and operator != 'dense':
+            return _study_variant(model, operator, degree, variant)
         spec = {'kind': 'dense'} if operator == 'dense' else {'kind': 'inblock', 'operator': operator, 'degree': degree}
         return methods.build_forward(model, spec)
     if arm == 'plugin':

@@ -27,7 +27,9 @@ REPOSITORY = PACKAGE.parents[1]
 def unit_id(unit):
     operator = unit['operator']
     name = 'dense' if operator == 'dense' else f"{operator}-r{unit['degree']}"
-    return f"{unit['arm']}__{unit['size']}__{unit['dtype']}__{name}{'-patched' if unit.get('patched') else ''}"
+    variant = unit.get('variant', 'real')
+    return (f"{unit['arm']}__{unit['size']}__{unit['dtype']}__{name}{'-patched' if unit.get('patched') else ''}"
+            f"{'' if variant == 'real' else '__' + variant}")
 
 
 def code_state():
@@ -66,7 +68,7 @@ def run_unit(unit, out):
             'env': {key: os.environ.get(key) for key in ('CUDA_VISIBLE_DEVICES', 'TOME_LATENCY_GEMM_PATCH', 'PYTHONPATH')}}
     start = time.perf_counter()
     forward, info = arms.build(unit['arm'], unit['size'], unit['dtype'], device, unit['operator'], unit.get('degree', 0),
-                               unit['weights'], patched=unit.get('patched', False))
+                               unit['weights'], patched=unit.get('patched', False), variant=unit.get('variant', 'real'))
     base['build_seconds'] = time.perf_counter() - start
     images = np.load(unit['images'], mmap_mode='r')
     rows = []

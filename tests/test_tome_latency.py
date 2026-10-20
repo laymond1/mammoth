@@ -60,3 +60,37 @@ def test_unit_ids_name_the_arm_and_the_patch():
     unit = {'arm': 'official', 'size': 'tiny', 'dtype': 'fp16', 'operator': 'tome', 'degree': 0, 'patched': True}
     assert unit_id(unit) == 'official__tiny__fp16__tome-r0-patched'
     assert unit_id(dict(unit, arm='study', operator='dense', patched=False)) == 'study__tiny__fp16__dense'
+    assert unit_id(dict(unit, arm='study', degree=16, patched=False, variant='shrink-masked')) == 'study__tiny__fp16__tome-r16__shrink-masked'
+
+
+@pytest.mark.parametrize('variant', ['shrink-masked', 'shrink-unmasked', 'real-unmasked'])
+def test_timing_controls_keep_the_token_schedule(images, variant, monkeypatch):
+    from backbone.token_compression import schedule
+    from scripts.token_efficiency import vit
+    from scripts.tome_latency import arms
+    monkeypatch.setattr(vit.Attention, 'mix', vit.Attention.mix)  # the unmasked variants patch it for the process
+    forward, info = arms.build('study', 'tiny', 'fp32', 'cpu', 'tome', 16, ROOT / 'weights', variant=variant)
+    with torch.inference_mode():
+        out = forward(images)
+    assert list(info['state'].trace) == schedule(16, 197, 12)
+    assert torch.isfinite(out).all()
+
+
+def test_kernel_attribution_uses_the_innermost_range_of_the_launch():
+    from scripts.tome_latency.profile_blocks import attribute
+    base = {'ph': 'X', 'pid': 1, 'tid': 1}
+    events = [
+        dict(base, cat='user_annotation', name='blk00', ts=0, dur=100),
+        dict(base, cat='user_annotation', name='merge', ts=40, dur=20),
+        dict(base, cat='cuda_runtime', name='cudaLaunchKernel', ts=45, dur=3, args={'correlation': 7}),
+        dict(base, cat='cuda_runtime', name='cudaLaunchKernel', ts=10, dur=3, args={'correlation': 8}),
+        dict(base, cat='cuda_runtime', name='cudaLaunchKernel', ts=500, dur=3, args={'correlation': 9}),
+        dict(base, cat='kernel', name='a', pid=0, tid=7, ts=200, dur=5, args={'correlation': 7}),
+        dict(base, cat='kernel', name='b', pid=0, tid=7, ts=210, dur=3, args={'correlation': 8}),
+        dict(base, cat='kernel', name='c', pid=0, tid=7, ts=220, dur=2, args={'correlation': 9}),
+    ]
+    table = attribute(events)
+    assert (table[('blk00', 'merge')]['kernels'], table[('blk00', 'merge')]['gpu_us']) == (1, 5)
+    assert table[('blk00', 'rest')]['kernels'] == 1
+    assert table[('outside', 'embed-classify')]['kernels'] == 1
+    assert table[('blk00', 'merge')]['cpu_us'] == 20
