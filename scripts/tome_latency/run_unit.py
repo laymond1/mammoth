@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from scripts.token_efficiency import bench, measure
+from scripts.token_efficiency import bench, data, measure
 
 from . import arms
 
@@ -71,14 +71,23 @@ def run_unit(unit, out):
                                unit['weights'], patched=unit.get('patched', False), variant=unit.get('variant', 'real'))
     base['build_seconds'] = time.perf_counter() - start
     images = np.load(unit['images'], mmap_mode='r')
+    # A torch.profiler session leaves CUPTI callbacks on and slows every later launch by about 1.4 us
+    # (profiler_residue.py), which is most of a launch-bound call. So no profile runs between two timings.
+    timing_unit = dict(unit, settings=dict(unit['settings'], profile_batches=[]))
     rows = []
     for batch in unit['batches']:
-        row = bench.measure_batch(None, forward, info, images, unit, batch, device)
+        row = bench.measure_batch(None, forward, info, images, timing_unit, batch, device)
         row['cpu_clocks_after'] = cpu_clocks()
         row['status'] = 'ok'
         rows.append(row)
         if device.type == 'cuda':
             torch.cuda.empty_cache()
+    if device.type == 'cuda':
+        for row in rows:
+            if row['batch'] in unit['settings'].get('profile_batches', ()):
+                x = data.normalize(images[:row['batch']], device, arms.DTYPES[unit['dtype']])
+                with torch.inference_mode():
+                    row['profile'] = measure.kernel_profile(forward, x)
     base['rows'] = rows
     Path(out).write_text(json.dumps(base, indent=1))
 

@@ -23,7 +23,7 @@ SETTINGS = dict(warmup=(10, 1.0), timed=(100, 1.5))
 
 
 def timed(call, device):
-    """Eager and CUDA-graph medians (ms), kernel count and GPU time of ``call()``."""
+    """Eager and CUDA-graph medians (ms) of ``call()``. No profiler runs here: it would slow the launches of every later call."""
     x = torch.zeros(1, device=device)
     run = lambda _: call()
     with torch.inference_mode():
@@ -33,9 +33,15 @@ def timed(call, device):
         replay = lambda _: graph.replay()
         measure.run_for(replay, x, device, 10, 0.2)
         replayed = measure.summary(measure.run_for(replay, x, device, *SETTINGS['timed']))
-        profile = measure.kernel_profile(run, x)
-    return {'eager_ms': eager['median_ms'], 'graph_ms': replayed['median_ms'], 'kernels': profile['kernels'],
-            'gpu_us': profile['gpu_us'], 'attention_kernels': profile['attention_kernels']}
+    return {'eager_ms': eager['median_ms'], 'graph_ms': replayed['median_ms']}
+
+
+def profiled(call, device):
+    """Kernel count, GPU time and attention kernels of one ``call()``; run only after every timing is done."""
+    x = torch.zeros(1, device=device)
+    with torch.inference_mode():
+        profile = measure.kernel_profile(lambda _: call(), x)
+    return {'kernels': profile['kernels'], 'gpu_us': profile['gpu_us'], 'attention_kernels': profile['attention_kernels']}
 
 
 def merge_case(operator, tokens, batch, dtype, device, block, depth, generator):
@@ -54,24 +60,39 @@ def attention_case(tokens, batch, dtype, device, masked, generator):
     return lambda: F.scaled_dot_product_attention(q, k, v, attn_mask=bias, scale=(WIDTH // HEADS) ** -0.5)
 
 
+def block_calls(operator, trace, batch, dtype, device, generator):
+    for block, tokens in enumerate(trace):
+        yield block, tokens, {
+            'merge': merge_case(OPERATORS[operator](), tokens, batch, dtype, device, block, len(trace), generator),
+            'attention': attention_case(tokens, batch, dtype, device, False, generator),
+            'attention_masked': attention_case(tokens, batch, dtype, device, True, generator)}
+
+
 def run(dtypes, batches, degree=16, operator='tome'):
     device = torch.device('cuda')
     torch.backends.cuda.matmul.allow_tf32 = False
-    generator = torch.Generator(device=device).manual_seed(0)
     trace = schedule(degree, 197, 12)
     result = {'degree': degree, 'operator': operator, 'token_trace': trace, 'cases': [], 'environment': measure.environment(device)}
-    for dtype_name in dtypes:
-        dtype = DTYPES[dtype_name]
-        for batch in batches:
-            entry = {'dtype': dtype_name, 'batch': batch, 'blocks': []}
-            for block, tokens in enumerate(trace):
-                merge = timed(merge_case(OPERATORS[operator](), tokens, batch, dtype, device, block, len(trace), generator), device)
-                plain = timed(attention_case(tokens, batch, dtype, device, False, generator), device)
-                masked = timed(attention_case(tokens, batch, dtype, device, True, generator), device)
-                entry['blocks'].append({'block': block, 'tokens': tokens, 'merge': merge, 'attention': plain, 'attention_masked': masked})
-            for key in ('merge', 'attention', 'attention_masked'):
-                entry[f'{key}_total'] = {field: sum(b[key][field] for b in entry['blocks']) for field in ('eager_ms', 'graph_ms', 'kernels', 'gpu_us')}
-            result['cases'].append(entry)
+    for phase in ('timing', 'profile'):
+        generator = torch.Generator(device=device).manual_seed(0)
+        for dtype_name in dtypes:
+            dtype = DTYPES[dtype_name]
+            for batch in batches:
+                if phase == 'timing':
+                    entry = {'dtype': dtype_name, 'batch': batch, 'blocks': []}
+                    result['cases'].append(entry)
+                else:
+                    entry = next(c for c in result['cases'] if (c['dtype'], c['batch']) == (dtype_name, batch))
+                for block, tokens, calls in block_calls(operator, trace, batch, dtype, device, generator):
+                    if phase == 'timing':
+                        entry['blocks'].append({'block': block, 'tokens': tokens, **{key: timed(call, device) for key, call in calls.items()}})
+                    else:
+                        for key, call in calls.items():
+                            entry['blocks'][block][key].update(profiled(call, device))
+    for entry in result['cases']:
+        for key in ('merge', 'attention', 'attention_masked'):
+            fields = ('eager_ms', 'graph_ms', 'kernels', 'gpu_us')
+            entry[f'{key}_total'] = {field: sum(b[key][field] for b in entry['blocks']) for field in fields}
     return result
 
 

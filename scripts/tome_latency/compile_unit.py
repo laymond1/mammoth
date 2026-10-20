@@ -106,12 +106,8 @@ def run_mode(mode, forward, inputs, reference, unit, device):
             record['compile_seconds'] = time.perf_counter() - start
             outputs = [call(chunk).clone() for chunk in inputs]
         record['agreement'] = agreement(reference, outputs, unit['dtype'])
+        # No kernel profile here: a profiler session slows every later eager launch (profiler_residue.py).
         record['timing'] = time_calls(lambda images: call(images), x, device, settings)
-        try:
-            record['profile'] = {key: value for key, value in measure.kernel_profile(lambda images: call(images), x).items()
-                                 if key in ('kernels', 'gpu_us')}
-        except Exception as error:  # the profiler cannot always see inside a replayed graph
-            record['profile'] = {'error': str(error)[:200]}
     return record
 
 
