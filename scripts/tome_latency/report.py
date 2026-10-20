@@ -87,26 +87,27 @@ def eager_tables(folder, old=None):
 
 def ablation_table(folder):
     records = load(folder)
-    print('## where the batch-1 slowdown comes from (study ViT, eager ms; deltas against the step before)')
     steps = [('dense', 'dense', 0, 'real'), ('shrink', 'tome', None, 'shrink-unmasked'), ('+merge', 'tome', None, 'real-unmasked'), ('+mask', 'tome', None, 'real')]
     result = {}
-    for dtype in ('fp32', 'fp16'):
-        for batch in (1, 16, 64):
-            for degree in (8, 16, 24):
-                times = []
-                for name, operator, deg, variant in steps:
-                    key = ('study', dtype, operator, degree if deg is None else deg, variant, False)
-                    record = records.get(key)
-                    times.append(metric(record, batch) if record else None)
-                masked = records.get(('study', dtype, 'tome', degree, 'shrink-masked', False))
-                masked = metric(masked, batch) if masked else None
-                if None in times:
-                    continue
-                dense, shrink, merge, real = times
-                result[f'{dtype}/b{batch}/r{degree}'] = {'dense': dense, 'shrink': shrink, 'merge': merge, 'real': real, 'shrink_masked': masked}
-                print(f"{dtype} b{batch:<3} r{degree:<3} dense {dense:7.3f} -> shrink {shrink:7.3f} ({shrink - dense:+.3f}) -> +merge {merge:7.3f} ({merge - shrink:+.3f}) "
-                      f"-> +mask {real:7.3f} ({real - merge:+.3f})   total {real - dense:+.3f} ms = {real / dense:.2f}x"
-                      f"{'' if masked is None else f'   [mask on shrink: {masked - shrink:+.3f}]'}")
+    for field, title in (('eager', 'eager (CPU issues every kernel)'), ('graph', 'CUDA graph replay (no launch cost)')):
+        print(f'## where the slowdown comes from, {title}: study ViT, ms; each step against the one before')
+        for dtype in ('fp32', 'fp16'):
+            for batch in (1, 16, 64):
+                for degree in (8, 16, 24):
+                    times = []
+                    for name, operator, deg, variant in steps:
+                        record = records.get(('study', dtype, operator, degree if deg is None else deg, variant, False))
+                        times.append(metric(record, batch, field) if record else None)
+                    masked = records.get(('study', dtype, 'tome', degree, 'shrink-masked', False))
+                    masked = metric(masked, batch, field) if masked else None
+                    if None in times:
+                        continue
+                    dense, shrink, merge, real = times
+                    result[f'{field}/{dtype}/b{batch}/r{degree}'] = {'dense': dense, 'shrink': shrink, 'merge': merge, 'real': real, 'shrink_masked': masked}
+                    print(f"{dtype} b{batch:<3} r{degree:<3} dense {dense:7.3f} -> shrink {shrink:7.3f} ({shrink - dense:+.3f}) -> +merge {merge:7.3f} ({merge - shrink:+.3f}) "
+                          f"-> +mask {real:7.3f} ({real - merge:+.3f})   total {real - dense:+.3f} ms = {real / dense:.2f}x"
+                          f"{'' if masked is None else f'   [mask on shrink: {masked - shrink:+.3f}]'}")
+        print()
     return result
 
 
