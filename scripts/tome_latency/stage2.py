@@ -17,13 +17,13 @@ SETTINGS = {'warmup_iters': 10, 'warmup_seconds': 2.0, 'min_iters': 30, 'min_sec
 BASE_MODES = ('eager', 'cuda-graph', 'compile-default', 'compile-reduce-overhead')
 
 
-def grid_units(root, size='tiny'):
+def grid_units(root, size='tiny', autotune=True, modes_base=BASE_MODES):
     common = {'size': size, 'settings': SETTINGS, 'weights': str(Path(root) / 'weights'), 'images': str(Path(root) / 'bench_images.npy')}
     units = []
     for dtype, degrees in (('fp32', (0, 8, 16, 24)), ('fp16', (0, 16))):
         for degree in degrees:
             for batch in (1, 16):
-                modes = BASE_MODES + (('compile-max-autotune-no-cudagraphs',) if dtype == 'fp32' and degree == 16 else ())
+                modes = tuple(modes_base) + (('compile-max-autotune-no-cudagraphs',) if autotune and dtype == 'fp32' and degree == 16 else ())
                 units.append(dict(common, dtype=dtype, degree=degree, batch=batch, modes=list(modes)))
     return units
 
@@ -34,14 +34,19 @@ def main():
     parser.add_argument('--results', required=True)
     parser.add_argument('--root', default=str(weights.CACHE.parent))
     parser.add_argument('--only', help='substring of the unit id')
+    parser.add_argument('--no-autotune', action='store_true', help='skip the max-autotune mode (9-11 minutes per unit)')
+    parser.add_argument('--no-compile', action='store_true', help='eager and manual CUDA graph only (no triton on this machine)')
+    parser.add_argument('--cpu-guard', action='store_true', help='edge boards: also wait while another process keeps a core busy')
     parser.add_argument('--list', action='store_true')
     args = parser.parse_args()
-    units = [unit for unit in grid_units(args.root) if not args.only or args.only in unit_id(unit)]
+    base = BASE_MODES[:2] if args.no_compile else BASE_MODES
+    units = [unit for unit in grid_units(args.root, autotune=not (args.no_autotune or args.no_compile), modes_base=base)
+             if not args.only or args.only in unit_id(unit)]
     if args.list:
         for unit in units:
             print(unit_id(unit), unit['modes'])
         return
-    run_grid(units, unit_id, 'scripts.tome_latency.compile_unit', Path(args.results) / args.label, timeout=5400)
+    run_grid(units, unit_id, 'scripts.tome_latency.compile_unit', Path(args.results) / args.label, timeout=5400, cpu_guard=args.cpu_guard)
 
 
 if __name__ == '__main__':

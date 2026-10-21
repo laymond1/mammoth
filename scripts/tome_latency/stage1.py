@@ -23,7 +23,7 @@ SETTINGS = {'warmup_iters': 10, 'warmup_seconds': 2.0, 'min_iters': 30, 'min_sec
             'energy_batches': [], 'graph': True}
 
 
-def grid_units(root, grid='eager', device='cuda', dtypes=('fp32', 'fp16'), size='tiny'):
+def grid_units(root, grid='eager', device='cuda', dtypes=('fp32', 'fp16'), size='tiny', arms=('study', 'plugin', 'official')):
     common = {'size': size, 'device': device, 'batches': list(BATCHES), 'settings': SETTINGS,
               'weights': str(Path(root) / 'weights'), 'images': str(Path(root) / 'bench_images.npy')}
     units = []
@@ -34,12 +34,15 @@ def grid_units(root, grid='eager', device='cuda', dtypes=('fp32', 'fp16'), size=
                          for degree in DEGREES for variant in VARIANTS)
             continue
         for arm in ('study', 'plugin'):
+            if arm not in arms:
+                continue
             units.append(dict(common, arm=arm, dtype=dtype, operator='dense', degree=0))
             for operator in OPERATORS:
                 units.extend(dict(common, arm=arm, dtype=dtype, operator=operator, degree=degree) for degree in DEGREES)
-        units.append(dict(common, arm='official', dtype=dtype, operator='dense', degree=0))
-        units.append(dict(common, arm='official', dtype=dtype, operator='tome', degree=0, patched=True))
-        units.extend(dict(common, arm='official', dtype=dtype, operator='tome', degree=degree) for degree in DEGREES)
+        if 'official' in arms:
+            units.append(dict(common, arm='official', dtype=dtype, operator='dense', degree=0))
+            units.append(dict(common, arm='official', dtype=dtype, operator='tome', degree=0, patched=True))
+            units.extend(dict(common, arm='official', dtype=dtype, operator='tome', degree=degree) for degree in DEGREES)
     return units
 
 
@@ -51,9 +54,13 @@ def main():
     parser.add_argument('--root', default=str(weights.CACHE.parent), help='folder with weights/ and bench_images.npy')
     parser.add_argument('--limit', type=int)
     parser.add_argument('--only', help='substring of the unit id')
+    parser.add_argument('--arms', nargs='+', default=['study', 'plugin', 'official'], choices=['study', 'plugin', 'official'])
+    parser.add_argument('--dtypes', nargs='+', default=['fp32', 'fp16'])
+    parser.add_argument('--device', default='cuda')
+    parser.add_argument('--cpu-guard', action='store_true', help='edge boards: also wait while another process keeps a core busy')
     parser.add_argument('--list', action='store_true')
     args = parser.parse_args()
-    units = grid_units(args.root, args.grid)
+    units = grid_units(args.root, args.grid, args.device, tuple(args.dtypes), arms=tuple(args.arms))
     if args.only:
         units = [unit for unit in units if args.only in unit_id(unit)]
     units = units[:args.limit]
@@ -61,7 +68,7 @@ def main():
         for unit in units:
             print(unit_id(unit))
         return
-    run_grid(units, unit_id, 'scripts.tome_latency.run_unit', Path(args.results) / args.label)
+    run_grid(units, unit_id, 'scripts.tome_latency.run_unit', Path(args.results) / args.label, cpu_guard=args.cpu_guard)
 
 
 if __name__ == '__main__':

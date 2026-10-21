@@ -15,11 +15,25 @@ from scripts.token_efficiency import measure
 from .run_unit import REPOSITORY
 
 
-def run_grid(units, ident, module, folder, retries=2, max_wait=1200, timeout=3600):
-    """``units`` are dicts; ``module`` is run as ``python -m module --unit JSON --out FILE``; ``ident(unit)`` names the output."""
+def run_grid(units, ident, module, folder, retries=2, max_wait=1200, timeout=3600, cpu_guard=False):
+    """``units`` are dicts; ``module`` is run as ``python -m module --unit JSON --out FILE``; ``ident(unit)`` names the output.
+
+    ``cpu_guard`` (edge boards): also wait while another process keeps a CPU core more than half busy, or the
+    Jetson GPU load is above 10 %, as the five-device study did.
+    """
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', PYTHONFAULTHANDLER='1', JE_ARROW_MALLOC_CONF='background_thread:false')
+
+    def busy():
+        found = measure.other_gpu_processes(all_gpus=True)
+        if cpu_guard:
+            found += measure.busy_cpu_processes()
+            load = measure.jetson_gpu_load()
+            if load is not None and load > 10:
+                found.append(f'GR3D {load:.0f}%')
+        return found
+
     for index, unit in enumerate(units):
         name = ident(unit)
         out = folder / f'{name}.json'
@@ -27,13 +41,13 @@ def run_grid(units, ident, module, folder, retries=2, max_wait=1200, timeout=360
             continue
         for attempt in range(retries + 1):
             waited = 0
-            while measure.other_gpu_processes(all_gpus=True) and waited < max_wait:
+            while busy() and waited < max_wait:
                 if waited % 300 == 0:
-                    print(f'GPU busy (pids {measure.other_gpu_processes(all_gpus=True)}), waiting', flush=True)
+                    print(f'machine busy ({busy()}), waiting', flush=True)
                 time.sleep(30)
                 waited += 30
-            if measure.other_gpu_processes(all_gpus=True):
-                print(f'[{index + 1}/{len(units)}] {name} skipped: GPU still busy after {max_wait}s', flush=True)
+            if busy():
+                print(f'[{index + 1}/{len(units)}] {name} skipped: machine still busy after {max_wait}s', flush=True)
                 break
             start = time.time()
             try:
@@ -44,7 +58,7 @@ def run_grid(units, ident, module, folder, retries=2, max_wait=1200, timeout=360
                 print(f'[{index + 1}/{len(units)}] {name} timed out after {timeout}s, attempt {attempt}', flush=True)
                 continue
             if done.returncode == 0 and out.exists():
-                intruders = measure.other_gpu_processes(all_gpus=True)
+                intruders = busy()
                 if intruders:
                     out.rename(folder / f'{name}.contaminated{attempt}.json')
                     print(f'[{index + 1}/{len(units)}] {name} discarded: pids {intruders} started during it', flush=True)
