@@ -63,6 +63,25 @@ def test_unit_ids_name_the_arm_and_the_patch():
     assert unit_id(dict(unit, arm='study', degree=16, patched=False, variant='shrink-masked')) == 'study__tiny__fp16__tome-r16__shrink-masked'
 
 
+def test_engine_verdict_follows_the_thresholds_agreed_before_the_engines_ran():
+    from scripts.tome_latency.trt_report import verdict
+    assert verdict(1.03, 3.14).startswith('execution')
+    assert verdict(1.60, 3.14).startswith('execution')  # excess 0.60 of 2.14 is 28 %, under the 30 % line
+    assert verdict(2.00, 3.14).startswith('mixed')
+    assert verdict(2.80, 3.14).startswith('merge operator itself')
+    assert verdict(0.70, 3.14).startswith('execution')
+    assert verdict(1.50, 1.05) == 'no slowness in eager'
+
+
+def test_engine_file_names_round_trip():
+    from scripts.tome_latency.trt_export import onnx_name
+    from scripts.tome_latency.trt_run import PLAN
+    plan = onnx_name('tome', 16, 16).replace('.onnx', '_fp16.plan')
+    match = PLAN.fullmatch(plan)
+    assert (match['degree'], match['batch'], match['precision']) == ('16', '16', 'fp16')
+    assert PLAN.fullmatch(onnx_name('tome', 0, 1).replace('.onnx', '_fp32.plan'))['degree'] is None
+
+
 @pytest.mark.parametrize('variant', ['shrink-masked', 'shrink-unmasked', 'real-unmasked'])
 def test_timing_controls_keep_the_token_schedule(images, variant, monkeypatch):
     from backbone.token_compression import schedule
