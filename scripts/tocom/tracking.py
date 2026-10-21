@@ -10,8 +10,9 @@ import logging
 import re
 import time
 
-FAMILIES = {'er': 'replay', 'lwf-mc': 'regularization', 'coda-prompt': 'prompt', 'cps-prompt': 'prompt',
-            'rep-prompt': 'prompt', 'ease': 'adapter', 'sd-lora': 'lora', 'inf-lora': 'lora', 'ewc-lora': 'lora'}
+FAMILIES = {'er': 'replay', 'derpp': 'replay', 'lwf-mc': 'regularization', 'coda-prompt': 'prompt',
+            'cps-prompt': 'prompt', 'rep-prompt': 'prompt', 'ease': 'adapter', 'sd-lora': 'lora', 'inf-lora': 'lora',
+            'ewc-lora': 'lora', 'cl-lora': 'lora'}
 # Runs without a dataset in their config are on this one; runs on another are told apart by name and group.
 DATASET = 'seq-cifar100-224'
 UPLOADED = ('config.json', 'provenance.json', 'metrics.json', 'summary.json', 'progress.jsonl')

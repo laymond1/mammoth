@@ -102,18 +102,36 @@ FLOOR = .85
 # Datasets with a unified input recipe (datasets/configs/<dataset>/unified.yaml), the first the default, and their
 # classes per task.
 DATASETS = {'seq-cifar100-224': 10, 'seq-imagenet-r': 20}
+# Replay buffer of ER and DER++ on each dataset: five images per class. ImageNet-R has 200 classes (the user's choice
+# of 2026-10-21; CIFAR-100 runs keep 500).
+BUFFER = {'seq-cifar100-224': 500, 'seq-imagenet-r': 1000}
 # The method's own compression setting at which the FLOPs of its prompted pass equal ToMe at a training
 # degree, on ViT-Tiny (scripts/tocom/flops.py): the ratio of patches CPS-Prompt samples away in its
 # joint phase, and the largest per-block merge of REP's progressive schedule with layer dropping off.
 OWN = {'cps-prompt': {0: 0., 8: .237, 16: .477}, 'rep-prompt': {0: 0, 8: 27, 16: 71}}
+# DER++ and CL-LoRA have no recipe of the unified Tiny comparison. Candidates, each compared on validation data of
+# CIFAR-100 (seed 1993, no reduction, 10 % of the training data held out; results/impl-table1-recipes):
+#   DER++ (alpha, beta): (0.3, 0.5), Mammoth's best for seq-cifar100 (models/config/derpp.yaml), or (0.1, 1.0), DER++'s for
+#   seq-tinyimg with 500 samples
+#   CL-LoRA learning rate of the encoder and the classifier: 0.0075, unified's 0.03 scaled from batch 64 to 16 as SD-LoRA's
+#   was, or 0.03 itself
+DERPP = dict(alpha=0.3, beta=0.5)
+CL_LORA_LR = 0.0075
 
 
-def method_args(method, size, checkpoint, batch_size, matched=None):
+def method_args(method, size, checkpoint, batch_size, matched=None, dataset=None):
+    buffer = BUFFER[dataset or next(iter(DATASETS))]
     if method == 'er':
         # Unified has AdamW at 1e-4, which at batch 16 moves the whole backbone too far (31% after ten tasks).
         # SGD at 0.001 was chosen over AdamW at 1e-5 on validation data: 49.5% against 25.1%.
         return dict(model='er', backbone='vit-augreg', vit_size=size, pretrained=1, vit_checkpoint=checkpoint,
-                    optimizer='sgd', lr=0.001, optim_mom=0.9, optim_wd=0.0, buffer_size=500, minibatch_size=batch_size)
+                    optimizer='sgd', lr=0.001, optim_mom=0.9, optim_wd=0.0, buffer_size=buffer, minibatch_size=batch_size)
+    if method == 'derpp':
+        # ER's backbone and optimizer (SGD at 0.001, chosen for ER on validation data at batch 16). alpha and beta: DER++'s
+        # weights of the logit and label replay, chosen among two published settings on validation data (see DERPP).
+        return dict(model='derpp', backbone='vit-augreg', vit_size=size, pretrained=1, vit_checkpoint=checkpoint,
+                    optimizer='sgd', lr=0.001, optim_mom=0.9, optim_wd=0.0, buffer_size=buffer, minibatch_size=batch_size,
+                    **DERPP)
     if method == 'coda-prompt':
         return dict(model='coda-prompt', backbone='vit-augreg', vit_size=size, pretrained=0, coda_vit_size=size,
                     coda_checkpoint=checkpoint, optimizer='adam', lr=0.001, optim_wd=0.0, pool_size=100,
@@ -139,6 +157,13 @@ def method_args(method, size, checkpoint, batch_size, matched=None):
         return dict(model='ewc-lora', backbone='low-rank-vit', lora_vit_size=size, lora_checkpoint=checkpoint,
                     optimizer='adam', lr=0.0005, optim_wd=0.0, lr_scheduler='cosine', lora_rank=10,
                     lora_fc_lr=0.005, lora_gamma=1.0, lora_ewc_lambda=1000.0, lora_ewc_merge='product')
+    if method == 'cl-lora':
+        # Unified (from the released code) has SGD at 0.03 for the encoder and the classifier at batch 64 on ViT-B; as
+        # for SD-LoRA, both rates are chosen on validation data at batch 16 on Tiny (see CL_LORA_LR).
+        return dict(model='cl-lora', backbone='low-rank-vit', lora_vit_size=size, lora_checkpoint=checkpoint,
+                    optimizer='sgd', lr=CL_LORA_LR, optim_mom=0.9, optim_nesterov=0, optim_wd=0.0001,
+                    lr_scheduler='cosine', lora_rank=10, lora_fc_lr=CL_LORA_LR, lora_kd_ratio=5.0,
+                    lora_temperature=2.0)
     if method == 'ease':
         return dict(model='ease', backbone='ease-vit', vit_size=size, pretrained=1, ease_checkpoint=checkpoint,
                     ease_pretrain_type='in21k_ft_in1k', adapter_size=64, optimizer='sgd', lr=0.025,
@@ -243,9 +268,10 @@ def switch_plan(operator, sources):
     return {f'src{degree}': (operator, (degree,), None) for degree in sorted(set(sources))}
 
 
-METHODS = ('er', 'coda-prompt', 'sd-lora', 'lwf-mc', 'inf-lora', 'ewc-lora', 'ease', 'cps-prompt', 'rep-prompt')
+METHODS = ('er', 'derpp', 'coda-prompt', 'sd-lora', 'lwf-mc', 'inf-lora', 'ewc-lora', 'cl-lora', 'ease', 'cps-prompt',
+           'rep-prompt')
 # Methods whose encoders the plug-in can feed at another resolution (backbone.token_compression.adapters.POSITION).
-RESIZABLE = ('er', 'lwf-mc', 'coda-prompt', 'inf-lora')
+RESIZABLE = ('er', 'derpp', 'lwf-mc', 'coda-prompt', 'inf-lora', 'ewc-lora', 'sd-lora', 'cl-lora', 'ease')
 
 
 def parse_args(argv=None):
@@ -543,7 +569,8 @@ def main(argv=None):
     run.mkdir(parents=True, exist_ok=False)
     spec = checkpoint_spec(args.vit_size)
     values = dict(COMMON, **dataset_args(args.method, args.dataset),
-                  **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree),
+                  **method_args(args.method, args.vit_size, spec['file'], args.batch_size, args.matched_degree,
+                                args.dataset),
                   n_epochs=args.epochs, batch_size=args.batch_size, seed=args.seed, device=args.device,
                   base_path=json.loads(DEFAULT_PROFILE.read_text())['data_root'] + '/',
                   results_path=str(run / 'native_results'), checkpoint_path=str(run / 'checkpoints'))

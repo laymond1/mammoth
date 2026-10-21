@@ -63,6 +63,19 @@ def test_arguments_of_the_methods_that_compress_on_their_own():
         full = run_cl.method_args(method, 'tiny', 'weights.npz', 16)
         assert (full['optimizer'], full['lr'], full['optim_mom'], full['optim_wd']) == ('sgd', .001, .9, 0.)
     assert run_cl.method_args('er', 'tiny', 'weights.npz', 16)['minibatch_size'] == 16
+    # DER++ shares ER's backbone, optimizer and replay batch; ER and DER++ keep five images per class.
+    derpp = run_cl.method_args('derpp', 'tiny', 'weights.npz', 16)
+    er = run_cl.method_args('er', 'tiny', 'weights.npz', 16)
+    assert {key: derpp[key] for key in er if key != 'model'} == {key: value for key, value in er.items() if key != 'model'}
+    assert (derpp['alpha'], derpp['beta']) == (run_cl.DERPP['alpha'], run_cl.DERPP['beta'])
+    for method in ('er', 'derpp'):
+        assert run_cl.method_args(method, 'tiny', 'weights.npz', 16, dataset='seq-cifar100-224')['buffer_size'] == 500
+        assert run_cl.method_args(method, 'tiny', 'weights.npz', 16, dataset='seq-imagenet-r')['buffer_size'] == 1000
+    cl = run_cl.method_args('cl-lora', 'tiny', 'weights.npz', 16)
+    assert (cl['optimizer'], cl['lr'], cl['lora_fc_lr'], cl['optim_wd'], cl['lr_scheduler']) == \
+        ('sgd', run_cl.CL_LORA_LR, run_cl.CL_LORA_LR, .0001, 'cosine')
+    # Every method trained with the plug-in can take another input resolution; CPS-Prompt and REP cannot.
+    assert set(run_cl.RESIZABLE) == set(run_cl.METHODS) - set(run_cl.OWN)
     args = run_cl.parse_args(['--method', 'rep-prompt', '--matched-degree', '8', *common])
     assert args.targets == [0, 4, 8, 10, 13, 16] and args.degree == 0
     assert (args.batch_size, args.eval_batch_size) == (16, 256)
@@ -199,7 +212,8 @@ def test_a_run_at_another_resolution_trains_and_is_inferred_at_one_shape():
                    common + ['--mix', '0', '8', '16', '24', '--resolution', '176'],        # mixed degrees
                    common + ['--joint', '--degree', '8', '--eval-shapes', '224:0'],        # joint training
                    common + ['--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5, '--resolution', '176'],
-                   ['--method', 'sd-lora', '--seed', '1', '--output', 'unused', '--resolution', '176']):
+                   ['--method', 'cps-prompt', '--matched-degree', '8', '--seed', '1', '--output', 'unused',
+                    '--eval-shapes', '176:8']):
         with pytest.raises(SystemExit):
             run_cl.parse_args(broken)
 
@@ -218,6 +232,15 @@ def test_imagenet_r_takes_the_unified_recipe_of_cifar_with_its_own_classes():
     assert run_cl.dataset_args('inf-lora', 'seq-imagenet-r') == {'dataset': 'seq-imagenet-r', 'lora_classes_per_task': 20}
     assert run_cl.dataset_args('inf-lora', 'seq-cifar100-224') == {'dataset': 'seq-cifar100-224'}
     assert run_cl.dataset_args('coda-prompt', 'seq-imagenet-r') == {'dataset': 'seq-imagenet-r'}
+    for method in ('sd-lora', 'ewc-lora', 'cl-lora'):
+        assert run_cl.dataset_args(method, 'seq-imagenet-r')['lora_classes_per_task'] == 20
+    # The methods first run on ImageNet-R in the main table take every shape on a path.
+    for method in ('er', 'derpp', 'lwf-mc', 'ease', 'sd-lora', 'ewc-lora', 'cl-lora'):
+        mixed = run_cl.parse_args(['--method', method, '--seed', '1', '--output', 'unused', '--dataset', 'seq-imagenet-r',
+                                   '--path', 'P3', '--schedule', '0', '0', *['24'] * 5, '0', '0', '0', '--mix', '0', '8',
+                                   '16', '24', '--mix-shapes', '--budget-shapes', '24=176:8', '--no-grid',
+                                   '--targets', '0', '8', '16', '24', '--eval-shapes', '224:0', '224:24'])
+        assert mixed.mix_shapes and run_cl.path_suffix(mixed) == 'MS'
     args = run_cl.parse_args(common + ['--dataset', 'seq-imagenet-r', '--resolution', '176', '--degree', '8', '--targets', '8'])
     assert (args.dataset, args.resolution) == ('seq-imagenet-r', 176)
     for broken in (common + ['--dataset', 'seq-cifar10'], common + ['--dataset', 'seq-imagenet-r', '--joint']):
@@ -246,7 +269,7 @@ def test_a_path_runs_at_the_shapes_of_its_budgets_or_mixes_them():
                    common + ['--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24'],    # degrees mixed, shapes fixed
                    common + ['--mix', '0', '4', '24', '--mix-shapes'],                 # 4 is no budget level
                    common + ['--mix-shapes'],                                          # nothing to mix
-                   ['--method', 'sd-lora', *common[2:], '--budget-shapes', '24=176:8'],
+                   ['--method', 'rep-prompt', *common[2:], '--budget-shapes', '24=176:8'],
                    common[:17] + ['--budget-shapes', '24=176:8']):                     # no path
         with pytest.raises(SystemExit):
             run_cl.parse_args(broken)

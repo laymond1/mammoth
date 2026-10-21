@@ -1,4 +1,4 @@
-"""Token compression on the InfLoRA, EWC-LoRA, CPS-Prompt, REP and EASE encoders."""
+"""Token compression on the InfLoRA, EWC-LoRA, CL-LoRA, CPS-Prompt, REP and EASE encoders."""
 
 import copy
 from types import SimpleNamespace
@@ -9,7 +9,7 @@ import torch
 from backbone.token_compression import FrozenToCom, attach, compensate, detach, find_encoder, schedule
 from backbone.vit import VisionTransformer as MammothViT
 from models.coda_prompt_utils import vit as coda_vit
-from models.low_rank_utils import net_ewclora, net_inflora, vit_ewclora, vit_inflora
+from models.low_rank_utils import net_cllora, net_ewclora, net_inflora, vit_cllora, vit_ewclora, vit_inflora
 from models.low_rank_utils.pretrained import canonical_pretrained_state
 
 GEOMETRY = dict(img_size=32, patch_size=4, embed_dim=48, depth=6, num_heads=3)
@@ -44,6 +44,13 @@ def inf_lora():
 
 def ewc_lora():
     return SimpleNamespace(image_encoder=perturbed(net_ewclora.ViT(num_classes=0, n_tasks=3, rank=4, **GEOMETRY), 2))
+
+
+def cl_lora():
+    # Shared blocks first, then task-specific ones, as CL-LoRA places them (here 3 and 3 of 6).
+    return SimpleNamespace(image_encoder=perturbed(net_cllora.ViT(num_classes=0, n_tasks=3, rank=4, msa=[1, 0, 1],
+                                                                  shared_pos=[0, 1, 2], specific_pos=[3, 4, 5],
+                                                                  **GEOMETRY), 6))
 
 
 def cps():
@@ -91,7 +98,8 @@ def bank_for(tmp_path, depth=6, dim=48, width=32):
 
 def test_every_family_is_told_apart():
     from models.low_rank_utils import net_sdlora
-    nets = {'mammoth-vit': mammoth(), 'inf-lora-vit': inf_lora(), 'ewc-lora-vit': ewc_lora(), 'cps-vit': cps(),
+    nets = {'mammoth-vit': mammoth(), 'inf-lora-vit': inf_lora(), 'ewc-lora-vit': ewc_lora(), 'cl-lora-vit': cl_lora(),
+            'cps-vit': cps(),
             'rep-vit': rep(), 'ease-vit': ease(1),
             'coda-vit': SimpleNamespace(feat=coda_vit.VisionTransformer(num_classes=10, **GEOMETRY)),
             'sd-lora-vit': SimpleNamespace(image_encoder=net_sdlora.ViT(num_classes=0, n_tasks=3, rank=4, **GEOMETRY))}
@@ -164,6 +172,82 @@ def test_low_rank_equals_a_plain_encoder_with_merged_updates(tmp_path, family):
                     torch.testing.assert_close(corrected, merged.forward_features(x)[:, 0], atol=1e-10, rtol=0)
         detach(net)
         detach(merged)
+
+
+def cl_lora_blocks(encoder, task, use_new):
+    """The block arguments CL-LoRA's forward_feature gives each block."""
+    for index, block in enumerate(encoder.blocks):
+        weight = encoder.block_weights[task][encoder.specific_pos.index(index)] if index in encoder.specific_pos else None
+        yield block, (task, weight, use_new)
+
+
+@pytest.mark.parametrize('task, use_new', [(1, True), (2, False)])
+def test_cl_lora_is_identity_at_degree_zero(task, use_new):
+    net, x = cl_lora(), torch.randn(2, 3, 32, 32).double()
+    encoder = net.image_encoder
+    names = [(name, parameter.requires_grad) for name, parameter in encoder.named_parameters()]
+    with torch.no_grad():
+        before, shared = encoder(x, task, use_new=use_new), encoder(x, shared=True, use_new=use_new)
+    controller = attach(net, 'tome')
+    with torch.no_grad():
+        assert torch.equal(encoder(x, task, use_new=use_new), before)
+        assert torch.equal(encoder(x, shared=True, use_new=use_new), shared)
+        hidden = embedded(encoder, x)
+        for block, arguments in cl_lora_blocks(encoder, task, use_new):
+            expected = vit_cllora.Block.forward(block, hidden, *arguments)
+            assert torch.equal(block._reduced(hidden, controller, 0, *arguments), expected)
+            hidden = expected
+    assert [(name, parameter.requires_grad) for name, parameter in encoder.named_parameters()] == names
+
+
+@pytest.mark.parametrize('use_new', [True, False])
+def test_cl_lora_equals_a_plain_encoder_with_merged_updates(tmp_path, use_new):
+    reference, x = mammoth(), torch.randn(2, 3, 32, 32).double()
+    net, task = cl_lora(), 1
+    share(reference, net)
+    encoder, merged = net.image_encoder, copy.deepcopy(reference)
+    with torch.no_grad():
+        for (block, (_, weight, _)), plain in zip(cl_lora_blocks(encoder, task, use_new), merged.blocks):
+            attn = block.attn
+            if attn.is_shared:
+                q, v = (attn.lora_q, attn.lora_v) if use_new else (attn.lora_q_old, attn.lora_v_old)
+                scale_q = scale_v = 1.
+            else:
+                q, v = attn.lora_q[task], attn.lora_v[task]
+                scale_q, scale_v = weight[0], weight[2]
+            plain.attn.qkv.weight[:48] += scale_q * q.lora_B.weight @ q.lora_A.weight
+            plain.attn.qkv.weight[96:] += scale_v * v.lora_B.weight @ v.lora_A.weight
+    bank = bank_for(tmp_path)
+    for operator in ('tome', 'evit'):
+        low, plain = attach(net, operator, bank=bank), attach(merged, operator, bank=bank)
+        with torch.no_grad():
+            for degree in (0, 8, 16):
+                with low.degree(degree), plain.degree(degree):
+                    # The reduction signals must come from the queries and keys after the low-rank updates.
+                    torch.testing.assert_close(encoder(x, task, use_new=use_new)[:, 0], merged.forward_features(x)[:, 0],
+                                               atol=1e-10, rtol=0)
+                    low.verify_pass()
+                    assert low.trace == plain.trace == schedule(degree, 65, 6)
+                with compensate(net, 0, degree, .1):
+                    corrected = encoder(x, task, use_new=use_new)[:, 0]
+                with compensate(merged, 0, degree, .1):
+                    torch.testing.assert_close(corrected, merged.forward_features(x)[:, 0], atol=1e-10, rtol=0)
+        detach(net)
+        detach(merged)
+
+
+def test_cl_lora_distillation_passes_reduce_the_shared_blocks_and_train():
+    net, x = cl_lora(), torch.randn(2, 3, 32, 32).double()
+    encoder = net.image_encoder.train()
+    controller = attach(net, 'tome', degree=8)
+    # forward_kd runs the shared blocks only, once with the new shared updates and once with the old ones.
+    new, old = encoder(x, shared=True, use_new=True), encoder(x, shared=True, use_new=False)
+    assert controller.trace == schedule(8, 65, 6)[:3] and new.shape == old.shape == (2, 65 - 3 * 8, 48)
+    new.sum().backward()
+    shared = encoder.blocks[0].attn
+    assert shared.lora_q.lora_B.weight.grad.abs().sum() > 0 and shared.lora_q_old.lora_B.weight.grad is None
+    encoder(x, 2, use_new=True).sum().backward()
+    assert encoder.blocks[3].attn.lora_v[2].lora_A.weight.grad.abs().sum() > 0 and encoder.block_weights[2].grad.abs().sum() > 0
 
 
 def test_inf_lora_gathers_covariances_of_the_tokens_it_sees():
@@ -428,6 +512,27 @@ def test_ease_matches_the_plain_encoder_and_reduces_every_adapter_pass(tmp_path,
             with compensate(reference, 0, degree, .1):
                 torch.testing.assert_close(corrected, reference.forward_features(x)[:, 0], atol=1e-9, rtol=0)
     assert not torch.allclose(separate[0], separate[1])
+
+
+@pytest.mark.parametrize('degree', [0, 8])
+def test_ease_takes_another_resolution_as_the_plain_encoder_does(degree):
+    net, x = ease(), torch.randn(1, 3, 224, 224).double()
+    reference = mammoth(TINY)
+    share(net, reference)
+    backbone = net.backbone
+    controller, plain = attach(net, 'tome'), attach(reference, 'tome')
+    assert controller.resizable
+    with torch.no_grad():
+        with controller.shape(160, degree), plain.shape(160, degree):
+            torch.testing.assert_close(backbone.extract_features(x, -1), reference.forward_features(x)[:, 0], atol=1e-9, rtol=0)
+            assert controller.trace == plain.trace == schedule(degree, 101, 12)
+            # Every adapter pass runs at that shape too.
+            assert backbone.extract_all(x).shape == (1, 384)
+            controller.verify_pass()
+        torch.testing.assert_close(backbone.extract_features(x, -1), reference.forward_features(x)[:, 0], atol=1e-9, rtol=0)
+        assert len(controller.trace) == 12 and controller.trace[0] == 197
+    detach(net)
+    assert '_pos_embed' not in backbone.backbone.__dict__
 
 
 def test_ease_adapters_train_under_reduction():
