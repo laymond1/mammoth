@@ -109,13 +109,13 @@ BUFFER = {'seq-cifar100-224': 500, 'seq-imagenet-r': 1000}
 # degree, on ViT-Tiny (scripts/tocom/flops.py): the ratio of patches CPS-Prompt samples away in its
 # joint phase, and the largest per-block merge of REP's progressive schedule with layer dropping off.
 OWN = {'cps-prompt': {0: 0., 8: .237, 16: .477}, 'rep-prompt': {0: 0, 8: 27, 16: 71}}
-# DER++ and CL-LoRA have no recipe of the unified Tiny comparison. Candidates, each compared on validation data of
-# CIFAR-100 (seed 1993, no reduction, 10 % of the training data held out; results/impl-table1-recipes):
-#   DER++ (alpha, beta): (0.3, 0.5), Mammoth's best for seq-cifar100 (models/config/derpp.yaml), or (0.1, 1.0), DER++'s for
-#   seq-tinyimg with 500 samples
+# DER++ and CL-LoRA have no recipe of the unified Tiny comparison. Chosen on validation data of CIFAR-100 (seed 1993, no
+# reduction, 10 % of the training data held out; final class-IL; results/impl-table1-recipes):
+#   DER++ (alpha, beta): (0.1, 1.0), DER++'s setting for seq-tinyimg with 500 samples, 48.2 % against 45.3 % for (0.3, 0.5),
+#   Mammoth's best for seq-cifar100 (models/config/derpp.yaml)
 #   CL-LoRA learning rate of the encoder and the classifier: 0.0075, unified's 0.03 scaled from batch 64 to 16 as SD-LoRA's
-#   was, or 0.03 itself
-DERPP = dict(alpha=0.3, beta=0.5)
+#   was, 72.9 % against 71.0 % for 0.03 itself
+DERPP = dict(alpha=0.1, beta=1.0)
 CL_LORA_LR = 0.0075
 
 
