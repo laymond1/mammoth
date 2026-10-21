@@ -226,6 +226,11 @@ def test_imagenet_r_takes_the_unified_recipe_of_cifar_with_its_own_classes():
     assert (cifar['N_CLASSES_PER_TASK'], imagenet_r['N_CLASSES_PER_TASK']) == tuple(run_cl.DATASETS.values())
     assert {key: value for key, value in imagenet_r.items() if not key.startswith('N_')} == \
         {key: value for key, value in cifar.items() if not key.startswith('N_')}
+    # EASE's model config selects its own preprocessing (ease.yaml) on every dataset; again only the class counts differ.
+    cifar, imagenet_r = (yaml.safe_load((configs / name / 'ease.yaml').read_text()) for name in run_cl.DATASETS)
+    assert (imagenet_r['N_CLASSES_PER_TASK'], imagenet_r['N_CLASSES']) == (20, 200)
+    assert {key: value for key, value in imagenet_r.items() if not key.startswith('N_')} == \
+        {key: value for key, value in cifar.items() if not key.startswith('N_')}
     common = ['--method', 'inf-lora', '--seed', '1', '--output', 'unused']
     assert run_cl.parse_args(common).dataset == 'seq-cifar100-224'
     # The low-rank heads take the classes of a task; on CIFAR-100 the arguments stay as they were.
