@@ -71,14 +71,16 @@ ROWS = 40
 
 class Job(namedtuple('Job', 'method condition value seed')):
     """One run of a queue: ``value`` is a training degree, the name of a budget path (``P1``) for a run
-    that trains each task at its own degree (``P1M`` for mixed degrees within that path's budget),
-    ``J<degree>`` for joint training at that degree, or ``MIX`` for training at mixed degrees. The methods that
-    compress on their own (condition ``own``) have a fixed matched degree, or a budget path (``P1``) and nothing else."""
+    that trains each task at its own degree (``P1M`` for mixed degrees within that path's budget, ``P1S`` at the
+    shapes given for its budgets, ``P1MS`` for mixed shapes within them),
+    ``J<degree>`` for joint training at that degree, ``MIX`` for training at mixed degrees, or ``<degree>px<resolution>``
+    for training at one degree with inputs of another resolution than 224 pixels. The methods that compress on their
+    own (condition ``own``) have a fixed matched degree, or a budget path (``P1``) and nothing else."""
 
     @classmethod
     def parse(cls, fields):
         method, condition, value, seed = fields
-        named = re.fullmatch(r'P\d+(M[RW]*)?|J\d+|MIX', value) is not None
+        named = re.fullmatch(r'P\d+(S|M(S[LUG]?)?R?W?)?|J\d+|MIX|\d+px\d+', value) is not None
         own_path = method in ('cps-prompt', 'rep-prompt') and re.fullmatch(r'P\d+', value) is not None
         if method not in NAMES or condition not in ('own', *OPERATORS) or (named and condition == 'own' and not own_path):
             raise ValueError(f'Unknown job: {" ".join(fields)}')
@@ -88,6 +90,9 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def id(self):
         if self.condition == 'own':
             return f'{self.method}-own-{"m" if isinstance(self.value, int) else ""}{self.value}-seed{self.seed}'
+        if self.kind == 'shape':
+            degree, resolution = self.value.split('px')
+            return f'{self.method}-{self.condition}-r{degree}-px{resolution}-seed{self.seed}'
         if self.kind in ('switch', 'switch-mix', 'joint', 'mix'):
             return f'{self.method}-{self.condition}-{self.value}-seed{self.seed}'
         return f'{self.method}-{self.condition}-r{self.value}-seed{self.seed}'
@@ -99,6 +104,8 @@ class Job(namedtuple('Job', 'method condition value seed')):
     @property
     def kind(self):
         if isinstance(self.value, str):
+            if 'px' in self.value:
+                return 'shape'
             return {'J': 'joint', 'M': 'mix'}.get(self.value[0], 'switch-mix' if 'M' in self.value else 'switch')
         return 'none' if not self.value else 'own' if self.condition == 'own' else 'plugin'
 
@@ -106,11 +113,19 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def title(self):
         training = {'none': '압축 없이 학습', 'own': f'자체 압축으로 학습(ToMe {self.value}과 같은 FLOPs)',
                     'plugin': f'{OPERATORS.get(self.condition)} 학습 압축도 {self.value}',
-                    'switch': f'{OPERATORS.get(self.condition, "자체 압축")} 예산 경로 {self.value}',
-                    'switch-mix': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value).split("M")[0]} 안에서 섞어 학습'
-                                  + {'R': ' (돌아오면 섞지 않음)', 'W': ' (그 예산에 가중)', 'RW': ' (돌아오면 섞지 않음, 가중)'}.get(str(self.value).partition('M')[2], ''),
+                    'switch': f'{OPERATORS.get(self.condition, "자체 압축")} 예산 경로 {str(self.value).rstrip("S")}'
+                              + (' (예산마다 정한 해상도 모양)' if str(self.value).endswith('S') else ''),
+                    'switch-mix': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value).split("M")[0]} 안에서 '
+                                  + ('해상도 모양을 섞어 학습' if str(self.value).partition('M')[2].startswith('S') else '섞어 학습')
+                                  + {'R': ' (돌아오면 섞지 않음)', 'W': ' (그 예산에 가중)', 'RW': ' (돌아오면 섞지 않음, 가중)',
+                                     'L': ' (수준을 고른 뒤 그 비용 구간의 격자에서)',
+                                     'U': ' (예산 이하 모양 전부에서 균등)', 'G': ' (예산 이하 격자 전부에서 균등)'}.get(
+                                      str(self.value).partition('M')[2].lstrip('S'), ''),
                     'joint': f'{OPERATORS.get(self.condition)} {str(self.value)[1:]}로 joint 학습',
-                    'mix': f'{OPERATORS.get(self.condition)} 0~24 섞어 학습'}[self.kind]
+                    'mix': f'{OPERATORS.get(self.condition)} 0~24 섞어 학습',
+                    'shape': ('압축 없이, ' if str(self.value).startswith('0px') else
+                              f'{OPERATORS.get(self.condition)} 학습 압축도 {str(self.value).partition("px")[0]}, ')
+                             + f'입력 {str(self.value).partition("px")[2]} px'}[self.kind]
         return f'{NAMES[self.method]} · {training} · seed {self.seed}'
 
     @property
@@ -119,19 +134,23 @@ class Job(namedtuple('Job', 'method condition value seed')):
         return {'none': 'none', 'own': f'own {self.value}', 'plugin': f'{CODES.get(self.condition)} {self.value}',
                 'switch': f'{CODES.get(self.condition, "own")} {self.value}', 'switch-mix': f'{CODES.get(self.condition)} {self.value}',
                 'joint': f'{CODES.get(self.condition)} {self.value}',
-                'mix': f'{CODES.get(self.condition)} MIX'}[self.kind]
+                'mix': f'{CODES.get(self.condition)} MIX',
+                'shape': '/'.join(reversed(str(self.value).split('px')))}[self.kind]
 
     @property
     def brief(self):
         return {'none': '압축 없음', 'own': f'자체 {self.value}', 'plugin': f'{OPERATORS.get(self.condition)} {self.value}',
                 'switch': f'{OPERATORS.get(self.condition, "자체")} 경로 {self.value}',
-                'switch-mix': f'{OPERATORS.get(self.condition)} 경로 {str(self.value).split("M")[0]} 섞음 {str(self.value).partition("M")[2]}'.rstrip(),
-                'joint': f'{OPERATORS.get(self.condition)} joint {str(self.value)[1:]}', 'mix': f'{OPERATORS.get(self.condition)} 섞음'}[self.kind]
+                'switch-mix': f'{OPERATORS.get(self.condition)} 경로 {str(self.value).split("M")[0]} 섞음 {str(self.value).partition("M")[2]}'.rstrip()
+                              if 'S' not in str(self.value).partition('M')[2] else
+                              f'{OPERATORS.get(self.condition)} 경로 {str(self.value).split("M")[0]} 모양 섞음 {str(self.value).partition("M")[2][1:]}'.rstrip(),
+                'joint': f'{OPERATORS.get(self.condition)} joint {str(self.value)[1:]}', 'mix': f'{OPERATORS.get(self.condition)} 섞음',
+                'shape': ' px + '.join(reversed(str(self.value).split('px')))}[self.kind]
 
     @property
     def inference(self):
         # A model trained with the plug-in is inferred with its own operator; the others with every operator.
-        own = self.kind in ('plugin', 'switch', 'switch-mix', 'mix') or (self.kind == 'joint' and self.value != 'J0')
+        own = self.kind in ('plugin', 'switch', 'switch-mix', 'mix', 'shape') or (self.kind == 'joint' and self.value != 'J0')
         return OPERATORS[self.condition] if own and self.condition != 'own' else '·'.join(OPERATORS[name] for name in GRID)
 
 
@@ -290,8 +309,8 @@ def tables(queue, seeds):
         return lambda record: (mean(record['class_il']), mean(record['operators'][name]['off'][target]),
                                mean(record['operators'][name]['on'][name][target]))
 
-    if any(job.kind in ('switch', 'switch-mix', 'joint', 'mix') for job in queue.jobs.values()):
-        # Runs on budget paths and their references are not tabulated by training degree this way.
+    if any(job.kind in ('switch', 'switch-mix', 'joint', 'mix', 'shape') for job in queue.jobs.values()):
+        # Runs on budget paths, their references and runs at other resolutions are not tabulated by degree this way.
         return ''
     high = max((job.value for job in queue.jobs.values()), default=0)
     trained = [name for name in OPERATORS if any(job.condition == name for job in queue.jobs.values())] or list(GRID)
@@ -327,26 +346,42 @@ def tables(queue, seeds):
 
 
 def final_rows(queue):
-    """Every condition of the last task of every completed run, one row each, for the tables of the analysis."""
+    """Every condition of the last task of every completed run, one row each, for the tables of the analysis.
+
+    A run that evaluates input shapes also gives a row per shape, and its rows give the inference resolution."""
     for name in sorted(queue.of('completed')):
         config, record = queue.run(name)
         if not config:
             continue
         fields = identity(config)
         source = mean(record['class_il'])
+        shaped = bool(config.get('resolution') or config.get('eval_shapes'))
+        resolution = {'infer_resolution': config.get('resolution') or 224} if shaped else {}
         for operator, entry in record.get('operators', {}).items():
             for label, targets in (('off', entry['off']), *entry['on'].items()):
                 for target, values in targets.items():
                     yield {**fields, 'infer_operator': operator, 'infer_degree': int(target),
-                           'bank': '' if label == 'off' else label, 'accuracy': mean(values), 'as_trained': source}
+                           'bank': '' if label == 'off' else label, 'accuracy': mean(values), 'as_trained': source,
+                           **resolution}
+        for label, values in record.get('shapes', {}).items():
+            size, _, degree = label.partition(':')
+            yield {**fields, 'infer_operator': config['operator'], 'infer_degree': int(degree), 'bank': '',
+                   'accuracy': mean(values), 'as_trained': source, 'infer_resolution': int(size)}
+
+
+def columns_of(rows):
+    """Every field of the rows, in the order they first appear: runs of one queue may name more fields than others."""
+    return list(dict.fromkeys(key for row in rows for key in row))
 
 
 def table_data(rows):
     """Columns and rows of the summary table. A column holding both names and numbers (training degrees next to
     ``MIX`` or a path name) is written as text throughout, as a Weights & Biases table takes one type per column."""
-    columns = list(rows[0])
-    named = {column for column in columns if len({isinstance(row[column], str) for row in rows if row[column] is not None}) > 1}
-    return columns, [[str(row[column]) if column in named else row[column] for column in columns] for row in rows]
+    columns = columns_of(rows)
+    named = {column for column in columns
+             if len({isinstance(row[column], str) for row in rows if row.get(column) is not None}) > 1}
+    return columns, [[str(row[column]) if column in named and row.get(column) is not None else row.get(column)
+                      for column in columns] for row in rows]
 
 
 def upload_final(queue, path, rows, resume=None):
@@ -502,16 +537,20 @@ def kickoff(queue, args, now):
     (queue.reports / 'kickoff.json').write_text(json.dumps(queue.plan, indent=2) + '\n')
     (queue.reports / 'watch.json').unlink(missing_ok=True)
     jobs = list(queue.jobs.values())
-    kinds = [sum(job.kind == kind for job in jobs) for kind in ('none', 'plugin', 'own', 'switch', 'joint', 'mix', 'switch-mix')]
+    kinds = [sum(job.kind == kind for job in jobs) for kind in ('none', 'plugin', 'own', 'switch', 'joint', 'mix', 'switch-mix', 'shape')]
     seeds = sorted({job.seed for job in jobs})
     end = queue.end(now)
     cadence = [f'{args.digest_hours:g}시간마다 진행 요약', *(['실행마다 시작과 완료'] if args.per_run else []),
                *(['seed 하나가 끝나면 요약표'] if args.seed_tables else [])]
     lines = [f'🚀 *{queue.root.name} 시작* · 실행 {len(jobs)}개',
              (' · '.join(text for count, text in (
+                 # References at one degree beside the named kinds, when the queue has them.
+                 (kinds[0], f'압축 없이 학습 {kinds[0]}'), (kinds[1], f'plug-in으로 줄여 학습 {kinds[1]}'),
+                 (kinds[2], f'자체 압축으로 학습 {kinds[2]}'),
                  (kinds[3], f'예산 경로로 학습 {kinds[3]}(경로 {len({job.value for job in jobs if job.kind == "switch"})}개)'),
                  (kinds[4], f'joint 학습 {kinds[4]}'), (kinds[5], f'제거량 섞어 학습 {kinds[5]}'),
-                 (kinds[6], f'예산 안에서 섞어 학습 {kinds[6]}(경로 {len({job.value for job in jobs if job.kind == "switch-mix"})}개)')) if count) + ' '
+                 (kinds[6], f'예산 안에서 섞어 학습 {kinds[6]}(경로 {len({job.value for job in jobs if job.kind == "switch-mix"})}개)'),
+                 (kinds[7], f'해상도를 바꿔 학습 {kinds[7]}(모양 {len({job.value for job in jobs if job.kind == "shape"})}개)')) if count) + ' '
               if any(kinds[3:]) else
               f'압축 없이 학습 {kinds[0]} · plug-in으로 줄여 학습 {kinds[1]} · 자체 압축으로 학습 {kinds[2]} ')
              + f'(방법 {len({job.method for job in jobs})}개 × seed {"·".join(map(str, seeds))})',
@@ -586,7 +625,7 @@ def write_summary(queue, dry_run, resume=None):
     path = queue.reports / 'final_grid.csv'
     if rows:
         with path.open('w', newline='') as stream:
-            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+            writer = csv.DictWriter(stream, fieldnames=columns_of(rows))
             writer.writeheader()
             writer.writerows(rows)
     return None if dry_run else upload_final(queue, path, rows, resume)

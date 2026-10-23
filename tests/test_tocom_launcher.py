@@ -281,3 +281,120 @@ def test_the_grid_of_a_path_gives_each_operator_the_bank_from_every_source():
     _, fixed = run_cl.grid_plan('rep-prompt', 0, 24, ['tome', 'evit'])
     assert fixed['tome'] == ('tome', (0, 24), None) and fixed['evit@0'] == ('evit', (0, 0), ['evit'])
     assert plan['src24'][1] == fixed['tome'][1] and plan['src0'][1] == fixed['tome@0'][1]
+
+
+def test_a_run_at_another_resolution_trains_and_is_inferred_at_one_shape():
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused',
+              '--targets', '0', '4', '8', '12', '16', '20', '24']
+    args = run_cl.parse_args(common + ['--degree', '8', '--resolution', '176', '--eval-shapes', '224:0', '176:8', '128:0'])
+    assert args.resolution == 176 and args.eval_shapes == [(224, 0), (176, 8), (128, 0)] and args.eval_operators == ['tome']
+    # 224 pixels is an ordinary run; ER evaluates other shapes of a model trained at 224.
+    assert run_cl.parse_args(common + ['--resolution', '224']).resolution is None
+    assert run_cl.parse_args(['--method', 'er', '--seed', '1', '--output', 'unused', '--eval-shapes', '128:0']).eval_shapes == [(128, 0)]
+    for broken in (common + ['--resolution', '100'],                                       # not whole patches
+                   common + ['--resolution', '240'],                                       # above 224
+                   common + ['--eval-shapes', '176'],                                      # no degree
+                   common + ['--eval-shapes', '176:8', '176:8'],                           # twice
+                   common + ['--resolution', '176', '--banks', 'tome=unused'],             # banks are trained at 224
+                   common + ['--mix', '0', '8', '16', '24', '--resolution', '176'],        # mixed degrees
+                   common + ['--joint', '--degree', '8', '--eval-shapes', '224:0'],        # joint training
+                   common + ['--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5, '--resolution', '176'],
+                   ['--method', 'sd-lora', '--seed', '1', '--output', 'unused', '--resolution', '176']):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)
+
+
+def test_imagenet_r_takes_the_unified_recipe_of_cifar_with_its_own_classes():
+    import yaml
+    configs = Path(run_cl.ROOT) / 'datasets' / 'configs'
+    cifar, imagenet_r = (yaml.safe_load((configs / name / 'unified.yaml').read_text()) for name in run_cl.DATASETS)
+    assert (imagenet_r['N_TASKS'], imagenet_r['N_CLASSES_PER_TASK'], imagenet_r['N_CLASSES']) == (10, 20, 200)
+    assert (cifar['N_CLASSES_PER_TASK'], imagenet_r['N_CLASSES_PER_TASK']) == tuple(run_cl.DATASETS.values())
+    assert {key: value for key, value in imagenet_r.items() if not key.startswith('N_')} == \
+        {key: value for key, value in cifar.items() if not key.startswith('N_')}
+    common = ['--method', 'inf-lora', '--seed', '1', '--output', 'unused']
+    assert run_cl.parse_args(common).dataset == 'seq-cifar100-224'
+    # The low-rank heads take the classes of a task; on CIFAR-100 the arguments stay as they were.
+    assert run_cl.dataset_args('inf-lora', 'seq-imagenet-r') == {'dataset': 'seq-imagenet-r', 'lora_classes_per_task': 20}
+    assert run_cl.dataset_args('inf-lora', 'seq-cifar100-224') == {'dataset': 'seq-cifar100-224'}
+    assert run_cl.dataset_args('coda-prompt', 'seq-imagenet-r') == {'dataset': 'seq-imagenet-r'}
+    args = run_cl.parse_args(common + ['--dataset', 'seq-imagenet-r', '--resolution', '176', '--degree', '8', '--targets', '8'])
+    assert (args.dataset, args.resolution) == ('seq-imagenet-r', 176)
+    for broken in (common + ['--dataset', 'seq-cifar10'], common + ['--dataset', 'seq-imagenet-r', '--joint']):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)
+
+
+def test_a_path_runs_at_the_shapes_of_its_budgets_or_mixes_them():
+    from backbone.token_compression import shape_cost
+    # Every shape of a budget level costs no more than the level at 224 pixels, within the tolerance.
+    for level, shapes in run_cl.SHAPE_LEVELS.items():
+        assert (224, level) in shapes and all(shape_cost(*shape) <= shape_cost(224, level) * run_cl.TOLERANCE for shape in shapes)
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused', '--no-grid',
+              '--targets', '0', '4', '8', '12', '16', '20', '24', '--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5]
+    args = run_cl.parse_args(common + ['--budget-shapes', '24=176:8', '--eval-shapes', '224:0', '176:8'])
+    assert args.budget_shapes == {24: (176, 8)} and run_cl.path_suffix(args) == 'S'
+    assert run_cl.budget_shape(args.budget_shapes, 24) == (176, 8) and run_cl.budget_shape(args.budget_shapes, 0) == (224, 0)
+    mixed = run_cl.parse_args(common + ['--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24', '--mix-shapes'])
+    assert mixed.mix_shapes and run_cl.path_suffix(mixed) == 'MS'
+    assert run_cl.path_suffix(run_cl.parse_args(common)) == '' and run_cl.path_suffix(run_cl.parse_args(common + ['--mix', '0', '8', '16', '24'])) == 'M'
+    assert run_cl.mix_suffix({'mix': [0, 24], 'mix_shapes': True, 'mix_own': .5}) == 'MSW'
+    for broken in (common + ['--budget-shapes', '24=208:16'],                          # costs more than budget 24
+                   common + ['--budget-shapes', '24=176:8', '24=192:12'],              # twice
+                   common + ['--budget-shapes', '24=176'],                             # no degree
+                   [item for item in common if item != '--no-grid'] + ['--budget-shapes', '24=176:8'],   # the grid
+                   common + ['--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24'],    # degrees mixed, shapes fixed
+                   common + ['--mix', '0', '4', '24', '--mix-shapes'],                 # 4 is no budget level
+                   common + ['--mix-shapes'],                                          # nothing to mix
+                   ['--method', 'sd-lora', *common[2:], '--budget-shapes', '24=176:8'],
+                   common[:17] + ['--budget-shapes', '24=176:8']):                     # no path
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)
+
+
+def test_shapes_may_also_be_drawn_from_everything_within_the_budget():
+    from backbone.token_compression import shape_cost
+    # The 13 shapes of the levels, and the grid of resolutions 128-224 by 16 and degrees 0-24 by 4.
+    assert [len(run_cl.shape_pool('menu', b)) for b in (0, 8, 16, 24)] == [13, 12, 9, 4]
+    assert [len(run_cl.shape_pool('grid', b)) for b in (0, 8, 16, 24)] == [49, 46, 39, 30]
+    assert set(run_cl.shape_pool('menu', 24)) == set(run_cl.SHAPE_LEVELS[24])
+    assert all(shape_cost(*s) <= shape_cost(224, 24) * run_cl.TOLERANCE for s in run_cl.shape_pool('grid', 24))
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused', '--no-grid',
+              '--targets', '0', '4', '8', '12', '16', '20', '24', '--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5,
+              '--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24', '--mix-shapes']
+    assert run_cl.path_suffix(run_cl.parse_args(common)) == 'MS'
+    assert run_cl.path_suffix(run_cl.parse_args(common + ['--shape-pool', 'menu'])) == 'MSU'
+    assert run_cl.path_suffix(run_cl.parse_args(common + ['--shape-pool', 'grid'])) == 'MSG'
+    for broken in (common[:-1] + ['--shape-pool', 'grid'],                   # no --mix-shapes
+                   common + ['--shape-pool', 'grid', '--mix-own', '.5'],
+                   common + ['--shape-pool', 'other']):
+        with pytest.raises(SystemExit):
+            run_cl.parse_args(broken)
+
+
+def test_a_level_may_also_take_the_grid_shapes_of_its_cost():
+    from backbone.token_compression import shape_cost
+    levels = {level: run_cl.level_shapes('grid-levels', level) for level in (0, 8, 16, 24)}
+    assert all(run_cl.level_shapes('levels', level) == run_cl.SHAPE_LEVELS[level] for level in levels)
+    # Each level takes the grid shapes between its cost and the next cheaper level's, the cheapest down to FLOOR of its
+    # own: 24 shapes in all, each at one level, with every shape of SHAPE_LEVELS at its own level.
+    assert [len(shapes) for shapes in levels.values()] == [3, 7, 9, 5]
+    union = {s for shapes in levels.values() for s in shapes}
+    assert len(union) == 24 and set(levels[0]) == {(224, 0), (224, 4), (208, 0)}
+    assert all(set(run_cl.SHAPE_LEVELS[level]) <= set(shapes) for level, shapes in levels.items())
+    for upper, lower in ((0, 8), (8, 16), (16, 24)):
+        assert all(shape_cost(224, lower) * run_cl.TOLERANCE < shape_cost(*s) <= shape_cost(224, upper) * run_cl.TOLERANCE
+                   for s in levels[upper])
+    # The grid shapes left out are those cheaper than the floor.
+    floor = shape_cost(224, 24) * run_cl.FLOOR
+    assert all(floor <= shape_cost(*s) <= shape_cost(224, 24) * run_cl.TOLERANCE for s in levels[24])
+    assert {s for s in run_cl.SHAPE_GRID if shape_cost(*s) >= floor} == union
+    common = ['--method', 'coda-prompt', '--operator', 'tome', '--seed', '1', '--output', 'unused', '--no-grid',
+              '--targets', '0', '4', '8', '12', '16', '20', '24', '--path', 'P5', '--schedule', *['0'] * 5, *['24'] * 5,
+              '--budget-shapes', '24=176:8', '--mix', '0', '8', '16', '24', '--mix-shapes', '--shape-pool', 'grid-levels']
+    assert run_cl.path_suffix(run_cl.parse_args(common)) == 'MSL'
+    # The level is drawn as with the levels pool, so a share or no mixing after a return still applies.
+    assert run_cl.path_suffix(run_cl.parse_args(common + ['--mix-own', '.5'])) == 'MSLW'
+    assert run_cl.path_suffix(run_cl.parse_args(common + ['--mix-no-return'])) == 'MSLR'
+    with pytest.raises(SystemExit):
+        run_cl.parse_args([a for a in common if a != '--mix-shapes'])

@@ -12,6 +12,8 @@ import time
 
 FAMILIES = {'er': 'replay', 'lwf-mc': 'regularization', 'coda-prompt': 'prompt', 'cps-prompt': 'prompt',
             'rep-prompt': 'prompt', 'ease': 'adapter', 'sd-lora': 'lora', 'inf-lora': 'lora', 'ewc-lora': 'lora'}
+# Runs without a dataset in their config are on this one; runs on another are told apart by name and group.
+DATASET = 'seq-cifar100-224'
 UPLOADED = ('config.json', 'provenance.json', 'metrics.json', 'summary.json', 'progress.jsonl')
 FINISH_TIMEOUT = 900.
 
@@ -22,11 +24,24 @@ def identity(config):
     A run on a budget path has kind ``switch`` and the name of its path as training degree (training operator
     ``own`` for CPS-Prompt and REP, which compress with their own setting there); a run with mixed
     degrees has kind ``mix`` and training degree ``MIX``, one with mixed degrees within the budget of a path kind
-    ``switch-mix`` and the path's name followed by ``M``; joint training has kind ``joint`` and its degree.
+    ``switch-mix`` and the path's name followed by ``M`` (``MS`` for mixed shapes); a path's run at the shapes of
+    its budgets has the path's name followed by ``S``; joint training has kind ``joint`` and its degree. A run
+    at another input resolution than 224 pixels has kind ``shape``, its degree and ``train_resolution``. A run on
+    another dataset than seq-cifar100-224 also has ``dataset``.
     """
+    fields = _identity(config)
+    if config.get('dataset', DATASET) != DATASET:
+        fields['dataset'] = config['dataset']
+    return fields
+
+
+def _identity(config):
     if config.get('schedule') or config.get('mix'):
-        suffix = 'M' + ('R' if config.get('mix_no_return') else '') + ('W' if config.get('mix_own') is not None else '')
-        kind, degree = (('switch-mix', f'{config["path"]}{suffix}') if config.get('mix') else ('switch', config['path'])) \
+        pool = {'grid-levels': 'L', 'menu': 'U', 'grid': 'G'}.get(config.get('shape_pool'), '')
+        suffix = ('M' + ('S' + pool if config.get('mix_shapes') else '') + ('R' if config.get('mix_no_return') else '')
+                  + ('W' if config.get('mix_own') is not None else ''))
+        kind, degree = (('switch-mix', f'{config["path"]}{suffix}') if config.get('mix') else
+                        ('switch', config['path'] + ('S' if config.get('budget_shapes') else ''))) \
             if config.get('schedule') else ('mix', 'MIX')
         return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': kind,
                 'train_operator': 'own' if config.get('own_setting') is not None else config['operator'],
@@ -34,6 +49,10 @@ def identity(config):
     if config.get('joint'):
         return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'joint',
                 'train_operator': config['operator'], 'train_degree': config['degree'], 'seed': config['seed']}
+    if config.get('resolution'):
+        return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'shape',
+                'train_operator': config['operator'] if config['degree'] else 'none', 'train_degree': config['degree'],
+                'train_resolution': config['resolution'], 'seed': config['seed']}
     own = config['matched_degree'] is not None
     degree = config['matched_degree'] if own else config['degree']
     kind = 'none' if not degree else 'own' if own else 'plugin'
@@ -71,6 +90,9 @@ def task_metrics(record):
     for key, name in (('seconds', 'task_minutes'), ('grid_seconds', 'grid_minutes')):
         if key in record:
             metrics[f'time/{name}'] = record[key] / 60
+    for label, accuracies in record.get('shapes', {}).items():
+        resolution, _, degree = label.partition(':')
+        metrics[f'shape/{resolution}px-r{int(degree):02d}'] = _mean(accuracies)
     values = {(name, kind, degree): value for name, kind, degree, value in _conditions(record)}
     for (name, kind, degree), value in values.items():
         metrics[f'{name}-{kind}/r{degree:02d}'] = value
@@ -140,12 +162,17 @@ class Mirror:
             return
         entity, _, project = target.partition('/')
         fields = identity(config)
+        # Runs of one setting share a group across seeds; on another dataset the dataset joins the group.
+        group = directory.name.rsplit('-seed', 1)[0] + (f'@{fields["dataset"]}' if 'dataset' in fields else '')
         options = dict(
-            entity=entity, project=project, name=directory.name, group=directory.name.rsplit('-seed', 1)[0],
-            job_type='train', tags=[experiment, fields['kind'], fields['family']], dir=str(directory),
+            entity=entity, project=project, name=directory.name, group=group,
+            job_type='train', tags=[experiment, fields['kind'], fields['family'], *[fields[key] for key in ('dataset',) if key in fields]],
+            dir=str(directory),
             config={'experiment': experiment, **fields, **extra,
                     **{key: config[key] for key in ('vit_size', 'own_setting', 'targets', 'eval_operators', 'scale',
-                                                    'deterministic', 'save_weights')}})
+                                                    'deterministic', 'save_weights')},
+                    # Runs that evaluate other input shapes name them and their own cost.
+                    **{key: config[key] for key in ('eval_shapes', 'cost') if config.get('eval_shapes')}})
         try:
             import wandb
             # No console capture, code or diff upload: the run directory holds the log and the provenance.

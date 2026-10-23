@@ -9,7 +9,10 @@ that owns that loop.
 
 from collections import namedtuple
 from contextlib import contextmanager
+from functools import lru_cache
+from types import MethodType
 
+import torch
 from torch.nn import functional as F
 
 from backbone import vit as mammoth_vit
@@ -86,6 +89,118 @@ FAMILIES = {'mammoth-vit': _mammoth, 'coda-vit': _load('coda'), 'sd-lora-vit': _
             'cps-vit': _load('cps'), 'rep-vit': _load('rep'), 'ease-vit': _load('ease')}
 
 
+# How the encoder of a family adds its position embedding, for families that can change their input
+# resolution: ``full`` adds the whole table in ``_pos_embed``, ``slice`` adds ``pos_embed[:, :tokens]`` inline.
+# The other families keep their native resolution.
+POSITION = {'mammoth-vit': 'full', 'coda-vit': 'slice', 'inf-lora-vit': 'slice'}
+
+
+@lru_cache(maxsize=None)
+def _resampling(native, grid, dtype, device):
+    """The ``grid`` x ``grid`` positions as a fixed mixture of the ``native`` ones: timm's resampling of a position
+    embedding (``resample_abs_pos_embed``: bicubic, antialiased) applied to every native position alone, in double
+    precision."""
+    basis = torch.eye(native[0] * native[1], dtype=torch.float64).reshape(1, *native, -1).permute(0, 3, 1, 2)
+    weights = F.interpolate(basis, size=(grid, grid), mode='bicubic', antialias=True)
+    return weights.permute(0, 2, 3, 1).reshape(grid * grid, -1).to(dtype=dtype, device=device)
+
+
+def _resampled(encoder, grid):
+    """The position embedding of ``encoder`` resampled to a ``grid`` x ``grid`` patch grid, and its prefix length.
+
+    The resampling is a matrix product with fixed weights rather than the interpolation itself: CUDA has no
+    deterministic backward of the interpolation, and the gradient reaches the table whenever it requires one."""
+    table = encoder.pos_embed
+    native = tuple(encoder.patch_embed.grid_size)
+    prefix = table.shape[1] - native[0] * native[1]
+    weights = _resampling(native, grid, table.dtype, table.device)
+    return torch.cat((table[:, :prefix], weights @ table[:, prefix:]), dim=1), prefix
+
+
+def _resize_input(module, args):
+    """Forward pre-hook of a patch embedding: the images at the controller's resolution. The images it is given
+    are checked against the native size as the embedding checked them before."""
+    if module._tc_strict and tuple(args[0].shape[-2:]) != tuple(module.img_size):
+        raise ValueError(f'Input of {tuple(args[0].shape[-2:])} pixels, the encoder takes {tuple(module.img_size)}')
+    size = module._tc_owner.token_compression.resolution
+    if size is None:
+        return None
+    return (F.interpolate(args[0], size=(size, size), mode='bicubic', align_corners=False, antialias=True), *args[1:])
+
+
+def _sliced_positions(module, args, output):
+    """Forward hook of a patch embedding whose encoder then adds ``pos_embed[:, :tokens]``: moves the patch
+    tokens from the leading rows of the native table to the resampled table."""
+    encoder = module._tc_owner
+    size = encoder.token_compression.resolution
+    if size is None:
+        return None
+    grid = size // module.patch_size[0]
+    table, prefix = _resampled(encoder, grid)
+    return output + (table[:, prefix:] - encoder.pos_embed[:, prefix:prefix + grid * grid])
+
+
+def _resized_pos_embed(self, x):
+    """``backbone.vit.VisionTransformer._pos_embed`` with the table resampled when the input is not native."""
+    size = self.token_compression.resolution
+    if size is None:
+        return type(self)._pos_embed(self, x)
+    table, _ = _resampled(self, size // self.patch_embed.patch_size[0])
+    if self.no_embed_class:
+        x = x + table
+        if self.cls_token is not None:
+            x = torch.cat((self.cls_token.expand(x.shape[0], -1, -1), x), dim=1)
+    else:
+        if self.cls_token is not None:
+            x = torch.cat((self.cls_token.expand(x.shape[0], -1, -1), x), dim=1)
+        x = x + table
+    return self.pos_drop(x)
+
+
+def _make_resizable(name, controller, members):
+    """Let the encoders of a family take inputs below their native resolution, when the controller says so.
+
+    At the native resolution nothing changes. Otherwise the images are resized (bicubic, antialiased) before
+    the patch embedding and the position embedding is resampled (bicubic, antialiased, as timm does) to the new grid.
+    Hooks find their encoder through the module they run on, so a deep copy (a distillation teacher) uses
+    its own position embedding.
+    """
+    mode = POSITION.get(name)
+    if mode is None:
+        return
+    embed = members[0].patch_embed
+    if embed.img_size[0] != embed.img_size[1] or embed.patch_size[0] != embed.patch_size[1]:
+        return
+    controller.native, controller.patch, controller.resizable = embed.img_size[0], embed.patch_size[0], True
+    for member in members:
+        embed = member.patch_embed
+        # Plain attributes: neither a submodule nor part of the state dictionary.
+        object.__setattr__(embed, '_tc_owner', member)
+        object.__setattr__(embed, '_tc_strict', embed.strict_img_size)
+        # The size check stays for other sizes than the controller's: inputs must still tile into patches.
+        embed.strict_img_size = False
+        embed.register_forward_pre_hook(_resize_input)
+        if mode == 'slice':
+            embed.register_forward_hook(_sliced_positions)
+        else:
+            member._pos_embed = MethodType(_resized_pos_embed, member)
+
+
+def _make_native(members):
+    for member in members:
+        embed = member.patch_embed
+        if not hasattr(embed, '_tc_owner'):
+            continue
+        for hooks, hook in ((embed._forward_pre_hooks, _resize_input), (embed._forward_hooks, _sliced_positions)):
+            for key in [key for key, value in hooks.items() if value is hook]:
+                del hooks[key]
+        embed.strict_img_size = embed._tc_strict
+        object.__delattr__(embed, '_tc_owner')
+        object.__delattr__(embed, '_tc_strict')
+        if '_pos_embed' in member.__dict__:
+            del member._pos_embed
+
+
 def _resolve(net, path):
     for name in path.split('.') if path else ():
         net = getattr(net, name, None)
@@ -159,6 +274,7 @@ def attach(net, operator='tome', degree=0, bank=None):
         member.token_compression = controller
     if family.host is not None:
         _host(net, encoder, family).__class__ = family.host[2]
+    _make_resizable(name, controller, [member for member, *_ in members])
     return controller
 
 
@@ -174,6 +290,8 @@ def compensate(net, source, target, scale):
     controller = encoder.token_compression
     if controller.bank is None:
         raise RuntimeError('No ToCom bank is attached to this encoder')
+    if controller.resolution is not None:
+        raise ValueError('ToCom banks are trained at the native resolution')
     sources = (source,) if isinstance(source, int) else tuple(source)
     if not sources:
         raise ValueError('At least one training degree is required')
@@ -194,12 +312,14 @@ def compensate(net, source, target, scale):
 
 
 def detach(net):
-    """Restore the original block classes."""
+    """Restore the original block classes and patch embeddings."""
     name, encoder = find_encoder(net)
     family = FAMILIES[name]()
     if family.host is not None:
         _host(net, encoder, family).__class__ = family.host[1]
-    for member, block_class, _, _ in [(encoder, family.block, None, None), *_companions(net, family)]:
+    members = [(encoder, family.block, None, None), *_companions(net, family)]
+    _make_native([member for member, *_ in members])
+    for member, block_class, _, _ in members:
         for block in member.blocks:
             block.__class__ = block_class
             del block._tc, block._tc_index

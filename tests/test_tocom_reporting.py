@@ -675,3 +675,127 @@ def test_a_summary_table_takes_named_and_numeric_degrees_and_can_be_uploaded_aga
     degree = columns.index('train_degree')
     assert {row[degree] for row in data} == {'8', 'MIX'} and seen['saved'].endswith('final_grid.csv')
     assert 'uploaded to https://wandb.ai/someone/some-project/runs/abc123 (run abc123 continued)' in capsys.readouterr().out
+
+
+def test_runs_at_another_resolution_are_named_by_their_shape(tmp_path, capsys):
+    shape, plain = report.Job.parse(['coda-prompt', 'tome', '8px176', '1993']), report.Job.parse(['inf-lora', 'tome', '0px128', '1'])
+    assert (shape.kind, shape.id, shape.train, shape.brief, shape.inference) == \
+        ('shape', 'coda-prompt-tome-r8-px176-seed1993', '176/8', '176 px + 8', 'ToMe')
+    assert 'ToMe 학습 압축도 8, 입력 176 px' in shape.title and '압축 없이, 입력 128 px' in plain.title
+    assert plain.id == 'inf-lora-tome-r0-px128-seed1' and report.Job.parse(['er', 'tome', '0', '1']).kind == 'none'
+    for broken in (['coda-prompt', 'own', '8px176', '1'], ['coda-prompt', 'tome', 'px176', '1'], ['coda-prompt', 'tome', '8px', '1']):
+        with pytest.raises(ValueError):
+            report.Job.parse(broken)
+    root = tmp_path / 'idea-res-shapes-0b'
+    (root / 'logs').mkdir(parents=True)
+    lines = [f'{method} tome {value} 1993' for method in ('coda-prompt', 'inf-lora') for value in ('0px128', '0px144', '8px176')]
+    (root / 'jobs.txt').write_text(''.join(f'{line}\n' for line in lines))
+    (root / 'estimates.json').write_text(json.dumps({line.rsplit(' ', 1)[0]: 1800 for line in lines}))
+
+    def call(*arguments):
+        report.main(['--experiment', str(root), '--dry-run', *map(str, arguments)])
+
+    call('kickoff', '--workers', 6)
+    assert '해상도를 바꿔 학습 6(모양 3개) (방법' in capsys.readouterr().out
+    for line in lines:
+        job = report.Job.parse(line.split())
+        degree, resolution = map(int, job.value.split('px'))
+        call('start', *line.split(), '--gpu', 0)
+        config = dict(config_of(job.method, 'tome', degree, seed=1993), targets=[degree], eval_operators=['tome'],
+                      compensations=None, resolution=resolution, eval_shapes=['224:0', '176:8'], cost=.35)
+        record = {'task': 1, 'class_il': [62., 52.], 'task_il': [90., 80.], 'seconds': 60., 'grid_seconds': 1.,
+                  'operators': {'tome': {'off': {str(degree): [62., 52.]}, 'on': {}}},
+                  'shapes': {'224:0': [70., 60.], '176:8': [64., 56.]}}
+        (root / job.id).mkdir()
+        for name, content in (('config.json', config), ('metrics.json', [record]), ('summary.json', {'execution_status': 'completed'})):
+            (root / job.id / name).write_text(json.dumps(content))
+        call('finish', *line.split(), '--exit-code', 0)
+    text = capsys.readouterr().out
+    assert 'idea-res-shapes-0b 끝남' in text and '```\nmethod   base' not in text
+    with report.Queue(root).locked() as queue:
+        assert report.results(queue, [report.Job.parse(lines[2].split()).id])[1] == 'CODA     176/8   1993 57.0    -'
+    import csv
+    with (root / 'reports' / 'final_grid.csv').open() as stream:
+        rows = list(csv.DictReader(stream))
+    assert {row['kind'] for row in rows} == {'shape'} and {row['train_resolution'] for row in rows} == {'128', '144', '176'}
+    native = [row for row in rows if row['infer_resolution'] == '224']
+    assert len(rows) == 18 and len(native) == 6 and {(row['infer_degree'], row['accuracy']) for row in native} == {('0', '65.0')}
+    fields = identity(config)
+    assert (fields['kind'], fields['train_operator'], fields['train_degree'], fields['train_resolution']) == ('shape', 'tome', 8, 176)
+    assert identity(dict(config, degree=0))['train_operator'] == 'none' and 'train_resolution' not in identity(dict(config, resolution=None))
+    metrics = task_metrics(record)
+    assert metrics['shape/224px-r00'] == 65 and metrics['shape/176px-r08'] == 60 and metrics['tome-off/r08'] == 57
+    # Summary tables of a queue whose runs name more fields than others keep every field.
+    columns, data = report.table_data([{'kind': 'none', 'accuracy': 60.}, {'kind': 'shape', 'accuracy': 61., 'train_resolution': 176}])
+    assert columns == ['kind', 'accuracy', 'train_resolution'] and data == [['none', 60., None], ['shape', 61., 176]]
+
+
+def test_runs_on_another_dataset_name_it_and_group_apart(tmp_path, monkeypatch):
+    wandb = pytest.importorskip('wandb')
+    assert 'dataset' not in identity(config_of('er')) and 'dataset' not in identity(dict(config_of('er'), dataset='seq-cifar100-224'))
+    config = dict(config_of('coda-prompt', 'tome', 8), dataset='seq-imagenet-r', resolution=176)
+    fields = identity(config)
+    assert (fields['dataset'], fields['kind'], fields['train_resolution']) == ('seq-imagenet-r', 'shape', 176)
+    seen = {}
+
+    class Run:
+        id, name, url = 'abc', 'x', None
+
+        def define_metric(self, *arguments, **keywords):
+            pass
+
+    monkeypatch.setattr(wandb, 'init', lambda **keywords: seen.update(keywords) or Run())
+    run = tmp_path / 'coda-prompt-tome-r8-px176-seed1993'
+    run.mkdir()
+    Mirror(run, 'someone/some-project', 'idea-res-shapes-imr', config, {})
+    assert seen['group'] == 'coda-prompt-tome-r8-px176@seq-imagenet-r' and 'seq-imagenet-r' in seen['tags']
+    assert seen['config']['dataset'] == 'seq-imagenet-r'
+
+
+def test_a_kickoff_counts_the_references_beside_the_named_kinds(tmp_path, capsys):
+    root = tmp_path / 'idea-res-shapes-imr'
+    (root / 'logs').mkdir(parents=True)
+    lines = [f'{method} tome {value} 1993' for method in ('coda-prompt', 'inf-lora') for value in ('24', '8px176', '0px144', '0')]
+    (root / 'jobs.txt').write_text(''.join(f'{line}\n' for line in lines))
+    (root / 'estimates.json').write_text(json.dumps({line.rsplit(' ', 1)[0]: 1800 for line in lines}))
+    report.main(['--experiment', str(root), '--dry-run', 'kickoff', '--workers', '8'])
+    assert '실행 8개\n압축 없이 학습 2 · plug-in으로 줄여 학습 2 · 해상도를 바꿔 학습 4(모양 2개) (방법 2개' in capsys.readouterr().out
+
+
+def test_paths_at_the_shapes_of_their_budgets_are_named_by_a_suffix():
+    fixed, mixed = report.Job.parse(['coda-prompt', 'tome', 'P5S', '1993']), report.Job.parse(['inf-lora', 'tome', 'P3MS', '1993'])
+    assert (fixed.kind, fixed.id, mixed.kind, mixed.id) == ('switch', 'coda-prompt-tome-P5S-seed1993', 'switch-mix', 'inf-lora-tome-P3MS-seed1993')
+    assert '예산 경로 P5 (예산마다 정한 해상도 모양)' in fixed.title and '예산 경로 P3 안에서 해상도 모양을 섞어 학습' in mixed.title
+    assert '예산 경로 P3 안에서 섞어 학습 (돌아오면 섞지 않음)' in report.Job.parse(['inf-lora', 'tome', 'P3MR', '1']).title
+    assert mixed.brief == 'ToMe 경로 P3 모양 섞음' and report.Job.parse(['inf-lora', 'tome', 'P3MR', '1']).brief == 'ToMe 경로 P3 섞음 R'
+    with pytest.raises(ValueError):
+        report.Job.parse(['coda-prompt', 'tome', 'P5SM', '1'])
+    base = dict(method='coda-prompt', operator='tome', seed=1, path='P5', schedule=[0] * 5 + [24] * 5, matched_degree=None, joint=False)
+    assert identity(dict(base, degree=None, mix=None, budget_shapes={'24': '176:8'}))['train_degree'] == 'P5S'
+    assert identity(dict(base, degree=None, mix=[0, 8, 16, 24], mix_shapes=True, budget_shapes={'24': '176:8'}))['train_degree'] == 'P5MS'
+    assert identity(dict(base, degree=None, mix=[0, 8, 16, 24]))['train_degree'] == 'P5M'
+
+
+def test_paths_mixing_every_shape_within_the_budget_are_named_by_their_pool():
+    for value, words in (('P5MSU', '예산 이하 모양 전부에서 균등'), ('P5MSG', '예산 이하 격자 전부에서 균등')):
+        job = report.Job.parse(['coda-prompt', 'tome', value, '1993'])
+        assert (job.kind, job.id) == ('switch-mix', f'coda-prompt-tome-{value}-seed1993') and words in job.title
+    for broken in ('P5MSX', 'P5MU', 'P5SG'):
+        with pytest.raises(ValueError):
+            report.Job.parse(['coda-prompt', 'tome', broken, '1'])
+    base = dict(method='coda-prompt', operator='tome', seed=1, path='P5', schedule=[0] * 5 + [24] * 5, matched_degree=None,
+                joint=False, degree=None, mix=[0, 8, 16, 24], mix_shapes=True, budget_shapes={'24': '176:8'})
+    assert [identity(dict(base, shape_pool=pool))['train_degree'] for pool in ('levels', 'menu', 'grid', None)] == ['P5MS', 'P5MSU', 'P5MSG', 'P5MS']
+
+
+def test_paths_mixing_the_grid_shapes_of_each_level_are_named_by_their_pool():
+    job = report.Job.parse(['inf-lora', 'tome', 'P6MSL', '1993'])
+    assert (job.kind, job.id) == ('switch-mix', 'inf-lora-tome-P6MSL-seed1993') and '비용 구간의 격자' in job.title
+    assert report.Job.parse(['inf-lora', 'tome', 'P6MSLR', '1']).kind == 'switch-mix'
+    for broken in ('P6ML', 'P6SL', 'P6MSLU'):
+        with pytest.raises(ValueError):
+            report.Job.parse(['inf-lora', 'tome', broken, '1'])
+    base = dict(method='inf-lora', operator='tome', seed=1, path='P6', schedule=[24] * 5 + [0] * 5, matched_degree=None,
+                joint=False, degree=None, mix=[0, 8, 16, 24], mix_shapes=True, budget_shapes={'24': '176:8'})
+    assert identity(dict(base, shape_pool='grid-levels'))['train_degree'] == 'P6MSL'
+    assert identity(dict(base, shape_pool='grid-levels', mix_own=.5))['train_degree'] == 'P6MSLW'

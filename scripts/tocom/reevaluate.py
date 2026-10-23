@@ -10,6 +10,10 @@ Examples (from the repository root):
     uv run --no-sync python -m scripts.tocom.reevaluate --run <run directory> --tasks 9 --targets 0 2 6 \\
         --banks tome=<bank dir> evit=<bank dir> --output <json file>
 
+``--eval-shapes R:D ...`` also evaluates the restored models at those input shapes (resolution:degree) with
+``--shapes-operator`` (default: the run's training operator) and no bank. A run trained at another resolution
+is restored and evaluated at that resolution.
+
 ``--predictions FILE`` also keeps, for every test sample and grid condition, the class-IL prediction, the
 prediction among the classes of the sample's own task (task-IL) and the largest logit of each task's classes
 (see ``Predictions``), and checks that they give the accuracy of the grid.
@@ -29,11 +33,11 @@ import tempfile  # noqa: E402
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
-from backbone.token_compression import OPERATORS, attach  # noqa: E402
-from backbone.token_compression.evaluation import evaluate_grid  # noqa: E402
+from backbone.token_compression import OPERATORS, attach, parse_shape, shape_label  # noqa: E402
+from backbone.token_compression.evaluation import evaluate_grid, evaluate_shapes  # noqa: E402
 from scripts.tocom.run_cl import (  # noqa: E402
-    OWN, apply_own_setting, build, grid_plan, load_banks, own_source, own_switch_plan, pinned_digest, state_digest,
-    switch_plan)
+    OWN, apply_own_setting, budget_shape, build, grid_plan, load_banks, own_source, own_switch_plan, pinned_digest,
+    state_digest, switch_plan)
 
 
 def parse_args(argv=None):
@@ -49,7 +53,15 @@ def parse_args(argv=None):
     parser.add_argument('--predictions', type=Path, help='Also keep per-sample predictions in this .npz file')
     parser.add_argument('--source-only', action='store_true',
                         help='Evaluate the model as it was evaluated in the run (the source row) and no other condition')
-    return parser.parse_args(argv)
+    parser.add_argument('--eval-shapes', nargs='+', default=[], metavar='R:D',
+                        help='Also evaluate at these input shapes (resolution:degree), without a bank')
+    parser.add_argument('--shapes-operator', choices=tuple(OPERATORS), help="Default: the run's training operator")
+    args = parser.parse_args(argv)
+    try:
+        args.eval_shapes = [parse_shape(text) for text in args.eval_shapes]
+    except ValueError as error:
+        parser.error(str(error))
+    return args
 
 
 class Predictions:
@@ -160,6 +172,8 @@ def main(argv=None):
         own_path = bool(schedule) and config['method'] in OWN
         controller = attach(model.net, config['operator'], degree=0 if own_path else schedule[0] if schedule else config['degree'],
                             bank=banks.get(config['operator']))
+        # A run trained at another input resolution was evaluated at it.
+        controller.default_resolution = controller.check_resolution(config.get('resolution'))
         if own_path:
             source, compensations = own_source(config['method']), own_switch_plan(config['sources'])
         elif schedule:
@@ -192,7 +206,10 @@ def main(argv=None):
             if own_path:
                 apply_own_setting(model, config['method'], OWN[config['method']][schedule[record['task']]])
             elif schedule:
-                controller.default_degree = schedule[record['task']]
+                # The task's budget, at (224, budget) or the shape the run gave that budget.
+                shapes = {int(budget): parse_shape(text) for budget, text in (config.get('budget_shapes') or {}).items()}
+                resolution, controller.default_degree = budget_shape(shapes, schedule[record['task']])
+                controller.default_resolution = controller.check_resolution(resolution)
             model.net.eval()
             class_il, task_il = dataset.evaluate(model, dataset)
             result = {'task': record['task'], 'classes': record['classes'], 'class_il': list(class_il),
@@ -203,10 +220,13 @@ def main(argv=None):
                 if predictions is not None:
                     predictions.prefix = f't{record["task"]}:' if len(chosen) > 1 else ''
                 result.update(evaluate_grid(model, dataset.test_loaders, record['classes'],
-                                            schedule[record['task']] if schedule and not own_path else source, targets,
+                                            controller.default_degree if schedule and not own_path else source, targets,
                                             operators, banks, scale or config['scale'], compensations, predictions))
                 if predictions is not None:
                     predictions.check(result)
+                if args.eval_shapes:
+                    result['shapes'] = evaluate_shapes(model, dataset.test_loaders, record['classes'], args.eval_shapes,
+                                                       args.shapes_operator or config['operator'])
             results.append(result)
             print(json.dumps({key: result[key] for key in ('task', 'state_matches', 'class_il_matches', 'task_il_matches')}))
     if args.verify:
@@ -220,6 +240,8 @@ def main(argv=None):
         predictions.save(args.predictions)
     output = args.output or args.run / 'reevaluation.json'
     output.write_text(json.dumps({'run': args.run.name, 'targets': targets, 'eval_operators': operators,
+                                  'eval_shapes': [shape_label(*shape) for shape in args.eval_shapes],
+                                  'shapes_operator': (args.shapes_operator or config['operator']) if args.eval_shapes else None,
                                   'records': results}, indent=2, allow_nan=False) + '\n')
 
 
