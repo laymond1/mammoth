@@ -407,6 +407,46 @@ def test_grid_runs_every_target_for_a_model_with_its_own_inference(tmp_path):
         evaluate_grid(model, loaders, 10, 8, [0, 8], ['tome'], banks, .1, {'x': ('evit', 8, None)})
 
 
+def test_a_compensation_without_a_bank_name_uses_the_bank_of_each_inference_operator(tmp_path):
+    from torch.utils.data import DataLoader, TensorDataset
+    from backbone.token_compression import FrozenToCom
+    from backbone.token_compression.evaluation import evaluate_grid
+    net = small_vit()
+    torch.save({'model': bank_state()}, tmp_path / 'tome.pt')
+    torch.save({'model': bank_state(seed=9)}, tmp_path / 'prune.pt')
+    banks = {'tome': FrozenToCom.from_checkpoint(tmp_path / 'tome.pt', depth=4, embed_dim=48),
+             'cls-prune': FrozenToCom.from_checkpoint(tmp_path / 'prune.pt', depth=4, embed_dim=48)}
+    attach(net, 'tome', degree=0, bank=banks['tome'])
+    model = Toy(net).eval()
+    torch.manual_seed(4)
+    loaders = [DataLoader(TensorDataset(torch.randn(24, 3, 32, 32), torch.randint(0, 10, (24,))), batch_size=10)]
+    # The same label for every operator, each with its own bank.
+    shared = {f'src{d}': (None, (d,), None) for d in (0, 8)}
+    def run(compensations, operators):
+        seen = {}
+
+        def sink(index, condition, logits, labels):
+            if condition is not None and condition[1] is not None:
+                seen[index, condition] = logits.clone()
+        return evaluate_grid(model, loaders, 10, None, [0, 8, 16], operators, banks, .1, compensations, sink), seen
+
+    grid, shared_seen = run(shared, ['tome', 'cls-prune'])
+    assert set(grid['operators']['tome']['on']) == set(grid['operators']['cls-prune']['on']) == {'src0', 'src8'}
+    for name, other in (('tome', 'cls-prune'), ('cls-prune', 'tome')):
+        named, named_seen = run({label: (name, degrees, None) for label, (_, degrees, _) in shared.items()}, [name])
+        _, wrong_seen = run({label: (other, degrees, None) for label, (_, degrees, _) in shared.items()}, [name])
+        assert grid['operators'][name] == named['operators'][name] and grid['source'] == named['source']
+        # Every row is the operator's own bank, to the logit; the other operator's bank would give other rows.
+        assert all(torch.equal(shared_seen[key], logits) for key, logits in named_seen.items())
+        assert any(not torch.equal(named_seen[key], logits) for key, logits in wrong_seen.items())
+    # An operator without a bank cannot take the label; a label for other operators does not need it.
+    with pytest.raises(ValueError):
+        evaluate_grid(model, loaders, 10, None, [0, 8], ['tome', 'evit'], banks, .1, shared)
+    evaluate_grid(model, loaders, 10, None, [0, 8], ['tome', 'evit'], banks, .1, {'src8': (None, (8,), ['tome'])})
+    with pytest.raises(ValueError):
+        evaluate_grid(model, loaders, 10, None, [0, 8], ['tome'], banks, .1, {'src8': (None, (), None)})
+
+
 def test_microbatches_follow_the_official_repeated_augmentation_replicas():
     from timm.data.distributed_sampler import RepeatAugSampler
     from scripts.tocom.train_bank import MICROBATCH, REPLICAS, epoch_microbatches

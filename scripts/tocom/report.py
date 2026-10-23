@@ -1,7 +1,8 @@
 """Report the progress of a queue of runs to Slack.
 
 An experiment directory holds ``jobs.txt`` with one run per line, ``method condition value seed`` (the
-condition is ``tome`` or ``evit`` with a training degree, or ``own`` with the matched degree), and one
+condition is ``tome`` or ``evit`` with a training degree, or ``own`` with the matched degree, or with the name of a
+budget path for CPS-Prompt and REP), and one
 sub-directory per run as ``scripts.tocom.run_cl`` writes it. A queue worker calls ``start`` and ``finish``
 around every run, which keeps the state of the queue under ``reports/``, and one ``watch`` process runs
 beside the workers. What is posted:
@@ -71,20 +72,22 @@ ROWS = 40
 class Job(namedtuple('Job', 'method condition value seed')):
     """One run of a queue: ``value`` is a training degree, the name of a budget path (``P1``) for a run
     that trains each task at its own degree (``P1M`` for mixed degrees within that path's budget),
-    ``J<degree>`` for joint training at that degree, or ``MIX`` for training at mixed degrees."""
+    ``J<degree>`` for joint training at that degree, or ``MIX`` for training at mixed degrees. The methods that
+    compress on their own (condition ``own``) have a fixed matched degree, or a budget path (``P1``) and nothing else."""
 
     @classmethod
     def parse(cls, fields):
         method, condition, value, seed = fields
         named = re.fullmatch(r'P\d+(M[RW]*)?|J\d+|MIX', value) is not None
-        if method not in NAMES or condition not in ('own', *OPERATORS) or (named and condition == 'own'):
+        own_path = method in ('cps-prompt', 'rep-prompt') and re.fullmatch(r'P\d+', value) is not None
+        if method not in NAMES or condition not in ('own', *OPERATORS) or (named and condition == 'own' and not own_path):
             raise ValueError(f'Unknown job: {" ".join(fields)}')
         return cls(method, condition, value if named else int(value), int(seed))
 
     @property
     def id(self):
         if self.condition == 'own':
-            return f'{self.method}-own-m{self.value}-seed{self.seed}'
+            return f'{self.method}-own-{"m" if isinstance(self.value, int) else ""}{self.value}-seed{self.seed}'
         if self.kind in ('switch', 'switch-mix', 'joint', 'mix'):
             return f'{self.method}-{self.condition}-{self.value}-seed{self.seed}'
         return f'{self.method}-{self.condition}-r{self.value}-seed{self.seed}'
@@ -103,7 +106,7 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def title(self):
         training = {'none': '압축 없이 학습', 'own': f'자체 압축으로 학습(ToMe {self.value}과 같은 FLOPs)',
                     'plugin': f'{OPERATORS.get(self.condition)} 학습 압축도 {self.value}',
-                    'switch': f'{OPERATORS.get(self.condition)} 예산 경로 {self.value}',
+                    'switch': f'{OPERATORS.get(self.condition, "자체 압축")} 예산 경로 {self.value}',
                     'switch-mix': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value).split("M")[0]} 안에서 섞어 학습'
                                   + {'R': ' (돌아오면 섞지 않음)', 'W': ' (그 예산에 가중)', 'RW': ' (돌아오면 섞지 않음, 가중)'}.get(str(self.value).partition('M')[2], ''),
                     'joint': f'{OPERATORS.get(self.condition)} {str(self.value)[1:]}로 joint 학습',
@@ -114,14 +117,14 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def train(self):
         """The training condition in at most seven plain characters, for fixed-width tables."""
         return {'none': 'none', 'own': f'own {self.value}', 'plugin': f'{CODES.get(self.condition)} {self.value}',
-                'switch': f'{CODES.get(self.condition)} {self.value}', 'switch-mix': f'{CODES.get(self.condition)} {self.value}',
+                'switch': f'{CODES.get(self.condition, "own")} {self.value}', 'switch-mix': f'{CODES.get(self.condition)} {self.value}',
                 'joint': f'{CODES.get(self.condition)} {self.value}',
                 'mix': f'{CODES.get(self.condition)} MIX'}[self.kind]
 
     @property
     def brief(self):
         return {'none': '압축 없음', 'own': f'자체 {self.value}', 'plugin': f'{OPERATORS.get(self.condition)} {self.value}',
-                'switch': f'{OPERATORS.get(self.condition)} 경로 {self.value}',
+                'switch': f'{OPERATORS.get(self.condition, "자체")} 경로 {self.value}',
                 'switch-mix': f'{OPERATORS.get(self.condition)} 경로 {str(self.value).split("M")[0]} 섞음 {str(self.value).partition("M")[2]}'.rstrip(),
                 'joint': f'{OPERATORS.get(self.condition)} joint {str(self.value)[1:]}', 'mix': f'{OPERATORS.get(self.condition)} 섞음'}[self.kind]
 
@@ -129,7 +132,7 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def inference(self):
         # A model trained with the plug-in is inferred with its own operator; the others with every operator.
         own = self.kind in ('plugin', 'switch', 'switch-mix', 'mix') or (self.kind == 'joint' and self.value != 'J0')
-        return OPERATORS[self.condition] if own else '·'.join(OPERATORS[name] for name in GRID)
+        return OPERATORS[self.condition] if own and self.condition != 'own' else '·'.join(OPERATORS[name] for name in GRID)
 
 
 def duration(seconds):

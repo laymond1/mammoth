@@ -126,13 +126,15 @@ def closest(targets, candidates):
 
 
 def main():
-    degrees = (8, 16)
-    report = {'plain': {operator: plain_reduction((0, 4, 8, 10, 13, 16), operator) for operator in ('tome', 'evit')}}
-    targets, sampled = cps_reductions(degrees, range(90, PATCHES + 1))
+    # Degree 24 needs 71 patches for CPS-Prompt and a maximum of 187 for REP: REP's merges per block are
+    # clamped to half of the tokens, so the maximum has to be far above the per-block counts that happen.
+    degrees = (8, 16, 24)
+    report = {'plain': {operator: plain_reduction((0, 4, 8, 10, 13, 16, 24), operator) for operator in ('tome', 'evit')}}
+    targets, sampled = cps_reductions(degrees, range(40, PATCHES + 1))
     report['cps-prompt'] = {degree: {'target': targets[degree], 'kept_patches': keep, 'reduction_ratio': sampled[keep][0],
                                      'reduction': sampled[keep][1]}
                             for degree, keep in closest(targets, {keep: value[1] for keep, value in sampled.items()}).items()}
-    targets, own = rep_reductions(degrees, range(0, 97))
+    targets, own = rep_reductions(degrees, range(0, 200))
     report['rep-prompt'] = {degree: {'target': targets[degree], 'rep_merge_max': maximum, 'reduction': own[maximum]}
                             for degree, maximum in closest(targets, own).items()}
     print(json.dumps(report, indent=2))

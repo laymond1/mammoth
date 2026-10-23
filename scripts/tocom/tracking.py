@@ -19,7 +19,8 @@ FINISH_TIMEOUT = 900.
 def identity(config):
     """How a run was trained, in the fields runs are filtered and grouped by.
 
-    A run on a budget path has kind ``switch`` and the name of its path as training degree; a run with mixed
+    A run on a budget path has kind ``switch`` and the name of its path as training degree (training operator
+    ``own`` for CPS-Prompt and REP, which compress with their own setting there); a run with mixed
     degrees has kind ``mix`` and training degree ``MIX``, one with mixed degrees within the budget of a path kind
     ``switch-mix`` and the path's name followed by ``M``; joint training has kind ``joint`` and its degree.
     """
@@ -28,7 +29,8 @@ def identity(config):
         kind, degree = (('switch-mix', f'{config["path"]}{suffix}') if config.get('mix') else ('switch', config['path'])) \
             if config.get('schedule') else ('mix', 'MIX')
         return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': kind,
-                'train_operator': config['operator'], 'train_degree': degree, 'seed': config['seed']}
+                'train_operator': 'own' if config.get('own_setting') is not None else config['operator'],
+                'train_degree': degree, 'seed': config['seed']}
     if config.get('joint'):
         return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'joint',
                 'train_operator': config['operator'], 'train_degree': config['degree'], 'seed': config['seed']}
