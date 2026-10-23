@@ -76,7 +76,7 @@ class Job(namedtuple('Job', 'method condition value seed')):
     @classmethod
     def parse(cls, fields):
         method, condition, value, seed = fields
-        named = re.fullmatch(r'P\d+M?|J\d+|MIX', value) is not None
+        named = re.fullmatch(r'P\d+(M[RW]*)?|J\d+|MIX', value) is not None
         if method not in NAMES or condition not in ('own', *OPERATORS) or (named and condition == 'own'):
             raise ValueError(f'Unknown job: {" ".join(fields)}')
         return cls(method, condition, value if named else int(value), int(seed))
@@ -96,7 +96,7 @@ class Job(namedtuple('Job', 'method condition value seed')):
     @property
     def kind(self):
         if isinstance(self.value, str):
-            return {'J': 'joint', 'M': 'mix'}.get(self.value[0], 'switch-mix' if self.value.endswith('M') else 'switch')
+            return {'J': 'joint', 'M': 'mix'}.get(self.value[0], 'switch-mix' if 'M' in self.value else 'switch')
         return 'none' if not self.value else 'own' if self.condition == 'own' else 'plugin'
 
     @property
@@ -104,7 +104,8 @@ class Job(namedtuple('Job', 'method condition value seed')):
         training = {'none': '압축 없이 학습', 'own': f'자체 압축으로 학습(ToMe {self.value}과 같은 FLOPs)',
                     'plugin': f'{OPERATORS.get(self.condition)} 학습 압축도 {self.value}',
                     'switch': f'{OPERATORS.get(self.condition)} 예산 경로 {self.value}',
-                    'switch-mix': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value)[:-1]} 안에서 섞어 학습',
+                    'switch-mix': f'{OPERATORS.get(self.condition)} 예산 경로 {str(self.value).split("M")[0]} 안에서 섞어 학습'
+                                  + {'R': ' (돌아오면 섞지 않음)', 'W': ' (그 예산에 가중)', 'RW': ' (돌아오면 섞지 않음, 가중)'}.get(str(self.value).partition('M')[2], ''),
                     'joint': f'{OPERATORS.get(self.condition)} {str(self.value)[1:]}로 joint 학습',
                     'mix': f'{OPERATORS.get(self.condition)} 0~24 섞어 학습'}[self.kind]
         return f'{NAMES[self.method]} · {training} · seed {self.seed}'
@@ -121,7 +122,7 @@ class Job(namedtuple('Job', 'method condition value seed')):
     def brief(self):
         return {'none': '압축 없음', 'own': f'자체 {self.value}', 'plugin': f'{OPERATORS.get(self.condition)} {self.value}',
                 'switch': f'{OPERATORS.get(self.condition)} 경로 {self.value}',
-                'switch-mix': f'{OPERATORS.get(self.condition)} 경로 {str(self.value)[:-1]} 섞음',
+                'switch-mix': f'{OPERATORS.get(self.condition)} 경로 {str(self.value).split("M")[0]} 섞음 {str(self.value).partition("M")[2]}'.rstrip(),
                 'joint': f'{OPERATORS.get(self.condition)} joint {str(self.value)[1:]}', 'mix': f'{OPERATORS.get(self.condition)} 섞음'}[self.kind]
 
     @property

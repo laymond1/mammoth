@@ -21,7 +21,9 @@ Two references for budget paths: ``--joint`` learns every class as one task (Mam
 one degree, the usual upper bound of a continual method; ``--mix`` trains every step at a degree drawn
 uniformly from a list, one model for any budget, and is evaluated like a budget path. With ``--schedule``,
 ``--mix`` draws every step from the degrees of the list that cost no more than the task's own (the degree
-or more): training at mixed degrees within the budget of the moment.
+or more): training at mixed degrees within the budget of the moment. ``--mix-no-return`` trains a task whose
+budget came back (its degree is below an earlier task's) at its own degree only, and ``--mix-own SHARE`` draws the
+degree the step would otherwise run at with that probability and the others uniformly.
 
 Every run keeps its records in its own directory. ``--wandb ENTITY/PROJECT`` also
 mirrors them to Weights & Biases; Mammoth's own logging there stays off.
@@ -131,6 +133,12 @@ def joint_args(method):
     return dict(joint=1, **({'lora_classes_per_task': 100} if method.endswith('-lora') else {}))
 
 
+def mix_suffix(config):
+    """Name of a path's run with mixed degrees: ``M``, then ``R`` without mixing after a return, ``W`` with a share."""
+    get = config.get if isinstance(config, dict) else lambda name: getattr(config, name)
+    return 'M' + ('R' if get('mix_no_return') else '') + ('W' if get('mix_own') is not None else '')
+
+
 def grid_plan(method, degree, matched, bank_names):
     """Source row and bank conditions of the grid, as ``evaluate_grid`` takes them.
 
@@ -179,6 +187,12 @@ def parse_args(argv=None):
                         help='Train every step at a degree drawn uniformly from these; everything else (task '
                              'boundaries, evaluation) runs at --degree. With --schedule: from those at least the '
                              "task's degree, and everything else at the task's degree")
+    parser.add_argument('--mix-own', type=float, metavar='SHARE',
+                        help='With --mix: draw the degree the step would otherwise run at (--degree, or the degree of the '
+                             'task on a path) with this probability, and the other allowed degrees uniformly')
+    parser.add_argument('--mix-no-return', action='store_true',
+                        help='With --mix and --schedule: a task whose degree is below that of an earlier task (the budget '
+                             'came back) trains at its own degree only')
     parser.add_argument('--joint', action='store_true',
                         help='Learn every class as one task at --degree (Mammoth --joint 1): the joint upper bound')
     parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
@@ -227,11 +241,17 @@ def parse_args(argv=None):
         args.eval_operators, args.degree = [args.operator], args.schedule[0]
     elif args.path is not None:
         parser.error('--path goes with --schedule')
+    if args.mix is None and (args.mix_own is not None or args.mix_no_return):
+        parser.error('--mix-own and --mix-no-return go with --mix')
     if args.joint and (args.schedule is not None or args.mix or args.method in OWN or args.tasks is not None):
         parser.error('--joint trains one task at one plug-in degree: not with --schedule, --mix, --tasks or CPS/REP')
     if args.mix is not None:
         if args.method in OWN:
             parser.error('--mix is for methods trained with the plug-in')
+        if args.mix_own is not None and not 0 < args.mix_own < 1:
+            parser.error('--mix-own is a probability between 0 and 1')
+        if args.mix_no_return and args.schedule is None:
+            parser.error('--mix-no-return goes with --schedule')
         if args.schedule is not None and not set(args.schedule) <= set(args.mix):
             parser.error('With --schedule, --mix must include every degree of the path')
         try:
@@ -383,7 +403,7 @@ def main(argv=None):
     own, switching, mixing = args.method in OWN, args.schedule is not None, args.mix is not None
     # Absolute, because Mammoth resolves a relative results path under its data root.
     default_id = (f'{args.method}-own-m{args.matched_degree}-seed{args.seed}' if own else
-                  f'{args.method}-{args.operator}-{args.path}M-seed{args.seed}' if switching and mixing else
+                  f'{args.method}-{args.operator}-{args.path}{mix_suffix(args)}-seed{args.seed}' if switching and mixing else
                   f'{args.method}-{args.operator}-{args.path}-seed{args.seed}' if switching else
                   f'{args.method}-{args.operator}-MIX-seed{args.seed}' if mixing else
                   f'{args.method}-{args.operator}-J{args.degree}-seed{args.seed}' if args.joint else
@@ -424,7 +444,8 @@ def main(argv=None):
     config = {'method': args.method, 'vit_size': args.vit_size, 'operator': args.operator,
               'degree': None if switching else args.degree, 'schedule': args.schedule, 'path': args.path,
               'sources': sorted(set(args.sources)) if switching or mixing else None,
-              'mix': sorted(set(args.mix)) if mixing else None, 'joint': args.joint,
+              'mix': sorted(set(args.mix)) if mixing else None, 'mix_own': args.mix_own, 'mix_no_return': args.mix_no_return,
+              'joint': args.joint,
               'matched_degree': args.matched_degree, 'own_setting': OWN[args.method][args.matched_degree] if own else None,
               'targets': sorted(set(args.targets)), 'eval_operators': args.eval_operators, 'scale': scale,
               'source': source, 'compensations': compensations, 'save_weights': args.save_weights,
@@ -461,7 +482,14 @@ def main(argv=None):
         base = controller.default_degree
         if mixing:
             # On a budget path, only degrees that cost no more than the task's own.
-            controller.default_degree = draws.choice([d for d in args.mix if d >= base] if switching else args.mix)
+            allowed = [d for d in args.mix if d >= base] if switching else list(args.mix)
+            if args.mix_no_return and base < max(args.schedule[:len(records) + 1]):
+                allowed = [base]
+            if args.mix_own is not None and len(allowed) > 1:
+                others = [d for d in allowed if d != base]
+                controller.default_degree = base if draws.random() < args.mix_own else draws.choice(others)
+            else:
+                controller.default_degree = draws.choice(allowed)
             steps[controller.default_degree] += 1
         try:
             loss = native_observe(*inputs, **keywords)
