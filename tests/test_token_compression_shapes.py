@@ -15,7 +15,7 @@ from backbone.token_compression.evaluation import evaluate_shapes
 from backbone.token_compression.reducers import OPERATORS
 from backbone.vit import VisionTransformer as MammothViT
 from models.coda_prompt_utils import vit as coda_vit
-from models.low_rank_utils import net_inflora, net_sdlora
+from models.low_rank_utils import net_cllora, net_ewclora, net_inflora, net_sdlora
 
 GEOMETRY = dict(patch_size=4, embed_dim=48, depth=4, num_heads=3)
 NATIVE, GRID = 32, 8
@@ -23,9 +23,14 @@ NATIVE, GRID = 32, 8
 # Encoders that take another resolution, built for a given one, and the network that holds each.
 BUILD = {'mammoth-vit': lambda size: MammothViT(num_classes=10, img_size=size, **GEOMETRY),
          'coda-vit': lambda size: coda_vit.VisionTransformer(num_classes=10, img_size=size, **GEOMETRY),
-         'inf-lora-vit': lambda size: net_inflora.ViT(num_classes=0, n_tasks=3, rank=4, img_size=size, **GEOMETRY)}
+         'inf-lora-vit': lambda size: net_inflora.ViT(num_classes=0, n_tasks=3, rank=4, img_size=size, **GEOMETRY),
+         'ewc-lora-vit': lambda size: net_ewclora.ViT(num_classes=0, n_tasks=3, rank=4, img_size=size, **GEOMETRY),
+         'sd-lora-vit': lambda size: net_sdlora.ViT(num_classes=0, n_tasks=3, rank=4, img_size=size, **GEOMETRY),
+         'cl-lora-vit': lambda size: net_cllora.ViT(num_classes=0, n_tasks=3, rank=4, img_size=size, msa=[1, 0, 1],
+                                                    shared_pos=[0, 1], specific_pos=[2, 3], **GEOMETRY)}
 HOLD = {'mammoth-vit': lambda encoder: encoder, 'coda-vit': lambda encoder: SimpleNamespace(feat=encoder),
-        'inf-lora-vit': lambda encoder: SimpleNamespace(image_encoder=encoder)}
+        **{family: lambda encoder: SimpleNamespace(image_encoder=encoder)
+           for family in ('inf-lora-vit', 'ewc-lora-vit', 'sd-lora-vit', 'cl-lora-vit')}}
 
 
 @pytest.fixture(autouse=True)
@@ -56,6 +61,10 @@ def features(family, encoder, x):
         return encoder.forward_features(x)
     if family == 'coda-vit':
         return encoder(x)[0]
+    if family == 'ewc-lora-vit':
+        return encoder(x, use_new=True)
+    if family == 'cl-lora-vit':
+        return encoder(x, task_id=0, use_new=True)
     return encoder(x, task_id=0)
 
 
@@ -183,8 +192,12 @@ def test_a_copied_encoder_resamples_its_own_position_embedding(family):
 
 
 def test_other_families_keep_their_native_resolution():
-    encoder = perturbed(net_sdlora.ViT(num_classes=0, n_tasks=3, rank=4, img_size=NATIVE, **GEOMETRY), 2)
-    controller = attach(SimpleNamespace(image_encoder=encoder), 'tome')
+    # CPS-Prompt and REP reduce tokens with their own algorithm in training and stay at their native resolution.
+    from models.cps_prompt_utils.model import PromptModel
+    net = perturbed(PromptModel(num_classes=10, n_tasks=2, pool_size=4, prompt_length=4, layers=(0, 1, 2), pretrained=False,
+                                geometry=dict(img_size=NATIVE, **GEOMETRY)), 2)
+    encoder = find_encoder(net)[1]
+    controller = attach(net, 'tome')
     assert not controller.resizable and controller.check_resolution(None) is None
     with pytest.raises(ValueError):
         controller.check_resolution(24)

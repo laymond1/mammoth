@@ -86,13 +86,15 @@ def _load(module, name='FAMILY'):
 # Method families are imported on demand, so the plain ViT works without the models package.
 FAMILIES = {'mammoth-vit': _mammoth, 'coda-vit': _load('coda'), 'sd-lora-vit': _load('sd_lora'),
             'inf-lora-vit': _load('low_rank', 'INF_LORA'), 'ewc-lora-vit': _load('low_rank', 'EWC_LORA'),
+            'cl-lora-vit': _load('low_rank', 'CL_LORA'),
             'cps-vit': _load('cps'), 'rep-vit': _load('rep'), 'ease-vit': _load('ease')}
 
 
 # How the encoder of a family adds its position embedding, for families that can change their input
 # resolution: ``full`` adds the whole table in ``_pos_embed``, ``slice`` adds ``pos_embed[:, :tokens]`` inline.
 # The other families keep their native resolution.
-POSITION = {'mammoth-vit': 'full', 'coda-vit': 'slice', 'inf-lora-vit': 'slice'}
+POSITION = {'mammoth-vit': 'full', 'coda-vit': 'slice', 'inf-lora-vit': 'slice', 'ewc-lora-vit': 'slice',
+            'sd-lora-vit': 'slice', 'cl-lora-vit': 'slice', 'ease-vit': 'full'}
 
 
 @lru_cache(maxsize=None)
@@ -170,6 +172,10 @@ def _make_resizable(name, controller, members):
         return
     embed = members[0].patch_embed
     if embed.img_size[0] != embed.img_size[1] or embed.patch_size[0] != embed.patch_size[1]:
+        return
+    if mode == 'full' and any(getattr(member, 'reg_token', None) is not None or getattr(member, 'dynamic_img_size', False)
+                              for member in members):
+        # _resized_pos_embed follows the class-token-only path of timm's _pos_embed.
         return
     controller.native, controller.patch, controller.resizable = embed.img_size[0], embed.patch_size[0], True
     for member in members:

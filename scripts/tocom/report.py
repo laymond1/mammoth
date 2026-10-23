@@ -49,8 +49,9 @@ import urllib.request
 from scripts.cl_runtime import read_credentials
 from scripts.tocom.tracking import identity
 
-NAMES = {'er': 'ER', 'lwf-mc': 'LwF-MC', 'coda-prompt': 'CODA-Prompt', 'cps-prompt': 'CPS-Prompt', 'rep-prompt': 'REP',
-         'ease': 'EASE', 'sd-lora': 'SD-LoRA', 'inf-lora': 'InfLoRA', 'ewc-lora': 'EWC-LoRA'}
+NAMES = {'er': 'ER', 'derpp': 'DER++', 'lwf-mc': 'LwF-MC', 'coda-prompt': 'CODA-Prompt', 'cps-prompt': 'CPS-Prompt',
+         'rep-prompt': 'REP', 'ease': 'EASE', 'sd-lora': 'SD-LoRA', 'inf-lora': 'InfLoRA', 'ewc-lora': 'EWC-LoRA',
+         'cl-lora': 'CL-LoRA'}
 SHORT = {'coda-prompt': 'CODA', 'cps-prompt': 'CPS'}
 OPERATORS = {'tome': 'ToMe', 'evit': 'EViT', 'cls-prune': 'cls-prune', 'pitome': 'PiToMe'}
 # Four characters each, for the fixed-width tables.

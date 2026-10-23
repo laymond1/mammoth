@@ -1,9 +1,9 @@
-"""InfLoRA and EWC-LoRA encoders: K/V low-rank updates folded into the projection of every block."""
+"""InfLoRA, EWC-LoRA and CL-LoRA encoders: low-rank updates added to the projection of every block."""
 
 import torch
 from torch.nn import functional as F
 
-from models.low_rank_utils import net_ewclora, net_inflora, vit_ewclora, vit_inflora
+from models.low_rank_utils import net_cllora, net_ewclora, net_inflora, vit_cllora, vit_ewclora, vit_inflora
 
 from .adapters import _Compressed
 from .reducers import Signals
@@ -86,5 +86,36 @@ class EWCLoRABlock(_LowRank, vit_ewclora.Block):
         return self._attend(x, controller, count, q, k, v)
 
 
+class CLLoRABlock(_LowRank, vit_cllora.Block):
+    """CL-LoRA block. Its encoder runs some passes through the shared blocks only (the distillation of
+    ``forward_kd``), and those passes are reduced on the same schedule as far as they go."""
+
+    def forward(self, x, task_id=None, blk_weight=None, use_new=False):
+        controller, count = self._enter(x.shape[1])
+        if count == 0 and controller.size is None:
+            return super().forward(x, task_id, blk_weight, use_new)
+        return self._reduced(x, controller, count, task_id, blk_weight, use_new)
+
+    def _reduced(self, x, controller, count, task_id=None, blk_weight=None, use_new=False):
+        attn = self.attn
+        y = self.norm1(x)
+        batch, tokens, width = y.shape
+        q, k, v = attn.qkv(y).chunk(3, dim=-1)
+        # Same shared and task-specific updates as vit_cllora.Attention_LoRA.
+        if attn.is_shared:
+            q = q + (attn.lora_q if use_new else attn.lora_q_old)(y) if attn.msa[0] else q
+            k = k + (attn.lora_k if use_new else attn.lora_k_old)(y) if attn.msa[1] else k
+            v = v + (attn.lora_v if use_new else attn.lora_v_old)(y) if attn.msa[2] else v
+        if attn.is_specific:
+            if blk_weight is None:
+                blk_weight = torch.ones(3, device=y.device)
+            q = q + attn.lora_q[task_id](y) * blk_weight[0] if attn.msa[0] else q
+            k = k + attn.lora_k[task_id](y) * blk_weight[1] if attn.msa[1] else k
+            v = v + attn.lora_v[task_id](y) * blk_weight[2] if attn.msa[2] else v
+        q, k, v = (part.reshape(batch, tokens, attn.num_heads, -1).transpose(1, 2) for part in (q, k, v))
+        return self._attend(x, controller, count, q, k, v)
+
+
 INF_LORA = ('image_encoder', net_inflora.ViT, vit_inflora.Block, vit_inflora.Attention_LoRA, InfLoRABlock)
 EWC_LORA = ('image_encoder', net_ewclora.ViT, vit_ewclora.Block, vit_ewclora.Attention_LoRA, EWCLoRABlock)
+CL_LORA = ('image_encoder', net_cllora.ViT, vit_cllora.Block, vit_cllora.Attention_LoRA, CLLoRABlock)
