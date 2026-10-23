@@ -35,6 +35,11 @@ def identity(config):
 
 
 def _identity(config):
+    if config.get('matched_axis'):
+        from scripts.tocom.matched_axes import SUFFIXES
+        return {'method': config['method'], 'family': FAMILIES[config['method']], 'kind': 'switch-mix',
+                'train_operator': config['operator'], 'train_degree': config['path'] + SUFFIXES[config['matched_axis']],
+                'matched_axis': config['matched_axis'], 'seed': config['seed']}
     if config.get('schedule') or config.get('mix'):
         pool = {'grid-levels': 'L', 'menu': 'U', 'grid': 'G'}.get(config.get('shape_pool'), '')
         suffix = ('M' + ('S' + pool if config.get('mix_shapes') else '') + ('R' if config.get('mix_no_return') else '')

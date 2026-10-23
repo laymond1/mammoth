@@ -37,6 +37,10 @@ position embedding resampled) in training and in Mammoth's evaluation, at the tr
 (R, degree). ``--eval-shapes R:D ...`` also evaluates every task at those shapes with the training operator and
 no bank. Banks are trained at 224 pixels, so a run at another resolution takes none.
 
+``--matched-axis degree|resolution|joint`` runs the controlled CIFAR/CODA pilot: a balanced,
+sample-weighted MAC-matched shape plan in budget-0 tasks and the common (224,24) in budget-24 tasks.
+It requires --schedule, --no-grid and the four R224 --eval-shapes. Task boundaries keep (224,budget).
+
 Every run keeps its records in its own directory. ``--wandb ENTITY/PROJECT`` also
 mirrors them to Weights & Biases; Mammoth's own logging there stays off.
 
@@ -77,6 +81,7 @@ from backbone.token_compression import (OPERATORS, FrozenToCom, attach, encoders
 from backbone.token_compression.compensator import OFFICIAL_COMMIT, file_sha256  # noqa: E402
 from backbone.token_compression.evaluation import evaluate_grid, evaluate_shapes  # noqa: E402
 from scripts.tocom.tracking import Mirror, Progress  # noqa: E402
+from scripts.tocom.matched_axes import AXES, LEVELS, SUFFIXES, MatchedAxesPlan  # noqa: E402
 from utils.conf import create_seeded_dataloader  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -205,6 +210,8 @@ def shape_pool(pool, budget):
 def path_suffix(config):
     """What follows a path's name in a run's name: the mixing suffix, or ``S`` for shapes of the budgets."""
     get = config.get if isinstance(config, dict) else lambda name: getattr(config, name, None)
+    if get('matched_axis'):
+        return SUFFIXES[get('matched_axis')]
     return mix_suffix(config) if get('mix') else 'S' if get('budget_shapes') else ''
 
 
@@ -278,6 +285,8 @@ def parse_args(argv=None):
                         help='With --mix-shapes: a level then a shape of it from SHAPE_LEVELS (levels) or SHAPE_GRID '
                              '(grid-levels), or one shape among all those within the budget from SHAPE_LEVELS (menu) '
                              'or SHAPE_GRID (grid)')
+    parser.add_argument('--matched-axis', choices=AXES,
+                        help='Controlled CIFAR/CODA comparison: MAC-matched high-budget shapes; common low-budget shape')
     parser.add_argument('--joint', action='store_true',
                         help='Learn every class as one task at --degree (Mammoth --joint 1): the joint upper bound')
     parser.add_argument('--matched-degree', type=int, choices=(0, 8, 16),
@@ -396,6 +405,17 @@ def parse_args(argv=None):
         parser.error('Runs at the shapes of their budgets are evaluated with --eval-shapes and take --no-grid')
     if args.resolution is not None and args.banks:
         parser.error('The banks are trained at 224 pixels: no --banks with another --resolution')
+    if args.matched_axis:
+        if args.method != 'coda-prompt' or args.dataset != 'seq-cifar100-224' or args.vit_size != 'tiny' or args.operator != 'tome':
+            parser.error('--matched-axis currently supports CODA-Prompt on CIFAR-100 with ViT-Tiny and ToMe')
+        if args.schedule is None or not set(args.schedule) <= {0, 24}:
+            parser.error('--matched-axis requires a path with task budgets 0 and/or 24')
+        if args.mix is not None or args.mix_shapes or args.budget_shapes or args.resolution is not None or args.joint or args.banks:
+            parser.error('--matched-axis has its own shape plan: not with --mix, --mix-shapes, --budget-shapes, --resolution, --joint or --banks')
+        if not args.no_grid or set(args.eval_shapes) != {(224, level) for level in LEVELS}:
+            parser.error('--matched-axis requires --no-grid and --eval-shapes 224:0 224:8 224:16 224:24')
+        if args.epochs <= 0 or args.batch_size <= 0:
+            parser.error('--matched-axis requires positive --epochs and --batch-size')
     if (args.method in OWN) != (args.matched_degree is not None):
         parser.error('--matched-degree is required for CPS-Prompt and REP, and is only theirs')
     if args.method in OWN and (args.degree or args.vit_size != 'tiny'):
@@ -553,6 +573,14 @@ def main(argv=None):
         values.update(joint_args(args.method))
     arguments = [item for key, value in values.items() for item in (f'--{key}', str(value))] + args.extra
     model, dataset, native = build(arguments, args.method, args.eval_batch_size)
+    if args.matched_axis:
+        if (native.fitting_mode != 'epochs' or native.debug_mode or native.joint
+                or native.loadcheck is not None or native.start_from not in (None, 0)
+                or native.n_epochs != args.epochs or native.batch_size != args.batch_size
+                or native.dataset != args.dataset or native.model.replace('_', '-') != args.method
+                or native.coda_vit_size != 'tiny' or native.virtual_bs_iterations != 1
+                or native.label_perc != 1 or native.label_perc_by_class != 1):
+            raise ValueError('Matched axes requires fresh, fully labeled, full-epoch CODA-Tiny training with the declared batch/epoch settings')
     if switching and len(args.schedule) != dataset.N_TASKS:
         raise ValueError(f'The budget path has {len(args.schedule)} degrees for {dataset.N_TASKS} tasks')
 
@@ -591,12 +619,16 @@ def main(argv=None):
               'cost': None if switching or mixing or own else shape_cost(
                   args.resolution or controller.native or 224, args.degree, encoder.embed_dim, len(encoder.blocks)),
               'native_arguments': arguments}
+    if args.matched_axis:
+        config['matched_axis'] = args.matched_axis
+        config['matched_axis_protocol'] = 'high-budget-only-v1'
     (run / 'config.json').write_text(json.dumps(config, indent=2) + '\n')
     (run / 'provenance.json').write_text(json.dumps({
         'commit': commit, 'dirty': dirty, 'family': family, 'backbone_canonical_sha256': digest,
         'pretrained_file_sha256': spec['sha256'], 'tocom_official_commit': OFFICIAL_COMMIT,
         'banks': bank_records, 'torch': str(torch.__version__), 'device': str(model.device),
-        'started_at_unix': time.time()}, indent=2) + '\n')
+        'started_at_unix': time.time(),
+        **({'initial_state_sha256': state_digest(model.net)} if args.matched_axis else {})}, indent=2) + '\n')
     mirror = Mirror(run, args.wandb, experiment_name(args.output), config, {
         'epochs': args.epochs, 'batch_size': args.batch_size, 'eval_batch_size': args.eval_batch_size,
         'commit': commit, 'dirty': dirty,
@@ -610,6 +642,7 @@ def main(argv=None):
 
     # The budget of the task being learned: the degree of its path, or the training degree.
     budget = [args.degree]
+    matched_plan = [None]
 
     def meta_begin_task(evaluated):
         # A budget path: the task about to be learned (with whatever its method runs when a task begins)
@@ -618,6 +651,12 @@ def main(argv=None):
         budget[0] = valid_degree(args.schedule[len(records)])
         resolution, degree = budget_shape(args.budget_shapes, budget[0])
         controller.default_degree, controller.default_resolution = degree, controller.check_resolution(resolution)
+        if args.matched_axis:
+            loader = evaluated.train_loader
+            if loader.drop_last or loader.batch_size is None or len(loader.sampler) != len(loader.dataset):
+                raise ValueError('Matched axes requires the whole task with fixed-size, non-dropping batches')
+            matched_plan[0] = MatchedAxesPlan(args.matched_axis, args.seed, len(records), budget[0],
+                                               len(loader.dataset), native.n_epochs, loader.batch_size)
         native_begin_task(evaluated)
 
     # Mixed degrees: a generator of its own, so that the draws leave every other random stream as it was.
@@ -655,7 +694,8 @@ def main(argv=None):
                     controller.default_degree = level
                     steps[level] += 1
         try:
-            loss = native_observe(*inputs, **keywords)
+            loss = (matched_plan[0].observe(controller, native_observe, *inputs, **keywords) if args.matched_axis
+                    else native_observe(*inputs, **keywords))
         finally:
             if mixing:
                 controller.default_degree, controller.default_resolution = base, resolution
@@ -677,6 +717,12 @@ def main(argv=None):
             record['degree'] = controller.default_degree
             if args.budget_shapes:
                 record['budget'], record['resolution'] = budget[0], controller.resolution or controller.native
+        if args.matched_axis:
+            if (controller.resolution or controller.native, controller.default_degree) != (224, budget[0]):
+                raise RuntimeError('Matched-axis task boundary did not restore the common shape')
+            record['matched_axis'] = matched_plan[0].finish()
+            record['mix_steps'] = record['matched_axis']['shape_steps']
+            record['budget'], record['resolution'] = budget[0], 224
         if mixing:
             keys = ([shape_label(*shape) for shape in shape_pool(args.shape_pool, 0)] if flat else
                     [shape_label(*shape) for level in sorted(set(args.mix)) for shape in pool[level]] if args.mix_shapes
